@@ -1,0 +1,3 @@
+Path to qlua: /opt/usqcd-20170804/macosx-20170804
+
+Currently the command qlua is aliased to /opt/usqcd-20170804/macosx-20170804/qlua/bin/qlua

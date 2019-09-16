@@ -1,0 +1,122 @@
+require "stdlib"
+
+L = qcd.lattice{4, 4, 4, 8}
+volume = 1
+for i = 0, #L - 1 do
+  volume = volume * L[i]
+end
+Nc = 3    -- qcd.Nc
+
+function toSUn(X)    -- Project a matrix onto SU(N)
+  local Y = (X - X:adjoin()) / 2    -- anti-hermitian part
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
+end
+
+function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
+  return toSUn(L, .1 * S:gaussian_ColorMatrix())
+end
+
+function strong_SUn(L, S)
+  local v = weak_SUn(L, S)
+  for i = 1, 100 do -- multiply a lot of small SU(n) matrices, then re project
+    v = v * weak_SUn(L, S)
+  end
+  return v:proj(1e-6, 150)
+end
+
+function plaquette(U, i, j)   -- U is the gauge field configuration, i = \hat{\mu}, j = \hat{\nu}
+  local Ui = U[j + 1]:shift(i, "from_forward")
+  local Uj = U[i + 1]:shift(j, "from_forward")
+  local Pij = (U[i + 1] * Ui * Uj:adjoin() * U[j + 1]:adjoin()):trace():real()
+  return Pij:sum() / (vol * Nc)
+end
+
+-- random generator used to create gauge field
+r = { }
+do
+  r.x = os.random()
+  local x = L:Int(r.x)
+  for i = 0, #L - 1 do
+    r[i+1] = os.random()
+    x = x * L[i] + L:pcoord(i) * r[i+1]
+  end
+  r.f = os.random()
+  S = L:RandomState(r.f, x)
+end
+
+-- Construct random gauge field
+function getRandomColorMatrix(L, S)
+  Un = {}
+  for i = 0, #L - 1 do
+    Un[i + 1] = toSUn(.3 * S:gaussian_ColorMatrix())
+  end
+  return Un
+end
+
+function initGaugeField(L, S)
+  W = {}
+  for x = 0, L[0] do
+    for y = 0, L[1] do
+      for z = 0, L[2] do
+        for t = 0, L[3] do
+          -- W[{x, y, z, t}] = getRandomColorMatrix(L, S)
+          W[{x, y, z, t}] = U
+        end
+      end
+    end
+  end
+  return U
+end
+
+-- Here U is only a single matrix, so why is it ok to use it to compute the
+-- Dirac operator... doesn't it need to be a field?
+U = getRandomColorMatrix(L, S)
+
+-- Hopping parameters
+m_u = 2   -- in MeV-- what units should I use here?
+m_d = 4.8
+kappa_u = 1 / (2 * m_u + 8)
+kappa_d = 1 / (2 * m_d + 8)
+kappa = .071    -- generic hopping parameter
+
+-- Construct propagators. Need the inverse of the Dirac operator, so will
+   -- use solvers, which the Clover object contains.
+c_sw = 1.0      -- Sheikholeslami-Wohlert coefficient for clover term
+bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
+
+CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
+solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
+
+CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
+solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
+
+src = L:DiracPropagator()
+Nc = src:colors()
+for ic = 0, Nc - 1 do -- loop over color indices
+  for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
+    local dv = L:DiracFermion()
+    dv[{0, 0, 0, 0, c = ic, d = is}] = complex(1, 0)
+    src[{c = ic, d = is}] = dv
+  end
+end
+
+uProp = solveU(src)  -- D_u(n|m)^-1
+dProp = solveD(src)  -- D_d(n^m)^-1
+
+-- figure out syntax to trace over all indices
+corrPion = - (uProp * dProp:conj()):spintrace():trace()
+-- Either multiply this by det(D_u) and det(D_d), or use quenched approximation
+-- How do you get the determinant of the Dirac operator?
+-- detDu = CL_u:D(src):det()
+-- detDd = Cl_d:D(src):det()
+
+-- now use Monte Carlo to integrate this over the gauge field. Have to iterate
+    -- through gauge field configurations to sample P(U) = e^-S * corr_pi * detD_u * detD_d
+
+W = initGaugeField(L, S)
+-- Do I need to initialize a gauge field like this? What is the code above for
+    -- U doing? Isn't U just a single element of the SU(3)? Shouldn't I need a
+    -- field valued in SU(3) to use to compute D and to do Monte Carlo?
+
+-- loop through iterations until convergencce
+-- loop through n in the lattice

@@ -1,0 +1,93 @@
+require "stdlib"
+
+P_L = (1 - gamma{mu = 5}) / 2
+printf("Left projector = %s\n", tostring(P_L))
+
+-- initialize lattice size
+L = qcd.lattice{8, 8, 8}
+printf("Lattice rank=%d\n", #L)
+for i = 0, #L - 1 do
+  printf("Dimension %d has %d lattice points\n", i, L[i])
+end
+
+vol = 1    -- compute volume of lattice
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+do
+  local r = L:Int(os.random())    -- initialize a random integer field on L
+  for i = 0, #L - 1 do
+    r = r * L[i] + L:pcoord(i)     -- why do we need to do this if r is already randomized?
+  end
+  S = L:RandomState(os.random(), r)    -- random state generator with random seed
+end
+
+Nc = 3    -- Nc = qcd.Nc
+
+function toSUn(L, X)    -- Project a matrix onto SU(N)
+  local Y = (X - X:adjoin()) / 2    -- anti-hermitian part
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
+end
+
+function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
+  return toSUn(L, .1 * S:gaussian_ColorMatrix())
+end
+
+function strong_SUn(L, S)
+  local v = weak_SUn(L, S)
+  for i = 1, 100 do -- multiply a lot of small SU(n) matrices, then re project
+    v = v * weak_SUn(L, S)
+  end
+  return v:proj(1e-6, 150)
+end
+
+function plaquette(U, i, j)   -- U is the gauge field configuration, i = \hat{\mu}, j = \hat{\nu}
+  -- always index at i + 1 or j + 1 because i, j are from 0 to #L - 1, while U indexes from
+  -- 1 to #L (so U_1 = U_x, U_2 = U_y, U_3 = U_t for 3-dim)
+  local Ui = U[j + 1]:shift(i, "from_forward")  -- Shifts to U(n + \hat{\mu})
+  local Uj = U[i + 1]:shift(j, "from_forward")  -- Shifts to U(n + \hat{\nu})
+  local Pij = (U[i + 1] * Ui * Uj:adjoin() * U[j + 1]:adjoin()):trace():real()
+  -- Pij = trace(U_\mu\nu), U_\mu\nu = U_\mu(n) U_\nu(n + \mu) U_\mu(n + \nu)^\dagger U_\nu(n)^\dagger
+  -- Note the correspondences here:
+  -- \mu <--> i + 1, \nu <--> j + 1
+  -- U_\mu(n) <--> U[i + 1] (because \mu <--> i + 1, and not shifting leaves the field at n)
+  -- U_\nu(n + \mu) <--> Ui (because we have shifted it in the i (\mu) direction and indexed at \nu <--> j + 1)
+  -- U_\mu(n + \nu)^\dagger <--> Uj:adjoin()
+  -- U_\nu(n)^\dagger <--> U[j + 1]:adjoin()
+  return Pij:sum() / (vol * Nc)
+end
+
+function run_test(name, U)
+  printf("plaquette test case: %s\n", name)
+  local s = 0
+  local k = 0
+  for i in interval(0, #L-1) do    -- index over all directions on the lattice
+    for j in skip(i, interval(0, #L-1)) do    -- don't index over i, because \mu\neq\nu
+      local sij = plaquette(U, i, j)
+      printf("  plaq[%d, %d] = %20.10f\n", i, j, sij)
+      s = s + sij
+      k = k + 1
+    end
+  end
+  printf("average plaquette %20.10f\n\n", s / k);
+end
+
+-- run for a weak gauge field
+W = {}
+for i = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
+  W[i+1] = weak_SUn(L, S)
+end
+run_test("weak field", W)
+
+-- Structure of gauge field object U:
+-- U[i + 1] gets the color matrix on the link in direction \mu = i + 1
+-- By default, U[i + 1] will only get you the value of the field on the links attached
+    -- to the site you are at, i.e. only U_\mu(n). You can change \mu but not n.
+-- To move to a different site to access its link variables, you can
+    -- use U[i + 1]:shift(j, "from_forward"). The from_forward will shift you a site
+    -- over in the \nu = j + 1 direction.
+
+printf("%d\n", #L)    -- W[1], W[2], W[3] has color matrices
+
+printf("%d\n", qcd.Ns)    -- qcd.Ns = number of spinor indices. 
