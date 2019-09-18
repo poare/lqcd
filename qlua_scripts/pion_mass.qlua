@@ -53,67 +53,81 @@ function getRandomColorMatrix(L, S)
   return Un
 end
 
-function initGaugeField(L, S)
-  W = {}
-  for x = 0, L[0] do
-    for y = 0, L[1] do
-      for z = 0, L[2] do
-        for t = 0, L[3] do
-          -- W[{x, y, z, t}] = getRandomColorMatrix(L, S)
-          W[{x, y, z, t}] = U
-        end
-      end
+function init_zero_field(L, Nc, U)
+  for mu = 0, #L - 1 do
+    local A = L:ColorMatrixN(Nc, 0.0)
+    U[mu+1] = (A*complex(0,1)):exp()
+  end
+end
+
+function initGaugeField(L, Nc, U)
+  init_zero_field(L, Nc, U)
+end
+
+-- init identity gauge field
+U = {}
+initGaugeField(L, Nc, U)
+-- TODO start the loop here after I initialize the gauge field.
+
+C = 0    -- sum up value of <...> for all gauge field configs
+nItr = 100
+for i = 0, nItr do
+
+  -- TODO update the gauge field configuration
+
+  -- Here U is only a single matrix, so why is it ok to use it to compute the
+  -- Dirac operator... doesn't it need to be a field?
+  -- U = getRandomColorMatrix(L, S)
+
+  -- Hopping parameters
+  m_u = 2   -- in MeV-- what units should I use here?
+  m_d = 4.8
+  kappa_u = 1 / (2 * m_u + 8)
+  kappa_d = 1 / (2 * m_d + 8)
+  kappa = .071    -- generic hopping parameter
+
+  -- Construct propagators. Need the inverse of the Dirac operator, so will
+     -- use solvers, which the Clover object contains.
+  c_sw = 1.0      -- Sheikholeslami-Wohlert coefficient for clover term
+  bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
+
+  CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
+  solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
+
+  CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
+  solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
+
+  src = L:DiracPropagator()
+  Nc = src:colors()
+  for ic = 0, Nc - 1 do -- loop over color indices
+    for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
+      local dv = L:DiracFermion()
+      dv[{0, 0, 0, 0, c = ic, d = is}] = complex(1, 0)
+      src[{c = ic, d = is}] = dv
     end
   end
-  return U
+
+  uProp = solveU(src)  -- D_u(n|m)^-1
+  dProp = solveD(src)  -- D_d(n^m)^-1
+
+  -- figure out syntax to trace over all indices
+  corrPion = - (uProp * dProp:conj()):spintrace():trace()
+  -- Either multiply this by det(D_u) and det(D_d), or use quenched approximation
+  -- How do you get the determinant of the Dirac operator?
+  -- detDu = CL_u:D(src):det()
+  -- detDd = Cl_d:D(src):det()
+  C = C + corrPion
 end
 
--- Here U is only a single matrix, so why is it ok to use it to compute the
--- Dirac operator... doesn't it need to be a field?
-U = getRandomColorMatrix(L, S)
+CAvg = C / nItr
 
--- Hopping parameters
-m_u = 2   -- in MeV-- what units should I use here?
-m_d = 4.8
-kappa_u = 1 / (2 * m_u + 8)
-kappa_d = 1 / (2 * m_d + 8)
-kappa = .071    -- generic hopping parameter
 
--- Construct propagators. Need the inverse of the Dirac operator, so will
-   -- use solvers, which the Clover object contains.
-c_sw = 1.0      -- Sheikholeslami-Wohlert coefficient for clover term
-bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
-
-CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
-solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
-
-CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
-solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
-
-src = L:DiracPropagator()
-Nc = src:colors()
-for ic = 0, Nc - 1 do -- loop over color indices
-  for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
-    local dv = L:DiracFermion()
-    dv[{0, 0, 0, 0, c = ic, d = is}] = complex(1, 0)
-    src[{c = ic, d = is}] = dv
-  end
-end
-
-uProp = solveU(src)  -- D_u(n|m)^-1
-dProp = solveD(src)  -- D_d(n^m)^-1
-
--- figure out syntax to trace over all indices
-corrPion = - (uProp * dProp:conj()):spintrace():trace()
--- Either multiply this by det(D_u) and det(D_d), or use quenched approximation
--- How do you get the determinant of the Dirac operator?
--- detDu = CL_u:D(src):det()
--- detDd = Cl_d:D(src):det()
+-- printf("%d\n", U[1])
+print(qcd.dot(U[1], U[2]))
 
 -- now use Monte Carlo to integrate this over the gauge field. Have to iterate
     -- through gauge field configurations to sample P(U) = e^-S * corr_pi * detD_u * detD_d
 
-W = initGaugeField(L, S)
 -- Do I need to initialize a gauge field like this? What is the code above for
     -- U doing? Isn't U just a single element of the SU(3)? Shouldn't I need a
     -- field valued in SU(3) to use to compute D and to do Monte Carlo?
