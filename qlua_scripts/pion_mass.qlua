@@ -53,6 +53,17 @@ function getRandomColorMatrix(L, S)
   return Un
 end
 
+function show_color_mat(U)
+  local Nc = U:colors()
+  for a = 0, Nc-1 do
+    for b = 0, Nc-1 do
+      local elt = U[{a=a,b=b}]
+      printf("%.6f %+.6f\t", elt:real(), elt:imag())
+    end
+    printf("\n")
+  end
+end
+
 function init_zero_field(L, Nc, U)
   for mu = 0, #L - 1 do
     local A = L:ColorMatrixN(Nc, 0.0)
@@ -70,7 +81,7 @@ initGaugeField(L, Nc, U)
 -- TODO start the loop here after I initialize the gauge field.
 
 C = 0    -- sum up value of <...> for all gauge field configs
-nItr = 100
+nItr = 1  -- 100
 for i = 0, nItr do
 
   -- TODO update the gauge field configuration
@@ -123,7 +134,8 @@ CAvg = C / nItr
 
 
 -- printf("%d\n", U[1])
-print(qcd.dot(U[1], U[2]))
+-- print(qcd.dot(U[1], U[2]))
+print(show_color_mat(U[1]))
 
 -- now use Monte Carlo to integrate this over the gauge field. Have to iterate
     -- through gauge field configurations to sample P(U) = e^-S * corr_pi * detD_u * detD_d
