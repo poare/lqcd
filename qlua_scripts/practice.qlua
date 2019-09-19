@@ -15,12 +15,13 @@ for i = 0, #L - 1 do
   vol = vol * L[i]
 end
 
+-- initialize random object generator on the lattice
 do
-  local r = L:Int(os.random())    -- initialize a random integer field on L
+  local r = L:Int(os.random())
   for i = 0, #L - 1 do
-    r = r * L[i] + L:pcoord(i)     -- why do we need to do this if r is already randomized?
+    r = r * L[i] + L:pcoord(i)
   end
-  S = L:RandomState(os.random(), r)    -- random state generator with random seed
+  S = L:RandomState(os.random(), r)
 end
 
 Nc = 3    -- Nc = qcd.Nc
@@ -90,4 +91,19 @@ run_test("weak field", W)
 
 printf("%d\n", #L)    -- W[1], W[2], W[3] has color matrices
 
-printf("%d\n", qcd.Ns)    -- qcd.Ns = number of spinor indices. 
+printf("%d\n", qcd.Ns)    -- qcd.Ns = number of spinor indices.
+
+function show_color_mat(U)
+  local Nc = U:colors()
+  for a = 0, Nc-1 do
+    for b = 0, Nc-1 do
+      local elt = U[{a=a,b=b}]
+      printf("%.6f %+.6f\t", elt:real(), elt:imag())
+    end
+    printf("\n")
+  end
+end
+
+staples = L:ColorMatrixN(Nc, 0.0)
+
+show_color_mat(staples[{0, 0, 0}])
