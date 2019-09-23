@@ -1,0 +1,82 @@
+-- This code will read in a text file that contains a Dirac fermion
+-- and it will store the output to a lattice fermion in QLua
+-- Order of indices: x, y, z, t, a, alpha (a = color, alpha = spin)
+
+text_reader = {}
+
+function text_reader.read_fermion(filename, Lx, Lt, Nc, Ns, fermion, imag)
+  local counter = 0
+  local x, y, z, t, a, alpha
+  for line in io.lines(filename) do
+    local temp = counter
+    local value = tonumber(line)
+    a = temp % Nc
+    temp = temp - a
+    temp = temp / Nc
+    alpha = temp % Ns
+    temp = temp - alpha
+    temp = temp / Ns
+    x = temp % Lx
+    temp = temp - x
+    temp = temp / Lx
+    y = temp % Lx
+    temp = temp - y
+    temp = temp / Lx
+    z = temp % Lx
+    temp = temp - z
+    temp = temp / Lx
+    t = temp
+    -- if temp >= Lt, this is bad
+    assert (temp < Lt)
+    local comp_value
+    if imag then
+      comp_value = complex(0, value)
+    else
+      comp_value = complex(value, 0)
+    end
+    fermion[{x,y,z,t,c=a,d=alpha}] = fermion[{x,y,z,t,c=a,d=alpha}] + comp_value
+    counter = counter + 1
+  end
+end
+
+-- This code will read in a text file that contains a field of color matrices
+-- Possibly these are gauge fields but this could be used for other things too (conjugate momenta)
+-- and it will store the output to a lattice fermion in QLua
+-- Order of indices: x, y, z, t, mu, a, alpha (a = color, alpha = spin)
+function text_reader.read_gauge(filename, Lx, Lt, Nd, Nc, U, imag)
+  local counter = 0
+  local x, y, z, t, mu, a, b
+  for line in io.lines(filename) do
+    local temp = counter
+    local value = tonumber(line)
+    b = temp % Nc
+    temp = temp - b
+    temp = temp / Nc
+    a = temp % Nc
+    temp = temp - a
+    temp = temp / Nc
+    x = temp % Lx
+    temp = temp - x
+    temp = temp / Lx
+    y = temp % Lx
+    temp = temp - y
+    temp = temp / Lx
+    z = temp % Lx
+    temp = temp - z
+    temp = temp / Lx
+    t = temp % Lt
+    temp = temp - t
+    temp = temp / Lt
+    mu = temp
+    -- if temp >= Nd, this is bad
+    assert (temp < Nd)
+    local comp_value
+    if imag then
+      comp_value = complex(0, value)
+    else
+      comp_value = complex(value, 0)
+    end
+    U[mu+1][{x,y,z,t,a=a,b=b}] = U[mu+1][{x,y,z,t,a=a,b=b}] + comp_value
+    counter = counter + 1
+  end
+end

@@ -105,5 +105,9 @@ function show_color_mat(U)
 end
 
 staples = L:ColorMatrixN(Nc, 0.0)
+printf("\n\n")
 
 show_color_mat(staples[{0, 0, 0}])
+
+rand = qcd.gaussian_ColorMatrix()
+show_color_mat(rand)

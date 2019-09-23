@@ -1,0 +1,46 @@
+require "lib/musing"
+require "lib/text_reader"
+
+-- Convert text ColorMatrix to hdf5. Assumes real/imag text files are at paths
+-- text_prefix.."_re.dat" and text_prefix.."_im.dat".
+local function convert_gauge_text_to_hdf5(text_prefix, hdf5_path, hdf5_prefix, Lx, Lt, Nd, Nc)
+   local Ls = {}
+   for mu = 1, Nd-1 do
+      Ls[mu] = Lx
+   end
+   Ls[Nd] = Lt
+   L = qcd.lattice(Ls)
+   local U = {}
+   for mu = 1, Nd do
+      U[mu] = L:ColorMatrixN(Nc)
+   end
+   local re_path = text_prefix.."_re.dat"
+   print("Reading "..re_path)
+   text_reader.read_gauge(re_path, Lx, Lt, Nd, Nc, U, false)
+   local im_path = text_prefix.."_im.dat"
+   print("Reading "..im_path)
+   text_reader.read_gauge(im_path, Lx, Lt, Nd, Nc, U, true)
+   local hdf5_params = { method = "phdf5" }
+   print("Writing "..hdf5_path)
+   local h5_writer = qcd.hdf5.Writer(hdf5_path, hdf5_params)
+   h5_save_cfg(h5_writer, hdf5_prefix, U)
+   h5_writer:close()
+end
+
+-- NOTE: Must be dispatched with misc/run_qlua.sh to get command-line args
+assert(args ~= nil)
+local function usage(name)
+   printf("Usage: %s text_path_prefix hdf5_path hdf5_prefix Lx Lt Nd Nc\n", name)
+end
+if #args ~= 7 then
+   usage(args[0])
+else
+   local text_path = args[1]
+   local hdf5_path = args[2]
+   local hdf5_prefix = args[3]
+   local Lx = tonumber(args[4])
+   local Lt = tonumber(args[5])
+   local Nd = tonumber(args[6])
+   local Nc = tonumber(args[7])
+   convert_gauge_text_to_hdf5(text_path, hdf5_path, hdf5_prefix, Lx, Lt, Nd, Nc)
+end

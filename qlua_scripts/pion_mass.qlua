@@ -12,8 +12,13 @@ function toSUn(L, X)    -- Project a matrix onto SU(N)
   return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
 end
 
-function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
+function weak_SUn(L, S)    -- Generate a SU(N) field close to 1
   return toSUn(L, .1 * S:gaussian_ColorMatrix())
+end
+
+-- TODO figure out how to generate random color matrices
+function weakSingleSUn()
+  return toSUnSingle(.1 * qcd.ColorMatrix())    -- need an analog of S:gaussian_ColorMatrix
 end
 
 function strong_SUn(L, S)
@@ -88,14 +93,11 @@ function show_color_mat(U)
   end
 end
 
---
 function computeLocalDeltaS(U, UPrimeMu, mu, x, y, z, t, Nc)
   beta = 1    -- TODO what to do for beta? beta = 2N / g^2
   dU = UPrimeMu[{x, y, z, t}] - U[mu + 1][{x, y, z, t}]
-  -- TODO should the dS be real?
   return (-1) * beta / Nc * (dU * getStaple(U, mu, x, y, z, t)):trace():real()
 end
---]]
 
 function init_zero_field(L, Nc, U)
   for mu = 0, #L - 1 do
@@ -104,13 +106,39 @@ function init_zero_field(L, Nc, U)
   end
 end
 
+-- Initialize gauge field from HMC run.
 function initGaugeField(L, Nc, U)
-  init_zero_field(L, Nc, U)
+  -- init_zero_field(L, Nc, U)
+  -- TODO initialize field
+  -- local cfgbase = string.format("su%d_cl_b%.2f_k%.4f_u%.3f_%d_%d_%d_%d", Nc, beta, kappa, u0, Lx, Lx, Lx, Lt)
+  local configNum = 5
+  local i0 = 1000    -- what is this?
+  local cfgbase = "test_configs"
+  -- local cfghdf5 = string.format("~/lqcd/configs/"..cfgbase.."/"..cfgbase.."_cfg_%d.h5", configNum)
+  -- local cfgbaseh5 = string.format(cfgbase.."/cfg/%d", configNum)
+  local hdf5params = { method = "phdf5" }
+
+  local U = {}
+  -- local name = string.format(cfghdf5, i0)
+  local name = string.format("configs/test_configs.hdf5")
+  print(name)
+  local h5_reader = qcd.hdf5.Reader(name, hdf5params)
+  h5_reader:read("configs")
+
+
+  for mu = 0, #L - 1 do
+     U[mu+1] = h5_reader:read(string.format(cfgbaseh5,i0).."/mu"..tostring(mu), {lattice=L})
+  end
 end
 
--- init identity gauge field
+-- h5_reader = qcd.hdf5.Reader('~/lqcd/configs/test_configs.hdf5', {method = "phdf5"})
+-- local h5_reader = qcd.hdf5.Reader('test_configs.hdf5', {method = "phdf5"})
+
 U = {}
 initGaugeField(L, Nc, U)
+
+-- Number of links in t dimension to compute Wilson loop
+n_t = 4
 
 -- computes the pion interpolator for a single configuration of gauge field U.
 function computePionInterpolator(L, U)
@@ -126,18 +154,22 @@ function computePionInterpolator(L, U)
   c_sw = 1.0      -- Sheikholeslami-Wohlert coefficient for clover term
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
+  n_t = 4
+
   CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
   solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
 
   CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
   solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
 
+  -- TODO figure out how to put a sink at {0, 0, 0, n_t}
   src = L:DiracPropagator()
   Nc = src:colors()
   for ic = 0, Nc - 1 do -- loop over color indices
     for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
       local dv = L:DiracFermion()
       dv[{0, 0, 0, 0, c = ic, d = is}] = complex(1, 0)
+      dv[{0, 0, 0, n_t, c = ic, d = is}] = complex(1, 0)    -- TODO is this right?
       src[{c = ic, d = is}] = dv
     end
   end
@@ -149,7 +181,7 @@ function computePionInterpolator(L, U)
 end
 
 C = 0    -- sum up value of <...> for all gauge field configs
-nItr = 1  -- 100
+nItr = 10  -- 100
 nSweep = 10    -- how many times to update each lattice site per sweep
 nMeasured = 0
 beta = 1  -- QCD coupling, TODO
@@ -180,7 +212,7 @@ for i = 0, nItr do
               local dU = UPrimeMu - U1
               local dS = (-1) * beta / Nc * (dU * A):trace():real()
 
-              if dS < r then
+              if r < math.exp(dS) then
                 U[mu + 1][{x, y, z, t}] = UPrimeMu
               end
             end
