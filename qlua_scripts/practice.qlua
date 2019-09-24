@@ -4,16 +4,17 @@ P_L = (1 - gamma{mu = 5}) / 2
 printf("Left projector = %s\n", tostring(P_L))
 
 -- initialize lattice size
-L = qcd.lattice{8, 8, 8}
+L = qcd.lattice{4, 4, 4, 4}
 printf("Lattice rank=%d\n", #L)
 for i = 0, #L - 1 do
   printf("Dimension %d has %d lattice points\n", i, L[i])
 end
 
 vol = 1    -- compute volume of lattice
-for i = 0, #L - 1 do
+for i = 0, #L - 2 do
   vol = vol * L[i]
 end
+hypervolume = vol * L[#L - 1]
 
 -- initialize random object generator on the lattice
 do
@@ -107,7 +108,63 @@ end
 staples = L:ColorMatrixN(Nc, 0.0)
 printf("\n\n")
 
-show_color_mat(staples[{0, 0, 0}])
+show_color_mat(staples[{0, 0, 0, 0}])
 
-rand = qcd.gaussian_ColorMatrix()
-show_color_mat(rand)
+field = L:pcoord(3)
+n_t = 3
+-- want to sum spatial components of field on the n_t timeslice.
+summed = field:sum(L:MultiSet(L[3], L:pcoord(3)))
+print(summed[n_t])   -- should be vol * n_t
+
+function old_code()
+  n_t = 4    -- Number of links in t dimension to compute Wilson loop
+  C = 0    -- sum up value of <...> for all gauge field configs
+  nItr = 1  -- Do 10
+  nSweep = 10    -- how many times to update each lattice site per sweep
+  nMeasured = 0    -- number of running measurements
+  beta = 5.7  -- Get it from the file name
+  for i = 0, nItr do
+    for mu = 0, #L - 1 do
+      -- initialize weak color matrix field
+      --[[
+      X = weak_SUn(L, S)    -- Random color matrix field
+      UPrimeMu = U[mu + 1] * X    -- evaluated at every lattice point
+      --]]
+      for x = 0, L[0] - 1 do
+        for y = 0, L[1] - 1 do
+          for z = 0, L[2] - 1 do
+            for t = 0, L[3] - 1 do
+              -- screen the update to see if we should keep it
+              local A = getStaple(U, mu, x, y, z, t)
+              local X = weak_SUn(L, S)
+              --[[ TODO: how do you generate a single color matrix and not an
+              entire field of matrices? Right now I'm generating X as a color matrix
+              field and picking its elements, it seems very inefficient though. ]]
+              for k = 0, nSweep do
+                --literally just pick a matrix out of the matrix field
+                local r = math.random()
+                if k < L[0] then coord = {k, 0, 0, 0} else coord = {0, 0, 0, k - L[0] + 1} end
+                local X1 = X[coord]
+                local U1 = U[mu + 1][{x, y, z, t}]
+                local UPrimeMu = X1 * U1
+                local dU = UPrimeMu - U1
+                local dS = (-1) * beta / Nc * (dU * A):trace():real()
+
+                if r < math.exp(dS) then
+                  U[mu + 1][{x, y, z, t}] = UPrimeMu
+                end
+              end
+              --[[
+              for k = 0, nSweep do
+                r = math.random()
+                dS = computeLocalDeltaS(U, UPrimeMu, mu, x, y, z, t, Nc)
+                if dS < r then
+                  U[mu + 1][{x, y, z, t}] = UPrimeMu[{x, y, z, t}]
+                end
+              end
+              --]]
+            end
+          end
+        end
+      end
+end

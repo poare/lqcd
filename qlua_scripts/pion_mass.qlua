@@ -89,12 +89,6 @@ function init_zero_field(L, Nc, U)
   end
 end
 
-function write_to_file(filename, n, C)
-  file = io.open(filename, "a")
-  file:write(string.format("%d | %s\n", n, C))
-  file:close()
-end
-
 function read_gauge(filename, Lx, Lt, Nd, Nc, U, imag)
   local counter = 0
   local x, y, z, t, mu, a, b
@@ -135,9 +129,7 @@ function read_gauge(filename, Lx, Lt, Nd, Nc, U, imag)
 end
 
 -- Initialize gauge field from HMC run.
-function initGaugeField(L, Nc, U)
-  local configNum = 0    -- check cfgbase folder to see how many configs available
-  local cfgbase = "su3_w_b5.70_N5_skip10_therm100_4_4_4_8"
+function initGaugeField(L, Nc, U, cfgbase, configNum)
   local filename_real = string.format("%s/%s_realconfig%d.txt", cfgbase, cfgbase, configNum)
   local filename_imag = string.format("%s/%s_imagconfig%d.txt", cfgbase, cfgbase, configNum)
 
@@ -149,7 +141,7 @@ function initGaugeField(L, Nc, U)
 end
 
 -- computes the pion interpolator for a single configuration of gauge field U.
-function computePionInterpolator(L, U, n_t)
+function computePionInterpolator(L, U, vol)
   -- Hopping parameters
   m_u = 2   -- in MeV-- what units should I use here?
   m_d = 4.8
@@ -168,22 +160,25 @@ function computePionInterpolator(L, U, n_t)
   CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
   solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
 
-  -- TODO figure out how to put a sink at {0, 0, 0, n_t}
   src = L:DiracPropagator()
   Nc = src:colors()
   for ic = 0, Nc - 1 do -- loop over color indices
     for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
       local dv = L:DiracFermion()
       dv[{0, 0, 0, 0, c = ic, d = is}] = complex(1, 0)
-      dv[{0, 0, 0, n_t, c = ic, d = is}] = complex(1, 0)    -- TODO is this right?
       src[{c = ic, d = is}] = dv
     end
   end
 
   uProp = solveU(src)  -- D_u(n|m)^-1
-  dProp = solveD(src)  -- D_d(n^m)^-1
+  dProp = solveD(src)  -- D_d(n|m)^-1
 
-  return (-1) * (uProp * dProp:conj()):spintrace():trace():sum()
+  corr = (-1) * (uProp * dProp:conj()):spintrace():trace()
+  corr_normalized = corr / math.sqrt(vol)
+
+  -- sum this lattice field on the time slice n_t. Gives back a vector
+  p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
+  return p_proj
 end
 
 ------------------------------------------------------------------
@@ -191,10 +186,12 @@ end
 ------------------------------------------------------------------
 
 L = qcd.lattice{4, 4, 4, 8}
-volume = 1
-for i = 0, #L - 1 do
+volume = 1    -- spatial volume
+for i = 0, #L - 2 do
   volume = volume * L[i]
 end
+hypervolume = volume * L[3]
+
 Nc = 3    -- qcd.Nc
 
 -- random generator used to create gauge field
@@ -210,75 +207,41 @@ do
   S = L:RandomState(r.f, x)
 end
 
-U = {}
-initGaugeField(L, Nc, U)
-
-n_t = 4    -- Number of links in t dimension to compute Wilson loop
-C = 0    -- sum up value of <...> for all gauge field configs
-nItr = 1  -- Do 10
-nSweep = 10    -- how many times to update each lattice site per sweep
-nMeasured = 0    -- number of running measurements
+C = {}    -- C is an array, C[n_t] is the correlator projected to 0 momentum on the n_t time slice
+for n_t = 0, L[3] - 1 do
+  C[n_t] = 0
+end
+cfgbase = "su3_w_b5.70_N5_skip10_therm100_4_4_4_8"    -- folder to find configs in
+nCfgs = 5  -- Number of configurations to run with
 beta = 5.7  -- Get it from the file name
-for i = 0, nItr do
-  for mu = 0, #L - 1 do
-    -- initialize weak color matrix field
-    --[[
-    X = weak_SUn(L, S)    -- Random color matrix field
-    UPrimeMu = U[mu + 1] * X    -- evaluated at every lattice point
-    --]]
-    for x = 0, L[0] - 1 do
-      for y = 0, L[1] - 1 do
-        for z = 0, L[2] - 1 do
-          for t = 0, L[3] - 1 do
-            -- screen the update to see if we should keep it
-            local A = getStaple(U, mu, x, y, z, t)
-            local X = weak_SUn(L, S)
-            --[[ TODO: how do you generate a single color matrix and not an
-            entire field of matrices? Right now I'm generating X as a color matrix
-            field and picking its elements, it seems very inefficient though. ]]
-            for k = 0, nSweep do
-              --literally just pick a matrix out of the matrix field
-              local r = math.random()
-              if k < L[0] then coord = {k, 0, 0, 0} else coord = {0, 0, 0, k - L[0] + 1} end
-              local X1 = X[coord]
-              local U1 = U[mu + 1][{x, y, z, t}]
-              local UPrimeMu = X1 * U1
-              local dU = UPrimeMu - U1
-              local dS = (-1) * beta / Nc * (dU * A):trace():real()
-
-              if r < math.exp(dS) then
-                U[mu + 1][{x, y, z, t}] = UPrimeMu
-              end
-            end
-            --[[
-            for k = 0, nSweep do
-              r = math.random()
-              dS = computeLocalDeltaS(U, UPrimeMu, mu, x, y, z, t, Nc)
-              if dS < r then
-                U[mu + 1][{x, y, z, t}] = UPrimeMu[{x, y, z, t}]
-              end
-            end
-            --]]
-          end
-        end
-      end
-    end
-    -- change placement based on how often we want to measure the configuration.
-    -- at some point can use autocorrelation to determine if we've swept enough.
-    nMeasured = nMeasured + 1
-    C = C + computePionInterpolator(L, U, n_t)
-    printf("Average C is: %s\n", tostring(C / nMeasured))
+for cfgIdx = 0, nCfgs - 1 do    -- compute correlator from each configuration
+  U = {}
+  initGaugeField(L, Nc, U, cfgbase, cfgIdx)
+  interpolator = computePionInterpolator(L, U, volume)
+  for n_t = 0, L[3] - 1 do
+    C[n_t] = C[n_t] + interpolator[n_t]
   end
+  printf("Configuration %d evaluated.\n", cfgIdx)
 end
 
---C = C + computeInterpolator(L, U)
-if nMeasured == 0 then nMeasured = 1 end
-CAvg = C / nMeasured
+CAvg = {}
+for n_t = 0, L[3] - 1 do
+  CAvg[n_t] = C[n_t] / nCfgs
+end
 
-printf("Interpolator evaluates to: %s\n", tostring(CAvg))
+folder = "test_pion_mass_output"
+filename = string.format("%s/%s_output.txt", folder, cfgbase)
+file = io.open(filename, "a")
+file:write(string.format("Sampled on %d configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
+        nCfgs, L[0], L[1], L[2], L[3], beta))
+printf("n_t | C[n_t]\n")
+file:write("n_t | C[n_t]\n")
 
-folder = "mass_test"
-file_base = "4_4_4_8"
-filename = string.format("%s/%s.txt", folder, file_base)
-write_to_file(filename, n_t, tostring(CAvg))
+for n_t = 0, L[3] - 1 do
+  message = string.format("%d | %f + i(%f)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
+  printf(message)
+  file:write(message)
+end
+
+file:close()
 printf("File written to: %s\n", filename)
