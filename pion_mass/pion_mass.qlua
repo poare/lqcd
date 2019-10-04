@@ -296,7 +296,7 @@ for n_t = 0, L[3] - 1 do
   CAvg[n_t] = C[n_t] / nCfgs
 end
 
-folder = "test_pion_mass_output"
+folder = "/home/poare/lqcd/pion_mass/test_pion_mass_output"
 filename = string.format("%s/%s_output.txt", folder, cfgbase)
 file = io.open(filename, "a")
 file:write(string.format("Sampled on %d configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
