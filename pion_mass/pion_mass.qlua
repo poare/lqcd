@@ -277,17 +277,19 @@ end
 cfgIdPath = '/home/poare/pion_mass/cfgIds/'
 -- cfgIdPath = '/Users/poare/lqcd/pion_mass/cfgIds/'
 cfgIds = getCfgIds(cfgIdPath, cfgbase)
+nCfgs = 0
 
 for _, cfgIdx in ipairs(cfgIds) do
-  -- U = {}
-  -- initGaugeFieldTxt(L, Nc, U, cfgbase, cfgIdx)
   U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
   interpolator = computePionInterpolator(L, U, volume, mq, mq)
   for n_t = 0, L[3] - 1 do
     C[n_t] = C[n_t] + interpolator[n_t]
   end
   printf("Configuration %d evaluated.\n", cfgIdx)
+  nCfgs = nCfgs + 1
 end
+
+print("Evaluated %d configurations.", nCfgs)
 
 CAvg = {}
 for n_t = 0, L[3] - 1 do
@@ -304,7 +306,8 @@ file:write("n_t | C[n_t]\n")
 
 -- TODO make precision on C(t) better
 for n_t = 0, L[3] - 1 do
-  message = string.format("%d | %f + i(%f)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
+  -- message = string.format("%d | %f + i(%f)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
+  message = string.format("%d | %e + i(%e)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
   printf(message)
   file:write(message)
 end
