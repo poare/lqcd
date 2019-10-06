@@ -1,7 +1,8 @@
 from os import listdir
 from os.path import isfile, join
 
-path = "/Users/poare/lqcd/pion_mass/"
+#path = "/Users/poare/lqcd/pion_mass/"
+path = '/data/d10b/ensembles/isoClover/'
 cfgbase = "cl3_16_48_b6p1_m0p2450"
 folder = path + cfgbase + "/cfgs/"
 
@@ -16,8 +17,9 @@ for file in filenames:
     cfgIds.append(idx + "\n")
 
 # change to '/home/poare/pion_mass/cfgIds' once on wombat
-write_to = '/Users/poare/lqcd/pion_mass/cfgIds/' + cfgbase \
-                + '/config_ids.txt'
+#write_to = '/Users/poare/lqcd/pion_mass/cfgIds/' + cfgbase \
+#                + '/config_ids.txt'
+write_to = '/home/poare/lqcd/pion_mass/cfgIds/' + cfgbase + '/config_ids.txt'
 
 writer = open(write_to, "w")
 writer.writelines(cfgIds)

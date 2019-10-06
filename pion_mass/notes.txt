@@ -1,0 +1,3 @@
+Last time: the run broke when attempting to evaluate configuration 1620, right after evaluating 290 and 2460. Try again and see if it breaks on the same one, and also edit the code to make it save a number after each run.
+
+The run just failed again at configuration 1620, so I'm going to delete that configuration and see if that file specifically is causing the issue.

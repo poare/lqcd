@@ -222,6 +222,7 @@ to generate a text file at path..base.."_config_ids.txt"
 function getCfgIds(path, base)
   cfgIds = {}
   filename = path..base.."/config_ids.txt"
+  printf("Reading configuration numbers from %s", filename)
   i = 0
   for line in io.lines(filename) do
     cfgIds[i] = tonumber(line)
@@ -274,7 +275,7 @@ for n_t = 0, L[3] - 1 do
   C[n_t] = 0
 end
 
-cfgIdPath = '/home/poare/pion_mass/cfgIds/'
+cfgIdPath = '/home/poare/lqcd/pion_mass/cfgIds/'
 -- cfgIdPath = '/Users/poare/lqcd/pion_mass/cfgIds/'
 cfgIds = getCfgIds(cfgIdPath, cfgbase)
 nCfgs = 0
