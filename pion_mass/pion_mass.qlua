@@ -221,10 +221,10 @@ to generate a text file at path..base.."_config_ids.txt"
 ]]
 function getCfgIds(path, base)
   cfgIds = {}
-  filename = path..base.."/config_ids.txt"
-  printf("Reading configuration numbers from %s", filename)
+  fname = path..base.."/config_ids.txt"
+  printf("Reading configuration numbers from %s", fname)
   i = 0
-  for line in io.lines(filename) do
+  for line in io.lines(fname) do
     cfgIds[i] = tonumber(line)
     i = i + 1
   end
@@ -271,8 +271,9 @@ do
 end
 
 -- Initialize output file
+rand = math.random(10000)
 folder = "/home/poare/lqcd/pion_mass/test_pion_mass_output"
-filename = string.format("%s/%s_output.txt", folder, cfgbase)
+filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
 file = io.open(filename, "a")
 file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
         L[0], L[1], L[2], L[3], beta))
