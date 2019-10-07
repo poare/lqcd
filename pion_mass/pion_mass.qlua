@@ -274,8 +274,8 @@ end
 folder = "/home/poare/lqcd/pion_mass/test_pion_mass_output"
 filename = string.format("%s/%s_output.txt", folder, cfgbase)
 file = io.open(filename, "a")
-file:write(string.format("Sampled on %d configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
-        nCfgs, L[0], L[1], L[2], L[3], beta))
+file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
+        L[0], L[1], L[2], L[3], beta))
 
 C = {}    -- C is an array, C[n_t] is the correlator projected to 0 momentum on the n_t time slice
 for n_t = 0, L[3] - 1 do
