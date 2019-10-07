@@ -270,6 +270,13 @@ do
   S = L:RandomState(r.f, x)
 end
 
+-- Initialize output file
+folder = "/home/poare/lqcd/pion_mass/test_pion_mass_output"
+filename = string.format("%s/%s_output.txt", folder, cfgbase)
+file = io.open(filename, "a")
+file:write(string.format("Sampled on %d configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
+        nCfgs, L[0], L[1], L[2], L[3], beta))
+
 C = {}    -- C is an array, C[n_t] is the correlator projected to 0 momentum on the n_t time slice
 for n_t = 0, L[3] - 1 do
   C[n_t] = 0
@@ -282,36 +289,37 @@ nCfgs = 0
 
 for _, cfgIdx in ipairs(cfgIds) do
   U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
+  msg = string.format("%d|", cfgIdx)
   interpolator = computePionInterpolator(L, U, volume, mq, mq)
   for n_t = 0, L[3] - 1 do
     C[n_t] = C[n_t] + interpolator[n_t]
+    -- each msg of the form cfgId|a1+ib1 a2+ib2 a3+ib3 ..., for interpolator = a+ib
+    msg = msg..string.format("%e+i(%e) ", interpolator[n_t]:real(), interpolator[n_t]:imag())
   end
-  printf("Configuration %d evaluated.\n", cfgIdx)
+  msg = msg.."\n"
+  -- printf("Configuration %d evaluated.\n", cfgIdx)
+  printf(msg)
+  file:write(msg)
   nCfgs = nCfgs + 1
 end
 
-print("Evaluated %d configurations.", nCfgs)
+printf("Evaluated %d configurations.\n", nCfgs)
 
+--[[
 CAvg = {}
 for n_t = 0, L[3] - 1 do
   CAvg[n_t] = C[n_t] / nCfgs
 end
 
-folder = "/home/poare/lqcd/pion_mass/test_pion_mass_output"
-filename = string.format("%s/%s_output.txt", folder, cfgbase)
-file = io.open(filename, "a")
-file:write(string.format("Sampled on %d configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
-        nCfgs, L[0], L[1], L[2], L[3], beta))
+file:write("-\n") -- break the output
 printf("n_t | C[n_t]\n")
 file:write("n_t | C[n_t]\n")
-
--- TODO make precision on C(t) better
 for n_t = 0, L[3] - 1 do
-  -- message = string.format("%d | %f + i(%f)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
   message = string.format("%d | %e + i(%e)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
   printf(message)
   file:write(message)
 end
+]]
 
 file:close()
 printf("File written to: %s\n", filename)
