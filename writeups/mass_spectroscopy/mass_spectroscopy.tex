@@ -40,28 +40,30 @@
 The idea of mass spectrometry is to use the lattice to calculate two point functions, and then to take these 
 two point functions and extract physics. The central equation to this is the following:
 \begin{equation}
-	\langle\mathcal O(\mathbf n, n_t)\overline{\mathcal O}(0)\rangle = \sum_k\langle 0|\hat{\mathcal O} 
-	|k\rangle\langle k|\hat{\mathcal O}^\dagger |0\rangle\exp\left(-an_t E_k\right)~
+	C(n_t) := \langle\mathcal O(n_t)\overline{\mathcal O}(0)\rangle = \sum_k\langle 0|\hat{\mathcal O} 
+	|k\rangle\langle k|\hat{\mathcal O}^\dagger |0\rangle\exp\left(-n_t E_k\right)~
 	\label{eq:two_point}
 \end{equation}
 Here $|k\rangle$ represents any intermediate state which can be connected to the operator $\mathcal O$ 
-with energy $E_k$. The operators $\hat{\mathcal O}$ and $\hat{\mathcal O}^\dagger$ are related to the 
-objects $\mathcal O$ and $\overline{\mathcal O}$ by the following identity:
+with energy $E_k$, and $n_t$ is the time slice we are calculating the correlation function on. The operators 
+$\hat{\mathcal O}$ and $\hat{\mathcal O}^\dagger$ are related to the objects $\mathcal O$ and 
+$\overline{\mathcal O}$ by the following identity:
 \begin{equation}
 	\mathcal O(\alpha)\delta(\alpha - \alpha') := \langle \alpha' | \hat{\mathcal O} | \alpha\rangle
 \end{equation}
 where $|\alpha\rangle$ is a continuous eigenbasis of the space you are considering. 
 
 Using the relation between two point functions and matrix elements, we may extract physics about the energies 
-of nucleon states. To do this, we consider evaluating two point functions when $\mathcal O$ is an \textbf{interpolator} for the state we want to analyze. By an interpolator, we mean that $\mathcal O$ 
+of nucleon states. To do this, we consider evaluating two point functions when $\mathcal O$ is an 
+\textbf{interpolator} for the state we want to analyze. By an interpolator, we mean that $\mathcal O$ 
 creates or destroys the state of interest. For example, a proton interpolator $\chi(n)$ will destroy a proton at 
 site $n$, and its adjoint $\overline\chi(n)$ will create a proton at site n. 
 
 So, suppose that we want to calculate the mass of a hadron $h$ with corresponding interpolator $\chi$. 
 Then using Equation~\ref{eq:two_point}, we have:
 \begin{equation}
-	\langle\chi(\mathbf n, n_t)\overline\chi(0)\rangle = \sum_k\langle 0 |\hat\chi |k\rangle\langle k |
-	\hat{\chi}^\dagger |0\rangle\exp(-an_t E_k)
+	\langle\chi(n_t)\overline\chi(0)\rangle = \sum_k\langle 0 |\hat\chi |k\rangle\langle k |
+	\hat{\chi}^\dagger |0\rangle\exp(-n_t E_k)
 \end{equation}
 Because the operator $\hat{\chi}^\dagger$ creates a hadron state $\hat{\chi}^\dagger|0\rangle$, the 
 sum over intermediate states $|k\rangle$ will only connect states with the quantum numbers of the hadron of 
@@ -74,13 +76,56 @@ with the lowest energy. Here is the key point: \textit{the lowest energy state i
 energy will be given (at zero momentum) by $E_0 = m_h$}. Thus, as we take $n_t$ to be larger and larger, 
 we can extract the hadron mass $m_h$ by calculating the two point function of the interpolating operator:
 \begin{equation}
-	\langle\chi(n_t)\chi^\dagger(0)\rangle = A\exp(-a n_t E_0)(1 + O(e^{-an_t\Delta E}))
+	\langle\chi(n_t)\chi^\dagger(0)\rangle = A\exp(-n_t E_0)(1 + O(e^{-n_t\Delta E}))
 \end{equation}
 where now $A$ is a constant we can determine with a data fit. 
 
 \subsection{Momentum Projection}
 
+The state of the hadron we have created with the interpolator has not been completely specified; although we know 
+it lies on a fixed timeslice, we do not know the momentum of the hadron. If we compute the corrlation function 
+$\langle\chi(\textbf{n}, n_t)\chi^\dagger (0)\rangle$, we will know the location of the particle we have destroyed, 
+but we will not know its momentum. We instead want to make sure that we project onto a state of definite 
+momentum, which we will do with a Fourier transform:
+\begin{equation}
+	\langle\chi(\textbf p, n_t)\chi^\dagger(0)\rangle = \frac{1}{\sqrt{|\Lambda_3|}}\sum_{\textbf n\in\Lambda_3}e^{-ia
+	\textbf{p}\cdot\textbf{n}}\langle\chi(\textbf n, n_t)\chi^\dagger(0)\rangle \xrightarrow{n_t\rightarrow\infty} 
+	A\exp(-n_t E_0(\textbf p)) + ...
+\end{equation}
+where $\Lambda_3 = \{(\textbf{n}, n_t)\in\Lambda : \mathbf{n}\in\mathbb Z^3\}$ is the set of lattice points on our 
+fixed time slice ($\Lambda$ is the full lattice). The important point here is that we know the dispersion $E(\mathbf p)$, 
+which is simply:
+\begin{equation}
+	E(\mathbf p) = \sqrt{\textbf p^2 + m_h^2}
+\end{equation}
+In practice, we will often project onto $\textbf 0$ momentum, which is easily achievable through summing on spatial 
+points in the lattice:
+\begin{equation}
+	\langle \chi(\textbf p = \textbf 0, n_t)\chi^\dagger(0)\rangle = \frac{1}{\sqrt{|\Lambda_3|}}\sum_{\textbf{n}
+	\in\Lambda_3}\langle\chi(\textbf n, n_t)\chi^\dagger(0)\rangle\xrightarrow{n_t\rightarrow\infty} A\exp(-n_t m_h) + ...
+\end{equation}
+
 \subsection{Effective Mass}
+
+In theory we would like to take the limit as $n_t\rightarrow\infty$ to remove contamination from the higher energy 
+states, but on a finite lattice this is not possible. So, we need to define a way to know when $n_t$ is large enough 
+that the energy we extract from this method is sufficiently close to the mass of the hadron. A simple way to do this 
+is to define a mass scale by noticing that as $n_t\rightarrow\infty$, $C(n_t)\rightarrow Ae^{-n_t m_h}$. 
+In this limit, we can extract the mass by taking a ratio of correlation functions:
+\begin{equation}
+	\frac{C(n_t)}{C(n_t + 1)}\xrightarrow{n_t\rightarrow\infty} e^{m_h}
+\end{equation}
+This motivates the definition of the \textbf{effective mass}:
+\begin{equation}
+	m_{eff}(n_t) := \log\left(\frac{C(n_t)}{C(n_t + 1)}\right)
+\end{equation}
+As $n_t$ becomes sufficiently large, $m_{eff}(n_t)$ approaches a constant an plateaus at the value $m_{eff} = m_h$. 
+At smaller time slices, $m_{eff}(n_t)$ will not appear to be constant but instead will also contain contamination from 
+higher energy modes. Thus in essence, it suffices to compute the effective mass and to fit a constant line to the 
+region where it plateaus to determine the actual mass of the hadron. 
+
+Because we often use periodic boundary conditions on the lattice, it is often useful to take this into account and 
+define a variation of the effective mass. 
 
 \subsection{Bootstrapping}
 
