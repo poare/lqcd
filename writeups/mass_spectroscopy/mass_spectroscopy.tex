@@ -28,12 +28,107 @@
 %SetFonts
 
 
-\title{Pion Calculations}
+\title{Mass Spectroscopy}
 \author{Patrick Oare}
 \date{}							% Activate to display a given date or no date
 
 \begin{document}
 \maketitle
-\section*{Pion Interpolator}
+
+\section{Overview}
+
+The idea of mass spectrometry is to use the lattice to calculate two point functions, and then to take these 
+two point functions and extract physics. The central equation to this is the following:
+\begin{equation}
+	\langle\mathcal O(\mathbf n, n_t)\overline{\mathcal O}(0)\rangle = \sum_k\langle 0|\hat{\mathcal O} 
+	|k\rangle\langle k|\hat{\mathcal O}^\dagger |0\rangle\exp\left(-an_t E_k\right)~
+	\label{eq:two_point}
+\end{equation}
+Here $|k\rangle$ represents any intermediate state which can be connected to the operator $\mathcal O$ 
+with energy $E_k$. The operators $\hat{\mathcal O}$ and $\hat{\mathcal O}^\dagger$ are related to the 
+objects $\mathcal O$ and $\overline{\mathcal O}$ by the following identity:
+\begin{equation}
+	\mathcal O(\alpha)\delta(\alpha - \alpha') := \langle \alpha' | \hat{\mathcal O} | \alpha\rangle
+\end{equation}
+where $|\alpha\rangle$ is a continuous eigenbasis of the space you are considering. 
+
+Using the relation between two point functions and matrix elements, we may extract physics about the energies 
+of nucleon states. To do this, we consider evaluating two point functions when $\mathcal O$ is an \textbf{interpolator} for the state we want to analyze. By an interpolator, we mean that $\mathcal O$ 
+creates or destroys the state of interest. For example, a proton interpolator $\chi(n)$ will destroy a proton at 
+site $n$, and its adjoint $\overline\chi(n)$ will create a proton at site n. 
+
+So, suppose that we want to calculate the mass of a hadron $h$ with corresponding interpolator $\chi$. 
+Then using Equation~\ref{eq:two_point}, we have:
+\begin{equation}
+	\langle\chi(\mathbf n, n_t)\overline\chi(0)\rangle = \sum_k\langle 0 |\hat\chi |k\rangle\langle k |
+	\hat{\chi}^\dagger |0\rangle\exp(-an_t E_k)
+\end{equation}
+Because the operator $\hat{\chi}^\dagger$ creates a hadron state $\hat{\chi}^\dagger|0\rangle$, the 
+sum over intermediate states $|k\rangle$ will only connect states with the quantum numbers of the hadron of 
+interest to the ket $\hat{\chi}^\dagger|0\rangle$. So, the sum $\sum_k$ will only index over intermediate 
+states which contain at least one hadron of species $h$. 
+
+Consider taking the large $n_t$ limit of this equation. When $n_t$ gets large, intermediate states with a larger 
+energy $E_k$ become exponentially suppressed, and the dominant term in this series is the state $|k\rangle$ 
+with the lowest energy. Here is the key point: \textit{the lowest energy state is exactly the ground state, and the 
+energy will be given (at zero momentum) by $E_0 = m_h$}. Thus, as we take $n_t$ to be larger and larger, 
+we can extract the hadron mass $m_h$ by calculating the two point function of the interpolating operator:
+\begin{equation}
+	\langle\chi(n_t)\chi^\dagger(0)\rangle = A\exp(-a n_t E_0)(1 + O(e^{-an_t\Delta E}))
+\end{equation}
+where now $A$ is a constant we can determine with a data fit. 
+
+\subsection{Momentum Projection}
+
+\subsection{Effective Mass}
+
+\subsection{Bootstrapping}
+
+Assume now that we have calculated values of the interpolation function on $n$ gauge field configurations 
+$\{U_i\}_{i = 1}^n$, and that our lattice has size $L^3\times T$. Let the values of the interpolators be 
+contained in the set:
+\begin{equation}
+	\{C(i, t)\}_{i = 1, t = 1}^{n, T}
+\end{equation}
+where $C(i, t)$ is the value of the interpolator on the $i$th gauge field configuration, momentum projected 
+to 0 on the $t$th time slice. Generally these values $C(i, t)$ will be stored in a matrix $C_{it}$ to make them 
+easier to work with. If we simply want to ensemble average of these interpolators, at this point we could 
+average them over the configuration index to find:
+\begin{equation}
+	\langle C(t)\rangle = \frac{1}{n}\sum_{i = 1}^n C(i, t)
+\end{equation}
+This would give us an average for our correlation function computed at each time slice, which is what we 
+originally sought after.
+
+However, this is not the best way to establish statistics on this problem. Instead, we consider a method 
+called \textbf{bootstrapping}, which will allow us to produce a larger amount of ensembles from our 
+initial data $C(i, t)$. With this method, we consider generating $N_{boot}$ new ensembles from our 
+original one. To do this, fix $t$ and pick $n$ entries from $C(i, t)$ randomly \textit{with replacement}. 
+Denote these $n$ samples by $U_1(i, t)$. Repeat this sampling procedure $N_{boot}$ times until 
+you have a collection $U_1(i, t), ..., U_{N_{boot}}(i, t)$ of ensembles sampled from your original data. 
+We may use the notation $U(b, i, t)$ for $U_b(i, t)$, where $b = 1, ..., N_{boot}$, $j = 1, ..., n$, and $t = 
+1, ..., T$ to refer to these ensembles and to emphasize its structure as a 3-dimensional matrix. 
+
+The ensemble $\{U_1, ..., U_{N_{boot}}\}$ will be used for our data analysis. To compute the correlation 
+functions $\langle C(t)\rangle$, we will first determine the average over each ensemble:
+\begin{equation}
+	\langle C(t)\rangle_b := \frac{1}{n}\sum_{i = 1}^n U(b, i, t)
+\end{equation}
+The idea is that now we have an ensemble of average values for $\langle C(t)\rangle$, so we may compute 
+statistics on the set $\{\langle C(t)\rangle_1, ..., \langle C(t)\rangle_{N_{boot}}$, i.e. we may take 
+the average and (sample) variance of it as follows:
+\begin{equation}
+	\langle C(t)\rangle = \frac{1}{N_{boot}}\sum_{b = 1}^{N_{boot}}\langle C(t)\rangle_b
+\end{equation}
+\begin{equation}
+	\sigma_{C(t)}^2 = \frac{1}{N_{boot} - 1}\sum_{b = 1}^{N_{boot}} (\langle C(t)\rangle_b - \langle C(t)
+	\rangle_b)^2
+\end{equation}
+
+Using the bootstrap method, we may calculate statistics on more than just correlation functions. For example, 
+to calculate the effective mass we can create $N_{boot}$ ensembles of effective mass values, then take the 
+statistics on them. Doing this gives us a more accurate estimation of the mean and error on a data set.
+
+\section{Example: Pion Mass}
 
 \end{document}
