@@ -1,9 +1,0 @@
-Last time: the run broke when attempting to evaluate configuration 1620, right after evaluating 290 and 2460. Try again and see if it breaks on the same one, and also edit the code to make it save a number after each run.
-
-The run just failed again at configuration 1620, so I'm going to delete that configuration and see if that file specifically is causing the issue.
-
-Questions:
- - What is the twist of an operator, and why is it important?
-    Twist is the mass dimension minus the spin dimension. In the OPE, you can taylor expand an operator a fixed distance away in powers of the distance and the twist, so lowest twist gives largest contribution.
- - How difficult is it to compute 3 point functions compared to 2 point? Are there any easy computations I should do (like the pion mass) for 3-pt functions to get the computation under my belt?
- - Worth it to consider learning chroma?
