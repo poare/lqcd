@@ -125,7 +125,10 @@ higher energy modes. Thus in essence, it suffices to compute the effective mass 
 region where it plateaus to determine the actual mass of the hadron. 
 
 Because we often use periodic boundary conditions on the lattice, it is often useful to take this into account and 
-define a variation of the effective mass. 
+define a variation of the effective mass, which is the \textbf{cosh-corrected effective mass}:
+\begin{equation}
+	\frac{C(n_t)}{C(n_t + 1)} = \frac{\cosh(m_{eff}(n_t))}{\cosh(m_{eff}(n_t + 1))}
+\end{equation}
 
 \subsection{Bootstrapping}
 
