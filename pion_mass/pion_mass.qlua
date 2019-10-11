@@ -4,67 +4,6 @@ require "stdlib"
 ------------------------ UTILITY FUNCTIONS ------------------------
 -------------------------------------------------------------------
 
-function toSUn(L, X)    -- Project a matrix onto SU(N)
-  local Y = (X - X:adjoin()) / 2    -- anti-hermitian part
-  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
-end
-
-function weak_SUn(L, S)    -- Generate a SU(N) field close to 1
-  return toSUn(L, .1 * S:gaussian_ColorMatrix())
-end
-
-function weakSingleSUn()
-  return toSUnSingle(.1 * qcd.ColorMatrix())    -- need an analog of S:gaussian_ColorMatrix
-end
-
-function strong_SUn(L, S)
-  local v = weak_SUn(L, S)
-  for i = 1, 100 do -- multiply a lot of small SU(n) matrices, then re project
-    v = v * weak_SUn(L, S)
-  end
-  return v:proj(1e-6, 150)
-end
-
-function plaquette(U, i, j)   -- U is the gauge field configuration, i = \hat{\mu}, j = \hat{\nu}
-  local Ui = U[j + 1]:shift(i, "from_forward")
-  local Uj = U[i + 1]:shift(j, "from_forward")
-  local Pij = (U[i + 1] * Ui * Uj:adjoin() * U[j + 1]:adjoin()):trace():real()
-  return Pij:sum() / (vol * Nc)
-end
-
---[[
-Returns the staple field from deleting the link variable in the mu direction
-]]
-function getStaples(U, mu)
-  staples = L:ColorMatrixN(Nc, 0.0)
-  for nu = 0, #L - 1 do
-    if nu ~= mu then
-      local UMu = U[nu + 1]:shift(mu, "from_forward")
-      local UNu = U[mu + 1]:shift(nu, "from_forward")
-      local UMuNu = U[nu + 1]:shift(mu, "from_forward"):shift(nu, "from_backward")
-      local UNegNuMu = U[mu + 1]:shift(nu, "from_backward")
-      local UNegNuNu = U[nu + 1]:shift(nu, "from_backward")
-      staples = staples + (UMu * UNu:adjoin() * U[nu + 1]:adjoin()
-          + UMuNu:adjoin() * UNegNuMu:adjoin() * UNegNuNu)
-    end
-  end
-  return staples
-end
-
--- returns the staple in the mu direction at site (x, y, z, t)
-function getStaple(U, mu, x, y, z, t)
-  return getStaples(U, mu)[{x, y, z, t}]
-end
-
--- Construct random gauge field
-function getRandomColorMatrix(L, S)
-  U = {}
-  for i = 0, #L - 1 do
-    U[i + 1] = toSUn(.3 * S:gaussian_ColorMatrix())
-  end
-  return U
-end
-
 --[[
 Show a Nc x Nc color matrix U. Note that this cannot be a lattice field,
 it must be an individual matrix.
@@ -80,58 +19,11 @@ function show_color_mat(U)
   end
 end
 
-function computeLocalDeltaS(U, UPrimeMu, mu, x, y, z, t, Nc)
-  beta = 5.7
-  dU = UPrimeMu[{x, y, z, t}] - U[mu + 1][{x, y, z, t}]
-  return (-1) * beta / Nc * (dU * getStaple(U, mu, x, y, z, t)):trace():real()
-end
-
 function init_zero_field(L, Nc, U)
   for mu = 0, #L - 1 do
     local A = L:ColorMatrixN(Nc, 0.0)
     U[mu+1] = (A*complex(0,1)):exp()
   end
-end
-
--- Reads an individual real-valued gauge configuration from a text file.
-function read_gauge_txt(filename, U, Lx, Lt, Nd, Nc, imag)
-  local counter = 0
-  local x, y, z, t, mu, a, b
-  for line in io.lines(filename) do
-    local temp = counter
-    local value = tonumber(line)
-    b = temp % Nc
-    temp = temp - b
-    temp = temp / Nc
-    a = temp % Nc
-    temp = temp - a
-    temp = temp / Nc
-    x = temp % Lx
-    temp = temp - x
-    temp = temp / Lx
-    y = temp % Lx
-    temp = temp - y
-    temp = temp / Lx
-    z = temp % Lx
-    temp = temp - z
-    temp = temp / Lx
-    t = temp % Lt
-    temp = temp - t
-    temp = temp / Lt
-    mu = temp
-    -- if temp >= Nd, this is bad
-    -- if temp >= Nd then printf("%d\n", counter) end
-    assert (temp < Nd)
-    local comp_value
-    if imag then
-      comp_value = complex(0, value)
-    else
-      comp_value = complex(value, 0)
-    end
-    U[mu+1][{x,y,z,t,a=a,b=b}] = U[mu+1][{x,y,z,t,a=a,b=b}] + comp_value
-    counter = counter + 1
-  end
-  return U
 end
 
 --[[
@@ -236,12 +128,6 @@ end
 ------------------------------------------------------------------
 
 -- Set parameters
---[[
-L = qcd.lattice{8, 8, 8, 8}
-cfgbase = "su3_w_b5.70_N20_skip10_therm100_8_8_8_8"    -- folder to find configs in
-nCfgs = 20  -- Number of configurations to run with
-beta = 5.7  -- Get it from the file name
-]]
 Nc = 3    -- qcd.Nc
 
 L = qcd.lattice{16, 16, 16, 48}
@@ -298,29 +184,12 @@ for _, cfgIdx in ipairs(cfgIds) do
     msg = msg..string.format("%e+i(%e) ", interpolator[n_t]:real(), interpolator[n_t]:imag())
   end
   msg = msg.."\n"
-  -- printf("Configuration %d evaluated.\n", cfgIdx)
   printf(msg)
   file:write(msg)
   nCfgs = nCfgs + 1
 end
 
 printf("Evaluated %d configurations.\n", nCfgs)
-
---[[
-CAvg = {}
-for n_t = 0, L[3] - 1 do
-  CAvg[n_t] = C[n_t] / nCfgs
-end
-
-file:write("-\n") -- break the output
-printf("n_t | C[n_t]\n")
-file:write("n_t | C[n_t]\n")
-for n_t = 0, L[3] - 1 do
-  message = string.format("%d | %e + i(%e)\n", n_t, CAvg[n_t]:real(), CAvg[n_t]:imag())
-  printf(message)
-  file:write(message)
-end
-]]
 
 file:close()
 printf("File written to: %s\n", filename)
