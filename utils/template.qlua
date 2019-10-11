@@ -1,3 +1,11 @@
+--[[
+This is a template for a general lattice calculation. Plenty of things will
+need to change for whatever code you are specifically running. The template
+automatically does the following.
+-
+-
+]]
+
 require "stdlib"
 -------------------------------------------------------------------
 ------------------------ UTILITY FUNCTIONS ------------------------
@@ -52,8 +60,6 @@ end
 -- computes the relevant interpolator for a single configuration of gauge field U.
 function computeInterpolator(L, U, vol)
   -- TODO METHOD STUB
-  -- Going to want to both momentum project \chi(\vec n, n_t) and \mathcal O(\tau)
-  -- onto states of definite momentum-- do this with a Fourier transform.
 end
 
 --[[

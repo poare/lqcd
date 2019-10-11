@@ -26,24 +26,6 @@ function init_zero_field(L, Nc, U)
   end
 end
 
---[[
-Initialize gauge field from HMC run from a text file. Note that for text
-input, real and imaginary parts of the data are stored in different
-files.
-]]
-function initGaugeFieldTxt(L, Nc, U, cfgbase, configNum)
-  local filename_real = string.format("%s/%s_realconfig%d.txt", cfgbase, cfgbase, configNum)
-  local filename_imag = string.format("%s/%s_imagconfig%d.txt", cfgbase, cfgbase, configNum)
-
-  U = {}
-  init_zero_field(L, Nc, U)
-  printf("Reading from: %s\n", filename_real)
-  read_gauge_txt(filename_real, U, L[0], L[3], #L, Nc, U, false)
-  printf("Reading from: %s\n", filename_imag)
-  read_gauge_txt(filename_imag, U, L[0], L[3], #L, Nc, U, true)
-  return U
-end
-
 -- Initialize a gauge field from a .h5 file.
 function initGaugeFieldHdf5(L, Nc, U, cfgbase, configNum)
   local cfghdf5 = string.format("cfgs/majorana/"..cfgbase.."/"..cfgbase.."_cfg_%d.h5", configNum)
@@ -164,23 +146,19 @@ file = io.open(filename, "a")
 file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
         L[0], L[1], L[2], L[3], beta))
 
-C = {}    -- C is an array, C[n_t] is the correlator projected to 0 momentum on the n_t time slice
-for n_t = 0, L[3] - 1 do
-  C[n_t] = 0
-end
-
 cfgIdPath = '/home/poare/lqcd/pion_mass/cfgIds/'
 -- cfgIdPath = '/Users/poare/lqcd/pion_mass/cfgIds/'
 cfgIds = getCfgIds(cfgIdPath, cfgbase)
 nCfgs = 0
 
+-- Loop over gauge field configurations.
 for _, cfgIdx in ipairs(cfgIds) do
   U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
   msg = string.format("%d|", cfgIdx)
   interpolator = computePionInterpolator(L, U, volume, mq, mq)
+
+  -- Write message and store data. Each msg of the form cfgId|a1+ib1 a2+ib2 a3+ib3 ..., for interpolator = a+ib
   for n_t = 0, L[3] - 1 do
-    C[n_t] = C[n_t] + interpolator[n_t]
-    -- each msg of the form cfgId|a1+ib1 a2+ib2 a3+ib3 ..., for interpolator = a+ib
     msg = msg..string.format("%e+i(%e) ", interpolator[n_t]:real(), interpolator[n_t]:imag())
   end
   msg = msg.."\n"
@@ -190,6 +168,5 @@ for _, cfgIdx in ipairs(cfgIds) do
 end
 
 printf("Evaluated %d configurations.\n", nCfgs)
-
 file:close()
 printf("File written to: %s\n", filename)
