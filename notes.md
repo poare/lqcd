@@ -26,3 +26,7 @@ end
 - To find the source code:
   cd /home/agrebe/wombat/qlua-quda/src/qlua/sources
   - Might be useful for figuring out what the signature of different funtions is
+
+To run on wombat and write to the log while running, use this command:
+/opt/software/openmpi-2.1.1/bin/mpirun -n 6 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${PBS_JOBID}.txt
+
