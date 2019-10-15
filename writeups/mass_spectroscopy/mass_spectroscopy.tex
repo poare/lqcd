@@ -125,9 +125,10 @@ higher energy modes. Thus in essence, it suffices to compute the effective mass 
 region where it plateaus to determine the actual mass of the hadron. 
 
 Because we often use periodic boundary conditions on the lattice, it is often useful to take this into account and 
-define a variation of the effective mass, which is the \textbf{cosh-corrected effective mass}:
+define a variation of the effective mass, which is the \textbf{cosh-corrected effective mass}. Let $N_T$ be the temporal 
+extent of the lattice. Then:
 \begin{equation}
-	\frac{C(n_t)}{C(n_t + 1)} = \frac{\cosh(m_{eff}(n_t))}{\cosh(m_{eff}(n_t + 1))}
+	\frac{C(n_t)}{C(n_t + 1)} = \frac{\cosh(m_{eff}(n_t - N_T / 2))}{\cosh(m_{eff}(n_t - N_T / 2+ 1))}
 \end{equation}
 
 \subsection{Bootstrapping}
@@ -152,31 +153,117 @@ However, this is not the best way to establish statistics on this problem. Inste
 called \textbf{bootstrapping}, which will allow us to produce a larger amount of ensembles from our 
 initial data $C(i, t)$. With this method, we consider generating $N_{boot}$ new ensembles from our 
 original one. To do this, fix $t$ and pick $n$ entries from $C(i, t)$ randomly \textit{with replacement}. 
-Denote these $n$ samples by $U_1(i, t)$. Repeat this sampling procedure $N_{boot}$ times until 
-you have a collection $U_1(i, t), ..., U_{N_{boot}}(i, t)$ of ensembles sampled from your original data. 
-We may use the notation $U(b, i, t)$ for $U_b(i, t)$, where $b = 1, ..., N_{boot}$, $j = 1, ..., n$, and $t = 
+Denote these $n$ samples by $A_1(i, t)$. Repeat this sampling procedure $N_{boot}$ times until 
+you have a collection $A_1(i, t), ..., A_{N_{boot}}(i, t)$ of ensembles sampled from your original data. 
+We may use the notation $A(b, i, t)$ for $A_b(i, t)$, where $b = 1, ..., N_{boot}$, $j = 1, ..., n$, and $t = 
 1, ..., T$ to refer to these ensembles and to emphasize its structure as a 3-dimensional matrix. 
 
-The ensemble $\{U_1, ..., U_{N_{boot}}\}$ will be used for our data analysis. To compute the correlation 
-functions $\langle C(t)\rangle$, we will first determine the average over each ensemble:
+The ensemble $\mathbb A := \{A_1, ..., A_{N_{boot}}\}$ will be used for our data analysis. Suppose that we are trying 
+to compute the effective mass $m_{eff}$ from this set of data. For each dataset $A\in\mathbb A$ (recall this is a 
+matrix of size $n\times T$), we can compute the values of the effective mass, denoted $m_A$, by the following:
 \begin{equation}
-	\langle C(t)\rangle_b := \frac{1}{n}\sum_{i = 1}^n U(b, i, t)
+	m_{A}(i, t) = \log\left(\frac{A(i, t)}{A(i, t + 1)}\right)
 \end{equation}
-The idea is that now we have an ensemble of average values for $\langle C(t)\rangle$, so we may compute 
-statistics on the set $\{\langle C(t)\rangle_1, ..., \langle C(t)\rangle_{N_{boot}}$, i.e. we may take 
-the average and (sample) variance of it as follows:
+At this point, we may average $m_{A}(i, t)$ over each gauge field configuration in $A$ to get an estimate on its mean:
 \begin{equation}
-	\langle C(t)\rangle = \frac{1}{N_{boot}}\sum_{b = 1}^{N_{boot}}\langle C(t)\rangle_b
+	\hat{m}_A(t) = \frac{1}{n}\sum_{i = 1}^n m_A(i, t)
+\end{equation}
+For each time slice $t$, we use the set $\{\hat{m})A(t) : A\in\mathbb A\}$ to perform an estimate of the effective mass 
+and its error (note $N_{boot} = |\mathbb A|$):
+\begin{equation}
+	\mu_{m}(t) = \frac{1}{|\mathbb A|}\sum_{A\in\mathbb A}\hat{m}_A(t)
 \end{equation}
 \begin{equation}
-	\sigma_{C(t)}^2 = \frac{1}{N_{boot} - 1}\sum_{b = 1}^{N_{boot}} (\langle C(t)\rangle_b - \langle C(t)
-	\rangle_b)^2
+	\sigma_m(t)^2 = \frac{1}{|\mathbb A| - 1}\sum(\hat m_A(t) - \mu_m(t))^2
 \end{equation}
 
-Using the bootstrap method, we may calculate statistics on more than just correlation functions. For example, 
-to calculate the effective mass we can create $N_{boot}$ ensembles of effective mass values, then take the 
-statistics on them. Doing this gives us a more accurate estimation of the mean and error on a data set.
+Using the bootstrap method, we may calculate statistics on functions other than just the effective mass. Particular 
+quantities of importance to calculate other than the effective mass are the value of the correlation function and the 
+cosh-corrected effective mass. To calculate other quantities (say a quantity $X$ which depends on $C(i, t)$), simply 
+compute this quantity $X_A(i, t)$ for each ensemble $A\in\mathbb A$ as we did for $m_A(i, t)$ and follow the rest of 
+the calculation precisely. 
 
+\newpage
 \section{Example: Pion Mass}
+
+We will be computing the mass of the pion $\pi^+$ in this example.
+
+\subsection{Pion interpolator}
+
+The $\pi^+$ interpolator (which can be checked by observing its transformation properties under symmetries like parity 
+and charge conjugation) is:
+\begin{equation}
+	\chi_\pi(n) = \overline d(n)\gamma^5 u(n)
+\end{equation}
+
+To perform computations with this on the lattice, we can work out an expression for the fermionic part of the 
+two-point function for this interpolator:
+$$
+	\langle\chi_\pi(n)\overline\chi_\pi(m)\rangle_F = \left\langle \left(\overline d(n)_\alpha \gamma^5_{\alpha\beta} 
+	u(n)_\beta\right)\left(\overline u(m)_\rho\gamma^5_{\rho\sigma} d(m)_\sigma\right)\right\rangle_F
+$$
+$$
+	= -\gamma^5_{\alpha\beta}\gamma^5_{\rho\sigma}\left\langle u(n)_\beta \overline u(m)_\rho\right\rangle_F
+	\left\langle d(m)_\sigma\overline d(n)_\alpha\right\rangle_F
+$$
+$$
+	= -\gamma_{\alpha\beta}^5\gamma_{\rho\sigma}^5 D^{-1}_u(n | m)_{\beta\rho} D^{-1}_d (m | n)_{\sigma\alpha}
+$$
+$$
+	= -tr\left\{\gamma^5 D^{-1}_u (n | m) \gamma^5 D^{-1}_d (m | n)\right\}
+$$
+where we picked up a $-$ sign because the fields are Grassmannian. Note we use Wick's theorem to turn the products 
+$\langle u \overline u\rangle$ and $\langle d\overline d\rangle$ of fermion fields into propagators $D^{-1}_u$ and 
+$D^{-1}_d$. However, this current expression requires computing a fermion propagator at the source $m$ and tying 
+it up at $n$, and doing the same with creating a source at $n$ and tying it up at $n$. To simplify this further, we 
+exploit $\gamma^5$-hermicity of the propagator:
+\begin{equation}
+	D^{-1}(m | n) = \gamma^5 D^{-1}(n | m)^*\gamma^5
+\end{equation}
+Hence we have the final form for this equation which we will use:
+\begin{equation}
+	\langle\chi_\pi(n)\chi_\pi(m)\rangle_F = - tr\left\{D^{-1}_u (n | m) D^{-1}_d (n | m)^*\right\}
+\end{equation}
+
+In particular, to compute the $\pi^+$ mass we will put a source at the origin and project it onto $\textbf 0$ momentum 
+on time slice $n_t$. This is (where $|\Lambda_3|$ is the size of the spatial lattice):
+\begin{equation}
+	C(n_t) := \left\langle \chi_\pi(\textbf p = \textbf 0, n_t)\overline\chi_\pi (0)\right\rangle_F = \frac{1}{\sqrt{
+	|\Lambda_3|}}\sum_{\mathbf n\in\Lambda_3}\langle \chi_\pi(\textbf n, n_t)\overline\chi_\pi(0)\rangle_F
+\end{equation}
+or explicitly:
+\begin{equation}
+	C(n_t) = -\frac{1}{\sqrt{\Lambda_3|}}\sum_{\textbf n\in\Lambda_3} tr\left\{ D^{-1}_u (\textbf n, n_t \,|\, 0) D^{-1}_d 
+	(\textbf n, n_t \,|\,0)^*\right\}
+\end{equation}
+
+\newpage
+\subsection{Code}
+
+The code I wrote to compute the pion mass does the following steps. Suppose that a set of gauge field 
+configurations $\mathcal U = \{U_i\}_{i = 1}^N$ is given. In my case, I used the configurations in 
+/data/d10b/ensembles/ isoClover/cl3\_16\_48\_b6p1\_m0p2450, where there were 254 configurations (although one 
+configuration was not loading in, so I used $N = 253$ configurations). I begin by initializing the following parameters:
+\begin{itemize}
+	\item A lattice $L$ of size $16^3\times 48$. 
+	\item The parameter $\beta = 6.1$.
+	\item Quark masses $m = m_u = m_d = .2450$.
+	\item The hopping parameter $\kappa = \frac{1}{2m + 8}$. I have checked and am not positive how to specify the 
+	mass parameter in the clover inverter instead of the $\kappa$ value, so I decided to just compute this from the 
+	masses and put it directly into the inverter. 
+	\item The volume of the lattice.
+\end{itemize}
+
+Once these paramters are specified, I loop over each gauge field configuration $U\in\mathcal U$ and do the following:
+\begin{enumerate}
+	\item Create clover objects $CL_u$ and $CL_d$ for the up and down quarks. I initialize these objects with:
+	\begin{itemize}
+    		\item Periodic boundary conditions in space and antiperiodic boundary conditions in time
+		\item Hopping parameters $\kappa_u = \kappa_d = \kappa$ which were specified above. 
+		\item Sheikholeslami-Wohlert coefficients of $c_{sw} = 1$. 
+	\end{itemize}
+	\item Initialize a source at the origin, which is the identity in Dirac space and color space. 
+	\item Using this source, I use the clover objects to solve for the propagator with 
+\end{enumerate}
 
 \end{document}
