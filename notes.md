@@ -30,3 +30,8 @@ end
 To run on wombat and write to the log while running, use this command:
 /opt/software/openmpi-2.1.1/bin/mpirun -n 6 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${PBS_JOBID}.txt
 
+Notes 10/15:
+- How should the error be scaling when I change the bootstrap number? Mine is relatively constant right now.
+- Does anyone have pion mass code that I can compare this to so I can see if there's a bug in my code? Is it worth trying to run my code again to play around on a different data set?
+- Is the only place that m_u and m_d come in the value of kappa?
+- Write up exactly what I'm calculating, and send it to Phiala. Rerun the code as well. 

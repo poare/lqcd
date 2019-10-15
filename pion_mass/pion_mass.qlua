@@ -55,11 +55,10 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
   -- Hopping parameters
   kappa_u = 1 / (2 * m_u + 8)
   kappa_d = 1 / (2 * m_d + 8)
-  kappa = .071    -- generic hopping parameter
 
   -- Construct propagators. Need the inverse of the Dirac operator, so will
      -- use solvers, which the Clover object contains.
-  c_sw = 1.0      -- Sheikholeslami-Wohlert coefficient for clover term
+  c_sw = 1.0      -- SW coefficient for clover term
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
   CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
@@ -112,11 +111,12 @@ end
 -- Set parameters
 Nc = 3    -- qcd.Nc
 
-L = qcd.lattice{32, 32, 32, 48}
+-- L = qcd.lattice{32, 32, 32, 48}
+L = qcd.lattice{16, 16, 16, 48}
 path = "/data/d10b/ensembles/isoClover/"
 -- path = "/Users/poare/lqcd/pion_mass/"
--- cfgbase = "cl3_16_48_b6p1_m0p2450"
-cfgbase = "cl3_32_48_b6p1_m0p2450"
+cfgbase = "cl3_16_48_b6p1_m0p2450"
+-- cfgbase = "cl3_32_48_b6p1_m0p2450"
 beta = 6.1
 mq = .2450
 
