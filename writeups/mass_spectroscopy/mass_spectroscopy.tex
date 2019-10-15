@@ -222,7 +222,8 @@ exploit $\gamma^5$-hermicity of the propagator:
 \end{equation}
 Hence we have the final form for this equation which we will use:
 \begin{equation}
-	\langle\chi_\pi(n)\chi_\pi(m)\rangle_F = - tr\left\{D^{-1}_u (n | m) D^{-1}_d (n | m)^*\right\}
+	\langle\chi_\pi(n)\overline\chi_\pi(m)\rangle_F = - tr\left\{D^{-1}_u (n | m) D^{-1}_d (n | m)^*\right\}~
+	\label{eq:correlator}
 \end{equation}
 
 In particular, to compute the $\pi^+$ mass we will put a source at the origin and project it onto $\textbf 0$ momentum 
@@ -234,7 +235,8 @@ on time slice $n_t$. This is (where $|\Lambda_3|$ is the size of the spatial lat
 or explicitly:
 \begin{equation}
 	C(n_t) = -\frac{1}{\sqrt{\Lambda_3|}}\sum_{\textbf n\in\Lambda_3} tr\left\{ D^{-1}_u (\textbf n, n_t \,|\, 0) D^{-1}_d 
-	(\textbf n, n_t \,|\,0)^*\right\}
+	(\textbf n, n_t \,|\,0)^*\right\}~
+	\label{eq:zero_projection}
 \end{equation}
 
 \newpage
@@ -248,10 +250,10 @@ configuration was not loading in, so I used $N = 253$ configurations). I begin b
 	\item A lattice $L$ of size $16^3\times 48$. 
 	\item The parameter $\beta = 6.1$.
 	\item Quark masses $m = m_u = m_d = .2450$.
-	\item The hopping parameter $\kappa = \frac{1}{2m + 8}$. I have checked and am not positive how to specify the 
+	\item The hopping parameter $\kappa = \frac{1}{2m + 8}$. I checked and am not positive how to specify the 
 	mass parameter in the clover inverter instead of the $\kappa$ value, so I decided to just compute this from the 
 	masses and put it directly into the inverter. 
-	\item The volume of the lattice.
+	\item The spatial volume of the lattice $V = 16^3$.
 \end{itemize}
 
 Once these paramters are specified, I loop over each gauge field configuration $U\in\mathcal U$ and do the following:
@@ -263,7 +265,19 @@ Once these paramters are specified, I loop over each gauge field configuration $
 		\item Sheikholeslami-Wohlert coefficients of $c_{sw} = 1$. 
 	\end{itemize}
 	\item Initialize a source at the origin, which is the identity in Dirac space and color space. 
-	\item Using this source, I use the clover objects to solve for the propagator with 
+	\item Using this source, I use the clover objects to solve for the up and down quark propagators $D^{-1}_u(n, 0)$ 
+	and $D^{-1}_d(n, 0)$. Some of my parameters on this solver are a bit weird, and I'm running a few tests to see if 
+	these have any impact on the result now.
+	\item Compute the correlation function $\langle\chi_\pi(n)\overline\chi_\pi(0)\rangle_F$ in 
+	Equation~\ref{eq:correlator} with $m = 0$ by multiplying $D^{-1}_u(n, 0)$ with $D^{-1}_d(n, 0)^*$ at each lattice 
+	point and taking traces in Dirac and color space. 
+	\item For each time slice $n_t$, project these correlators onto zero momentum with 
+	Equation~\ref{eq:zero_projection}. This is done by summing 
+	$\langle\chi_\pi (\mathbf n, n_t)\overline\chi_\pi (0)\rangle_F$ over all spatial points $\textbf n\in\Lambda_3$ and 
+	normalizing this sum by $1 / \sqrt{|\Lambda_3|}$. 
+	\item Write $C(n_t)$ to a line in an output file to save for data analysis later. 
 \end{enumerate}
+
+The output of this program is a file containing the value $C(n_t)$ for each gauge field configuration $U\in\mathcal U$. 
 
 \end{document}
