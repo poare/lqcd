@@ -34,4 +34,7 @@ Notes 10/15:
 - How should the error be scaling when I change the bootstrap number? Mine is relatively constant right now.
 - Does anyone have pion mass code that I can compare this to so I can see if there's a bug in my code? Is it worth trying to run my code again to play around on a different data set?
 - Is the only place that m_u and m_d come in the value of kappa?
-- Write up exactly what I'm calculating, and send it to Phiala. Rerun the code as well. 
+- Write up exactly what I'm calculating, and send it to Phiala. Rerun the code as well.
+- I'm going to run two more configurations today to see if there's anything I can do to the solver to fix the errors with the pion mass. These are:
+  - Job 230701. Using two clover solvers with solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
+  - Job TODO. Using two clover solvers with the single inverter, solveU = CL_u:solver(1e-22, 10000)
