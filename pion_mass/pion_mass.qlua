@@ -142,6 +142,7 @@ do
 end
 
 -- Initialize output file
+math.randomseed(os.time())
 rand = math.random(10000)
 folder = lqcd_dir.."lqcd/pion_mass/output"
 filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
