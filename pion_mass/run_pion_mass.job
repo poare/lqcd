@@ -3,7 +3,7 @@
 #ulimit -c unlimited
 
 #PBS -N pion_mass
-#PBS -l nodes=1:ppn=6
+#PBS -l nodes=1:ppn=12
 #PBS -l walltime=1480:00:00
 #PBS -l cput=48000:00:00
 #PBS -j oe
