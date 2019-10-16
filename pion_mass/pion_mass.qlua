@@ -115,12 +115,10 @@ end
 -- Set parameters
 Nc = 3    -- qcd.Nc
 
--- L = qcd.lattice{32, 32, 32, 48}
 L = qcd.lattice{16, 16, 16, 48}
-path = "/data/d10b/ensembles/isoClover/"
--- path = "/Users/poare/lqcd/pion_mass/"
+path = "/data/d10b/ensembles/isoClover/"    -- path to gauge field configs
 cfgbase = "cl3_16_48_b6p1_m0p2450"
--- cfgbase = "cl3_32_48_b6p1_m0p2450"
+lqcd_dir = "/home/poare/"    -- specify what the file path to lqcd is
 beta = 6.1
 mq = .2450
 
@@ -145,14 +143,13 @@ end
 
 -- Initialize output file
 rand = math.random(10000)
-folder = "/home/poare/lqcd/pion_mass/test_pion_mass_output"
+folder = lqcd_dir.."lqcd/pion_mass/output"
 filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
 file = io.open(filename, "a")
 file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
         L[0], L[1], L[2], L[3], beta))
 
-cfgIdPath = '/home/poare/lqcd/pion_mass/cfgIds/'
--- cfgIdPath = '/Users/poare/lqcd/pion_mass/cfgIds/'
+cfgIdPath = lqcd_dir.."lqcd/pion_mass/cfgIds/"
 cfgIds = getCfgIds(cfgIdPath, cfgbase)
 nCfgs = 0
 
