@@ -64,8 +64,8 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
   CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
   solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
 
-  CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
-  solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
+  -- CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
+  -- solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
 
   src = L:DiracPropagator()
   Nc = src:colors()
@@ -78,13 +78,15 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
   end
 
   uProp = solveU(src)  -- D_u(n|m)^-1
-  dProp = solveD(src)  -- D_d(n|m)^-1
+  -- dProp = solveD(src)  -- D_d(n|m)^-1
 
   CL_u:close()
-  CL_d:close()
+  -- CL_d:close()
 
   -- check if transpose() does spintranspose() as well as color transpose... probs just color transpose.
-  corr = (-1) * (uProp * dProp:spintranspose():transpose():conj()):spintrace():trace()
+  -- corr = (-1) * (uProp * dProp:spintranspose():transpose():conj()):spintrace():trace()
+  -- corr = (-1) * qcd.dot(uProp, dProp):sum()
+  corr = (-1) * qcd.dot(uProp, uProp)
   corr_normalized = corr / math.sqrt(vol)
 
   -- sum this lattice field on the time slice n_t. Gives back a vector

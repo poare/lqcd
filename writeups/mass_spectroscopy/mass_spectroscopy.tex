@@ -218,11 +218,11 @@ $D^{-1}_d$. However, this current expression requires computing a fermion propag
 it up at $n$, and doing the same with creating a source at $n$ and tying it up at $n$. To simplify this further, we 
 exploit $\gamma^5$-hermicity of the propagator:
 \begin{equation}
-	D^{-1}(m | n) = \gamma^5 D^{-1}(n | m)^*\gamma^5
+	D^{-1}(m | n) = \gamma^5 D^{-1}(n | m)^\dagger\gamma^5
 \end{equation}
 Hence we have the final form for this equation which we will use:
 \begin{equation}
-	\langle\chi_\pi(n)\overline\chi_\pi(m)\rangle_F = - tr\left\{D^{-1}_u (n | m) D^{-1}_d (n | m)^*\right\}~
+	\langle\chi_\pi(n)\overline\chi_\pi(m)\rangle_F = - tr\left\{D^{-1}_u (n | m) D^{-1}_d (n | m)^\dagger\right\}~
 	\label{eq:correlator}
 \end{equation}
 
@@ -234,8 +234,8 @@ on time slice $n_t$. This is (where $|\Lambda_3|$ is the size of the spatial lat
 \end{equation}
 or explicitly:
 \begin{equation}
-	C(n_t) = -\frac{1}{\sqrt{\Lambda_3|}}\sum_{\textbf n\in\Lambda_3} tr\left\{ D^{-1}_u (\textbf n, n_t \,|\, 0) D^{-1}_d 
-	(\textbf n, n_t \,|\,0)^*\right\}~
+	C(n_t) = -\frac{1}{\sqrt{|\Lambda_3|}}\sum_{\textbf n\in\Lambda_3} tr\left\{ D^{-1}_u (\textbf n, n_t \,|\, 0) D^{-1}_d 
+	(\textbf n, n_t \,|\,0)^\dagger\right\}~
 	\label{eq:zero_projection}
 \end{equation}
 
@@ -269,8 +269,8 @@ Once these paramters are specified, I loop over each gauge field configuration $
 	and $D^{-1}_d(n, 0)$. Some of my parameters on this solver are a bit weird, and I'm running a few tests to see if 
 	these have any impact on the result now.
 	\item Compute the correlation function $\langle\chi_\pi(n)\overline\chi_\pi(0)\rangle_F$ in 
-	Equation~\ref{eq:correlator} with $m = 0$ by multiplying $D^{-1}_u(n, 0)$ with $D^{-1}_d(n, 0)^*$ at each lattice 
-	point and taking traces in Dirac and color space. 
+	Equation~\ref{eq:correlator} with $m = 0$ by multiplying $D^{-1}_u(n, 0)$ with $D^{-1}_d(n, 0)^\dagger$ at each 
+	lattice point and taking traces in Dirac and color space. 
 	\item For each time slice $n_t$, project these correlators onto zero momentum with 
 	Equation~\ref{eq:zero_projection}. This is done by summing 
 	$\langle\chi_\pi (\mathbf n, n_t)\overline\chi_\pi (0)\rangle_F$ over all spatial points $\textbf n\in\Lambda_3$ and 

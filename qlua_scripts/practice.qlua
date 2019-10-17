@@ -116,6 +116,7 @@ n_t = 3
 summed = field:sum(L:MultiSet(L[3], L:pcoord(3)))
 print(summed[n_t])   -- should be vol * n_t
 
+--[[
 function old_code()
   n_t = 4    -- Number of links in t dimension to compute Wilson loop
   C = 0    -- sum up value of <...> for all gauge field configs
@@ -126,10 +127,6 @@ function old_code()
   for i = 0, nItr do
     for mu = 0, #L - 1 do
       -- initialize weak color matrix field
-      --[[
-      X = weak_SUn(L, S)    -- Random color matrix field
-      UPrimeMu = U[mu + 1] * X    -- evaluated at every lattice point
-      --]]
       for x = 0, L[0] - 1 do
         for y = 0, L[1] - 1 do
           for z = 0, L[2] - 1 do
@@ -137,9 +134,6 @@ function old_code()
               -- screen the update to see if we should keep it
               local A = getStaple(U, mu, x, y, z, t)
               local X = weak_SUn(L, S)
-              --[[ TODO: how do you generate a single color matrix and not an
-              entire field of matrices? Right now I'm generating X as a color matrix
-              field and picking its elements, it seems very inefficient though. ]]
               for k = 0, nSweep do
                 --literally just pick a matrix out of the matrix field
                 local r = math.random()
@@ -154,17 +148,20 @@ function old_code()
                   U[mu + 1][{x, y, z, t}] = UPrimeMu
                 end
               end
-              --[[
-              for k = 0, nSweep do
-                r = math.random()
-                dS = computeLocalDeltaS(U, UPrimeMu, mu, x, y, z, t, Nc)
-                if dS < r then
-                  U[mu + 1][{x, y, z, t}] = UPrimeMu[{x, y, z, t}]
-                end
-              end
-              --]]
             end
           end
         end
       end
 end
+]]
+
+A = L:DiracPropagator()
+Nc = A:colors()
+for ic = 0, Nc - 1 do -- loop over color indices
+  for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
+    local dv = L:DiracFermion()
+    dv[{0, 0, 0, 0, c = ic, d = is}] = complex(ic, is)
+    A[{c = ic, d = is}] = dv
+  end
+end
+printf(tostring(A[{0, 0, 0, 0}][{c = 1, d = 2}]).."\n")
