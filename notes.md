@@ -11,7 +11,7 @@ Questions 10/7:
     - At some point I'll probably have to be able to parse chroma code to write my own stuff in QLUA, but not necessary to do now.
 
 
-Group meeting 10/10 on QLUA:
+Group meeting 10/10 and 10/17 on QLUA:
 - type($\cdot$) will give you the type of a variable.
 - Every variable is nil before you assign it to something.
 - Namespaces in QLUA can be substituted for tables; qcd is a table, not a library
@@ -25,7 +25,20 @@ end
   - Note x[var] = 50 adds the key / value pair (var, 50) to x. Double [[]] is used to get back values.
 - To find the source code:
   cd /home/agrebe/wombat/qlua-quda/src/qlua/sources
-  - Might be useful for figuring out what the signature of different funtions is
+  - Might be useful for figuring out what the signature of different functions is
+- L:Real(3) creates a real valued lattice field with the value 3. Similarly, can do L:Int(), L:Complex(), L:ColorVector(Nc), L:ColorMatrix(Nc), L:DiracFermion(Nc), and L:DiracPropagator(Nc)
+- Array indexing is like M[{x, y, z, t}]
+- #L will return the number of dimensions of the object, L[0] will give you the size of that dimension
+- L:ColorMatrix[{a = 3}] will access a L:ColorVector. You can also write L:ColorMatrix[{x, y, z, t, a = 1, b = 2}] to index one element of the color matrix. Similarly L:DiracFermion[{x, y, z, t, c = 1, d = 2}] should give a number because it indexes a Dirac Matrix.
+- To create a point source to invert to get a propagator, create prop = L:DiracPropagator(). Create the source at src_pos = {4, 0, 6, 12}. Then write the following:
+for ic = 0, 3 do
+  for is = 0, 4 do
+    src_pos.c = c    -- adds in key value c with the number c
+    src_pos.d = d    -- adds in key value d for spinor index
+    prop[src_pos] = complex(1, 0)
+  end
+end
+- Calling field:shift($\mu$, "from_forward") rolls the field forward in the $\mu$ direction
 
 To run on wombat and write to the log while running, use this command:
 /opt/software/openmpi-2.1.1/bin/mpirun -n 6 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${PBS_JOBID}.txt
@@ -38,3 +51,4 @@ Notes 10/15:
 - I'm going to run two more configurations today to see if there's anything I can do to the solver to fix the errors with the pion mass. These are:
   - Job 230701. Using two clover solvers with solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
   - Job 230706. Using two clover solvers with the single inverter, solveU = CL_u:solver(1e-22, 10000)
+- Tried to fix and hermitian conjugate the propagator instead of just conjugate, output stored in 5799.
