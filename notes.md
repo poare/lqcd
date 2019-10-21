@@ -44,7 +44,6 @@ To run on wombat and write to the log while running, use this command:
 /opt/software/openmpi-2.1.1/bin/mpirun -n 6 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${PBS_JOBID}.txt
 
 Notes 10/15:
-- How should the error be scaling when I change the bootstrap number? Mine is relatively constant right now.
 - Does anyone have pion mass code that I can compare this to so I can see if there's a bug in my code? Is it worth trying to run my code again to play around on a different data set?
 - Is the only place that m_u and m_d come in the value of kappa?
 - Write up exactly what I'm calculating, and send it to Phiala. Rerun the code as well.
@@ -52,3 +51,18 @@ Notes 10/15:
   - Job 230701. Using two clover solvers with solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
   - Job 230706. Using two clover solvers with the single inverter, solveU = CL_u:solver(1e-22, 10000)
 - Tried to fix and hermitian conjugate the propagator instead of just conjugate, output stored in 5799.
+
+Notes 10/21:
+- Statistical analysis seems to be correct, I checked with Anthony's program. At this point I'm waiting on the server to come back up to keep running tests, and will probably see if it's gauge covariant soon.
+- Next up: Time to actually parse the 3-pt function stuff.
+- How should the error be scaling when I change the bootstrap number? Mine is relatively constant right now.
+- Renormalization on the lattice: Quarks and gluon operators have the same symmetry, so can mix into each other under renormalization. That's why in a lot of papers there's a mixing matrix with the PDFs:
+$$
+  \begin{pmatrix} f_q(x) \\ f_g(x)\end{pmatrix} =
+  \begin{pmatrix} Z_{qq} & Z_{qg} \\ Z_{gq} & Z_{gg} \end{pmatrix}
+  \begin{pmatrix} f_q^0 \\ f_g^0\end{pmatrix}
+$$
+  - I should try to learn about how renormalization works with things like this, it seems very important.
+- Symmetry breaking to hypercubic group $H(4)$. When we break Lorentz symmetry by putting a lattice in, we break the Lorentz symmetry down to the hypercubic group. When we tensor irreps of the Lorentz group together (for example, the operator $\mathcal O_{\mu_1\mu_2\mu_3\mu_4}$ lives in a representation of the Lorentz group tensored together 4 times) we don't mix subspaces of "different powers". In the hypercubic group, this isn't necessarily true and we instead get mixing from different powers, which is an issue
+  - Breaking down to $H(4)$ means that there are less symmetry elements, so more operators have the same symmetries. This implies that more operators on the lattice are allowed to mix in the continuum under renormalization.
+  - Can only calculate moments of GPDs up to order 4 because of this
