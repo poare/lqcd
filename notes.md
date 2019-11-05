@@ -45,7 +45,7 @@ To run on wombat and write to the log while running, use this command:
 
 Notes 10/15:
 - Does anyone have pion mass code that I can compare this to so I can see if there's a bug in my code? Is it worth trying to run my code again to play around on a different data set?
-- Is the only place that m_u and m_d come in the value of kappa?
+- Is the only place that $m_u$ and $m_d$ come in the value of $\kappa$?
 - Write up exactly what I'm calculating, and send it to Phiala. Rerun the code as well.
 - I'm going to run two more configurations today to see if there's anything I can do to the solver to fix the errors with the pion mass. These are:
   - Job 230701. Using two clover solvers with solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
@@ -66,3 +66,13 @@ $$
 - Symmetry breaking to hypercubic group $H(4)$. When we break Lorentz symmetry by putting a lattice in, we break the Lorentz symmetry down to the hypercubic group. When we tensor irreps of the Lorentz group together (for example, the operator $\mathcal O_{\mu_1\mu_2\mu_3\mu_4}$ lives in a representation of the Lorentz group tensored together 4 times) we don't mix subspaces of "different powers". In the hypercubic group, this isn't necessarily true and we instead get mixing from different powers, which is an issue
   - Breaking down to $H(4)$ means that there are less symmetry elements, so more operators have the same symmetries. This implies that more operators on the lattice are allowed to mix in the continuum under renormalization.
   - Can only calculate moments of GPDs up to order 4 because of this
+
+Math subjects to learn:
+- Differential topology: Read Tu's textbook, supplement with Lee smooth manifold
+  - Differential forms and integration
+- Fiber bundles: Read the lecture notes on Mendeley
+- Homology: Type up 18.905 lecture notes, read Hatcher
+- Cohomology: TODO
+- Representation theory:
+  - Weights and roots, representations of $sl(3; \mathbb C)$
+  - Young tableaus and Dynkin diagrams
