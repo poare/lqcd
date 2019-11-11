@@ -39,9 +39,11 @@
 
 \section{Deep Inelastic Scattering (DIS)}
 
-The canonical example of an experimental probe of the parton structure of the proton is the Deep Inelastic Scattering (DIS) 
-experiment. This is the process of a high energy electron scattering off of a proton via the exchange of a photon, as 
-illustrated in the following diagram. 
+This document will begin by studying the Deep Inelastic Scattering (DIS) experiment, which is the process of a high energy electron scattering 
+off of a proton via the exchange of a photon, as illustrated in Figure~\ref{fig:dis}. DIS is an example which will allow us to illustrate most of the 
+interesting features of hadron structure, and we will be able to define many of our objects of interest with regards to this type of scattering 
+specifically. 
+
 \begin{figure}[H]
 \centering
 \feynmandiagram [vertical=a to b] {
@@ -121,7 +123,8 @@ use general principles of symmetry to make some headway into describing the phys
 about the final state or the interaction. Explicitly, the hadronic tensor is:
 \begin{equation}
 	e^2\epsilon_\mu\epsilon_\nu^* W^{\mu\nu} := \frac{1}{2}\sum_{X, spins} \int d\Pi_X (2\pi)^2\delta^4\left(\sum p\right)
-	|\mathcal M(\gamma^*p^+\rightarrow X)|^2
+	|\mathcal M(\gamma^*p^+\rightarrow X)|^2~
+	\label{eq:hadronic_tensor}
 \end{equation}
 and depends explicitly on the amplitude for the virtual proton to scatter of the proton and produce the state $|X\rangle$, which is 
 yet unknown. Now, we will use this equation and this decomposition to explore the physics of this problem, and will show that 
@@ -171,7 +174,8 @@ Using the general form Equation~\ref{eq:form_factors} of the hadronic tensor, we
 it explicitly in terms of $W_1$ and $W_2$:
 \begin{equation}
 	\left(\frac{d\sigma}{d\Omega dE'}\right)_{lab} = \frac{\alpha_e^2}{8\pi E^2\sin^4(\theta / 2)}\left(\frac{m_p}{2} W_2(x, Q)\cos^2\frac{\theta}{2} + 
-	\frac{1}{m_p} W_1(x, Q)\sin^2\frac{\theta}{2}\right)
+	\frac{1}{m_p} W_1(x, Q)\sin^2\frac{\theta}{2}\right)~
+	\label{eq:sigma_ff}
 \end{equation}
 This should be pretty remarkable: without knowing anything about the final state $|X\rangle$ or really any details of the hadronic process 
 described by the diagram of Equation~\ref{eq:dis_hadronic_diagram}, we have expanded an observable in terms of the two form 
@@ -200,12 +204,164 @@ momentum $P$, i.e. $p_j = \xi P$. Then using the equation above, we find the Bjo
 so with these assumptions, the Bjorken $x$ is exactly the momentum fraction of the parton which is involved in the scattering 
 process. 
 
+Note that in the physical world described fully by QCD, the Bjorken variable is not the momentum fraction of the 
+parton. This will be approximately true, \textbf{but in general $x$ and $\xi$ are different, although they are related}. Thinking of the physical 
+interpretation of $x$ as the momentum fraction is helpful, but not exactly accurate. 
+
 In the actual proton, partons are not free but interact. Assuming they interact via the electromagnetic force, we can 
 examine the process $e^-q\rightarrow e^-q$ through a photon exchange, where $q$ is the parton. When we studied IR divergences, 
 we calculated this for the $e^-e^+\rightarrow\mu^-\mu^+$ scattering, and found that the form factor $F_1(q^2)$ ran as $F_1(q^2)\propto 
 log(Q^2)$ and $log^2(Q^2)$ when the initial momentum was fixed (i.e. when we vary $x$). This weak running of the form factors 
-as we vary $Q$ at fixed $x$ is called \textbf{Bjorken scaling} and applies in the parton model as well: when we work at fixed $x$, 
+as we vary $Q$ at fixed $x$ is called \textbf{Bjorken scaling} and applies in the parton model as well: when we work at fixed $x$: 
 the form factors stay relatively constant as we vary the energy scale of the collision. 
+
+Another key ingredient of the parton model is an object known as a \textbf{Parton Distribution Function (PDF)}. PDFs are functions 
+$f_i(\xi)d\xi$ which give the probability density for scattering off of parton $i$ having momentum fraction $\xi$. Since the Bjorken 
+variable has an interpretation as the momentum fraction of the proton which is contained by the parton, we will write out PDFs as 
+$f_i(x)dx$. The parton model assumes that we can factorize the DIS cross section into partonic ones:
+\begin{equation}
+	\sigma(e^- P^+\rightarrow e^- X) = \sum_i\int_0^1dx f_i(x)\hat{\sigma}(e^- p_i\rightarrow e^- X)~
+	\label{eq:sigma_pdf}
+\end{equation}
+Here the sum runs over all partons $p_i$ contained in the proton, and $\hat\sigma$ is the cross section for the partonic process. 
+
+Now, we assume that the partons only interact with the proton through QED and have charges $Q_i$ ($Q_i$ is the electric charge of 
+different types of quarks). This allows us to use the Rosenbluth formula for spin 1/2 QED scattering with form factors $F_1\equiv 1$ and 
+$F_2\equiv 0$. Plugging these into Equation~\ref{eq:sigma_pdf} and turning it into a differential cross section, we can compare it to 
+Equation~\ref{eq:sigma_ff} to read off the form factors $W_1$ and $W_2$:
+\begin{equation}
+	W_1(x, Q) = 2\pi\sum_i Q_i^2 f_i(x) \hspace{3cm}W_2(x, Q) = \frac{8\pi x^2}{Q^2}\sum_i Q_i^2 f_i(x)~
+	\label{eq:ff_decomp}
+\end{equation}
+The relation between $W_1$ and $W_2$ is called the \textbf{Callan-Gross relation}, and was used as experimental evidence for the 
+parton model. It is a direct consequence of the fact that quarks have spin 1/2. The relation is:
+\begin{equation}
+	W_1(x, Q) = \frac{Q^2}{4x^2} W_2(x, Q)
+\end{equation}
+
+Equation~\ref{eq:ff_decomp} allow us to write out the proton form factors in terms of PDFs (note here we adopt the notation that the pdf $q(x) := 
+f_q(x)$, so for example we use $u(x)$ to denote $f_u(x)$). We can see that the proton has $W_1$ form factor:
+\begin{equation}
+	W_1(x, Q) = 2\pi\left(\frac{4}{9} u + \frac{4}{9}\bar u + \frac{1}{9} d + \frac{1}{9}\bar d+ \frac{4}{9} s + \frac{4}{9}\bar s + ...\right)
+\end{equation}
+This can then be used to determine the form factors of the neutron, using isospin symmetry $u\leftrightarrow d$. 
+
+PDFs must satisfy certain constraints to be valid probability distributions: namely, they must satisfy certain \textbf{sum rules} related to 
+particle number conservation. As an example of this, consider the up quarks in the proton. While at any given time there are 2 valence quarks, 
+we can also have $q\overline q$ production to create sea quarks. Since the total number of up quarks is conserved ($N_u + N_{\bar u} = 2$) 
+we must have:
+\begin{equation}
+	\int_0^1dx \left(f_{u}(x) - f_{\bar u}(x)\right) = 2
+\end{equation}
+because for a single quark PDF, the total integral $\int_0^1dx q(x) = N_q$. Similar rules hold in the proton for down ($N_d = 1$) and other 
+flavor ($N_f = 0$ for $f = s, c, b, t$) quarks. In general, a sum rule will apply anytime there is a conserved particle number. The proton is a bound 
+state with specific quantum numbers for its number of (each flavor of) quarks, which implies the sum rules for the quark PDFs. Since specifying a 
+bound hadron or meson state also specifies its quantum numbers, this means that \textit{each bound QCD state will come with its own set of sum 
+rules} to reflect its general make-up. Note because gluon number is not conserved, there is \textit{no general sum rule for the gluon PDFs in a QCD 
+bound state}. 
+
+Finally, there is an additional sum rule for momentum conservation:
+\begin{equation}
+	\sum_i \int_0^1 dx\, x f_i(x) = 1
+\end{equation}
+
+\newpage
+\section{Renormalization of PDFs: The DGLAP Equations}
+
+Bjorken scaling holds quite well in actual experiments, but because the parton model is not a completely accurate physical theory (it does not 
+allow for interactions between the constituent partons which are found in actual QCD), Bjorken scaling is violated to some extent. Examining the 
+amount to which Bjorken scaling is violated will lead us to the DGLAP equations, which describe how parton PDFs mix under renormalization. 
+To study this, define a modified hadronic tensor $\hat{W}_{\mu\nu}$, which is the definition in Equation~\ref{eq:hadronic_tensor} with $p^+$ 
+replaced with a parton $p_i$. Similarly, let $z_i := Q^2 / 2p_i\cdot q$ be the counterpart of the Bjorken variable for a specific parton. Because 
+$p_i = \xi P$ with $P$ the total momentum of the incoming proton, we see that $x = \xi z_i$. 
+
+We can use this information to relate $W_{\mu\nu}$ to $\hat W_{\mu\nu}$. We can decompose the diagram defining $W_{\mu\nu}$ into 
+a sum of diagrams where the photon interacts with each parton, i.e. we sum over all partons. We must consider the partons carrying an 
+arbitrary momentum fraction of the proton constrained by $x = \xi z_i$, so we integrate over $d\xi f_i(\xi)$ and $dz_i$ with an additional 
+$\delta$ function to enforce that $x = \xi z_i$. Note whenever we integrate over $\xi$, we must integrate $d\xi f_i(\xi)$ because $f_i(\xi)$ 
+is the density that describes how the momentum of the parton is distributed. This amounts to:
+\begin{equation}
+	W_{\mu\nu}(x, Q) = \sum_i\int_0^1 dz\int_0^1 d\xi f_i(\xi) \hat{W}_{\mu\nu}(z, Q)\delta(x - \xi z) = \sum_i\int_x^1 \frac{d\xi}{\xi} f_i(\xi)
+	\hat{W}_{\mu\nu}\left(\frac{x}{\xi}, Q\right)
+\end{equation}
+
+We next take the trace of the hadronic tensor, and use that to define the form factor $W_0$:
+\begin{equation}
+	W_0(x, Q) := -g_{\mu\nu}W^{\mu\nu} = 3W_1(x, Q) - \left(m_p^2 + \frac{Q^2}{4x^2}\right)W_2(x, Q)\xrightarrow{Q >> m_p} 3W_1 
+	- \frac{Q^2}{4x^2}W_2
+\end{equation}
+Plugging in the Callan-Gross relation, we see that for large $Q / x$ we have $W_0 = 2W_1$ to first order, and using Equation~\ref{eq:ff_decomp} 
+allows us to relate $W_0$ directly to the PDFs:
+\begin{equation}
+	W_0(x, Q) = 4\pi\sum_i Q_i^2 f_i(x)
+\end{equation}
+Since $W_0$ is easily calculated in perturbation theory (it is essentially just the sum of unpolarized cross sections $\gamma^* P\rightarrow X$), we 
+will use this \textit{to define the PDF $f_i(x)$}. In particular, we can compute $W_0$ to higher orders in perturbation theory to determine 
+the PDFs $f_i(z)$. Explicitly, we will compute the next to leading order contributions to the cross section $\gamma^* \rho\rightarrow \rho$, where 
+$\rho$ is a parton, and define this to be $\hat W_0^{NLO}$. 
+
+This calculation will be very similar to the computation of IR divergences in the $e^+e^-\rightarrow\mu^+\mu^-$ cross section. Recall in that 
+case we had to compute real emission graphs in addition to the regular cross section to cancel the IR divergences, and when we summed 
+the loop diagrams with the emission graphs to each order in perturbation theory, the divergences vanished. We must do this in the same 
+way for this computation. 
+
+The next to leading order correction to $W_0$ can be calculated by considering the following amplitudes. First, the tree level vertex:
+\begin{equation}
+    i\mathcal M_V =
+    \begin{gathered}
+        \feynmandiagram [small, vertical=a to b] {
+                a [particle=\(\gamma^*\)] -- [photon, edge label=\(q\)] b,
+                	f1 [particle=\(\rho\)] -- [anti fermion, edge label' = \(p_f\)] b,
+		b -- [anti fermion, edge label' = \(p_i\)] f2 [particle=\(\rho\)],
+        };
+\end{gathered}~
+\label{eq:tree_vertex}
+\end{equation}
+Next, the vertex correction from an incoming parton:
+\begin{equation}
+    i\mathcal M_V =
+    \begin{gathered}
+        \feynmandiagram [vertical=a to b] {
+                a [particle=\(\gamma^*\)] -- [photon, edge label=\(q\)] b,
+                c -- [anti fermion] b -- [anti fermion] d -- [gluon, half right] c,
+                	f1 [particle=\(\rho\)] -- [anti fermion, edge label' = \(p_f\)] c,
+		d -- [anti fermion, edge label' = \(p_i\)] f2 [particle=\(\rho\)],
+        };
+\end{gathered}~
+\label{eq:virtual_emission}
+\end{equation}
+The next to leading order contribution in $W_0$ will go as $\mathcal M_0\mathcal M_V^* + h.c.$, i.e. will be the interference terms between 
+this diagram and the original vertex. We will call this contribution $\hat W_0^V$. The second contribution to $\hat W_0^{NLO}$ is the real emission 
+graphs from tree level parton scattering:
+\begin{equation}
+    i\mathcal M_R =
+    \begin{gathered}
+        \feynmandiagram [horizontal=a to b] {
+		i2 -- [fermion, edge label' = \(p_i\)] a,
+        		i1 [particle=\(\gamma^*\)] -- [photon, edge label' = \(q\)] a,
+		a -- [fermion] b,
+		b -- [fermion, edge label' = \(p_f\)] f1 [particle = \(\rho\)],
+		b -- [gluon, edge label' = \(p_g\)] f2,
+        };
+\end{gathered}
++
+\begin{gathered}
+        \feynmandiagram [vertical=a to b] {
+        		i1 [particle=\(\gamma^*\)] -- [photon, edge label' = \(q\)] a,
+		b -- [gluon, edge label' = \(p_g\)] f2,
+		b -- [anti fermion, edge label' = \(p_i\)] f1 [particle = \(\rho\)],
+		i2 -- [anti fermion, edge label' = \(p_f\)] a,
+		a -- [anti fermion] b,
+        };
+\end{gathered}
+~
+\label{eq:real_emission}
+\end{equation}
+The cross section from considering $\mathcal M_R\mathcal M_R^*$ in this process is the same order as $\hat W_0^V$, and so will contribute 
+to $\hat W_0^{NLO}$ as well. We will call this contribution $\hat W_0^R$. So, the total next to leading order correction to the form factor $W_0$ is:
+\begin{equation}
+	\hat W_0 = \hat W_0^{LO} + \hat W_0^V + \hat W_0^R
+\end{equation}
 
 \newpage
 \section{General Theory}
@@ -222,6 +378,7 @@ For another example of this, consider the general QED vertex function $\Gamma^\m
 
 \subsection{Generalized Parton Distributions (GPDs)}
 
+\newpage
 \section{Computational Methods}
 
 \subsection{Three Point Functions}

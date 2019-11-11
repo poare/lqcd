@@ -83,4 +83,8 @@ Math subjects to learn:
   - Read the textbook about what exactly to calculate. Work through the calculations myself for an arbitrary value of $p$ to get $F_1(p^2)$
   - Calculate the three point function and two point function, and form the ratio to extract the form factor
     - Do this both through the sink and through the source to make sure I understand what I'm doing.
-- Read the section on GPDs and determine how to calculate the moments of a GPD. Read the theses to supplement this as well. 
+- Read the section on GPDs and determine how to calculate the moments of a GPD. Read the theses to supplement this as well.
+
+Questions 11/10:
+- In the parton model, the Bjorken variable $x$ is the same as the momentum fraction $\xi$. When we consider full QCD, the parton model breaks down to some extent because of interactions between the quark and gluon constituents of the proton. In this case, to what extent does $x$ differ from $\xi$, and is it still reasonable to call $x$ the momentum fraction of the proton? What is the difference between the momentum fraction and the Bjorken variable, specifically when we do not assume the parton model? That seems to be how a lot of sources do it.
+- Do I understand DGLAP?
