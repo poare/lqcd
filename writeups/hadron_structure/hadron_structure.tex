@@ -10,6 +10,8 @@
 \usepackage[shortlabels]{enumitem}
 \usepackage{float}
 \usepackage{tikz-cd}
+\usepackage[compat=1.0.0]{tikz-feynman}   %note you need to compile this in LuaLaTeX for diagrams to render correctly
+\usepackage{slashed}
 
 \usepackage{amsthm}
 \theoremstyle{definition}
@@ -28,15 +30,193 @@
 %SetFonts
 
 
-\title{Hadron Structure on the Lattice}
+\title{Hadron Structure}
 \author{Patrick Oare}
 \date{}							% Activate to display a given date or no date
 
 \begin{document}
 \maketitle
-\section{Theory}
+
+\section{Deep Inelastic Scattering (DIS)}
+
+The canonical example of an experimental probe of the parton structure of the proton is the Deep Inelastic Scattering (DIS) 
+experiment. This is the process of a high energy electron scattering off of a proton via the exchange of a photon, as 
+illustrated in the following diagram. 
+\begin{figure}[H]
+\centering
+\feynmandiagram [vertical=a to b] {
+  i1 [particle=\(e^{-}\)] -- [fermion, edge label'=\(p\)] a -- [fermion, edge label'=\(p'\)] i2 [particle=\(e^{-}\)],
+  a -- [photon, edge label=\(q\)] b [blob],
+  f1 [particle=\(X\)] -- [anti fermion] b -- [anti fermion, edge label'=\(P\)] f2 [particle=\(p^+\)],
+};
+\caption{The Deep Inelastic Scattering (DIS) diagram}~
+\label{fig:dis}
+\end{figure}
+%\begin{figure}[H]
+%\centering
+%    \begin{tikzpicture}
+%    \begin{feynman}
+%    \vertex (a) {\(e^{-}\)};
+%    \vertex [below right=of a] (b);
+%    \vertex [above right=of b] (f1) {\(e^-\)};
+%    \vertex [below=of b] (c);
+%    \vertex [below left=of c] (f2) {\(p^+\)};
+%    \vertex [below right=of c] (f3) {\(X\)};
+%    \diagram* {
+%    (a) -- [fermion] (b) -- [fermion] (f1),
+%    (b) -- [boson, edge label'=\(q\)] (c),
+%    (c) -- [anti fermion] (f2),
+%    (c) -- [fermion] (f3),
+%    };
+%    \end{feynman}
+%    \end{tikzpicture}
+%\end{figure}
+
+As the energy of the initial electron is increased, the transfer momentum $q$ becomes larger and larger until it is able 
+to break up the proton into any particle that it can be broken into. As a result, the scattering starts off as elastic until it 
+reaches some energy threshold, then becomes highly inelastic as the proton is smashed into different particles. Without 
+any knowledge of the interaction that occurs at the bottom vertex, we can write down a surprising amount of information 
+about the scattering process. The amplitude is:
+\begin{equation}
+	i\mathcal M = -ie\overline u(p')\gamma^\mu u(p) \frac{-ig_{\mu\nu}}{q^2}\hat{\mathcal M^\nu}(q) = 
+	-\frac{e}{q^2}\overline u(p')\gamma^\mu u(p)\hat{\mathcal M}_\mu(q)
+\end{equation}
+where $i\hat{\mathcal M}(q)^\mu$ is the amplitude for the photon interacting with the proton and breaking it into a final 
+state $|X\rangle$:
+\begin{equation}
+i\hat{\mathcal M}^\mu(q) =
+\begin{gathered}
+\feynmandiagram [small, vertical=a to b] {
+  a [particle=\(\mu\)] -- [photon, edge label=\(q\)] b [blob],
+  f1 [particle=\(X\)] -- [anti fermion] b -- [anti fermion] f2 [particle=\(p^+\)],
+};
+\end{gathered}~
+\label{eq:dis_hadronic_diagram}
+\end{equation}
+If we want to calculate the unpolarized cross section, then we need the spin averaged matrix element:
+\[
+	\overline{|\mathcal M|^2} = \frac{1}{2}\sum_{spins, X}|\mathcal M|^2 = \frac{e^2}{2q^4}\left(\sum_{sr}\overline u_r(k')\gamma^\mu 
+	u_s(k)\overline u_s(k)\gamma^\nu u_s(k')\right)\left(\sum_{spins}\mathcal M_\mu(q)\mathcal M_\nu^*(q)\right)
+\]
+\begin{equation}
+	= \frac{e^2}{2q^4} tr\left[\slashed{k'}\gamma^\mu \slashed{k}\gamma^\nu\right] \left(\sum_{spins}\mathcal M_\mu(q)\mathcal M_\nu^*(q)\right)~
+	\label{eq:dis_spin_averaged}
+\end{equation}
+We can integrate this over phase space to get a differential cross section in the lab frame, which we use to define two tensors:
+\begin{equation}
+	\left(\frac{d\sigma}{d\Omega dE'}\right)_{lab} = \frac{\alpha_e^2}{4\pi m_p q^4}L^{\mu\nu} W_{\mu\nu}
+\end{equation}
+
+The first tensor $L{\mu\nu}$ is the \textbf{leptonic tensor} and describes all aspects of the scattering related to the scattering 
+of the initial and final electrons, and how they interact with the photon. Despite not knowing much about the scattering process 
+$\gamma^* p^+\rightarrow X$, we can still explicitly write this tensor down by working through the math starting from 
+Equation~\ref{eq:dis_spin_averaged}:
+\begin{equation}
+	L^{\mu\nu} := \frac{1}{2}tr\left[\slashed{k'}\gamma^\mu\slashed{k}\gamma^\nu\right] = 2(k'^\mu k^\nu + k'^\nu k^\mu - k\cdot k' g^{\mu\nu})
+\end{equation}
+
+The second tensor $W_{\mu\nu}$ is the \textbf{hadronic tensor}, and describes the physics in the hadronic part of the process, 
+namely when the proton interacts with the mediating photon. Although we do not know many details about the process, we can still 
+use general principles of symmetry to make some headway into describing the physics, without explicitly knowing information 
+about the final state or the interaction. Explicitly, the hadronic tensor is:
+\begin{equation}
+	e^2\epsilon_\mu\epsilon_\nu^* W^{\mu\nu} := \frac{1}{2}\sum_{X, spins} \int d\Pi_X (2\pi)^2\delta^4\left(\sum p\right)
+	|\mathcal M(\gamma^*p^+\rightarrow X)|^2
+\end{equation}
+and depends explicitly on the amplitude for the virtual proton to scatter of the proton and produce the state $|X\rangle$, which is 
+yet unknown. Now, we will use this equation and this decomposition to explore the physics of this problem, and will show that 
+we can predict a surprising amount without knowing the details of the interaction in Equation~\ref{eq:dis_hadronic_diagram}.
 
 \subsection{Form Factors}
+
+We can exploit the symmetry of the problem to heavily constrain the form of the hadronic tensor, and 
+extract physics from this constrained form. This is the \textbf{method of form factors}. We know the following things about 
+$W^{\mu\nu}$:
+\begin{enumerate}
+	\item It may only depend on the momentum $q^\mu$ and $P^\mu$, since the external momenta in the state $|X\rangle$ are 
+	integrated over in the phase space integral. 
+	\item It must be symmetric, i.e. $W^{\mu\nu} = W^{\nu\mu}$, because we assume the initial photon is unpolarized. 
+	\item It must obey the Ward identity applied to the diagram in Equation~\ref{eq:dis_hadronic_diagram}, so $q_\mu W^{\mu\nu} = 0$. 
+\end{enumerate}
+
+Items 1 and 2 on the list say that we can obtain a general form for $W^{\mu\nu}$ by forming all symmetric rank 2 combinations 
+of the Lorentz vectors $q^\mu$ and $P^\mu$, as well as the metric $g^{\mu\nu}$, and examining all linear combinations of 
+them. This gives 3 parameters we can vary in the linear combination for the general form for $W^{\mu\nu}$. 
+However, the Ward identity $q_\mu W^{\mu\nu} = 0$ constrains the form these combinations can take on, and so we actually 
+only have 2 coefficients we can vary in the linear combination, which we will call $W_1$ and $W_2$. These coefficients are called 
+\textbf{form factors}, and we can explicitly write the most general form of $W^{\mu\nu}$ consistent with our constraints:
+\begin{equation}
+	W^{\mu\nu} = \left(-g^{\mu\nu} + \frac{q^\mu q^\nu}{q^2}\right) W_1 + \left(P^\mu - \frac{P\cdot q}{q^2}q^\mu\right)\left(P^\nu - 
+	\frac{P\cdot q}{q^2}q^\nu\right) W_2~
+	\label{eq:form_factors}
+\end{equation}
+
+The form factors $W_1$ and $W_2$ are Lorentz scalars, and therefore must be functions of the Lorentz scalars we can generate with 
+our dynamical variables $q^\mu$ and $P^\mu$. The three combinations that we can create are $q^2$, $P^2$, and $P\cdot q$. Note that 
+$P^2 = m_p^2$ is not a dynamical variable because we assume the initial photon is on shell, but since we do not make this assumption 
+with the photon, $q^2$ is a dynamical variable that our form factors can depend on. Thus we can write the form factors as functions 
+of $q^2$ and $P\cdot q$. 
+
+To massage this into a nicer form, let $Q := \sqrt{-q^2}$ be the energy scale of the collision, and define the dimensionless ratio:
+\begin{equation}
+	x := \frac{Q^2}{2 P\cdot q}
+\end{equation}
+This is called the \textbf{Bjorken variable}, and is an important variable in describing hadron structure. Physically, you can think of $x$ as a 
+momentum fraction. So, we will consider our form factors as functions of $x$ and $Q$:
+\begin{equation}
+	W_1 = W_1(x, Q)\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; W_2 = W_2(x, Q)
+\end{equation}
+
+Using the general form Equation~\ref{eq:form_factors} of the hadronic tensor, we can plug plug this into our cross section to express 
+it explicitly in terms of $W_1$ and $W_2$:
+\begin{equation}
+	\left(\frac{d\sigma}{d\Omega dE'}\right)_{lab} = \frac{\alpha_e^2}{8\pi E^2\sin^4(\theta / 2)}\left(\frac{m_p}{2} W_2(x, Q)\cos^2\frac{\theta}{2} + 
+	\frac{1}{m_p} W_1(x, Q)\sin^2\frac{\theta}{2}\right)
+\end{equation}
+This should be pretty remarkable: without knowing anything about the final state $|X\rangle$ or really any details of the hadronic process 
+described by the diagram of Equation~\ref{eq:dis_hadronic_diagram}, we have expanded an observable in terms of the two form 
+factors $W_1$ and $W_2$. This means that the form factors can be experimentally measured, and then we can use those measurements 
+to make other predictions about the process. 
+
+\subsection{The Parton Model}
+
+A \textbf{parton} is a point-like particle which has no composite substructure-- examples of partons are the electron, neutrino, and quarks. 
+When nuclear structure was being studied, the proton was originally believed to be a parton as well until experiments like DIS showed 
+that it instead has a substructure of quarks and gluons. 
+
+Feynman coined the \textbf{parton model} of the proton, in which he assumed the proton was made up of constituent 
+partons that interact weakly and are almost free particles. Suppose that we assume the proton is made up of partons of mass 
+$\{m_i\}_{i}$. In DIS, we can assume the photon interacts with a single parton, say parton $j$. Then we can describe this process 
+with the diagram in Figure~\ref{fig:dis} where we replace the proton line with a parton line with incoming momentum $p_j$ and external 
+momentum $p_j'$. Momentum conservation gives us $p_j + q = p_j'$, and squaring both sides we get:
+\begin{equation}
+	\frac{Q^2}{2p_j\cdot q} = 1
+\end{equation}
+Since the parton is a constituent of the proton with momentum $P$, assume that it has a fraction $\xi$ of the proton's 
+momentum $P$, i.e. $p_j = \xi P$. Then using the equation above, we find the Bjorken variable is:
+\begin{equation}
+	x = \frac{Q^2}{2P\cdot q} = \xi \frac{Q^2}{2p_j\cdot q} = \xi
+\end{equation}
+so with these assumptions, the Bjorken $x$ is exactly the momentum fraction of the parton which is involved in the scattering 
+process. 
+
+In the actual proton, partons are not free but interact. Assuming they interact via the electromagnetic force, we can 
+examine the process $e^-q\rightarrow e^-q$ through a photon exchange, where $q$ is the parton. When we studied IR divergences, 
+we calculated this for the $e^-e^+\rightarrow\mu^-\mu^+$ scattering, and found that the form factor $F_1(q^2)$ ran as $F_1(q^2)\propto 
+log(Q^2)$ and $log^2(Q^2)$ when the initial momentum was fixed (i.e. when we vary $x$). This weak running of the form factors 
+as we vary $Q$ at fixed $x$ is called \textbf{Bjorken scaling} and applies in the parton model as well: when we work at fixed $x$, 
+the form factors stay relatively constant as we vary the energy scale of the collision. 
+
+\newpage
+\section{General Theory}
+
+\subsection{Form Factors}
+
+As we saw in the previous section, form factors are objects which allow us to probe the structure of composite particles. Formally, 
+they are simply expansion coefficients in a given basis of Lorentz vectors, which can be given physical interpretation by 
+examining their structure in various limits. 
+
+For another example of this, consider the general QED vertex function $\Gamma^\mu$, which includes radiative corrections. 
 
 \subsection{Parton Distribution Functions (PDFs)}
 
