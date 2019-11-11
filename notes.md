@@ -69,10 +69,18 @@ $$
 
 Math subjects to learn:
 - Differential topology: Read Tu's textbook, supplement with Lee smooth manifold
-  - Differential forms and integration
+  - Read chapters from Differential Forms and Algebraic Topology: Learn de Rham Theory and Chern Simons theory (universality classes)
 - Fiber bundles: Read the lecture notes on Mendeley
 - Homology: Type up 18.905 lecture notes, read Hatcher
 - Cohomology: TODO
 - Representation theory:
   - Weights and roots, representations of $sl(3; \mathbb C)$
   - Young tableaus and Dynkin diagrams
+
+11/10 next steps:
+- Debug code once the server is up and running
+- Calculate a pion three point function for the electromagnetic form factor $F_1(p^2)$. Will need to:
+  - Read the textbook about what exactly to calculate. Work through the calculations myself for an arbitrary value of $p$ to get $F_1(p^2)$
+  - Calculate the three point function and two point function, and form the ratio to extract the form factor
+    - Do this both through the sink and through the source to make sure I understand what I'm doing.
+- Read the section on GPDs and determine how to calculate the moments of a GPD. Read the theses to supplement this as well. 
