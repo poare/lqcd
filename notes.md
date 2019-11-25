@@ -77,14 +77,27 @@ Math subjects to learn:
   - Weights and roots, representations of $sl(3; \mathbb C)$
   - Young tableaus and Dynkin diagrams
 
-11/10 next steps:
+11/18 NUPAT Seminar on the sign problem in lattice field theories:
+- Sign problem arises when Euclidean action is complex, because $e^{-S[\phi]} / \int D\phi e^{-S[\phi]}$ is no longer a valid probability distribution
+  - Arise in theories like finite density QCD and nuclear EFTs on the lattice
+  - Any real time path integral, since weighting is $e^{iS}$ and not $e^{-S}$
+- Reweighting: Split the action into real and imaginary parts, then sample with respect to the probability defined by the real part of the action.
+  - Issue: Need to calculate $\langle e^{-i Im[S]}\rangle_{Re[S]}$ in the denominator of $\langle O\rangle$, and this is very noisy and blows up the calculation.
+- This talk: Like Cauchy's theorem in complex analysis, we can deform the domain of integration of the path integral to an arbitrary manifold. Then we can pick a nicer manifold to integrate over which suppresses the noise from the sign problem.
+
+Questions 11/18:
+- In the parton model, the Bjorken variable $x$ is the same as the momentum fraction $\xi$. When we consider full QCD, the parton model breaks down to some extent because of interactions between the quark and gluon constituents of the proton. In this case, to what extent does $x$ differ from $\xi$, and is it still reasonable to call $x$ the momentum fraction of the proton? What is the difference between the momentum fraction and the Bjorken variable, specifically when we do not assume the parton model? That seems to be how a lot of sources do it.
+- Do I understand DGLAP? Last time we talked you said that "the quantum numbers of gluons and quarks are the same, so the PDFs can mix". How does this work with the DGLAP derivation, where I go through and calculate the possible partonic influences on my hadron?
+  - Do you need to do this calculation for a general process each time you do a calculation to get the right splitting functions to describe the flow of the PDFs?
+- Walk through the ratio stuff and figure out what exactly is going on-- specifically with the projection matrices and different correlations.
+- For a general calculation, where do you usually start? At the ratio and whittle it down by choosing the right $\mathcal J$ and projection matrices to get what you want?
+  - Where do the projection matrices come in?
+
+11/18 next steps:
 - Debug code once the server is up and running
 - Calculate a pion three point function for the electromagnetic form factor $F_1(p^2)$. Will need to:
   - Read the textbook about what exactly to calculate. Work through the calculations myself for an arbitrary value of $p$ to get $F_1(p^2)$
   - Calculate the three point function and two point function, and form the ratio to extract the form factor
     - Do this both through the sink and through the source to make sure I understand what I'm doing.
 - Read the section on GPDs and determine how to calculate the moments of a GPD. Read the theses to supplement this as well.
-
-Questions 11/10:
-- In the parton model, the Bjorken variable $x$ is the same as the momentum fraction $\xi$. When we consider full QCD, the parton model breaks down to some extent because of interactions between the quark and gluon constituents of the proton. In this case, to what extent does $x$ differ from $\xi$, and is it still reasonable to call $x$ the momentum fraction of the proton? What is the difference between the momentum fraction and the Bjorken variable, specifically when we do not assume the parton model? That seems to be how a lot of sources do it.
-- Do I understand DGLAP?
+- Read 32.4 and 32.5 on the OPE and lightcone coordinates.
