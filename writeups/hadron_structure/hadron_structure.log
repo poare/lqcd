@@ -1,4 +1,4 @@
-This is LuaTeX, Version 0.95.0 (TeX Live 2016)  (format=lualatex 2016.5.22)  11 NOV 2019 16:54
+This is LuaTeX, Version 0.95.0 (TeX Live 2016)  (format=lualatex 2016.5.22)  25 NOV 2019 13:24
  restricted system commands enabled.
  file:line:error style messages enabled.
 **hadron_structure.tex
@@ -700,16 +700,16 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
  [4] [5]
-[6] [7] [8] [9] (./hadron_structure.aux))
+[6] [7] [8] [9] [10] [11] (./hadron_structure.aux))
 
 Here is how much of LuaTeX's memory you used:
- 18422 strings out of 495119
+ 18427 strings out of 495119
  125014,552014 words of node,token memory allocated
- 2650 words of node memory still in use:
-   5 hlist, 2 vlist, 2 rule, 327 glue, 1 kern, 42 glue_spec, 1 write nodes
-   avail lists: 1:9,2:46,3:1026,4:26,5:299,6:3116,7:1850,8:72,9:460,10:14,11:230
+ 4647 words of node memory still in use:
+   6 hlist, 2 vlist, 2 rule, 611 glue, 1 kern, 42 glue_spec, 1 write nodes
+   avail lists: 1:9,2:46,3:1102,4:26,5:311,6:2839,7:1981,8:85,9:777,10:14,11:221
 
- 21205 multiletter control sequences out of 65536+600000
+ 21210 multiletter control sequences out of 65536+600000
  44 fonts using 1830855 bytes
  61i,17n,98p,576b,1685s stack positions out of 5000i,500n,10000p,200000b,100000s
 </usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></
@@ -721,14 +721,15 @@ cal/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local
 xlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texli
 ve/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/
 2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/201
-6/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2016/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2016/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on hadron_structure.pdf (9 pages, 308230 bytes).
+6/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2016/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2016/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2016/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on hadron_structure.pdf (11 pages, 371011 bytes).
 
-PDF statistics: 88 PDF objects out of 1000 (max. 8388607)
- 62 compressed objects within 1 object stream
+PDF statistics: 100 PDF objects out of 1000 (max. 8388607)
+ 71 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 131072)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
