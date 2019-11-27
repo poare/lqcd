@@ -1,4 +1,4 @@
-This is LuaTeX, Version 0.95.0 (TeX Live 2016)  (format=lualatex 2016.5.22)  25 NOV 2019 13:24
+This is LuaTeX, Version 0.95.0 (TeX Live 2016)  (format=lualatex 2016.5.22)  26 NOV 2019 20:03
  restricted system commands enabled.
  file:line:error style messages enabled.
 **hadron_structure.tex
@@ -562,17 +562,37 @@ File: pgflibrarygraphdrawing.code.tex 2015/06/08 v3.0.1a (rcs-revision 1.39)
 e.tex))) (/usr/local/texlive/2016/texmf-dist/tex/latex/carlisle/slashed.sty
 Package: slashed 1997/01/16 v0.01 Feynman Slashed Character Notation (DPC)
 )
+(/usr/local/texlive/2016/texmf-dist/tex/latex/simpler-wick/simpler-wick.sty
+Package: simpler-wick 2015/12/11 Simpler Wick contractions
+
+(/usr/local/texlive/2016/texmf-dist/tex/latex/pgf/frontendlayer/libraries/tikzl
+ibraryexternal.code.tex
+(/usr/local/texlive/2016/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+Package: pdftexcmds 2016/05/10 v0.21 Utility functions of pdfTeX for LuaTeX (HO)
+
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode not found.
+
+(/usr/local/texlive/2016/texmf-dist/tex/generic/oberdiek/luatex-loader.sty
+Package: luatex-loader 2016/05/16 v0.6 Lua module loader (HO)
+
+(/usr/local/texlive/2016/texmf-dist/scripts/oberdiek/oberdiek.luatex.lua))
+\pdftexcmds@toks=\toks39
+)
+(/usr/local/texlive/2016/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzexternalshared.code.tex)))
 (/usr/local/texlive/2016/texmf-dist/tex/latex/amscls/amsthm.sty
 Package: amsthm 2015/03/04 v2.20.2
-\thm@style=\toks39
-\thm@bodyfont=\toks40
-\thm@headfont=\toks41
-\thm@notefont=\toks42
-\thm@headpunct=\toks43
+\thm@style=\toks40
+\thm@bodyfont=\toks41
+\thm@headfont=\toks42
+\thm@notefont=\toks43
+\thm@headpunct=\toks44
 \thm@preskip=\skip47
 \thm@postskip=\skip48
 \thm@headsep=\skip49
-\dth@everypar=\toks44
+\dth@everypar=\toks45
 )
 \c@definition=\count128
 \c@theorem=\count129
@@ -581,18 +601,18 @@ Package: amsthm 2015/03/04 v2.20.2
 (./hadron_structure.aux)
 \openout1 = hadron_structure.aux
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -635,12 +655,12 @@ LaTeX Font Info:    ... okay on input line 37.
 \scratchbox=\box47
 \nofMPsegments=\count132
 \nofMParguments=\count133
-\everyMPshowfont=\toks45
+\everyMPshowfont=\toks46
 \MPscratchCnt=\count134
 \MPscratchDim=\dimen181
 \MPnumerator=\count135
 \makeMPintoPDFobject=\count136
-\everyMPtoPDFconversion=\toks46
+\everyMPtoPDFconversion=\toks47
 ) (/usr/local/texlive/2016/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
 
@@ -659,19 +679,6 @@ Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
 (/usr/local/texlive/2016/texmf-dist/tex/generic/oberdiek/etexcmds.sty
 Package: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
 )))
-(/usr/local/texlive/2016/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
-Package: pdftexcmds 2016/05/10 v0.21 Utility functions of pdfTeX for LuaTeX (HO)
-
-Package pdftexcmds Info: \pdf@primitive is available.
-Package pdftexcmds Info: \pdf@ifprimitive is available.
-Package pdftexcmds Info: \pdfdraftmode not found.
-
-(/usr/local/texlive/2016/texmf-dist/tex/generic/oberdiek/luatex-loader.sty
-Package: luatex-loader 2016/05/16 v0.6 Lua module loader (HO)
-
-(/usr/local/texlive/2016/texmf-dist/scripts/oberdiek/oberdiek.luatex.lua))
-\pdftexcmds@toks=\toks47
-)
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 43
 8.
 Package grfext Info: Graphics extension search list:
@@ -686,13 +693,13 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ABD: EveryShipout initializing macros
 
 Package tikz-feynman Warning: The preamble requested version 1.0.0, but the syst
-em version is 1.1.0. This may change some diagrams. on input line 37.
+em version is 1.1.0. This may change some diagrams. on input line 38.
 
-LaTeX Font Info:    Try loading font information for U+msa on input line 38.
+LaTeX Font Info:    Try loading font information for U+msa on input line 39.
 (/usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 38.
+LaTeX Font Info:    Try loading font information for U+msb on input line 39.
 
 (/usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -700,36 +707,41 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
  [4] [5]
-[6] [7] [8] [9] [10] [11] (./hadron_structure.aux))
+[6] [7] [8] [9] [10] [11] [12] [13] [14] (./hadron_structure.aux))
 
 Here is how much of LuaTeX's memory you used:
- 18427 strings out of 495119
+ 18842 strings out of 495119
  125014,552014 words of node,token memory allocated
- 4647 words of node memory still in use:
-   6 hlist, 2 vlist, 2 rule, 611 glue, 1 kern, 42 glue_spec, 1 write nodes
-   avail lists: 1:9,2:46,3:1102,4:26,5:311,6:2839,7:1981,8:85,9:777,10:14,11:221
+ 5648 words of node memory still in use:
+   6 hlist, 2 vlist, 2 rule, 754 glue, 1 kern, 42 glue_spec, 1 write nodes
+   avail lists: 1:8,2:46,3:1102,4:26,5:311,6:2893,7:1838,8:90,9:777,10:14,11:236
 
- 21210 multiletter control sequences out of 65536+600000
- 44 fonts using 1830855 bytes
+ 21594 multiletter control sequences out of 65536+600000
+ 56 fonts using 2326687 bytes
  61i,17n,98p,576b,1685s stack positions out of 5000i,500n,10000p,200000b,100000s
 </usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></
 usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></us
 r/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/
-local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/lo
-cal/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local
-/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/te
-xlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texli
-ve/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/
-2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/201
-6/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2016/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2016/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2016/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on hadron_structure.pdf (11 pages, 371011 bytes).
+local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></us
+r/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/
+local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/loc
+al/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/
+texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/tex
+live/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texliv
+e/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2
+016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2016
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2016/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2016/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2016/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2016/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2016/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmti10.pfb>
+Output written on hadron_structure.pdf (14 pages, 494967 bytes).
 
-PDF statistics: 100 PDF objects out of 1000 (max. 8388607)
- 71 compressed objects within 1 object stream
+PDF statistics: 129 PDF objects out of 1000 (max. 8388607)
+ 92 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 131072)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

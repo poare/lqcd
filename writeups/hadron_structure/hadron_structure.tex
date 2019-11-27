@@ -12,6 +12,7 @@
 \usepackage{tikz-cd}
 \usepackage[compat=1.0.0]{tikz-feynman}   %note you need to compile this in LuaLaTeX for diagrams to render correctly
 \usepackage{slashed}
+\usepackage{simpler-wick}
 
 \usepackage{amsthm}
 \theoremstyle{definition}
@@ -39,7 +40,7 @@
 
 \section{Deep Inelastic Scattering (DIS)}
 
-This document will begin by studying the Deep Inelastic Scattering (DIS) experiment, which is the process of a high energy electron scattering 
+This section will begin by studying the Deep Inelastic Scattering (DIS) experiment, which is the process of a high energy electron scattering 
 off of a proton via the exchange of a photon, as illustrated in Figure~\ref{fig:dis}. DIS is an example which will allow us to illustrate most of the 
 interesting features of hadron structure, and we will be able to define many of our objects of interest with regards to this type of scattering 
 specifically. 
@@ -481,7 +482,156 @@ For another example of this, consider the general QED vertex function $\Gamma^\m
 \newpage
 \section{Computational Methods}
 
+In all of the following sections, quark fields will be denoted by:
+\begin{equation}
+	q_\alpha^a(x)
+\end{equation}
+where Greek indices like $\alpha$ are indices in Dirac space and English indices like $a$ are in color space. Lorentz indices will also be 
+Greek, and generally be obviously different than Dirac indices from their use. $q$ represents the flavor of the quark, so for example $u_1^1(x)$ 
+would be the field representing the spin up component of the up quark with color $1$.
+
+\subsection{Interpolating Operators}
+
+Interpolating operators are used in our calculations to create states with fixed quantum numbers-- they are analogous to creation and annihilation 
+operators, but for more complex states which can be bound states of multiple quarks. We will denote such operators by $\chi$-- suppose 
+$\chi$ is an interpolating operator for a particle $P$. Then $\chi$ will annihilate a particle of type $P$ and $\bar\chi$ will create a particle of type 
+$P$, and so $\bar\chi |\Omega$ will be a state containing a single particle of type $P$. 
+
+We first discuss meson interpolators, then move onto hadron interpolators. \textbf{Mesons} are QCD bound states which are formed from two 
+quarks. Like any bound state, they are color singlets, and the composition of their interpolating operators are a direct result of the quantum numbers 
+of the state. 
+
+For example, consider the pions $\pi^\pm$. These have isospin\footnote{A brief note on isospin. This is a quantum number of quarks 
+which allows $u$ and $d$ quarks to be rotated into one another under the fundamental representation of $SU(2)$. As such, they both have isospin 
+charge $I = \frac{1}{2}$, but up quarks have $I_z = +\frac{1}{2}$ while down quarks have $I_z = -\frac{1}{2}$. This means we can write them in a 
+doublet $\begin{pmatrix} u \\ d \end{pmatrix}$ in the $I_z\propto\sigma_z$ eigenbasis.} $I = 1$ and $I_z = \pm 1$, charge $Q = \pm e$, spin 
+$J = 0$, and parity $P = -1$. Because the pions have isospin $1$, the quarks they are composed of must be up or down quarks. To get a charge 
+of $+e$, the $\pi^+$ must be composed of a up and antidown and the $\pi^-$ must be composed of a down and antiup. To satisfy parity, we must 
+sandwich a $\gamma_5$ between the individual quark fields. So, we can postulate that the pion interpolator is:
+\begin{align}
+	\chi_{\pi^+}(x) &= \bar d(x)\gamma_5 u(x) \\
+	\chi_{\pi^-}(x) &= \bar u(x)\gamma_5 d(x)
+\end{align}
+
+TODO add in transformation law verifications.
+
+The general meson interpolator has a similar form. It is a linear combination of quark field bilinears with a Dirac matrix put in between the quark fields 
+to make the interpolator have the correct transformation laws:
+\begin{equation}
+	\chi_M = \sum_{ij} \bar q_{i} \Gamma \bar q_j = \sum_{ij} \bar q_{i\alpha}^a \Gamma_{\alpha\beta} q_{j\beta}^a
+\end{equation}
+Note here $q_i$ and $q_j$ are different flavors of quarks, and we are still contracting each of the Dirac indices and the color matrices together, as 
+in the expanded formula. 
+
+\textbf{Baryons} are bound states of QCD made out of three quarks. As such, they get much more complicated. Whereas in the meson interpolators 
+we could just contract the color indices together with the identity to form a singlet, now we must contract each of the three fields with a rank 
+3 tensor to form a singlet. The obvious way to do this is to contract the color indices with $\epsilon^{abc}$. We will also have a free Dirac index 
+on our interpolator, which can be used to create and destroy baryons with a given polarization in Dirac space. For example, the proton interpolator 
+is:
+\begin{equation}
+	\chi^p_\alpha = \epsilon^{abc} (u^{T a}(x) C\gamma_5 d^b(x)) u_\alpha^c(x)
+\end{equation}
+where $T$ is a transpose on the Dirac indices. 
+
+TODO Question: Why do we use a transpose in the proton interpolator instead of just Dirac conjugating it? Don't we want the thing multiplying 
+$u_\alpha^c(x)$ to be a Dirac singlet? 
+
+TODO Question: When does the interpolating operator have Dirac indices? Pion interpolator doesn't have Dirac index but proton does-- in general, is 
+this because the pion is a meson and the proton is a baryon? Seems like mesons interpolators are all of the form $\bar q \Gamma q$, while 
+baryon interpolators are more complicated. It's not a spin thing, because some mesons have spin 1 and still appear to be Dirac singlets. 
+
+\subsection{Wick's Theorem}
+
+TODO write on how to use it. Include example from Equation~\ref{eq:pion_threept}
+
 \subsection{Three Point Functions}
+
+Three point functions are more difficult to calculate on the lattice than two point functions. However, these will ultimately be the missing 
+pieces that we need to calculate many types of matrix elements on the lattice, which we will do in the next section. We will be computing 
+momentum projected 3-point functions. These Green's functions correspond to the amplitude to to create a particle at the origin at time 0, 
+insert a current to interact with this particle at time $\tau$ and with momentum $\vec p$, and then annihilate the particle with momentum 
+$\vec p'$ at time $t$. Pictorially, this Green's function is the amplitude for the following process:
+\begin{figure}[H]
+\centering
+\feynmandiagram [vertical=a to b] {
+	a -- [photon, edge label=\(p'{, }\tau\)] b [blob], 
+	f1 [particle=\(0\)]-- [fermion] b -- [fermion, edge label = \(p\)] i2 [particle=\(t\)], 
+};
+\end{figure}
+
+In practice, we will often project the initial and final state to some definite polarization in Dirac space, for example examining  
+the propagation amplitude for a regular particle (not antiparticle) with spin up. Our Green's function is:
+\begin{equation}
+	G(t, \tau; p, p'; \mathcal P) := \sum_{\vec x_1, \vec x_2} e^{-i\vec p'\cdot (\vec x_2 - \vec x_1)}e^{-i\vec p\cdot\vec x_1}\mathcal P_{\beta\alpha}
+	\langle\Omega | T\{\chi_\alpha(\vec x_2, t)\mathcal O (\vec x_1, \tau)\bar\chi_\beta(0)\}| \Omega\rangle
+\end{equation}
+where $\mathcal O$ is the operator we are inserting and $\mathcal P_{\beta\alpha}$ is a projection matrix\footnote{In the textbook I've been using, 
+they represent this with $\Gamma$, then also represent the operator by $\bar q\Gamma q$. I'll use $\mathcal P$ for the projection to avoid 
+confusion.} onto the corresponding polarization in 
+spinor space. Typically, the operators that we use will be of the form:
+\begin{equation}
+	\mathcal O(x) = \bar q(x) \Gamma q(x)
+\end{equation}
+where $\Gamma$ is some combination of $\gamma$ matrices and covariant derivative. For example, we use $\Gamma = \gamma^\mu$ for the 
+electromagnetic current. 
+
+This is the object we will compute explicitly on the lattice through the real-space relation:
+\begin{align}
+	\langle\Omega | T\{\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0)\} |\Omega\rangle &= \frac{1}{Z}\int DU D\psi D\bar\psi
+	\,e^{-S_E[U]}\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0) \\
+	&= \frac{1}{Z}\int DU e^{-S_E[U]} \langle\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0)\rangle_F
+\end{align}
+where $\langle\cdots\rangle_F$ is the fermionic average (obtained from integrating out the fermionic fields). 
+To compute this on the lattice, we will need to pick a particular form for the interpolator and work through the fermionic parts of the integral, and 
+will then be able to evaluate the gauge field integral by sampling the distribution and working out an averaged sum. This is all put together in the 
+following formula for the Green's function:
+\begin{equation}
+	G(t, \tau; p, p'; \mathcal P) = \sum_U\sum_{\vec x_1, \vec x_2} e^{-i\vec p\cdot (\vec x_2 - \vec x_1)} e^{-i\vec p'\cdot\vec 
+	x_1}\mathcal P_{\beta\alpha}\langle\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0)\rangle_F~
+	\label{eq:greens_fn_reduced}
+\end{equation}
+where it is understood that $\sum_U$ will sum on the gauge field configurations sampled according to the probability measure $DU e^{-S_E[U]}$. 
+
+In practice, this is as far as we can get without selecting specific operators. Recall that we may calculate the fermionic average by using Wick's 
+theorem once we have a particular choice of the operators for the problem. We will do an example of this for the pion and the proton in a later 
+section, once we discuss how to tie up the sources in the correct manner. 
+
+When we compute the three point function, there are two ways to do this: \textbf{through the sink}, and \textbf{through the operator}. This amounts to 
+the following: explicitly, we need to compute:
+
+\subsection{Three Point Function Example: Pions and Protons}
+
+The pion is the simpler case, and will be easier to work through first before considering the proton. Its interpolator is:
+\begin{equation}
+	\chi(x) = \bar d(x)\gamma_5 u(x)
+\end{equation}
+Note that because meson interpolators are Dirac singlets, we do not include the projection matrix $\mathcal P_{\beta\alpha}$, and we will be 
+computing a three point function which has no free Dirac indices. We will work with an current insertion interacting with the proton, in which the 
+operator $\mathcal O$ has the following form: 
+\begin{equation}
+	\mathcal O(x) = \bar u(x)\Gamma u(x)
+\end{equation}
+We compute the Green's function by starting with the fermionic average in Equation~\ref{eq:greens_fn_reduced} and applying Wick's theorem:
+\begin{align}
+	\langle\chi(\vec x_2, t) & \mathcal O(\vec x_1, \tau)\bar\chi(0)\rangle_F \nonumber\\ 
+	&= \langle \bar d_\alpha^a(x_2)\left(\gamma_5\right)_{\alpha\beta}
+	 u_\beta^a(x_2)\bar u_\gamma^b(x_1)\Gamma_{\gamma\sigma}u_\sigma^b(x_1)\bar u_\rho^c(0)\left(\gamma_5\right)_{\rho\delta}
+	 d_\delta^c(0)\rangle_F \nonumber \\
+	 &= (\gamma_5)_{\alpha\beta}\Gamma_{\gamma\sigma}(\gamma_5)_{\rho\delta}\left[
+	U_{\beta\gamma}^{ab}(x_2 | x_1) U_{\sigma\rho}^{bc}(x_1 | 0) D_{\delta\alpha}^{ca}(0 | x_2)
+	- U_{\beta\rho}^{ac}(x_2 | 0) U_{\sigma\gamma}^{bb}(x_1 | x_1) D_{\delta\alpha}^{ca}(0 | x_2)
+	 \right] \nonumber \\
+	 &= tr\{D(0 | x_2)\gamma_5 U(x_2 | x_1) \Gamma U(x_1 | 0) \gamma_5\} - tr\{D(0 | x_2)\gamma_5 U(x_2 | x_1) \gamma_5 \}
+	 tr\{U(x_1 | x_1)\Gamma\}
+	 \label{eq:pion_threept}
+\end{align}
+where $U(n|m) = D_u^{-1}(n|m)$ is the up quark propagator and $D(n|m) = D_d^{-1}(n|m)$ is the down quark propagator. Notice that we convert 
+this into a trace via:
+\begin{equation}
+	tr\{ABC\} = (ABC)_{\alpha\alpha} = A_{\alpha\beta} B_{\beta\gamma} C_{\gamma\alpha}
+\end{equation}
+and in our case above, $tr$ denotes \textbf{both} a spin and color trace. 
+
 
 \subsection{Correlation Function Ratios}
 
