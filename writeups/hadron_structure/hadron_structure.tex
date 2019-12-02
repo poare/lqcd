@@ -562,23 +562,24 @@ $\vec p'$ at time $t$. Pictorially, this Green's function is the amplitude for t
 In practice, we will often project the initial and final state to some definite polarization in Dirac space, for example examining  
 the propagation amplitude for a regular particle (not antiparticle) with spin up. Our Green's function is:
 \begin{equation}
-	G(t, \tau; p, p'; \mathcal P) := \sum_{\vec x_1, \vec x_2} e^{-i\vec p'\cdot (\vec x_2 - \vec x_1)}e^{-i\vec p\cdot\vec x_1}\mathcal P_{\beta\alpha}
-	\langle\Omega | T\{\chi_\alpha(\vec x_2, t)\mathcal O (\vec x_1, \tau)\bar\chi_\beta(0)\}| \Omega\rangle
+	G(t, \tau; p, p'; \mathcal P) := \sum_{\vec x_1, \vec x_2} e^{-i\vec p'\cdot (\vec x_2 - \vec x_1)}
+	e^{-i\vec p\cdot\vec x_1}\mathcal P_{\beta\alpha}\langle\Omega | T\{\chi_\alpha(\vec x_2, t)\mathcal O (\vec x_1, \tau)
+	\bar\chi_\beta(0)\}| \Omega\rangle
 \end{equation}
-where $\mathcal O$ is the operator we are inserting and $\mathcal P_{\beta\alpha}$ is a projection matrix\footnote{In the textbook I've been using, 
-they represent this with $\Gamma$, then also represent the operator by $\bar q\Gamma q$. I'll use $\mathcal P$ for the projection to avoid 
-confusion.} onto the corresponding polarization in 
+where $\mathcal O$ is the operator we are inserting and $\mathcal P_{\beta\alpha}$ is a projection matrix\footnote{In the 
+textbook I've been using, they represent this with $\Gamma$, then also represent the operator by $\bar q\Gamma q$. I'll use 
+$\mathcal P$ for the projection to avoid confusion.} onto the corresponding polarization in 
 spinor space. Typically, the operators that we use will be of the form:
 \begin{equation}
 	\mathcal O(x) = \bar q(x) \Gamma q(x)
 \end{equation}
-where $\Gamma$ is some combination of $\gamma$ matrices and covariant derivative. For example, we use $\Gamma = \gamma^\mu$ for the 
-electromagnetic current. 
+where $\Gamma$ is some combination of $\gamma$ matrices and covariant derivative. For example, we use $\Gamma = 
+\gamma^\mu$ for the electromagnetic current. 
 
 This is the object we will compute explicitly on the lattice through the real-space relation:
 \begin{align}
-	\langle\Omega | T\{\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0)\} |\Omega\rangle &= \frac{1}{Z}\int DU D\psi D\bar\psi
-	\,e^{-S_E[U]}\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0) \\
+	\langle\Omega | T\{\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0)\} |\Omega\rangle &= \frac{1}{Z}\int 
+	DU D\psi D\bar\psi\,e^{-S_E[U, \psi, \bar\psi]}\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0) \\
 	&= \frac{1}{Z}\int DU e^{-S_E[U]} \langle\chi_\alpha(\vec x_2, t)\mathcal O(\vec x_1, \tau)\bar\chi_\beta(0)\rangle_F
 \end{align}
 where $\langle\cdots\rangle_F$ is the fermionic average (obtained from integrating out the fermionic fields). 
@@ -615,14 +616,15 @@ We compute the Green's function by starting with the fermionic average in Equati
 \begin{align}
 	\langle\chi(\vec x_2, t) & \mathcal O(\vec x_1, \tau)\bar\chi(0)\rangle_F \nonumber\\ 
 	&= \langle \bar d_\alpha^a(x_2)\left(\gamma_5\right)_{\alpha\beta}
-	 u_\beta^a(x_2)\bar u_\gamma^b(x_1)\Gamma_{\gamma\sigma}u_\sigma^b(x_1)\bar u_\rho^c(0)\left(\gamma_5\right)_{\rho\delta}
+	 u_\beta^a(x_2)\bar u_\gamma^b(x_1)\Gamma_{\gamma\sigma}u_\sigma^b(x_1)\bar 
+	 u_\rho^c(0)\left(\gamma_5\right)_{\rho\delta}
 	 d_\delta^c(0)\rangle_F \nonumber \\
 	 &= (\gamma_5)_{\alpha\beta}\Gamma_{\gamma\sigma}(\gamma_5)_{\rho\delta}\left[
 	U_{\beta\gamma}^{ab}(x_2 | x_1) U_{\sigma\rho}^{bc}(x_1 | 0) D_{\delta\alpha}^{ca}(0 | x_2)
 	- U_{\beta\rho}^{ac}(x_2 | 0) U_{\sigma\gamma}^{bb}(x_1 | x_1) D_{\delta\alpha}^{ca}(0 | x_2)
 	 \right] \nonumber \\
-	 &= tr\{D(0 | x_2)\gamma_5 U(x_2 | x_1) \Gamma U(x_1 | 0) \gamma_5\} - tr\{D(0 | x_2)\gamma_5 U(x_2 | x_1) \gamma_5 \}
-	 tr\{U(x_1 | x_1)\Gamma\}
+	 &= tr\{D(0 | x_2)\gamma_5 U(x_2 | x_1) \Gamma U(x_1 | 0) \gamma_5\} - tr\{D(0 | x_2)\gamma_5 U(x_2 | 0) 
+	 \gamma_5 \} tr\{U(x_1 | x_1)\Gamma\}
 	 \label{eq:pion_threept}
 \end{align}
 where $U(n|m) = D_u^{-1}(n|m)$ is the up quark propagator and $D(n|m) = D_d^{-1}(n|m)$ is the down quark propagator. Notice that we convert 
@@ -630,8 +632,14 @@ this into a trace via:
 \begin{equation}
 	tr\{ABC\} = (ABC)_{\alpha\alpha} = A_{\alpha\beta} B_{\beta\gamma} C_{\gamma\alpha}
 \end{equation}
-and in our case above, $tr$ denotes \textbf{both} a spin and color trace. 
-
+and in our case above, $tr$ denotes \textbf{both} a spin and color trace. Now, apply $\gamma_5$-hermicity of the propagator: 
+\begin{align}
+	\langle\chi(\vec x_2, t) & \mathcal O(\vec x_1, \tau)\bar\chi(0)\rangle_F\nonumber \\
+	&= tr\{D(x_2 | 0) U(x_2 | x_1) \Gamma U(x_1 | 0) \} - tr\{D(x_2 | 0) U(x_2 | 0) \}tr\{U(x_1 | x_1)\Gamma\}
+\end{align}
+This result should make a lot of sense. The first term is the amplitude for the pion to propagate to time $\tau$ and interact 
+with the current via its up quark, as we specified the current interacting only with the up quark. The second term is a bubble 
+diagram; in it, the pion propagates without interaction from the current, but instead produces an up bubble. 
 
 \subsection{Correlation Function Ratios}
 
