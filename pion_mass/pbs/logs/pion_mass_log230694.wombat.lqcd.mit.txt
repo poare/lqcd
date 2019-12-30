@@ -1,0 +1,199 @@
+--------------------------------------------------------------------------
+WARNING: There is at least non-excluded one OpenFabrics device found,
+but there are no active ports detected (or Open MPI was unable to use
+them).  This is most certainly not what you wanted.  Check your
+cables, subnet manager configuration, etc.  The openib BTL will be
+ignored for this job.
+
+  Local host: g0104
+--------------------------------------------------------------------------
+[1571160122.008008] [g0104:15054:0]         sys.c:744  MXM  WARN  Conflicting CPU frequencies detected, using: 2300.05
+[1571160122.008008] [g0104:15058:0]         sys.c:744  MXM  WARN  Conflicting CPU frequencies detected, using: 2300.05
+[1571160122.010119] [g0104:15056:0]         sys.c:744  MXM  WARN  Conflicting CPU frequencies detected, using: 2300.05
+[1571160122.018681] [g0104:15054:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.019937] [g0104:15058:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.022870] [g0104:15056:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.023174] [g0104:15054:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.023580] [g0104:15058:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.024773] [g0104:15056:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.026931] [g0104:15059:0]         sys.c:744  MXM  WARN  Conflicting CPU frequencies detected, using: 2300.05
+[1571160122.026998] [g0104:15055:0]         sys.c:744  MXM  WARN  Conflicting CPU frequencies detected, using: 2300.05
+[1571160122.031917] [g0104:15055:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.032998] [g0104:15057:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.035409] [g0104:15057:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.035471] [g0104:15055:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.049980] [g0104:15059:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+[1571160122.052634] [g0104:15059:0]      ib_dev.c:695  MXM  ERROR There are no Mellanox cards detected.
+Reading configuration numbers from /home/poare/lqcd/pion_mass/cfgIds/cl3_32_48_b6p1_m0p2450/config_ids.txt[0]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_1970.lime
+
+[2]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_1970.lime
+
+[3]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_1970.lime
+
+[5]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_1970.lime
+
+[4]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_1970.lime
+
+[1]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_1970.lime
+
+DML_partition_in times: read 1.64  send 0.00  total 2.30
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 3.9696e-11, iters = 16, time = 25.903 sec, perf = 737.78 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 5.7336e-11, iters = 16, time = 26.468 sec, perf = 722.02 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 5.2374e-11, iters = 16, time = 26.610 sec, perf = 718.17 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 5.4304e-11, iters = 16, time = 25.958 sec, perf = 736.20 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 8.5516e-11, iters = 16, time = 26.320 sec, perf = 726.06 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 4.8768e-11, iters = 16, time = 27.056 sec, perf = 706.32 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 4.5339e-11, iters = 16, time = 26.066 sec, perf = 733.15 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 6.2037e-11, iters = 16, time = 26.794 sec, perf = 713.22 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 5.2245e-11, iters = 16, time = 26.814 sec, perf = 712.70 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 6.8305e-11, iters = 16, time = 28.003 sec, perf = 682.45 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 6.2802e-11, iters = 16, time = 27.439 sec, perf = 696.46 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 4.8464e-11, iters = 16, time = 26.956 sec, perf = 708.95 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 3.9696e-11, iters = 16, time = 25.542 sec, perf = 748.20 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 5.7336e-11, iters = 16, time = 24.284 sec, perf = 786.95 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 5.2374e-11, iters = 16, time = 24.997 sec, perf = 764.50 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 5.4304e-11, iters = 16, time = 27.363 sec, perf = 698.39 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 8.5516e-11, iters = 16, time = 26.333 sec, perf = 725.72 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 4.8768e-11, iters = 16, time = 25.812 sec, perf = 740.37 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 4.5339e-11, iters = 16, time = 26.251 sec, perf = 727.98 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 6.2037e-11, iters = 16, time = 27.118 sec, perf = 704.71 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 5.2245e-11, iters = 16, time = 25.029 sec, perf = 763.51 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 6.8305e-11, iters = 16, time = 25.570 sec, perf = 747.36 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 6.2802e-11, iters = 16, time = 24.456 sec, perf = 781.43 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 4.8464e-11, iters = 16, time = 26.121 sec, perf = 731.60 MFlops/sec
+1970|-6.615687e-02+i(-1.023029e-19) -8.059272e-05+i(-7.954377e-21) -1.990249e-05+i(3.959782e-22) -7.572198e-06+i(3.795237e-22) -6.084100e-07+i(7.099623e-24) -1.034317e-07+i(-1.032411e-24) -9.644761e-09+i(1.083612e-25) -1.246183e-09+i(2.052114e-27) -1.520909e-10+i(1.519502e-27) -1.646044e-11+i(-1.076403e-28) -2.462888e-12+i(-3.634002e-30) -2.720334e-13+i(8.355491e-31) -3.839191e-14+i(2.234530e-32) -3.687153e-15+i(2.607801e-32) -3.465144e-16+i(-9.865831e-34) -3.682482e-17+i(1.730485e-35) -3.206612e-18+i(-4.685935e-36) -2.875704e-19+i(8.102598e-37) -1.711232e-20+i(1.334421e-37) -1.548221e-21+i(-3.925605e-40) -8.653480e-23+i(-2.363080e-40) -7.089573e-24+i(6.226736e-41) -4.261690e-25+i(-6.789288e-43) -2.219477e-26+i(1.734541e-43) -2.635881e-27+i(-1.915965e-44) -2.393158e-26+i(3.725755e-46) -4.486136e-25+i(1.000899e-42) -5.515018e-24+i(-2.832336e-42) -9.445749e-23+i(7.607925e-40) -1.224534e-21+i(1.996830e-39) -1.689884e-20+i(8.019245e-38) -2.286641e-19+i(-1.488564e-36) -2.079161e-18+i(8.450855e-36) -2.879245e-17+i(-1.934713e-34) -2.998634e-16+i(-1.195679e-34) -3.114923e-15+i(8.798288e-34) -3.212545e-14+i(2.826323e-32) -3.215660e-13+i(-3.904874e-31) -2.523850e-12+i(-4.531643e-31) -2.110852e-11+i(-3.694934e-29) -1.875733e-10+i(-7.278603e-28) -1.606987e-09+i(-9.660969e-27) -1.558059e-08+i(1.061003e-25) -8.597687e-08+i(-9.513759e-25) -6.951742e-07+i(3.697082e-25) -5.983337e-06+i(-1.200313e-23) -2.464991e-05+i(4.188453e-21) -1.528392e-03+i(5.364950e-20) 
+[4]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_4690.lime
+
+[5]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_4690.lime
+
+[2]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_4690.lime
+
+[3]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_4690.lime
+
+[1]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_4690.lime
+
+[0]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_4690.lime
+
+DML_partition_in times: read 1.54  send 0.00  total 2.31
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 4.5787e-11, iters = 16, time = 26.434 sec, perf = 722.93 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 3.5185e-11, iters = 16, time = 27.678 sec, perf = 690.44 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 4.0058e-11, iters = 16, time = 25.321 sec, perf = 754.72 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 3.9488e-11, iters = 16, time = 25.565 sec, perf = 747.52 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 4.0417e-11, iters = 16, time = 26.035 sec, perf = 734.02 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 4.4934e-11, iters = 16, time = 28.940 sec, perf = 660.34 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 3.7118e-11, iters = 16, time = 27.366 sec, perf = 698.32 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 5.1856e-11, iters = 16, time = 26.501 sec, perf = 721.11 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 5.4469e-11, iters = 16, time = 26.841 sec, perf = 711.99 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 4.1790e-11, iters = 16, time = 27.695 sec, perf = 690.03 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 5.3377e-11, iters = 16, time = 26.994 sec, perf = 707.95 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 3.7620e-11, iters = 16, time = 25.362 sec, perf = 753.51 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 4.5787e-11, iters = 16, time = 27.275 sec, perf = 700.65 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 3.5185e-11, iters = 16, time = 25.018 sec, perf = 763.87 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 4.0058e-11, iters = 16, time = 25.456 sec, perf = 750.73 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 3.9488e-11, iters = 16, time = 27.002 sec, perf = 707.75 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 4.0417e-11, iters = 16, time = 26.808 sec, perf = 712.86 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 4.4934e-11, iters = 16, time = 26.813 sec, perf = 712.73 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 3.7118e-11, iters = 16, time = 26.469 sec, perf = 721.99 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 5.1856e-11, iters = 16, time = 27.928 sec, perf = 684.26 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 5.4469e-11, iters = 16, time = 25.457 sec, perf = 750.70 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 4.1790e-11, iters = 16, time = 26.896 sec, perf = 710.52 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 5.3377e-11, iters = 16, time = 27.424 sec, perf = 696.86 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 3.7620e-11, iters = 16, time = 26.703 sec, perf = 715.66 MFlops/sec
+4690|-6.727902e-02+i(6.023243e-20) -1.802770e-03+i(-1.507043e-19) -7.478563e-05+i(3.179691e-22) -1.038772e-05+i(-7.228758e-23) -9.083747e-07+i(-6.719499e-24) -1.026149e-07+i(1.212139e-24) -7.449346e-09+i(-2.195456e-26) -1.010611e-09+i(-3.718828e-27) -8.184209e-11+i(-1.668194e-28) -9.996161e-12+i(4.212656e-29) -1.040905e-12+i(-3.949212e-30) -1.201081e-13+i(-2.665648e-31) -1.266504e-14+i(-5.335054e-33) -1.209788e-15+i(4.899540e-33) -1.091976e-16+i(-7.930430e-35) -1.162772e-17+i(2.250872e-35) -1.006575e-18+i(-2.440175e-37) -7.922642e-20+i(-1.583851e-38) -6.917911e-21+i(-1.187909e-38) -6.198478e-22+i(-1.825652e-39) -4.768143e-23+i(-3.612659e-40) -3.793326e-24+i(-2.802781e-41) -2.569357e-25+i(-6.631257e-43) -1.768407e-26+i(3.969155e-45) -2.092255e-27+i(2.812575e-45) -1.629788e-26+i(5.087956e-44) -2.682866e-25+i(1.451419e-42) -4.510307e-24+i(1.294248e-41) -7.292351e-23+i(1.956343e-40) -9.905811e-22+i(3.642702e-39) -1.323133e-20+i(-3.031277e-39) -1.684021e-19+i(6.561110e-37) -1.785840e-18+i(9.152716e-36) -2.124716e-17+i(3.460243e-35) -2.267493e-16+i(-8.618813e-34) -2.038990e-15+i(5.666913e-33) -1.631896e-14+i(-5.692562e-32) -1.791865e-13+i(-2.255579e-31) -1.465404e-12+i(-2.085357e-30) -1.683178e-11+i(-1.356013e-28) -1.226533e-10+i(-5.120531e-28) -1.336222e-09+i(-9.491479e-27) -7.787138e-09+i(-7.810505e-26) -8.175779e-08+i(1.274484e-24) -6.529715e-07+i(9.685136e-25) -1.132598e-05+i(-1.462641e-22) -4.276971e-05+i(6.082804e-22) 1.214041e-04+i(1.438263e-22) 
+[0]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10910.lime
+
+[1]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10910.lime
+
+[4]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10910.lime
+
+[5]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10910.lime
+
+[2]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10910.lime
+
+[3]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10910.lime
+
+DML_partition_in times: read 2.04  send 0.00  total 2.92
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 8.1704e-11, iters = 16, time = 26.163 sec, perf = 730.44 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 3.7785e-11, iters = 16, time = 26.892 sec, perf = 710.64 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 5.3099e-11, iters = 16, time = 28.162 sec, perf = 678.58 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 9.3462e-11, iters = 16, time = 27.377 sec, perf = 698.04 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 4.2146e-11, iters = 16, time = 27.262 sec, perf = 700.99 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 7.8913e-11, iters = 16, time = 27.981 sec, perf = 682.98 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 9.0406e-11, iters = 16, time = 26.373 sec, perf = 724.61 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 5.0001e-11, iters = 16, time = 26.171 sec, perf = 730.20 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 5.4732e-11, iters = 16, time = 27.216 sec, perf = 702.17 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 7.2748e-11, iters = 16, time = 27.220 sec, perf = 702.08 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 8.0579e-11, iters = 16, time = 23.545 sec, perf = 811.63 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 7.7908e-11, iters = 16, time = 23.808 sec, perf = 802.70 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 8.1704e-11, iters = 16, time = 23.238 sec, perf = 822.37 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 3.7785e-11, iters = 16, time = 26.582 sec, perf = 718.93 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 5.3099e-11, iters = 16, time = 27.666 sec, perf = 690.74 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 9.3462e-11, iters = 16, time = 26.797 sec, perf = 713.16 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 4.2146e-11, iters = 16, time = 28.157 sec, perf = 678.71 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 7.8913e-11, iters = 16, time = 25.906 sec, perf = 737.68 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 9.0406e-11, iters = 16, time = 29.232 sec, perf = 653.74 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 5.0001e-11, iters = 16, time = 26.790 sec, perf = 713.33 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 5.4732e-11, iters = 16, time = 26.667 sec, perf = 716.63 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 7.2748e-11, iters = 16, time = 27.047 sec, perf = 706.55 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 8.0579e-11, iters = 16, time = 27.237 sec, perf = 701.62 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 7.7908e-11, iters = 16, time = 26.227 sec, perf = 728.64 MFlops/sec
+10910|-6.713921e-02+i(5.966353e-20) -2.248163e-03+i(-9.275702e-21) -1.056573e-05+i(-1.770681e-22) -1.301413e-05+i(-8.171237e-23) -9.836572e-07+i(1.907491e-23) -1.419668e-07+i(-2.372921e-24) -9.292067e-09+i(2.533632e-26) -1.691872e-09+i(1.032774e-26) -2.225149e-10+i(-5.829493e-28) -2.295129e-11+i(-6.482202e-29) -2.563914e-12+i(-1.221093e-29) -3.505944e-13+i(2.682534e-32) -3.971630e-14+i(-1.212925e-31) -4.479947e-15+i(3.250891e-32) -3.822308e-16+i(2.368666e-33) -3.869024e-17+i(8.164182e-35) -4.324012e-18+i(1.773246e-35) -3.357478e-19+i(-5.960028e-37) -2.085903e-20+i(5.635108e-38) -2.049115e-21+i(-8.032591e-39) -1.087289e-22+i(8.000141e-40) -8.760139e-24+i(4.341967e-41) -5.232207e-25+i(3.364890e-42) -2.645635e-26+i(-1.219690e-43) -3.091608e-27+i(-1.191353e-44) -2.292028e-26+i(-1.189443e-43) -3.938235e-25+i(-1.131072e-42) -5.877562e-24+i(2.021862e-41) -9.188597e-23+i(-2.586371e-40) -1.300114e-21+i(4.785884e-39) -1.815219e-20+i(6.149864e-38) -2.219130e-19+i(-4.091457e-38) -2.893996e-18+i(6.532489e-36) -3.247854e-17+i(1.424796e-35) -3.478135e-16+i(1.397961e-33) -3.099381e-15+i(1.687601e-32) -2.848785e-14+i(1.649152e-31) -2.718733e-13+i(-8.736150e-32) -2.220134e-12+i(1.990599e-29) -1.979027e-11+i(-2.592014e-29) -1.510869e-10+i(1.124303e-27) -1.482655e-09+i(6.958687e-27) -1.267482e-08+i(7.292021e-26) -1.514761e-07+i(-4.921153e-25) -7.709147e-07+i(2.813230e-23) -4.907575e-06+i(-2.405472e-23) -3.878693e-05+i(-5.427221e-22) -1.446226e-03+i(3.780590e-23) 
+[3]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_8270.lime
+
+[1]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_8270.lime
+
+[4]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_8270.lime
+
+[5]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_8270.lime
+
+[2]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_8270.lime
+
+[0]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_8270.lime
+
+DML_partition_in times: read 1.44  send 0.00  total 2.33
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 9.2802e-11, iters = 16, time = 25.447 sec, perf = 750.99 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 4.9703e-11, iters = 16, time = 24.962 sec, perf = 765.56 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 7.8745e-11, iters = 16, time = 27.396 sec, perf = 697.57 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 8.1462e-11, iters = 16, time = 27.050 sec, perf = 706.49 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 6.0321e-11, iters = 16, time = 27.954 sec, perf = 683.63 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 8.1268e-11, iters = 16, time = 26.675 sec, perf = 716.40 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 6.2434e-11, iters = 16, time = 27.087 sec, perf = 705.51 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 3.3055e-11, iters = 17, time = 29.640 sec, perf = 678.71 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 4.5446e-11, iters = 16, time = 27.352 sec, perf = 698.68 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 6.6991e-11, iters = 16, time = 26.505 sec, perf = 721.01 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 9.9901e-11, iters = 16, time = 27.624 sec, perf = 691.79 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 7.0069e-11, iters = 16, time = 26.641 sec, perf = 717.32 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 9.2802e-11, iters = 16, time = 26.739 sec, perf = 714.69 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 4.9703e-11, iters = 16, time = 25.629 sec, perf = 745.65 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 7.8745e-11, iters = 16, time = 27.455 sec, perf = 696.07 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 8.1462e-11, iters = 16, time = 27.665 sec, perf = 690.79 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 6.0321e-11, iters = 16, time = 26.598 sec, perf = 718.49 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 8.1268e-11, iters = 16, time = 26.437 sec, perf = 722.85 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 6.2434e-11, iters = 16, time = 28.363 sec, perf = 673.78 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 3.3055e-11, iters = 17, time = 27.413 sec, perf = 733.85 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 0, eps = 4.5446e-11, iters = 16, time = 26.303 sec, perf = 726.54 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 1, eps = 6.6991e-11, iters = 16, time = 27.455 sec, perf = 696.05 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 2, eps = 9.9901e-11, iters = 16, time = 26.369 sec, perf = 724.73 MFlops/sec
+CLOVER CG solver: status = 0, c = 2, d = 3, eps = 7.0069e-11, iters = 16, time = 26.232 sec, perf = 728.51 MFlops/sec
+8270|-6.788352e-02+i(6.793855e-20) -6.101364e-05+i(1.083997e-21) -1.306516e-04+i(-1.422724e-21) -1.414990e-05+i(6.749582e-23) -1.766215e-06+i(1.484941e-23) -2.183642e-07+i(-6.021876e-25) -1.939304e-08+i(-1.768113e-25) -1.951890e-09+i(8.154066e-27) -2.158904e-10+i(-3.672046e-28) -2.695525e-11+i(-3.655033e-29) -3.467495e-12+i(1.613860e-29) -3.662531e-13+i(7.559685e-32) -3.932127e-14+i(2.485391e-31) -4.093336e-15+i(-6.004530e-33) -3.982129e-16+i(-4.970701e-34) -3.127683e-17+i(-1.995086e-34) -2.876181e-18+i(-1.997554e-35) -2.927884e-19+i(-7.900911e-37) -2.493063e-20+i(1.677570e-38) -1.827556e-21+i(-1.004846e-39) -1.270138e-22+i(6.302984e-40) -9.399742e-24+i(3.080065e-41) -5.914637e-25+i(-3.142591e-42) -3.170848e-26+i(5.403923e-44) -4.418316e-27+i(-2.788595e-45) -3.733092e-26+i(1.820419e-43) -6.720060e-25+i(2.494477e-43) -1.006936e-23+i(1.985554e-41) -1.381877e-22+i(-1.441861e-40) -1.867370e-21+i(8.152318e-40) -1.956823e-20+i(-2.558280e-38) -1.889138e-19+i(-4.476452e-37) -2.144438e-18+i(2.598193e-36) -2.353903e-17+i(2.040821e-34) -2.514489e-16+i(-5.245232e-34) -2.790528e-15+i(2.364248e-33) -2.616173e-14+i(2.899710e-31) -2.218861e-13+i(2.823129e-30) -2.032174e-12+i(1.115501e-29) -1.901532e-11+i(1.184712e-28) -1.864709e-10+i(9.079224e-29) -1.553360e-09+i(-5.813538e-27) -1.192805e-08+i(2.865560e-26) -1.362368e-07+i(-1.814683e-25) -5.921129e-07+i(1.015943e-23) -1.048358e-05+i(-4.621392e-22) -2.218322e-05+i(-1.012216e-22) -1.804673e-03+i(7.743892e-21) 
+[2]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10030.lime
+
+[3]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10030.lime
+
+[1]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10030.lime
+
+[4]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10030.lime
+
+[5]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10030.lime
+
+[0]:/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450/cfgs/cl3_32_48_b6p1_m0p2450_cfg_10030.lime
+
+DML_partition_in times: read 1.55  send 0.00  total 2.33
+CLOVER CG solver: status = 0, c = 0, d = 0, eps = 5.2810e-11, iters = 16, time = 27.105 sec, perf = 705.05 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 1, eps = 7.5716e-11, iters = 16, time = 26.037 sec, perf = 733.97 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 2, eps = 6.6634e-11, iters = 16, time = 26.335 sec, perf = 725.65 MFlops/sec
+CLOVER CG solver: status = 0, c = 0, d = 3, eps = 6.4345e-11, iters = 16, time = 27.110 sec, perf = 704.91 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 0, eps = 6.4150e-11, iters = 16, time = 27.244 sec, perf = 701.45 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 1, eps = 6.3098e-11, iters = 16, time = 26.786 sec, perf = 713.45 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 2, eps = 6.5346e-11, iters = 16, time = 27.558 sec, perf = 693.46 MFlops/sec
+CLOVER CG solver: status = 0, c = 1, d = 3, eps = 4.9231e-11, iters = 16, time = 26.280 sec, perf = 727.17 MFlops/sec

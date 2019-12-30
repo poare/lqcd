@@ -2,13 +2,13 @@
 
 #ulimit -c unlimited
 
-#PBS -N pion_mass
-#PBS -l nodes=1:ppn=12
-#PBS -l walltime=1480:00:00
-#PBS -l cput=48000:00:00
-#PBS -j oe
+#SBATCH --job-name=Tune
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
 
 set -x
-cd /home/poare/lqcd/pion_mass
 
-/opt/software/openmpi-2.1.1/bin/mpirun -n 6 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${PBS_JOBID}.txt
+. /usr/local/Modules/init/bash
+module load openmpi/2.1.1
+
+mpirun -np 4 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${SLURM_JOB_ID}.txt
