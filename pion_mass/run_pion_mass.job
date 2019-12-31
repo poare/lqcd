@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=4
 
 set -x
+cd /home/poare/lqcd/pion_mass
 
-. /usr/local/Modules/init/bash
-module load openmpi/2.1.1
+module load openmpi/4.0.2
 
 mpirun -np 4 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${SLURM_JOB_ID}.txt

@@ -101,3 +101,6 @@ Questions 11/18:
     - Do this both through the sink and through the source to make sure I understand what I'm doing.
 - Read the section on GPDs and determine how to calculate the moments of a GPD. Read the theses to supplement this as well.
 - Read 32.4 and 32.5 on the OPE and lightcone coordinates.
+
+1/6 questions:
+- Figure out how bash works. When I run "bash", the whole command line lights up green. Not sure why it doesn't do this by default anymore.
