@@ -149,6 +149,7 @@ math.randomseed(os.time())
 rand = math.random(10000)
 folder = lqcd_dir.."lqcd/pion_mass/output"
 filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 file = io.open(filename, "a")
 file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
         L[0], L[1], L[2], L[3], beta))
@@ -175,4 +176,3 @@ end
 
 printf("Evaluated %d configurations.\n", nCfgs)
 file:close()
-printf("File written to: %s\n", filename)
