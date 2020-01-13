@@ -199,23 +199,23 @@ and charge conjugation) is:
 To perform computations with this on the lattice, we can work out an expression for the fermionic part of the 
 two-point function for this interpolator:
 $$
-	\langle\chi_\pi(n)\overline\chi_\pi(m)\rangle_F = \left\langle \left(\overline d(n)_\alpha \gamma^5_{\alpha\beta} 
-	u(n)_\beta\right)\left(\overline u(m)_\rho\gamma^5_{\rho\sigma} d(m)_\sigma\right)\right\rangle_F
+	\langle\chi_\pi(n)\overline\chi_\pi(m)\rangle_F = \left\langle \left(\overline d(n)_\alpha^a \gamma^5_{\alpha\beta} 
+	u(n)_\beta^a\right)\left(\overline u(m)_\rho^b\gamma^5_{\rho\sigma} d(m)_\sigma^b\right)\right\rangle_F
 $$
 $$
-	= -\gamma^5_{\alpha\beta}\gamma^5_{\rho\sigma}\left\langle u(n)_\beta \overline u(m)_\rho\right\rangle_F
-	\left\langle d(m)_\sigma\overline d(n)_\alpha\right\rangle_F
+	= -\gamma^5_{\alpha\beta}\gamma^5_{\rho\sigma}\left\langle u(n)_\beta^a \overline u(m)_\rho^b\right\rangle_F
+	\left\langle d(m)_\sigma^b\overline d(n)_\alpha^a\right\rangle_F
 $$
 $$
-	= -\gamma_{\alpha\beta}^5\gamma_{\rho\sigma}^5 D^{-1}_u(n | m)_{\beta\rho} D^{-1}_d (m | n)_{\sigma\alpha}
+	= -\gamma_{\alpha\beta}^5\gamma_{\rho\sigma}^5 D^{-1}_u(n | m)_{\beta\rho}^{ab} D^{-1}_d (m | n)_{\sigma\alpha}^{ba}
 $$
 $$
 	= -tr\left\{\gamma^5 D^{-1}_u (n | m) \gamma^5 D^{-1}_d (m | n)\right\}
 $$
-where we picked up a $-$ sign because the fields are Grassmannian. Note we use Wick's theorem to turn the products 
-$\langle u \overline u\rangle$ and $\langle d\overline d\rangle$ of fermion fields into propagators $D^{-1}_u$ and 
-$D^{-1}_d$. However, this current expression requires computing a fermion propagator at the source $m$ and tying 
-it up at $n$, and doing the same with creating a source at $n$ and tying it up at $m$. To simplify this further, we 
+where we picked up a $-$ sign because the fields are Grassmannian. Note we use Wick's 
+theorem to turn the products $\langle u \overline u\rangle$ and $\langle d\overline d\rangle$ of fermion fields into propagators 
+$D^{-1}_u$ and $D^{-1}_d$. However, this current expression requires computing a fermion propagator at the source $m$ and 
+tying it up at $n$, and doing the same with creating a source at $n$ and tying it up at $m$. To simplify this further, we 
 exploit $\gamma^5$-hermicity of the propagator:
 \begin{equation}
 	D^{-1}(m | n) = \gamma^5 D^{-1}(n | m)^\dagger\gamma^5
