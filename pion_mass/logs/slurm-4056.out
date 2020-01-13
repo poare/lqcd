@@ -1,8 +1,0 @@
-+ . /usr/local/Modules/init/bash
-/var/spool/slurmd/job04056/slurm_script: line 11: /usr/local/Modules/init/bash: No such file or directory
-+ module load openmpi/2.1.1
-++ /opt/software/modules-3.2.1/Modules/3.2.10/bin/modulecmd bash load openmpi/2.1.1
-/opt/software/modules-3.2.1/Modules/3.2.10/bin/modulecmd: error while loading shared libraries: libtcl8.6.so: cannot open shared object file: No such file or directory
-+ eval
-+ mpirun -np 4 /opt/software/qlua-20170804/qlua/bin/qlua /home/poare/lqcd/pion_mass/pion_mass.qlua
-/var/spool/slurmd/job04056/slurm_script: line 14: mpirun: command not found

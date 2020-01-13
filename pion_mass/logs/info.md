@@ -1,1 +1,2 @@
 - 12/30: Job ID 4056, run failed because of some issues with the bash script. 
+- 1/9: Job fail because of time limit. Determine how to run on the longer queues.
