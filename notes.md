@@ -104,3 +104,12 @@ Questions 11/18:
 
 1/6 questions:
 - Figure out how bash works. When I run "bash", the whole command line lights up green. Not sure why it doesn't do this by default anymore.
+
+Group meeting 1/9: Task management, Taxi code.
+
+Meeting with Phiala 1/13: Good start for debugging pion code.
+- The folder /data/d10a/projects/playingwithpions should have relevant code for computing a pion effective mass curve
+  - test_pion.qlua should be the QLUA file that computes the correlator
+  - submit_pion.sh is the bash script. It's written much more succinctly than mine, and loops through the configurations and file names before calling the QLUA script.
+  - Check out Mike's mosaic repository: /data/wombat/users/mlwagman/mosaic. This should have a lot of fermion initialization code for QLUA.
+- File naming conventions: Starting with 1 and going to whatever it ends up at. Will either be sequential or every 10, depending on its output in an HMC stream when the gauge field configurations are being generated.
