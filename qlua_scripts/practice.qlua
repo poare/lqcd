@@ -110,11 +110,49 @@ printf("\n\n")
 
 show_color_mat(staples[{0, 0, 0, 0}])
 
+printf("Now working with field coordinates.\n")
 field = L:pcoord(3)
-n_t = 3
+-- To see values of the field everywhere, uncomment this block.
+--[[
+printf("Working with field with values field[{x, y, z, t}] = t")
+for x = 0, 3 do
+  for y = 0, 3 do
+    for z = 0, 3 do
+      for t = 0, 3 do
+        printf("Field value at (%d, %d, %d, %d) is: %d\n", x, y, z, t, field[{x, y, z, t}])
+      end
+    end
+  end
+end
+]]
+
 -- want to sum spatial components of field on the n_t timeslice.
+-- summed = field:sum(L:MultiSet(L[3], L:pcoord(3)))
+
+function getTimesliceProjector(correlator, L)
+  -- p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
+  p_proj = vector.int(L[3])    -- vector of zeros of size n_t
+  for n_t = 0, L[3] - 1 do
+    for x = 0, L[0] - 1 do
+      for y = 0, L[1] -  1 do
+        for z = 0, L[2] - 1 do
+          p_proj[n_t] = p_proj[n_t] + correlator[{x, y, z, n_t}]
+        end
+      end
+    end
+  end
+  return p_proj
+end
+
+-- proj[0] should be 0, proj[1] should be vol(L) = 64, and so on.
+proj = getTimesliceProjector(field, L)
 summed = field:sum(L:MultiSet(L[3], L:pcoord(3)))
-print(summed[n_t])   -- should be vol * n_t
+for t = 0, 3 do
+  printf("Projector value on t = %d timeslice is: %d\n", t, proj[t])
+  printf("Parallel index projector value on t = %d timeslice is: %d\n", t, summed[t])
+end
+
+-- print(v[20])
 
 --[[
 function old_code()

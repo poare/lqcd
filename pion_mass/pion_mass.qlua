@@ -86,13 +86,35 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
   -- check if transpose() does spintranspose() as well as color transpose... probs just color transpose.
   -- corr = (-1) * (uProp * dProp:spintranspose():transpose():conj()):spintrace():trace()
   -- corr = (-1) * qcd.dot(uProp, dProp):sum()
-  -- qcd.dot(prop1, prop2) should take traces of one prop times the h.c. of another
-  corr = (-1) * qcd.dot(uProp, uProp)
+  -- qcd.dot(prop1, prop2) should take a matrix dot product of A conjugate times B, so the contraction A_{ab}^* B_{ab}
+  -- corr = (-1) * qcd.dot(uProp, uProp)
   -- corr = (-1) * qcd.dot(uProp:spintranspose():transpose(), uProp)
+  corr = (-1) * qcd.dot(uProp:transpose(), uProp)
   corr_normalized = corr / math.sqrt(vol)
 
   -- sum this lattice field on the time slice n_t. Gives back a vector
   p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
+  return p_proj
+end
+
+--[[ This function returns a projector object. This is a vector of size L[3] whose
+  n_t th timeslice is equal to the spatial sum of L[x, y, z, n_t]. Should determine
+  how to implement this with parallel indices later.
+
+  Can do this in one line with x:sum(L:MultiSet(L[3], L:pcoord(3)))
+]]
+function getTimesliceProjector(correlator, L)
+  -- p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
+  p_proj = vector.int(L[3])    -- vector of zeros of size n_t
+  for n_t = 0, L[3] - 1 do
+    for x = 0, L[0] - 1 do
+      for y = 0, L[1] -  1 do
+        for z = 0, L[2] - 1 do
+          p_proj[n_t] = p_proj[n_t] + correlator[{x, y, z, n_t}]
+        end
+      end
+    end
+  end
   return p_proj
 end
 
