@@ -1,0 +1,98 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/quda"
+
+
+function compute_pion2pt(U, ferm_prop, bcs, src_coord, h5_writer, L_mom)
+   local L = U[1].lattice
+   local Lx = L[0]
+   local Nc = U[1]:colors()
+   local bvec = {0,0,0,0.5}
+
+   local mom_I = {L:pcoord(#L-1)}
+   local mom_proj_gather = qcd.gather(L_mom, L, mom_I)
+
+
+   -- note: don't change to non-zero p without changing code (mtm smearing etc will break)
+   local p = {0,0,0}
+
+   -- build props
+   local Vol = 1
+   for mu = 0, #L - 1 do
+       Vol = Vol * L[mu]
+   end
+
+--   local src = compute_wall_source(U, src_coord[#L], p)
+   local src = compute_point_source(U, src_coord)
+   local prop = compute_propagator(U, ferm_prop, src)
+   local anti_prop = gamma{mu=5} * prop:adjoin() * gamma{mu=5}
+
+   -- build snk FT factor
+   local FTarg = L:Real(0)
+   for mu = 0, #L - 2 do
+       FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+   end
+   local FT = FTarg:expi() 
+
+   -- save twopt
+   local twopt = mom_proj_gather:add( (FT * prop * gamma{mu=5} * anti_prop * gamma{mu=5}):trace() )
+   for tp = 0, src_coord[#L] - 1 do
+       twopt = twopt:shift( 0, "from_forward" )
+    end
+   h5_force_write(h5_writer, "twopt/t0_"..tostring(src_coord[#L]), twopt)
+
+end
+
+local Lx = 24
+local Lt = 48
+--local Lx = 4
+--local Lt = 8
+local L = qcd.lattice{Lx,Lx,Lx,Lt}
+local L_mom = qcd.lattice{Lt}
+local Nc = 3
+local group = group.get(Nc)
+
+--local seqRnd, latRnd = make_seq_and_lat_rnds(1234, #L)
+--local U = {}
+--for mu = 0, #L-1 do
+--   U[mu+1] = group.exp(complex(0,0)*L:ColorMatrixN(Nc))
+--end
+----init_weak_field(L, latRnd, group, Nc, U)
+
+local Ureader, Urinfo, U, u_info
+local cfgbase = "su3_24_48_b6p10050"
+local cfg_dir = "/data/d10b/ensembles/quenched/su3_24_48_b6p10050/cfgs_gf/"
+printf("reading ", cfg_dir..cfgbase..".lime"..cfgnum.." \n")
+Ureader, Urinfo = qcd.qdpc.Reader(L, cfg_dir..cfgbase.."_gf.lime"..cfgnum)
+U, u_info = Ureader:ColorMatrix(#L)
+printf(Urinfo.."\n")
+printf(u_info.."\n")
+Ureader:close()
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+local kappa = 0.121
+local csw = 1
+local bcs = {1,1,1,-1}
+--qcd.quda.init(L)
+local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+--local clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 500)
+
+local src_coord = {0,0,0,0}
+
+-- prepare to write props
+local myhdf5 = "/data/d10a/projects/playingwithpions/pion2pt_kappa"..tostring(kappa).."_cfg"..tostring(cfgnum)..".h5"
+
+
+local hdf5params = { method = "phdf5" }
+local h5_writer = qcd.hdf5.Writer(myhdf5, hdf5params)
+compute_pion2pt(U, ferm_prop, bcs, src_coord, h5_writer, L_mom)
+h5_writer:close()
+--qcd.quda.fini()
+
