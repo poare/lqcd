@@ -87,8 +87,8 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
   -- corr = (-1) * (uProp * dProp:spintranspose():transpose():conj()):spintrace():trace()
   -- corr = (-1) * qcd.dot(uProp, dProp):sum()
   -- qcd.dot(prop1, prop2) should take traces of one prop times the h.c. of another
-  -- corr = (-1) * qcd.dot(uProp, uProp)
-  corr = (-1) * qcd.dot(uProp:spintranspose():transpose(), uProp)
+  corr = (-1) * qcd.dot(uProp, uProp)
+  -- corr = (-1) * qcd.dot(uProp:spintranspose():transpose(), uProp)
   corr_normalized = corr / math.sqrt(vol)
 
   -- sum this lattice field on the time slice n_t. Gives back a vector
