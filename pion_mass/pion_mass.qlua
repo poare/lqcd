@@ -220,6 +220,7 @@ for _, cfgIdx in ipairs(cfgIds) do
   printf(msg)
   -- file:write(msg)
   path = string.format("twopt/%d", cfgIdx)
+  writer:remove(path)
   writer:write(path, interpolator)
   nCfgs = nCfgs + 1
 end
