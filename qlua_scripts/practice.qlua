@@ -193,6 +193,15 @@ function old_code()
 end
 ]]
 
+--[[ Note: to pass the input argument cfgnum to QLUA, use the -e switch like this line: 
+qlua -e "cfgnum = 5" practice.qlua
+]]
+if cfgnum then
+  print(cfgnum)
+else
+  print("Variable cfgnum does not exist")
+end
+
 A = L:DiracPropagator()
 Nc = A:colors()
 for ic = 0, Nc - 1 do -- loop over color indices
