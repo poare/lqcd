@@ -211,13 +211,10 @@ for _, cfgIdx in ipairs(cfgIds) do
   U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
   msg = string.format("%d|", cfgIdx)
   interpolator = computePionInterpolator(L, U, volume, mq, mq, L_mom)
-  print("Here\n")
-  print(interpolator[{0}])
-  print("Finished\n")
 
   -- Write message and store data. Each msg of the form cfgId|a1+ib1 a2+ib2 a3+ib3 ..., for interpolator = a+ib
   for n_t = 0, L[3] - 1 do
-    msg = msg..string.format("%e+i(%e) ", interpolator[n_t]:real(), interpolator[n_t]:imag())
+    msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
   end
   msg = msg.."\n"
   printf(msg)
