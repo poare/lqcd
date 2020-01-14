@@ -84,17 +84,18 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
   -- CL_d:close()
 
   -- check if transpose() does spintranspose() as well as color transpose... probs just color transpose.
-  -- corr = (-1) * (uProp * dProp:spintranspose():transpose():conj()):spintrace():trace()
-  -- corr = (-1) * qcd.dot(uProp, dProp):sum()
   -- qcd.dot(prop1, prop2) should take a matrix dot product of A conjugate times B, so the contraction A_{ab}^* B_{ab}
   -- corr = (-1) * qcd.dot(uProp, uProp)
   -- corr = (-1) * qcd.dot(uProp:spintranspose():transpose(), uProp)
-  corr = (-1) * qcd.dot(uProp:transpose(), uProp)
-  corr_normalized = corr / math.sqrt(vol)
+  -- corr_normalized = corr / math.sqrt(vol)
+  --
+  -- -- sum this lattice field on the time slice n_t. Gives back a vector
+  -- p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
+  -- return p_proj
 
-  -- sum this lattice field on the time slice n_t. Gives back a vector
-  p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
-  return p_proj
+  local uPropAnti = gamma{mu = 5} * uProp * gamma{mu = 5}
+  local twopt = (uProp * gamma{mu = 5} * uPropAnti * gamma{mu = 5}):trace()
+  return twopt
 end
 
 --[[ This function returns a projector object. This is a vector of size L[3] whose
@@ -141,12 +142,16 @@ end
 -- Set parameters
 Nc = 3    -- qcd.Nc
 
-L = qcd.lattice{16, 16, 16, 48}
+Lx = 16
+Lt = 48
+L = qcd.lattice{Lx, Lx, Lx, Lt}
 -- L = qcd.lattice{32, 32, 32, 48}
 path = "/data/d10b/ensembles/isoClover/"    -- path to gauge field configs
+-- path = "/data/d10b/ensembles/quenched/su3_24_48_b6p10050/cfgs_gf"
 cfgbase = "cl3_16_48_b6p1_m0p2450"
 -- cfgbase = "cl3_32_48_b6p1_m0p2450"
 lqcd_dir = "/home/poare/"    -- specify what the file path to lqcd is
+-- beta = 6.10050
 beta = 6.1
 mq = .2450
 
@@ -179,11 +184,17 @@ file = io.open(filename, "a")
 file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
         L[0], L[1], L[2], L[3], beta))
 
-cfgIdPath = lqcd_dir.."lqcd/pion_mass/cfgIds/"
-cfgIds = getCfgIds(cfgIdPath, cfgbase)
-nCfgs = 0
+-- If there is an input cfgnum, then use that as cfgIdx
+cfgIds = {}
+if cfgnum then
+  cfgIds[0] = cfgnum
+else
+  cfgIdPath = lqcd_dir.."lqcd/pion_mass/cfgIds/"
+  cfgIds = getCfgIds(cfgIdPath, cfgbase)
+end
 
 -- Loop over gauge field configurations.
+nCfgs = 0
 for _, cfgIdx in ipairs(cfgIds) do
   U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
   msg = string.format("%d|", cfgIdx)
@@ -199,5 +210,8 @@ for _, cfgIdx in ipairs(cfgIds) do
   nCfgs = nCfgs + 1
 end
 
-printf("Evaluated %d configurations.\n", nCfgs)
+if nCfgs > 1 then
+  printf("Evaluated %d configurations.\n", nCfgs)
+end
+
 file:close()
