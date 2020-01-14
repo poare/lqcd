@@ -98,7 +98,7 @@ function computePionInterpolator(L, U, vol, m_u, m_d, L_mom)
 
   -- This line should do the same as the gathering command, but try each out.
   -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
-  local mom_proj = qcd.gather(twopt, L_mom, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
+  local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(twopt)  -- project two point
 
   return twopt_proj
