@@ -219,9 +219,9 @@ for _, cfgIdx in ipairs(cfgIds) do
   msg = msg.."\n"
   printf(msg)
   -- file:write(msg)
-  path = string.format("twopt/%d", cfgIdx)
-  writer:remove(path)
-  writer:write(path, interpolator)
+  hdf5_path = string.format("twopt/%d", cfgIdx)
+  writer:remove(hdf5_path)
+  writer:write(hdf5_path, interpolator)
   nCfgs = nCfgs + 1
 end
 
