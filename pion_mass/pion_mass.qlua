@@ -51,7 +51,7 @@ function initGaugeFieldLime(L, path, cfgbase, configNum)
 end
 
 -- computes the pion interpolator for a single configuration of gauge field U.
-function computePionInterpolator(L, U, vol, m_u, m_d)
+function computePionInterpolator(L, U, vol, m_u, m_d, L_mom)
   -- Hopping parameters
   kappa_u = 1 / (2 * m_u + 8)
   kappa_d = 1 / (2 * m_d + 8)
@@ -95,7 +95,13 @@ function computePionInterpolator(L, U, vol, m_u, m_d)
 
   local uPropAnti = gamma{mu = 5} * uProp * gamma{mu = 5}
   local twopt = (uProp * gamma{mu = 5} * uPropAnti * gamma{mu = 5}):trace()
-  return twopt
+
+  -- This line should do the same as the gathering command, but try each out.
+  -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
+  local mom_proj = qcd.gather(twopt, L_mom, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
+  twopt_proj = mom_proj:add(twopt)  -- project two point
+
+  return twopt_proj
 end
 
 --[[ This function returns a projector object. This is a vector of size L[3] whose
@@ -145,6 +151,7 @@ Nc = 3    -- qcd.Nc
 Lx = 16
 Lt = 48
 L = qcd.lattice{Lx, Lx, Lx, Lt}
+L_mom = qcd.lattice{Lt}
 -- L = qcd.lattice{32, 32, 32, 48}
 path = "/data/d10b/ensembles/isoClover/"    -- path to gauge field configs
 -- path = "/data/d10b/ensembles/quenched/su3_24_48_b6p10050/cfgs_gf"
@@ -203,7 +210,7 @@ nCfgs = 0
 for _, cfgIdx in ipairs(cfgIds) do
   U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
   msg = string.format("%d|", cfgIdx)
-  interpolator = computePionInterpolator(L, U, volume, mq, mq)
+  interpolator = computePionInterpolator(L, U, volume, mq, mq, L_mom)
 
   -- Write message and store data. Each msg of the form cfgId|a1+ib1 a2+ib2 a3+ib3 ..., for interpolator = a+ib
   for n_t = 0, L[3] - 1 do
