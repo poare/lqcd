@@ -95,4 +95,3 @@ local h5_writer = qcd.hdf5.Writer(myhdf5, hdf5params)
 compute_pion2pt(U, ferm_prop, bcs, src_coord, h5_writer, L_mom)
 h5_writer:close()
 --qcd.quda.fini()
-

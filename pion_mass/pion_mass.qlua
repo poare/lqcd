@@ -178,11 +178,16 @@ end
 math.randomseed(os.time())
 rand = math.random(10000)
 folder = lqcd_dir.."lqcd/pion_mass/output"
-filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
+-- filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
+filename = string.format("%s/%s_output%d.h5", folder, cfgbase, rand)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
-file = io.open(filename, "a")
-file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
-        L[0], L[1], L[2], L[3], beta))
+
+-- writer = io.open(filename, "a")
+-- file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
+--         L[0], L[1], L[2], L[3], beta))
+
+local hdf5params = { method = "phdf5" }
+writer = qcd.hdf5.Writer(filename, hdf5params)
 
 -- If there is an input cfgnum, then use that as cfgIdx
 cfgIds = {}
@@ -206,7 +211,9 @@ for _, cfgIdx in ipairs(cfgIds) do
   end
   msg = msg.."\n"
   printf(msg)
-  file:write(msg)
+  -- file:write(msg)
+  path = string.format("twopt/%d", cfgIdx)
+  writer:write(path, interpolator)
   nCfgs = nCfgs + 1
 end
 
@@ -214,4 +221,4 @@ if nCfgs > 1 then
   printf("Evaluated %d configurations.\n", nCfgs)
 end
 
-file:close()
+writer:close()
