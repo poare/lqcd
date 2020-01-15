@@ -123,12 +123,7 @@ out_folder = string.format("%s/job%d", folder, jobid)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
--- Open file writer.
-local hdf5params = { method = "phdf5" }
-writer = qcd.hdf5.Writer(filename, hdf5params)
-
 -- Compute correlators.
-
 status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum)
 if status then
   msg = string.format("%d|", cfgnum)
@@ -139,7 +134,9 @@ if status then
   msg = msg.."\n"
   printf(msg)
 
-  -- Write to file and close writer.
+  -- Open file writer and write to file.
+  local hdf5params = { method = "phdf5" }
+  writer = qcd.hdf5.Writer(filename, hdf5params)
   hdf5_path = string.format("twopt/%d", cfgnum)
   writer:remove(hdf5_path)
   writer:write(hdf5_path, interpolator)
