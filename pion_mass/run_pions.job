@@ -29,7 +29,7 @@ mq=.2450
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq}"
 
-for cfg in `seq 200 10 300`
+for cfg in `seq 100 10 3220`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/log${SLURM_JOB_ID}/cfg${cfg}.txt
 done
