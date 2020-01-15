@@ -159,12 +159,24 @@ end
 -- print(v[20])
 
 --[[ Note: to pass the input argument cfgnum to QLUA, use the -e switch like this line:
-qlua -e "cfgnum = 5" practice.qlua
+qlua -e "cfgnum = 5 jobid = 10" practice.qlua
 ]]
 if cfgnum then
   print(cfgnum)
 else
   print("Variable cfgnum does not exist")
+end
+
+if a then
+  print(a)
+else
+  print("Variable a does not exist")
+end
+
+if b then
+  print(b)
+else
+  print("Variable b does not exist")
 end
 
 src = L:DiracPropagator()

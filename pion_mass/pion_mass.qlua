@@ -52,20 +52,13 @@ end
 
 -- computes the pion interpolator for a single configuration of gauge field U.
 function computePionInterpolator(L, U, vol, kappa, L_mom)
-  -- Hopping parameters
-  --kappa_u = 1 / (2 * m_u + 8)
-  --kappa_d = 1 / (2 * m_d + 8)
 
-  -- Construct propagators. Need the inverse of the Dirac operator, so will
-     -- use solvers, which the Clover object contains.
-  c_sw = 1.0      -- SW coefficient for clover term
+  -- Construct propagators.
+  c_sw = 1.0            -- SW coefficient for clover term
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
-  CL_u = qcd.Clover(U, kappa, c_sw, bc)
-  solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
-
-  -- CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
-  -- solveD = CL_d:solver(1e-10, 1000, 1e-25, 2000)
+  CL = qcd.Clover(U, kappa, c_sw, bc)
+  solve = CL:solver(1e-10, 1000, 1e-25, 2000)
 
   src = L:DiracPropagator()
   Nc = src:colors()
@@ -77,24 +70,11 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
     end
   end
 
-  uProp = solveU(src)  -- D_u(n|m)^-1
-  -- dProp = solveD(src)  -- D_d(n|m)^-1
+  prop = solve(src)  -- D_u(n|m)^-1
+  CL:close()
 
-  CL_u:close()
-  -- CL_d:close()
-
-  -- check if transpose() does spintranspose() as well as color transpose... probs just color transpose.
-  -- qcd.dot(prop1, prop2) should take a matrix dot product of A conjugate times B, so the contraction A_{ab}^* B_{ab}
-  -- corr = (-1) * qcd.dot(uProp, uProp)
-  -- corr = (-1) * qcd.dot(uProp:spintranspose():transpose(), uProp)
-  -- corr_normalized = corr / math.sqrt(vol)
-  --
-  -- -- sum this lattice field on the time slice n_t. Gives back a vector
-  -- p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
-  -- return p_proj
-
-  local uPropAnti = gamma{mu = 5} * uProp * gamma{mu = 5}
-  local twopt = (uProp * gamma{mu = 5} * uPropAnti * gamma{mu = 5}):trace()
+  local antiProp = gamma{mu = 5} * prop * gamma{mu = 5}
+  local twopt = (prop * gamma{mu = 5} * antiProp * gamma{mu = 5}):trace()
 
   -- This line should do the same as the gathering command, but try each out.
   -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
@@ -104,47 +84,11 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
   return twopt_proj
 end
 
---[[ This function returns a projector object. This is a vector of size L[3] whose
-  n_t th timeslice is equal to the spatial sum of L[x, y, z, n_t]. Should determine
-  how to implement this with parallel indices later.
-
-  Can do this in one line with x:sum(L:MultiSet(L[3], L:pcoord(3)))
-]]
-function getTimesliceProjector(correlator, L)
-  -- p_proj = corr_normalized:sum(L:MultiSet(L[3], L:pcoord(3)))
-  p_proj = vector.int(L[3])    -- vector of zeros of size n_t
-  for n_t = 0, L[3] - 1 do
-    for x = 0, L[0] - 1 do
-      for y = 0, L[1] -  1 do
-        for z = 0, L[2] - 1 do
-          p_proj[n_t] = p_proj[n_t] + correlator[{x, y, z, n_t}]
-        end
-      end
-    end
-  end
-  return p_proj
-end
-
---[[
-Run get_cfgs.py first on folder with all gauge configurations
-to generate a text file at path..base.."_config_ids.txt"
-]]
-function getCfgIds(path, base)
-  cfgIds = {}
-  fname = path..base.."/config_ids.txt"
-  printf("Reading configuration numbers from %s", fname)
-  i = 0
-  for line in io.lines(fname) do
-    cfgIds[i] = tonumber(line)
-    i = i + 1
-  end
-  return cfgIds
-end
-
 ------------------------------------------------------------------
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
 
+-- Read in input from bash script.
 if jobid and cfgpath and cfgbase then
     printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
 else
@@ -163,20 +107,9 @@ end
 
 -- Set parameters
 Nc = 3    -- qcd.Nc
-
---Lx = 16
---Lt = 48
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
--- L = qcd.lattice{32, 32, 32, 48}
---path = "/data/d10b/ensembles/isoClover/"    -- path to gauge field configs
--- path = "/data/d10b/ensembles/quenched/su3_24_48_b6p10050/cfgs_gf"
---cfgbase = "cl3_16_48_b6p1_m0p2450"
--- cfgbase = "cl3_32_48_b6p1_m0p2450"
 lqcd_dir = "/home/poare/"    -- specify what the file path to lqcd is
--- beta = 6.10050
---beta = 6.1
---mq = .2450
 
 volume = 1    -- spatial volume
 for i = 0, #L - 2 do
@@ -184,84 +117,33 @@ for i = 0, #L - 2 do
 end
 hypervolume = volume * L[3]
 
--- random generator used to create gauge field
-r = { }
-do
-  r.x = os.random()
-  local x = L:Int(r.x)
-  for i = 0, #L - 1 do
-    r[i+1] = os.random()
-    x = x * L[i] + L:pcoord(i) * r[i+1]
-  end
-  r.f = os.random()
-  S = L:RandomState(r.f, x)
-end
-
--- Initialize output file
---math.randomseed(os.time())
---rand = math.random(10000)
+-- Paths to output file.
 folder = lqcd_dir.."lqcd/pion_mass/output"
--- filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
 out_folder = string.format("%s/job%d", folder, jobid)
--- filename = string.format("%s/%s_output%d.h5", folder, cfgbase, rand)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
--- writer = io.open(filename, "a")
--- file:write(string.format("Sampled configurations on a (%d, %d, %d, %d) lattice using beta = %f.\n",
---         L[0], L[1], L[2], L[3], beta))
-
+-- Open file writer.
 local hdf5params = { method = "phdf5" }
 writer = qcd.hdf5.Writer(filename, hdf5params)
 
--- If there is an input cfgnum, then use that as cfgIdx
+-- Compute correlators.
 
---[[
-cfgIds = {}
-if cfgnum then
-  cfgIds[0] = cfgnum
-else
-  cfgIdPath = lqcd_dir.."lqcd/pion_mass/cfgIds/"
-  cfgIds = getCfgIds(cfgIdPath, cfgbase)
-end
-
-
--- Loop over gauge field configurations.
-nCfgs = 0
-for _, cfgIdx in ipairs(cfgIds) do
-  U = initGaugeFieldLime(L, path, cfgbase, cfgIdx)
-  msg = string.format("%d|", cfgIdx)
-  interpolator = computePionInterpolator(L, U, volume, mq, mq, L_mom)
-
-  -- Write message and store data. Each msg of the form cfgId|a1+ib1 a2+ib2 a3+ib3 ..., for interpolator = a+ib
+status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum)
+if status then
+  msg = string.format("%d|", cfgnum)
+  interpolator = computePionInterpolator(L, U, volume, kappa, L_mom)
   for n_t = 0, L[3] - 1 do
-    msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
+      msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
   end
   msg = msg.."\n"
   printf(msg)
-  -- file:write(msg)
-  hdf5_path = string.format("twopt/%d", cfgIdx)
+
+  -- Write to file and close writer.
+  hdf5_path = string.format("twopt/%d", cfgnum)
   writer:remove(hdf5_path)
   writer:write(hdf5_path, interpolator)
-  nCfgs = nCfgs + 1
+  writer:close()
+else
+  printf("No gauge field configuration at %s.\n", cfgpath..cfgbase)
 end
-
-
-if nCfgs > 1 then
-  printf("Evaluated %d configurations.\n", nCfgs)
-end
-]]
-
-U = initGaugeFieldLime(L, cfgpath, cfgbase, cfgnum)
-msg = string.format("%d|", cfgnum)
-interpolator = computePionInterpolator(L, U, volume, kappa, L_mom)
-for n_t = 0, L[3] - 1 do
-    msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
-end
-msg = msg.."\n"
-printf(msg)
-hdf5_path = string.format("twopt/%d", cfgnum)
-writer:remove(hdf5_path)
-writer:write(hdf5_path, interpolator)
-
-writer:close()
