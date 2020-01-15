@@ -1,0 +1,19 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=Tune
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=long
+
+set -x
+cd /home/poare/lqcd/pion_mass
+
+bash
+module load openmpi
+module load qlua
+
+EXE=qlua
+
+mpirun -np 4 $EXE /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${SLURM_JOB_ID}.txt
