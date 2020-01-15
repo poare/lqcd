@@ -1,7 +1,8 @@
 # lqcd
 Lattice QCD code
 
-To run QLUA code on the server, use the following path to QLUA:
-/data/wombat/users/djmurphy/Software/qlua/djm/qlua/bin/qlua
+To run code on the server make sure to run:
+module load openmpi
+module load qlua
 
-Submit a pbs file with 'qsub' to run on the cluster.
+Submit a bash file with 'sbatch' to run on the cluster, and use 'squeue' to view the queue.
