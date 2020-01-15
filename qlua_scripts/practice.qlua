@@ -82,6 +82,7 @@ for i = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
 end
 run_test("weak field", W)
 
+
 -- Structure of gauge field object U:
 -- U[i + 1] gets the color matrix on the link in direction \mu = i + 1
 -- By default, U[i + 1] will only get you the value of the field on the links attached
@@ -109,6 +110,9 @@ staples = L:ColorMatrixN(Nc, 0.0)
 printf("\n\n")
 
 show_color_mat(staples[{0, 0, 0, 0}])
+
+print("Type of staples:\n")
+print(type(staples))
 
 printf("Now working with field coordinates.\n")
 field = L:pcoord(3)
@@ -154,46 +158,7 @@ end
 
 -- print(v[20])
 
---[[
-function old_code()
-  n_t = 4    -- Number of links in t dimension to compute Wilson loop
-  C = 0    -- sum up value of <...> for all gauge field configs
-  nItr = 1  -- Do 10
-  nSweep = 10    -- how many times to update each lattice site per sweep
-  nMeasured = 0    -- number of running measurements
-  beta = 5.7  -- Get it from the file name
-  for i = 0, nItr do
-    for mu = 0, #L - 1 do
-      -- initialize weak color matrix field
-      for x = 0, L[0] - 1 do
-        for y = 0, L[1] - 1 do
-          for z = 0, L[2] - 1 do
-            for t = 0, L[3] - 1 do
-              -- screen the update to see if we should keep it
-              local A = getStaple(U, mu, x, y, z, t)
-              local X = weak_SUn(L, S)
-              for k = 0, nSweep do
-                --literally just pick a matrix out of the matrix field
-                local r = math.random()
-                if k < L[0] then coord = {k, 0, 0, 0} else coord = {0, 0, 0, k - L[0] + 1} end
-                local X1 = X[coord]
-                local U1 = U[mu + 1][{x, y, z, t}]
-                local UPrimeMu = X1 * U1
-                local dU = UPrimeMu - U1
-                local dS = (-1) * beta / Nc * (dU * A):trace():real()
-
-                if r < math.exp(dS) then
-                  U[mu + 1][{x, y, z, t}] = UPrimeMu
-                end
-              end
-            end
-          end
-        end
-      end
-end
-]]
-
---[[ Note: to pass the input argument cfgnum to QLUA, use the -e switch like this line: 
+--[[ Note: to pass the input argument cfgnum to QLUA, use the -e switch like this line:
 qlua -e "cfgnum = 5" practice.qlua
 ]]
 if cfgnum then
@@ -202,13 +167,28 @@ else
   print("Variable cfgnum does not exist")
 end
 
-A = L:DiracPropagator()
-Nc = A:colors()
+src = L:DiracPropagator()
+Nc = src:colors()
 for ic = 0, Nc - 1 do -- loop over color indices
   for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
     local dv = L:DiracFermion()
     dv[{0, 0, 0, 0, c = ic, d = is}] = complex(ic, is)
-    A[{c = ic, d = is}] = dv
+    src[{c = ic, d = is}] = dv
   end
 end
-printf(tostring(A[{0, 0, 0, 0}][{c = 1, d = 2}]).."\n")
+
+cl = qcd.Clover(W, .11, 1, {1, 1, 1, -1})
+solver = cl:solver(1e-10, 1000, 1e-25, 2000)
+
+prop = solver(src)
+cl:close()
+
+contracted = prop:trace()
+print(contracted[{0, 0, 0, 0}])
+-- print(prop[{0, 0, 0, 0}][{c = 1, d = 2}])
+
+L_mom = qcd.lattice{L[#L - 1]}
+local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
+twopt_proj = mom_proj:add(contracted)  -- project two point
+
+print(twopt_proj[{0}])
