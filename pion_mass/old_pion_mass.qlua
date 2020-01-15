@@ -51,17 +51,17 @@ function initGaugeFieldLime(L, path, cfgbase, configNum)
 end
 
 -- computes the pion interpolator for a single configuration of gauge field U.
-function computePionInterpolator(L, U, vol, kappa, L_mom)
+function computePionInterpolator(L, U, vol, m_u, m_d, L_mom)
   -- Hopping parameters
-  --kappa_u = 1 / (2 * m_u + 8)
-  --kappa_d = 1 / (2 * m_d + 8)
+  kappa_u = 1 / (2 * m_u + 8)
+  kappa_d = 1 / (2 * m_d + 8)
 
   -- Construct propagators. Need the inverse of the Dirac operator, so will
      -- use solvers, which the Clover object contains.
   c_sw = 1.0      -- SW coefficient for clover term
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
-  CL_u = qcd.Clover(U, kappa, c_sw, bc)
+  CL_u = qcd.Clover(U, kappa_u, c_sw, bc)
   solveU = CL_u:solver(1e-10, 1000, 1e-25, 2000)
 
   -- CL_d = qcd.Clover(U, kappa_d, c_sw, bc)
@@ -145,38 +145,22 @@ end
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
 
-if jobid and cfgpath and cfgbase then
-    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
-else
-    error("Must enter jobid, cfgpath, and cfgbase.\n")
-end
-
-if mq then
-    kappa = 1 / (2 * mq + 8)
-end
-
-if Lx and Lt and beta and kappa then
-    printf("Numerical parameters:\nLattice size: (%d, %d, %d, %d).\nBeta: %f.\nKappa: %f.\n", Lx, Lx, Lx, Lt, beta, kappa)
-else
-    error("Numerical parameters must be entered: Lx, Lt, beta, mq or kappa.\n")
-end
-
 -- Set parameters
 Nc = 3    -- qcd.Nc
 
---Lx = 16
---Lt = 48
+Lx = 16
+Lt = 48
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
 -- L = qcd.lattice{32, 32, 32, 48}
---path = "/data/d10b/ensembles/isoClover/"    -- path to gauge field configs
+path = "/data/d10b/ensembles/isoClover/"    -- path to gauge field configs
 -- path = "/data/d10b/ensembles/quenched/su3_24_48_b6p10050/cfgs_gf"
---cfgbase = "cl3_16_48_b6p1_m0p2450"
+cfgbase = "cl3_16_48_b6p1_m0p2450"
 -- cfgbase = "cl3_32_48_b6p1_m0p2450"
 lqcd_dir = "/home/poare/"    -- specify what the file path to lqcd is
 -- beta = 6.10050
---beta = 6.1
---mq = .2450
+beta = 6.1
+mq = .2450
 
 volume = 1    -- spatial volume
 for i = 0, #L - 2 do
@@ -198,13 +182,11 @@ do
 end
 
 -- Initialize output file
---math.randomseed(os.time())
---rand = math.random(10000)
+math.randomseed(os.time())
+rand = math.random(10000)
 folder = lqcd_dir.."lqcd/pion_mass/output"
 -- filename = string.format("%s/%s_output%d.txt", folder, cfgbase, rand)
-out_folder = string.format("%s/job%d", folder, jobid)
--- filename = string.format("%s/%s_output%d.h5", folder, cfgbase, rand)
-filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+filename = string.format("%s/%s_output%d.h5", folder, cfgbase, rand)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 -- writer = io.open(filename, "a")
@@ -215,8 +197,6 @@ local hdf5params = { method = "phdf5" }
 writer = qcd.hdf5.Writer(filename, hdf5params)
 
 -- If there is an input cfgnum, then use that as cfgIdx
-
---[[
 cfgIds = {}
 if cfgnum then
   cfgIds[0] = cfgnum
@@ -224,7 +204,6 @@ else
   cfgIdPath = lqcd_dir.."lqcd/pion_mass/cfgIds/"
   cfgIds = getCfgIds(cfgIdPath, cfgbase)
 end
-
 
 -- Loop over gauge field configurations.
 nCfgs = 0
@@ -246,22 +225,9 @@ for _, cfgIdx in ipairs(cfgIds) do
   nCfgs = nCfgs + 1
 end
 
-
 if nCfgs > 1 then
   printf("Evaluated %d configurations.\n", nCfgs)
 end
-]]
-
-U = initGaugeFieldLime(L, cfgpath, cfgbase, cfgnum)
-msg = string.format("%d|", cfgnum)
-interpolator = computePionInterpolator(L, U, volume, kappa, L_mom)
-for n_t = 0, L[3] - 1 do
-    msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
-end
-msg = msg.."\n"
-printf(msg)
-hdf5_path = string.format("twopt/%d", cfgnum)
-writer:remove(hdf5_path)
-writer:write(hdf5_path, interpolator)
 
 writer:close()
+

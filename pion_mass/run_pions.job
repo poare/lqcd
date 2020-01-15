@@ -16,4 +16,20 @@ module load qlua
 
 EXE=qlua
 
-mpirun -np 4 $EXE /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/pion_mass_log${SLURM_JOB_ID}.txt
+mkdir ./logs/log${SLURM_JOB_ID}
+mkdir ./output/job${SLURM_JOB_ID}
+
+cfgpath="/data/d10b/ensembles/isoClover/"
+cfgbase="cl3_16_48_b6p1_m0p2450"
+
+Lx=16
+Lt=48
+beta=6.1
+mq=.2450
+
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq}"
+
+for cfg in `seq 200 10 300`
+do
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/log${SLURM_JOB_ID}/cfg${cfg}.txt
+done
