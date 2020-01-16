@@ -1,0 +1,765 @@
++ cd /home/poare/lqcd/pion_mass
++ bash
++ module load openmpi
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load openmpi
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5;' export '_LMFILES_;
+MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi;' export 'MODULES_LMALTNAME;
+MODULES_LMALTNAME_modshare=openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1;' export 'MODULES_LMCONFLICT_modshare;
+OPENMPI_TOP=/opt/software/openmpi-3.1.5;' export 'OPENMPI_TOP;
+LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5
+++ export _LMFILES_
+++ MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi'
+++ export MODULES_LMALTNAME
+++ MODULES_LMALTNAME_modshare='openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1'
+++ export MODULES_LMCONFLICT_modshare
+++ OPENMPI_TOP=/opt/software/openmpi-3.1.5
+++ export OPENMPI_TOP
+++ LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ module load qlua
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load qlua
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107;' export '_LMFILES_;
+MANPATH_modshare=/opt/software/qlua-20200107/share/man:1::1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi:qlua/20200107\&qlua;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi:qlua/20200107\&qlua/default\&qlua;' export 'MODULES_LMALTNAME;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1:qlua/20200107\&qlua:1;' export 'MODULES_LMCONFLICT_modshare;
+MODULES_LMALTNAME_modshare=qlua/20200107\&qlua/default\&qlua:1:openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+LOADEDMODULES_modshare=slurm/19.05.4.1:1:openmpi/3.1.5:1:qlua/20200107:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/qlua/20200107:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107/bin;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/opt/software/qlua-20200107/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107
+++ export _LMFILES_
+++ MANPATH_modshare=/opt/software/qlua-20200107/share/man:1::1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi:qlua/20200107&qlua'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi:qlua/20200107&qlua/default&qlua'
+++ export MODULES_LMALTNAME
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1:qlua/20200107&qlua:1'
+++ export MODULES_LMCONFLICT_modshare
+++ MODULES_LMALTNAME_modshare='qlua/20200107&qlua/default&qlua:1:openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ LOADEDMODULES_modshare=slurm/19.05.4.1:1:openmpi/3.1.5:1:qlua/20200107:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/qlua/20200107:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107/bin
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/opt/software/qlua-20200107/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ EXE=qlua
++ mkdir ./logs/log5023
++ mkdir ./output/job5023
++ cfgpath=/data/d10b/ensembles/isoClover/
++ cfgbase=cl3_16_48_b6p1_m0p2450
++ Lx=16
++ Lt=48
++ beta=6.1
++ mq=.2450
++ parameters='jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450'
+++ seq 100 10 3220
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 100' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 110' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 120' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 130' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 140' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 150' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 160' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 170' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 180' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 190' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 200' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 210' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 220' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 230' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 240' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 250' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 260' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 270' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 280' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 290' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 300' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 310' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 320' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 330' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 340' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 350' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 360' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 370' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 380' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 390' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 400' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 410' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 420' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 430' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 440' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 450' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 460' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 470' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 480' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 490' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 500' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 510' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 520' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 530' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 540' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 550' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 560' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 570' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 580' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 590' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 600' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 610' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 620' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 630' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 640' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 650' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 660' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 670' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 680' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 690' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 700' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 710' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 720' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 730' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 740' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 750' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 760' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 770' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 780' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 790' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 800' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 810' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 820' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 830' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 840' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 850' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 860' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 870' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 880' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 890' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 900' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 910' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 920' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 930' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 940' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 950' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 960' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 970' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 980' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 990' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1000' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1010' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1020' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1030' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1040' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1050' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1060' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1070' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1080' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1090' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1100' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1110' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1120' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1130' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1140' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1150' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1160' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1170' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1180' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1190' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1200' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1210' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1220' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1230' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1240' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1250' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1260' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1270' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1280' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1290' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1300' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1310' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1320' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1330' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1340' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1350' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1360' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1370' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1380' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1390' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1400' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1410' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1420' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1430' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1440' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1450' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1460' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1470' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1480' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1490' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1500' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1510' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1520' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1530' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1540' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1550' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1560' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1570' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1580' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1590' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1600' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1610' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1620' /home/poare/lqcd/pion_mass/pion_mass.qlua
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[17476,1],3]
+  Exit code:    1
+--------------------------------------------------------------------------
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1630' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1640' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1650' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1660' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1670' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1680' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1690' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1700' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1710' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1720' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1730' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1740' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1750' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1760' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1770' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1780' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1790' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1800' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1810' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1820' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1830' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1840' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1850' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1860' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1870' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1880' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1890' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1900' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1910' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1920' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1930' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1940' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1950' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1960' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1970' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1980' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 1990' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2000' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2010' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2020' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2030' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2040' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2050' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2060' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2070' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2080' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2090' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2100' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2110' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2120' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2130' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2140' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2150' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2160' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2170' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2180' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2190' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2200' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2210' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2220' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2230' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2240' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2250' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2260' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2270' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2280' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2290' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2300' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2310' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2320' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2330' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2340' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2350' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2360' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2370' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2380' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2390' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2400' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2410' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2420' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2430' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2440' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2450' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2460' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2470' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2480' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2490' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2500' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2510' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2520' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2530' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2540' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2550' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2560' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2570' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2580' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2590' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2600' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2610' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2620' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2630' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2640' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2650' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2660' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2670' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2680' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2690' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2700' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2710' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2720' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2730' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2740' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2750' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2760' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2770' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2780' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2790' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2800' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2810' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2820' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2830' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2840' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2850' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2860' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2870' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2880' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2890' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2900' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2910' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2920' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2930' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2940' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2950' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2960' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2970' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2980' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 2990' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3000' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3010' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3020' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3030' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3040' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3050' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3060' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3070' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3080' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3090' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3100' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3110' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3120' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3130' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3140' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3150' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3160' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3170' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3180' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3190' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3200' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3210' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5023 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 3220' /home/poare/lqcd/pion_mass/pion_mass.qlua

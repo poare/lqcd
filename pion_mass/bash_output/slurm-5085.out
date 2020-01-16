@@ -1,0 +1,176 @@
++ cd /home/poare/lqcd/pion_mass
++ bash
++ module load openmpi
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load openmpi
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5;' export '_LMFILES_;
+MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi;' export 'MODULES_LMALTNAME;
+MODULES_LMALTNAME_modshare=openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1;' export 'MODULES_LMCONFLICT_modshare;
+OPENMPI_TOP=/opt/software/openmpi-3.1.5;' export 'OPENMPI_TOP;
+LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5
+++ export _LMFILES_
+++ MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi'
+++ export MODULES_LMALTNAME
+++ MODULES_LMALTNAME_modshare='openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1'
+++ export MODULES_LMCONFLICT_modshare
+++ OPENMPI_TOP=/opt/software/openmpi-3.1.5
+++ export OPENMPI_TOP
+++ LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ module load qlua
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load qlua
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107;' export '_LMFILES_;
+MANPATH_modshare=/opt/software/qlua-20200107/share/man:1::1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi:qlua/20200107\&qlua;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi:qlua/20200107\&qlua/default\&qlua;' export 'MODULES_LMALTNAME;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1:qlua/20200107\&qlua:1;' export 'MODULES_LMCONFLICT_modshare;
+MODULES_LMALTNAME_modshare=qlua/20200107\&qlua/default\&qlua:1:openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+LOADEDMODULES_modshare=slurm/19.05.4.1:1:openmpi/3.1.5:1:qlua/20200107:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/qlua/20200107:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107/bin;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/opt/software/qlua-20200107/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107
+++ export _LMFILES_
+++ MANPATH_modshare=/opt/software/qlua-20200107/share/man:1::1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi:qlua/20200107&qlua'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi:qlua/20200107&qlua/default&qlua'
+++ export MODULES_LMALTNAME
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1:qlua/20200107&qlua:1'
+++ export MODULES_LMCONFLICT_modshare
+++ MODULES_LMALTNAME_modshare='qlua/20200107&qlua/default&qlua:1:openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ LOADEDMODULES_modshare=slurm/19.05.4.1:1:openmpi/3.1.5:1:qlua/20200107:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/qlua/20200107:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107/bin
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/opt/software/qlua-20200107/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ EXE=qlua
++ cfgpath=/data/d10b/ensembles/isoClover/
++ cfgbase=cl3_16_48_b6p1_m0p2450
++ mkdir ./logs/log5085
++ mkdir ./output/cl3_16_48_b6p1_m0p24505085
++ Lx=16
++ Lt=48
++ beta=6.1
++ mq=.2450
++ parameters='jobid = 5085 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450'
+++ seq 100 10 3220
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5085 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 100' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5085 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 110' /home/poare/lqcd/pion_mass/pion_mass.qlua
+qlua ERROR:: /home/poare/lqcd/pion_mass/pion_mass.qlua:139: HDF5 error qcd.hdf5.Writer failed
+stack traceback:
+	[C]: in function 'Writer'
+	/home/poare/lqcd/pion_mass/pion_mass.qlua:139: in main chunk
+QMP m1,n4@p53n2 error: abort: 1
+QMP m3,n4@p53n2 error: abort: 1
+QMP m2,n4@p53n2 error: abort: 1
+QMP m0,n4@p53n2 error: abort: 1
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 1 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+[p53n2:57886] 3 more processes have sent help message help-mpi-api.txt / mpi-abort
+[p53n2:57886] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5085 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 120' /home/poare/lqcd/pion_mass/pion_mass.qlua
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5085 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 130' /home/poare/lqcd/pion_mass/pion_mass.qlua
+qlua ERROR:: /home/poare/lqcd/pion_mass/pion_mass.qlua:139: HDF5 error qcd.hdf5.Writer failed
+stack traceback:
+	[C]: in function 'Writer'
+	/home/poare/lqcd/pion_mass/pion_mass.qlua:139: in main chunk
+QMP m1,n4@p53n2 error: abort: 1
+QMP m0,n4@p53n2 error: abort: 1
+QMP m3,n4@p53n2 error: abort: 1
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+QMP m2,n4@p53n2 error: abort: 1
+[p53n2:57919] 3 more processes have sent help message help-mpi-api.txt / mpi-abort
+[p53n2:57919] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
++ for cfg in `seq 100 10 3220`
++ mpirun -np 4 qlua -e 'jobid = 5085 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' Lx = 16 Lt = 48 beta = 6.1 mq = .2450 cfgnum = 140' /home/poare/lqcd/pion_mass/pion_mass.qlua
+mpirun: Forwarding signal 18 to job
+slurmstepd: error: *** JOB 5085 ON p53n2 CANCELLED AT 2020-01-16T12:21:58 ***

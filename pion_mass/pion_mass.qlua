@@ -42,8 +42,12 @@ function initGaugeFieldHdf5(L, Nc, U, cfgbase, configNum)
    return U
 end
 
-function initGaugeFieldLime(L, path, cfgbase, configNum)
-  local fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
+function initGaugeFieldLime(L, path, cfgbase, configNum, gf)
+  if gf then
+    fileName = string.format(path..cfgbase.."/cfgs_gf/"..cfgbase.."_gf.lime%d", configNum)
+  else
+    fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
+  end
   print(fileName .. "\n")
   reader, rinfo = qcd.qdpc.Reader(L, fileName)
   U, uInfo = reader:ColorMatrix(#L)
@@ -124,7 +128,8 @@ filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 -- Compute correlators.
-status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum)
+gf = true
+status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, gf)
 if status then
   msg = string.format("%d|", cfgnum)
   interpolator = computePionInterpolator(L, U, volume, kappa, L_mom)
