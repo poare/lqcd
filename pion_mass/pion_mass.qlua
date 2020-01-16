@@ -123,7 +123,7 @@ hypervolume = volume * L[3]
 
 -- Paths to output file.
 folder = lqcd_dir.."lqcd/pion_mass/output"
-out_folder = string.format("%s/job%d", folder, jobid)
+out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
