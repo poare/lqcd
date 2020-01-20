@@ -62,7 +62,7 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
   CL = qcd.Clover(U, kappa, c_sw, bc)
-  solve = CL:solver(1e-10, 1000, 1e-25, 2000)
+  solve = CL:solver(1e-20, 500)
 
   src = L:DiracPropagator()
   Nc = src:colors()
