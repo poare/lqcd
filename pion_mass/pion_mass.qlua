@@ -82,10 +82,30 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
 
   -- This line should do the same as the gathering command, but try each out.
   -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
+
+  p = {0, 0, 0}
+  -- build snk FT factor
+  local FTarg = L:Real(0)
+  for mu = 0, #L - 2 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+  end
+  local FT = FTarg:expi()
+
+  -- save twopt
+  local twopt = mom_proj_gather:add( (FT * prop * gamma{mu=5} * anti_prop * gamma{mu=5}):trace() )
+  for tp = 0, src_coord[#L] - 1 do
+      twopt = twopt:shift( 0, "from_forward" )
+   end
+
+   return twopt
+
+  -- Old code
+  --[[
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(twopt)  -- project two point
 
   return twopt_proj
+  ]]
 end
 
 ------------------------------------------------------------------
