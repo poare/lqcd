@@ -77,13 +77,15 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
   prop = solve(src)  -- D_u(n|m)^-1
   CL:close()
 
-  local antiProp = gamma{mu = 5} * prop * gamma{mu = 5}
-  local twopt = (prop * gamma{mu = 5} * antiProp * gamma{mu = 5}):trace()
+  -- original code didn't have prop:adjoin(), only prop
+  local antiProp = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+  -- local twopt = (prop * gamma{mu = 5} * antiProp * gamma{mu = 5}):trace()
 
   -- This line should do the same as the gathering command, but try each out.
   -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
 
   p = {0, 0, 0}
+  local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   -- build snk FT factor
   local FTarg = L:Real(0)
   for mu = 0, #L - 2 do
@@ -92,7 +94,7 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
   local FT = FTarg:expi()
 
   -- save twopt
-  local twopt = mom_proj_gather:add( (FT * prop * gamma{mu=5} * anti_prop * gamma{mu=5}):trace() )
+  local twopt = mom_proj:add( (FT * prop * gamma{mu=5} * anti_prop * gamma{mu=5}):trace() )
   for tp = 0, src_coord[#L] - 1 do
       twopt = twopt:shift( 0, "from_forward" )
    end
