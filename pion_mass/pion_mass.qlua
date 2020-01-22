@@ -105,7 +105,7 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
 
 
   -- My code
-  local twopt = (prop * gamma{mu = 5} * antiProp * gamma{mu = 5}):trace()
+  local twopt = (prop * gamma{mu = 5} * anti_prop * gamma{mu = 5}):trace()
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(twopt)  -- project two point
 
