@@ -204,3 +204,21 @@ local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites w
 twopt_proj = mom_proj:add(contracted)  -- project two point
 
 print(twopt_proj[{0}])
+
+p = {0, 0, 0}
+
+local FTarg = L:Real(0)
+for mu = 0, #L - 2 do
+    FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+end
+local FT = FTarg:expi()
+
+anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+
+print(FT[{0, 0, 0, 0}])
+
+x = FT * prop * gamma{mu = 5} * anti_prop * gamma{mu = 5}
+
+print(type(gamma{mu = 5}))
+print(type(prop))
+print(type(antiprop))

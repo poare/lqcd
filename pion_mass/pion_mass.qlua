@@ -79,11 +79,12 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
 
   -- original code didn't have prop:adjoin(), only prop
   local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
-  -- local twopt = (prop * gamma{mu = 5} * antiProp * gamma{mu = 5}):trace()
 
   -- This line should do the same as the gathering command, but try each out.
   -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
 
+  -- If this block is uncommented, then the code works.
+  --[[
   p = {0, 0, 0}
   src_coord = {0, 0, 0, 0}
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
@@ -99,16 +100,21 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
   for tp = 0, src_coord[#L] - 1 do
       twopt = twopt:shift( 0, "from_forward" )
    end
-
    return twopt
+   ]]
 
-  -- Old code
-  --[[
+
+  -- My code
+  local twopt = (prop * gamma{mu = 5} * antiProp * gamma{mu = 5}):trace()
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(twopt)  -- project two point
 
+  src_coord = {0, 0, 0, 0}
+  for tp = 0, src_coord[#L] - 1 do
+      twopt_proj = twopt_proj:shift( 0, "from_forward" )
+   end
+
   return twopt_proj
-  ]]
 end
 
 ------------------------------------------------------------------
