@@ -42,6 +42,9 @@ function initGaugeFieldHdf5(L, Nc, U, cfgbase, configNum)
    return U
 end
 
+--[[ gf: If not entered in bash script, will assume false. This is for different input
+  file formats.
+]]
 function initGaugeFieldLime(L, path, cfgbase, configNum, gf)
   if gf then
     fileName = string.format(path..cfgbase.."/cfgs_gf/"..cfgbase.."_gf.lime%d", configNum)
@@ -157,7 +160,6 @@ filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 -- Compute correlators.
-gf = true
 status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, gf)
 if status then
   msg = string.format("%d|", cfgnum)

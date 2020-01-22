@@ -222,3 +222,13 @@ x = FT * prop * gamma{mu = 5} * anti_prop * gamma{mu = 5}
 print(type(gamma{mu = 5}))
 print(type(prop))
 print(type(antiprop))
+
+function test_gf(gf)
+  if gf then
+    print("GF is true")
+  else
+    print("GF is false")
+  end
+end
+
+test_gf(gf)

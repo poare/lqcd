@@ -27,7 +27,7 @@ Lt=48
 beta=6.10050
 kappa=.121
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} kappa = ${kappa}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} kappa = ${kappa} gf = true"
 
 for cfg in `seq 100 10 650`
 do
