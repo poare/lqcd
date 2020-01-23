@@ -32,7 +32,7 @@ pstep=10
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq} mom = true pmax = ${pmax} pstep = ${pstep}"
 
-for cfg in `seq 1000 10 2000`
+for cfg in `seq 500 10 1000`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/${cfgbase}_${SLURM_JOB_ID}/cfg${cfg}.txt
 done
