@@ -113,3 +113,13 @@ Meeting with Phiala 1/13: Good start for debugging pion code.
   - submit_pion.sh is the bash script. It's written much more succinctly than mine, and loops through the configurations and file names before calling the QLUA script.
   - Check out Mike's mosaic repository: /data/wombat/users/mlwagman/mosaic. This should have a lot of fermion initialization code for QLUA.
 - File naming conventions: Starting with 1 and going to whatever it ends up at. Will either be sequential or every 10, depending on its output in an HMC stream when the gauge field configurations are being generated.
+
+Meeting with Phiala 1/23: Pion code debugged!
+- Server possibly going down tomorrow, so starting 1/24 may need to figure out smaller things to run locally. Phiala suggested:
+  - Figure out where the issue was with
+- Big next step: Learn renormalization on the lattice. Read the papers that I've printed out, including Rome-Southampton and Phiala's computation of gluon gravitational form factors. Then, can begin to work on operator renormalization, specifically on the off diagonal elements of the mixing matrix:
+$$
+  \begin{pmatrix}\mathcal O_{R, q} \\ \mathcal O_{R, g} \end{pmatrix} = \begin{pmatrix} Z_{qq} & Z_{qg} \\ Z_{gq} & Z_{gg}\end{pmatrix}\begin{pmatrix} \mathcal O_{latt, q} \\
+  \mathcal O_{\latt, g}\end{pmatrix}
+$$
+- If I can before server shuts down, try to figure out how to run with momentum and generate a dispersion curve. 

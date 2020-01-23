@@ -232,3 +232,22 @@ function test_gf(gf)
 end
 
 test_gf(gf)
+
+p = {}
+p_max = 5
+steps = 10
+for i = 0, steps do
+  frac = p_max / steps
+  mom = i * frac
+  p[i] = {px = mom, py = 0, pz = 0}
+end
+
+for k, v in pairs(p) do
+  printf("Index: %d, px: %.1f\n", k, v.px)
+end
+
+-- l = p
+-- while l do
+--   print(l.value)
+--   l = l.next
+-- end

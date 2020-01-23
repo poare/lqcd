@@ -1,0 +1,38 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=pion_dispersion
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=long
+
+set -x
+cd /home/poare/lqcd/pion_mass
+
+bash
+module load openmpi
+module load qlua
+
+EXE=qlua
+
+cfgpath="/data/d10b/ensembles/isoClover/"
+cfgbase="cl3_16_48_b6p1_m0p2450"
+
+mkdir ./logs/${cfgbase}_${SLURM_JOB_ID}
+mkdir ./output/${cfgbase}_${SLURM_JOB_ID}
+
+Lx=16
+Lt=48
+beta=6.1
+mq=.2450
+
+pmax=5
+pstep=10
+
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq} mom = true pmax = ${pmax} pstep = ${pstep}"
+
+for cfg in `seq 1000 10 2000`
+do
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/${cfgbase}_${SLURM_JOB_ID}/cfg${cfg}.txt
+done

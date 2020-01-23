@@ -58,7 +58,7 @@ function initGaugeFieldLime(L, path, cfgbase, configNum, gf)
 end
 
 -- computes the pion interpolator for a single configuration of gauge field U.
-function computePionInterpolator(L, U, vol, kappa, L_mom)
+function computePionInterpolator(L, U, vol, kappa, L_mom, momentum)
 
   -- Construct propagators.
   c_sw = 1.0            -- SW coefficient for clover term
@@ -82,15 +82,8 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
 
   -- original code didn't have prop:adjoin(), only prop
   local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+  p = {momentum.px, momentum.py, momentum.pz}
 
-  -- This line should do the same as the gathering command, but try each out.
-  -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
-
-  -- If this block is uncommented, then the code works.
-  --[[
-  p = {0, 0, 0}
-  src_coord = {0, 0, 0, 0}
-  local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   -- build snk FT factor
   local FTarg = L:Real(0)
   for mu = 0, #L - 2 do
@@ -98,19 +91,12 @@ function computePionInterpolator(L, U, vol, kappa, L_mom)
   end
   local FT = FTarg:expi()
 
-  -- save twopt
-  local twopt = mom_proj:add( (FT * prop * gamma{mu=5} * anti_prop * gamma{mu=5}):trace() )
-  for tp = 0, src_coord[#L] - 1 do
-      twopt = twopt:shift( 0, "from_forward" )
-   end
-   return twopt
-   ]]
-
-
-  -- My code
-  local twopt = (prop * gamma{mu = 5} * anti_prop * gamma{mu = 5}):trace()
+  local twopt = (FT * prop * gamma{mu = 5} * anti_prop * gamma{mu = 5}):trace()
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(twopt)  -- project two point
+
+  -- This line should do the same as the gathering command, but try each out.
+  -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
 
   src_coord = {0, 0, 0, 0}
   for tp = 0, src_coord[#L] - 1 do
@@ -159,23 +145,47 @@ out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
+--  mom is passed in as either None or true. If true, calculate dispersion
+ptotal = {}
+if mom then
+  if not pmax then pmax = 5 end       -- max momentum. m_\pi ~ 2.1 in lattice units.
+  if not pstep then pstep = 10 end    -- momentum step size
+  for i = 0, pstep do
+    frac = pmax / pstep
+    local p = i * frac
+    ptotal[i] = {px = p, py = 0, pz = 0}
+  end
+else
+  ptotal[0] = {px = 0, py = 0, pz = 0}
+end
+
 -- Compute correlators.
 status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, gf)
 if status then
-  msg = string.format("%d|", cfgnum)
-  interpolator = computePionInterpolator(L, U, volume, kappa, L_mom)
-  for n_t = 0, L[3] - 1 do
-      msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
-  end
-  msg = msg.."\n"
-  printf(msg)
-
-  -- Open file writer and write to file.
+  -- Open file writer
   local hdf5params = { method = "phdf5" }
   writer = qcd.hdf5.Writer(filename, hdf5params)
-  hdf5_path = string.format("twopt/%d", cfgnum)
-  writer:remove(hdf5_path)
-  writer:write(hdf5_path, interpolator)
+
+  -- iterate over momenta points
+  for k, p in pairs(ptotal) do
+    printf("Momentum: (%.1f, %.1f, %.1f)", p.px, p.py, p.pz)
+    msg = string.format("%d|", cfgnum)
+    interpolator = computePionInterpolator(L, U, volume, kappa, L_mom, p)
+    for n_t = 0, L[3] - 1 do
+        msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
+    end
+    msg = msg.."\n"
+    printf(msg)
+
+    -- write to file
+    if mom then
+      hdf5_path = string.format("twopt/%d/$.3f", cfgnum, p.px)
+    else
+      hdf5_path = string.format("twopt/%d", cfgnum)
+    end
+    writer:remove(hdf5_path)
+    writer:write(hdf5_path, interpolator)
+  end
   writer:close()
 else
   printf("No gauge field configuration at %s.\n", cfgpath..cfgbase)
