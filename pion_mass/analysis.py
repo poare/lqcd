@@ -52,11 +52,6 @@ def read_h5(directory, mom = False):
                 C[momenta] = np.vstack([C[momenta], data])
             else:
                 C[momenta] = np.array(data)
-        # for i, data in correlators.items():
-        #     if len(C) == 0:
-        #         C = np.array(data)
-        #     else:
-        #         C = np.vstack([C, data])
     return C
 
 # Bootstraps a set of correlation functions.
@@ -100,8 +95,9 @@ def flip_half_data(data, n_t):
     return flipped
 
 # Fits the effective mass data at each time slice to a constant to retrieve the
-# (scalar) effective mass. Assumes the effective mass flips from negative to positive
-# at the halfway time slice. TODO: can play around with exponential decay to make better.
+# (scalar) effective mass. If the effective mass flips from negative to positive
+# at the halfway time slice, invert before calling this function.
+# TODO: can play around with exponential decay to make better.
 def extract_mass(fit_region, eff_mass):
     m = np.polyfit(fit_region, eff_mass[fit_region], 0)[0]
     return m
