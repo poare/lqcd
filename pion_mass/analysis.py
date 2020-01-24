@@ -28,20 +28,35 @@ def read_text(file):
     return C
 
 # directory should contain hdf5 files.
-def read_h5(directory):
+def read_h5(directory, mom = False):
     files = []
     for (dirpath, dirnames, file) in os.walk(directory):
         files.extend(file)
-    C = []
+    C = {}
     for file in files:
         path_to_file = directory + '/' + file
         f = h5py.File(path_to_file, 'r')
-        correlators = f['twopt']
-        for i, data in correlators.items():
-            if len(C) == 0:
-                C = np.array(data)
+        config_id = str([x for x in f['twopt']][0])
+        if mom:
+            correlators = f['twopt/' + config_id]
+            p = [x for x in correlators.keys()]
+        else:
+            correlators = f['twopt']
+            p = [0]
+        for momenta in p:
+            if mom:
+                data = [x for x in correlators[momenta]]
             else:
-                C = np.vstack([C, data])
+                data = [x for x in correlators[config_id]]
+            if momenta in C:
+                C[momenta] = np.vstack([C[momenta], data])
+            else:
+                C[momenta] = np.array(data)
+        # for i, data in correlators.items():
+        #     if len(C) == 0:
+        #         C = np.array(data)
+        #     else:
+        #         C = np.vstack([C, data])
     return C
 
 # Bootstraps a set of correlation functions.

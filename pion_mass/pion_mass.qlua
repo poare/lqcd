@@ -179,7 +179,7 @@ if status then
 
     -- write to file
     if mom then
-      hdf5_path = string.format("twopt/%d/$.3f", cfgnum, p.px)
+      hdf5_path = string.format("twopt/%d/%.3f", cfgnum, p.px)
     else
       hdf5_path = string.format("twopt/%d", cfgnum)
     end
