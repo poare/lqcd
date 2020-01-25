@@ -246,8 +246,7 @@ for k, v in pairs(p) do
   printf("Index: %d, px: %.1f\n", k, v.px)
 end
 
--- l = p
--- while l do
---   print(l.value)
---   l = l.next
--- end
+p = {5.5, 3.5, 2}
+for mu = 0, #L - 2 do
+  print(p[mu + 1])
+end
