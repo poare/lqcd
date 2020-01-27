@@ -13,3 +13,6 @@
 - 1/23:
   - Job 5900: Running cl3 pion mass with configurations from 500 to 1000. Should give 50 configuration outputs, and will examine how the error scales in preparation for computing momentum dispersion curves.
   - Job 5901: Running same as 5900 but with multiple momentum sites.
+- 1/27:
+  - Job 169: Running cl3 dispersion curve with p ranging from 0 to 8, step size 1/3. Want to see what happens on the non-integral values.
+  - Job 172: Running su3 dispersion curve with p from 0 to 5, step size 1/2. See if there's still weird stuff happening on the half integers.
