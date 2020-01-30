@@ -57,10 +57,7 @@ function initGaugeFieldLime(L, path, cfgbase, configNum, gf)
   return U
 end
 
--- computes the pion interpolator for a single configuration of gauge field U.
-function computePionInterpolator(L, U, vol, kappa, L_mom, momentum)
-
-  -- Construct propagators.
+function computePropagator(L, U, kappa)
   c_sw = 1.0            -- SW coefficient for clover term
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
@@ -79,9 +76,12 @@ function computePionInterpolator(L, U, vol, kappa, L_mom, momentum)
 
   prop = solve(src)  -- D_u(n|m)^-1
   CL:close()
+  return prop
+end
 
-  -- original code didn't have prop:adjoin(), only prop
-  local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+-- computes the pion interpolator for a single configuration of gauge field U.
+function computePionInterpolator(L, U, prop, antiprop, vol, L_mom, momentum)
+
   p = {momentum.px, momentum.py, momentum.pz}
 
   -- build snk FT factor
@@ -91,7 +91,7 @@ function computePionInterpolator(L, U, vol, kappa, L_mom, momentum)
   end
   local FT = FTarg:expi()
 
-  local twopt = (FT * prop * gamma{mu = 5} * anti_prop * gamma{mu = 5}):trace()
+  local twopt = (FT * prop * gamma{mu = 5} * antiprop * gamma{mu = 5}):trace()
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(twopt)  -- project two point
 
@@ -147,13 +147,13 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 --  mom is passed in as either None or true. If true, calculate dispersion
 ptotal = {}
+idx = 0
 if mom then
-  if not pmax then pmax = 5 end       -- max momentum. m_\pi ~ 2.1 in lattice units.
-  if not pstep then pstep = 10 end    -- momentum step size
-  for i = 0, pstep do
-    frac = pmax / pstep
-    local p = i * frac
-    ptotal[i] = {px = p, py = 0, pz = 0}
+  if not pmax then pmax = 10 end       -- max momentum. m_\pi ~ 2.1 in lattice units.
+  if not pmin then pmin = 0 end
+  for p = pmin, pmax do
+    ptotal[idx] = {px = p, py = 0, pz = 0}
+    idx = idx + 1
   end
 else
   ptotal[0] = {px = 0, py = 0, pz = 0}
@@ -166,11 +166,14 @@ if status then
   local hdf5params = { method = "phdf5" }
   writer = qcd.hdf5.Writer(filename, hdf5params)
 
+  prop = computePropagator(L, U, kappa)
+  antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+
   -- iterate over momenta points
   for k, p in pairs(ptotal) do
     printf("Momentum: (%.1f, %.1f, %.1f)", p.px, p.py, p.pz)
     msg = string.format("%d|", cfgnum)
-    interpolator = computePionInterpolator(L, U, volume, kappa, L_mom, p)
+    interpolator = computePionInterpolator(L, U, prop, antiprop, volume, L_mom, p)
     for n_t = 0, L[3] - 1 do
         msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
     end

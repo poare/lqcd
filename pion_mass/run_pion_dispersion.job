@@ -27,10 +27,9 @@ Lt=48
 beta=6.1
 mq=.2450
 
-pmax=5
-pstep=10
+pmax=10
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq} mom = true pmax = ${pmax} pstep = ${pstep}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq} mom = true pmax = ${pmax}"
 
 for cfg in `seq 500 10 1000`
 do
