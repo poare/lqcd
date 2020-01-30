@@ -2,7 +2,7 @@
 
 ##ulimit -c unlimited
 
-#SBATCH --job-name=quenched_pions
+#SBATCH --job-name=quenched_dispersion
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --partition=long4
@@ -27,10 +27,12 @@ Lt=48
 beta=6.10050
 kappa=.121
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} kappa = ${kappa} gf = true"
+pmax=5
+pstep=10
+
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} kappa = ${kappa} mom = true pmax = ${pmax} pstep = ${pstep} gf = true"
 
 for cfg in `seq 100 10 650`
 do
-	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/${cfgbase}_${SLURM_JOB_ID}/cfg${cfg}.txt
+    mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/${cfgbase}_${SLURM_JOB_ID}/cfg${cfg}.txt
 done
-
