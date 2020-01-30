@@ -44,14 +44,19 @@ def read_h5(directory, mom = False):
             correlators = f['twopt']
             p = [0]
         for momenta in p:
+            idx = int(float(momenta))
             if mom:
+                # data = [x for x in correlators[momenta]]
                 data = [x for x in correlators[momenta]]
             else:
                 data = [x for x in correlators[config_id]]
-            if momenta in C:
-                C[momenta] = np.vstack([C[momenta], data])
+            # if momenta in C:
+            if idx in C:
+                # C[momenta] = np.vstack([C[momenta], data])
+                C[idx] = np.vstack([C[idx], data])
             else:
-                C[momenta] = np.array(data)
+                # C[momenta] = np.array(data)
+                C[idx] = np.array(data)
     return C
 
 # Bootstraps a set of correlation functions.
@@ -98,9 +103,16 @@ def flip_half_data(data, n_t):
 # (scalar) effective mass. If the effective mass flips from negative to positive
 # at the halfway time slice, invert before calling this function.
 # TODO: can play around with exponential decay to make better.
-def extract_mass(fit_region, eff_mass):
-    m = np.polyfit(fit_region, eff_mass[fit_region], 0)[0]
-    return m
+def extract_mass(fit_region, eff_mass, sigma_eff_mass):
+    if type(fit_region) != np.ndarray:
+        fit_region = np.array([x for x in fit_region])
+    m_fit = eff_mass[fit_region]
+    sigma_fit = sigma_eff_mass[fit_region]
+    m = np.polyfit(fit_region, m_fit, 0)[0]
+    delta = np.sum(1 / (sigma_fit ** 2)) * np.sum((fit_region ** 2) / (sigma_fit ** 2)) - \
+        np.sum(fit_region / (sigma_fit ** 2)) ** 2    # from Bevington
+    sigma = np.sqrt(np.sum((fit_region ** 2) / (sigma_fit ** 2)) / delta)
+    return m, sigma
 
 # Determines how the error at base_time scales as we increase the number of
 # samples used in the computation. C is the set of two point correlators.
