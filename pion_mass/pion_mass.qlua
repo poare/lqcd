@@ -86,14 +86,14 @@ function computePionInterpolator(L, U, prop, antiprop, vol, L_mom, momentum)
 
   local FTarg = L:Real(0)
   for mu = 0, #L - 2 do
-      -- FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
-      FTarg = FTarg - L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+      -- FTarg = FTarg - L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
   end
   local FT = FTarg:expi()
 
-  local twopt = (FT * prop * gamma{mu = 5} * antiprop * gamma{mu = 5}):trace()
+  local twopt = (prop * gamma{mu = 5} * antiprop * gamma{mu = 5}):trace()
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
-  twopt_proj = mom_proj:add(twopt)  -- project two point
+  twopt_proj = mom_proj:add(FT * twopt) / math.sqrt(vol)  -- project two point
 
   -- This line should do the same as the gathering command, but try each out.
   -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
