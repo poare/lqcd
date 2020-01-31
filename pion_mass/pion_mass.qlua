@@ -84,10 +84,10 @@ function computePionInterpolator(L, U, prop, antiprop, vol, L_mom, momentum)
 
   p = {momentum.px, momentum.py, momentum.pz}
 
-  -- build snk FT factor
   local FTarg = L:Real(0)
   for mu = 0, #L - 2 do
-      FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+      -- FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
+      FTarg = FTarg - L:Real(L:pcoord(mu)) * p[mu+1] * 2 * math.pi / L[mu]
   end
   local FT = FTarg:expi()
 
