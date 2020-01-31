@@ -1,6 +1,8 @@
-cd /Users/poare/lqcd/pion_mass
+#HOME=/Users/poare
+HOME=/home/poare
+cd ${HOME}/lqcd/pion_mass
 
-cfgpath="/Users/poare/lqcd/pion_mass/"
+cfgpath="${HOME}/lqcd/pion_mass/"
 cfgbase="test_cfgs"
 
 EXE=/opt/usqcd-20170804/macosx-20170804/qlua/bin/qlua
@@ -22,5 +24,5 @@ echo "id is: ${id}"
 
 for cfg in `seq 10 10 30`
 do
-	$EXE -e "$parameters cfgnum = ${cfg}" /Users/poare/lqcd/pion_mass/pion_mass.qlua > ${cfgpath}${cfgbase}/logs/${cfgbase}_${id}/cfg${cfg}.txt
+	$EXE -e "$parameters cfgnum = ${cfg}" ${HOME}/lqcd/pion_mass/pion_mass.qlua > ${cfgpath}${cfgbase}/logs/${cfgbase}_${id}/cfg${cfg}.txt
 done
