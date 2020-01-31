@@ -1,5 +1,5 @@
-#HOME=/Users/poare
-HOME=/home/poare
+HOME=/Users/poare
+#HOME=/home/poare
 cd ${HOME}/lqcd/pion_mass
 
 cfgpath="${HOME}/lqcd/pion_mass/"
