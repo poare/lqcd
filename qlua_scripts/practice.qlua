@@ -246,7 +246,28 @@ for k, v in pairs(p) do
   printf("Index: %d, px: %.1f\n", k, v.px)
 end
 
-p = {5.5, 3.5, 2}
-for mu = 0, #L - 2 do
-  print(p[mu + 1])
+function show_lattice_field(L, field)
+  for x = 0, L[0] - 1 do
+    for y = 0, L[1] - 1 do
+      for z = 0, L[2] - 1 do
+        for t = 0, L[3] - 1 do
+          local field_val = field[{x, y, z, t}]
+          printf("Value at (%d, %d, %d, %d):", x, y, z, t)
+          print(field_val)
+          -- print("\n")
+        end
+      end
+    end
+  end
 end
+
+p = {3, 0, 0}
+local FTarg = L:Real(0)
+for mu = 0, #L - 2 do
+    FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] / L[mu]-- * 2 * math.pi / L[mu]
+end
+local FT = FTarg:expi()
+
+show_lattice_field(L, FT)
+
+-- print(math.sqrt(5))

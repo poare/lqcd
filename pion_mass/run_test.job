@@ -1,0 +1,28 @@
+HOME=/Users/poare
+#HOME=/home/poare
+cd ${HOME}/lqcd/pion_mass
+
+cfgpath="${HOME}/lqcd/pion_mass/"
+cfgbase="test_cfgs"
+
+EXE=/opt/usqcd-20170804/macosx-20170804/qlua/bin/qlua
+id=$RANDOM
+
+mkdir ${cfgpath}/${cfgbase}/logs/${cfgbase}_${id}
+mkdir ./output/${cfgbase}_${id}
+
+Lx=16
+Lt=48
+beta=6.1
+mq=.2450
+
+pmax=10
+
+parameters="jobid = ${id} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq} mom = true pmax = ${pmax}"
+
+echo "id is: ${id}"
+
+for cfg in `seq 10 10 30`
+do
+	$EXE -e "$parameters cfgnum = ${cfg}" ${HOME}/lqcd/pion_mass/pion_mass.qlua > ${cfgpath}${cfgbase}/logs/${cfgbase}_${id}/cfg${cfg}.txt
+done
