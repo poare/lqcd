@@ -122,4 +122,11 @@ $$
   \begin{pmatrix}\mathcal O_{R, q} \\ \mathcal O_{R, g} \end{pmatrix} = \begin{pmatrix} Z_{qq} & Z_{qg} \\ Z_{gq} & Z_{gg}\end{pmatrix}\begin{pmatrix} \mathcal O_{latt, q} \\
   \mathcal O_{\latt, g}\end{pmatrix}
 $$
-- If I can before server shuts down, try to figure out how to run with momentum and generate a dispersion curve. 
+- If I can before server shuts down, try to figure out how to run with momentum and generate a dispersion curve.
+
+Meeting with Phiala 2/3:
+- Try to run the pion dispersion on code in the gluon form factors paper. Don't run on all configurations, just need around 20ish (maybe do 50ish?). These are the ensembles at /data/d10b/ensembles/isoClover/cl21_32_96_b6p1_m0p2800_m0p2450_mn3-ec/cfgs/0. Should look like Figure 2a in the paper. Do the lime files with ec-0 in the name, there are 48 of them.
+  - Definitely something weird going on, but might just be artifacts of a smaller lattice size-- Phiala says it looks decent
+  - Will need to restore the units, there's a value of a (lattice spacing) in the paper to use.
+- After that start thinking about how to do renormalization of the quark operators
+  - Start looking into gluon gauge-fixed propagators. See how to calculate them, maybe try to calculate a few by myself, and see what they're supposed to look like.
