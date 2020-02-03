@@ -45,9 +45,11 @@ end
 --[[ gf: If not entered in bash script, will assume false. This is for different input
   file formats.
 ]]
-function initGaugeFieldLime(L, path, cfgbase, configNum, gf)
+function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
   if gf then
     fileName = string.format(path..cfgbase.."/cfgs_gf/"..cfgbase.."_gf.lime%d", configNum)
+  elseif ec then
+    fileName = string.format(path..cfgbase.."/cfgs/%d/"..cfgbase.."-%d_cfg_%d.lime", ec, ec, configNum)
   else
     fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
   end
@@ -77,6 +79,21 @@ function computePropagator(L, U, kappa)
   prop = solve(src)  -- D_u(n|m)^-1
   CL:close()
   return prop
+end
+
+function show_lattice_field(L, field)
+  for x = 0, L[0] - 1 do
+    for y = 0, L[1] - 1 do
+      for z = 0, L[2] - 1 do
+        for t = 0, L[3] - 1 do
+          local field_val = field[{x, y, z, t}]
+          printf("Value at (%d, %d, %d, %d):", x, y, z, t)
+          print(field_val)
+          print("\n")
+        end
+      end
+    end
+  end
 end
 
 -- computes the pion interpolator for a single configuration of gauge field U.
@@ -160,7 +177,7 @@ else
 end
 
 -- Compute correlators.
-status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, gf)
+status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, gf, ec)
 if status then
   -- Open file writer
   local hdf5params = { method = "phdf5" }
