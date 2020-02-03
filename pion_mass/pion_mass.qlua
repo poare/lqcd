@@ -171,7 +171,7 @@ if status then
 
   -- iterate over momenta points
   for k, p in pairs(ptotal) do
-    printf("Momentum: (%.1f, %.1f, %.1f)", p.px, p.py, p.pz)
+    printf("Momentum: (%.1f, %.1f, %.1f)\n", p.px, p.py, p.pz)
     msg = string.format("%d|", cfgnum)
     interpolator = computePionInterpolator(L, U, prop, antiprop, volume, L_mom, p)
     for n_t = 0, L[3] - 1 do
