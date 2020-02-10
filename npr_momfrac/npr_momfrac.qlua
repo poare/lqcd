@@ -1,0 +1,24 @@
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
+  if gf then
+    fileName = string.format(path..cfgbase.."/cfgs_gf/"..cfgbase.."_gf.lime%d", configNum)
+  elseif ec then
+    fileName = string.format(path..cfgbase.."/cfgs/%d/"..cfgbase.."-%d_cfg_%d.lime", ec, ec, configNum)
+  else
+    fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
+  end
+  print(fileName .. "\n")
+  reader, rinfo = qcd.qdpc.Reader(L, fileName)
+  U, uInfo = reader:ColorMatrix(#L)
+  return U
+end
