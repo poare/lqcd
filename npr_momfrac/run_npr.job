@@ -1,0 +1,42 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=npr_momfrac
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=long
+
+set -x
+cd /home/poare/lqcd/npr_momfrac
+
+bash
+module load openmpi
+module load qlua
+
+EXE=qlua
+
+home=/home/poare/lqcd/npr_momfrac
+logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
+output=${home}/output/${cfgbase}_${SLURM_JOB_ID}
+
+cfgpath="/data/d10b/ensembles/isoClover/"
+cfgbase="cl3_16_48_b6p1_m0p2450"
+
+mkdir ${logs}
+mkdir ${logs}/no_output
+mkdir ${output}
+
+cd /data/wombat/users/mlwagman/mosaic
+
+Lx=16
+Lt=48
+beta=6.1
+mq=.2450
+
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq}"
+
+for cfg in `seq 100 10 3200`
+do
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac.qlua > ${logs}/cfg${cfg}.txt
+done

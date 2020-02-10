@@ -22,3 +22,64 @@ function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
   U, uInfo = reader:ColorMatrix(#L)
   return U
 end
+
+function compute_npr(L, U, p_list, vol, L_mom, writer)
+  -- TODO implementation
+end
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Read in input from bash script.
+if jobid and cfgpath and cfgbase then
+    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
+else
+    error("Must enter jobid, cfgpath, and cfgbase.\n")
+end
+
+if mq then
+    kappa = 1 / (2 * mq + 8)
+end
+
+if Lx and Lt and beta and kappa then
+    printf("Numerical parameters:\nLattice size: (%d, %d, %d, %d).\nBeta: %f.\nKappa: %f.\n", Lx, Lx, Lx, Lt, beta, kappa)
+else
+    error("Numerical parameters must be entered: Lx, Lt, beta, mq or kappa.\n")
+end
+
+-- Set parameters
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+L_mom = qcd.lattice{Lt}
+lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
+
+volume = 1    -- spatial volume
+for i = 0, #L - 2 do
+  volume = volume * L[i]
+end
+hypervolume = volume * L[3]
+
+-- Paths to output file.
+folder = string.format("%s/lqcd/npr_momfrac/output", lqcd_dir)
+out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+-- momenta to compute Z(p) at
+local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+
+status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, gf, ec)
+if status then
+  -- Open file writer
+  local hdf5params = { method = "phdf5" }
+  local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+  compute_npr(L, U, p_list_NPR, volume, L_mom, writer)
+
+  writer:close()
+else
+  printf("No gauge field configuration at %s.\n", cfgpath..cfgbase)
+  logs_dir = string.format("%s/lqcd/npr_momfrac/logs/%s_%d", lqcd_dir, cfgbase, jobid)
+  os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
+end
