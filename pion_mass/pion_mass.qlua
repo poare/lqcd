@@ -108,19 +108,28 @@ function computePionInterpolator(L, U, prop, antiprop, vol, L_mom, momentum)
   end
   local FT = FTarg:expi()
 
+  -- Code format 1
+  local twopt = FT * qcd.dot(prop, prop)
+  local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))-- / math.sqrt(vol)
+  local twopt_lat = L_mom:Complex(0)
+  for t = 0, L[3] - 1 do
+    twopt_lat[{t}] = twopt_proj[t]
+  end
+
+  -- Code format 2
+  --[[
   local twopt = (prop * gamma{mu = 5} * antiprop * gamma{mu = 5}):trace()
   local mom_proj = qcd.gather(L_mom, L, {L:pcoord(#L - 1)})  -- Gather all sites with same t coord
   twopt_proj = mom_proj:add(FT * twopt) / math.sqrt(vol)  -- project two point
-
-  -- This line should do the same as the gathering command, but try each out.
-  -- local twopt_proj = twopt:sum(L:MultiSet(L[3], L:pcoord(3)))
 
   src_coord = {0, 0, 0, 0}
   for tp = 0, src_coord[#L] - 1 do
       twopt_proj = twopt_proj:shift( 0, "from_forward" )
    end
+  ]]
 
-  return twopt_proj
+  --return twopt_proj
+  return twopt_lat
 end
 
 ------------------------------------------------------------------
@@ -148,7 +157,7 @@ end
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
-lqcd_dir = "/home/poare/"    -- specify what the file path to lqcd is
+lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
 
 volume = 1    -- spatial volume
 for i = 0, #L - 2 do
@@ -157,7 +166,7 @@ end
 hypervolume = volume * L[3]
 
 -- Paths to output file.
-folder = lqcd_dir.."lqcd/pion_mass/output"
+folder = string.format("%s/lqcd/pion_mass/output", lqcd_dir)
 out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
@@ -192,7 +201,7 @@ if status then
     msg = string.format("%d|", cfgnum)
     interpolator = computePionInterpolator(L, U, prop, antiprop, volume, L_mom, p)
     for n_t = 0, L[3] - 1 do
-        msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
+      msg = msg..string.format("%e+i(%e) ", interpolator[{n_t}]:real(), interpolator[{n_t}]:imag())
     end
     msg = msg.."\n"
     printf(msg)
@@ -205,8 +214,11 @@ if status then
     end
     writer:remove(hdf5_path)
     writer:write(hdf5_path, interpolator)
+    print("File written.")
   end
   writer:close()
 else
   printf("No gauge field configuration at %s.\n", cfgpath..cfgbase)
+  logs_dir = string.format("%s/lqcd/pion_mass/logs/%s_%d", lqcd_dir, cfgbase, jobid)
+  os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
 end
