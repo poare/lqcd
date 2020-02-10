@@ -130,3 +130,23 @@ Meeting with Phiala 2/3:
   - Will need to restore the units, there's a value of a (lattice spacing) in the paper to use.
 - After that start thinking about how to do renormalization of the quark operators
   - Start looking into gluon gauge-fixed propagators. See how to calculate them, maybe try to calculate a few by myself, and see what they're supposed to look like.
+
+Meeting with Phiala 2/10:
+1. Pion dispersion code:
+  - Go over scaling and units-- right now the effective mass isn't even close to what it is in the paper.
+2. Representations of H(4) and the OPE
+  - Walk through what I think I understand:
+    - 4 of Lorentz corresponds to $\tau_1^{(4)}$ of H(4), and we want the Clebsch-Gordan decomposition of this representation.
+  - Do we always consider symmetric representations? (i.e. for 3 index tensors?)
+3. Rome-Southampton:
+  - Is Z_{qg} << Z_{qq} just like in the gluon mixing case?
+  - Can we walk through an example? The paper is very abstract and it would be nice to have a more concrete idea of what all of the letters in those master equations mean (also look at Phiala's gluon ff and NPR papers, and the other paper with the overview)?
+- NPR code notes:
+  - Edit out the operator and put the finite difference quark operator in-- should be reasonably easy to do that. The code should basically run once that's done.
+  - Try to get that working by the end of the week, and coordinate with David.
+  - The Born term is just the tree level matrix element. It should be in the Gockeler paper, along with the R(\mu) term to convert from the RI-MOM scheme to the MS bar scheme.
+    - That term is in the Gracey paper to 3 loops, so if the fitting isn't working very well then use the more precise version.
+    - This $R(\mu)$ term is the "matching coefficient" to convert between schemes to get it into MS bar.
+  - Phiala should be sending over the staples paper. The original code implements that, so it should make it easy to see what each part of the code is doing.
+  - This is pretty much the simplest NPR calculation we can do, so it should help to get me started before considering mixing and uglier things in the proton calculation.
+  - The figure of the curvy plot in Figure 1 should turn flat once you multiply by the R(\mu) matching coefficients. 
