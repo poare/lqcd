@@ -21,7 +21,8 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
   local bvec = {0,0,0,0.5}
 
   for pidx = 1, #p_list do
-    p = p_list[pidx]
+    printf("p index: %d\n", pidx)
+    local p = p_list[pidx]
     printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
     local FTarg = L:Real(0)
     for mu = 0, #L - 1 do
@@ -36,7 +37,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     local mom4_prop = (FT * prop):sum()    -- this is S(p)
 
     -- Write momentum projected propagator to file (?)
-    prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
+    local prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
@@ -56,16 +57,16 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     -- Dgamma44 = D(gamma{mu = 4} * S, 4) + gamma{mu = 4} * D(S, 4)
 
     -- compute momentum projected Green's function G(p)
-    norm = 1 / (2 * math.sqrt(2) * hypervolume)
-    JS33 = U[4] * gamma{mu = 3} * S:shift(3, "from_forward") + U[4]:shift(3, "from_backward"):adjoin() *
+    local norm = 1 / (2 * math.sqrt(2) * hypervolume)
+    local JS33 = U[4] * gamma{mu = 3} * S:shift(3, "from_forward") + U[4]:shift(3, "from_backward"):adjoin() *
             gamma{mu = 3} * S:shift(3, "from_backward") - 2 * gamma{mu = 3} * S
     -- TODO is the mu = 4 index time?
-    JS44 = U[1] * gamma{mu = 0} * S:shift(0, "from_forward")  + U[1]:shift(0, "from_backward"):adjoin() *
+    local JS44 = U[1] * gamma{mu = 0} * S:shift(0, "from_forward")  + U[1]:shift(0, "from_backward"):adjoin() *
             gamma{mu = 0} * S:shift(0, "from_backward") - 2 * gamma{mu = 0} * S
-    JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z')
-    G = norm * ( gamma{mu = 5} * S:adjoin() * gamma{mu = 5} * JS ):sum()
+    local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z')
+    local G = norm * ( gamma{mu = 5} * S:adjoin() * gamma{mu = 5} * JS ):sum()
 
-    threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
+    local threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
     h5_force_write(writer, threept_path, G)
     printf("Three point function written at: %s\n", threept_path)
 
