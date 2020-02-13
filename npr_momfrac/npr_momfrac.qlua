@@ -130,7 +130,7 @@ local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},
 gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 printf("Reading gauge file at: %s\n", gauge_file)
 
-status, U = pcall(initGaugeFieldLime, L, gauge_file)
+status, U, finfo, info = pcall(load_conf, L, gauge_file)
 if status then
   -- Open file writer
   local hdf5params = { method = "phdf5" }
