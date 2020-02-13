@@ -9,8 +9,14 @@ require "lib/propagator"
 ------------------------ UTILITY FUNCTIONS ------------------------
 -------------------------------------------------------------------
 
-function initGaugeFieldLime(L, path, cfgbase, configNum)
-  fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
+function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
+  if gf then
+    fileName = string.format(path..cfgbase.."/cfgs_gf/"..cfgbase.."_gf.lime%d", configNum)
+  elseif ec then
+    fileName = string.format(path..cfgbase.."/cfgs/%d/"..cfgbase.."-%d_cfg_%d.lime", ec, ec, configNum)
+  else
+    fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
+  end
   print(fileName .. "\n")
   reader, rinfo = qcd.qdpc.Reader(L, fileName)
   U, uInfo = reader:ColorMatrix(#L)
@@ -125,7 +131,7 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 -- momenta to compute Z(p) at
 local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 
-status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum)
+status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum, false, false)
 if status then
   -- Open file writer
   local hdf5params = { method = "phdf5" }
