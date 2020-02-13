@@ -128,9 +128,6 @@ local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},
 
 gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
-U = initGaugeFieldLime(L, gauge_file)
-print("past that")
-
 status, U = pcall(initGaugeFieldLime, L, gauge_file)
 if status then
   -- Open file writer
