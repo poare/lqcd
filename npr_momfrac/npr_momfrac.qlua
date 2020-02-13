@@ -9,10 +9,9 @@ require "lib/propagator"
 ------------------------ UTILITY FUNCTIONS ------------------------
 -------------------------------------------------------------------
 
-function initGaugeFieldLime(L, path, cfgbase, configNum)
-  fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
-  print(fileName .. "\n")
-  reader, rinfo = qcd.qdpc.Reader(L, fileName)
+function initGaugeFieldLime(L, file)
+  print(file .. "\n")
+  reader, rinfo = qcd.qdpc.Reader(L, file)
   U, uInfo = reader:ColorMatrix(#L)
   return U
 end
@@ -125,12 +124,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 -- momenta to compute Z(p) at
 local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 
-print(cfgpath)
-print(cfgbase)
-print(cfgnum)
-file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
-
-status, U = pcall(initGaugeFieldLime, L, cfgpath, cfgbase, cfgnum)
+gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+status, U = pcall(initGaugeFieldLime, L, gauge_file)
 if status then
   -- Open file writer
   local hdf5params = { method = "phdf5" }
@@ -140,7 +135,7 @@ if status then
 
   writer:close()
 else
-  printf("No gauge field configuration at %s.\n", cfgpath..cfgbase)
+  printf("No gauge field configuration at %s.\n", gauge_file)
   logs_dir = string.format("%s/lqcd/npr_momfrac/logs/%s_%d", lqcd_dir, cfgbase, jobid)
   os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
 end
