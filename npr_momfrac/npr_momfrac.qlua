@@ -23,7 +23,7 @@ function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
   return U
 end
 
-function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, writer)
+function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer)
   local bvec = {0,0,0,0.5}
 
   for pidx = 1, #p_list do
@@ -37,23 +37,49 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, writer)
 
     -- what does spacetime_wall_source do? Source with definite momentum?
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    local prop = compute_propagator(U, ferm_prop, src)
+    local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y) (or might be sum_y e^(ipy) S(x, y))
     local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
-    local mom4_prop = (FT * prop):sum()
+    local mom4_prop = (FT * prop):sum()    -- this is S(p)
 
     -- Write momentum projected propagator to file (?)
-    h5_force_write(h5_writer, "prop/p"..tostring(p[1])..tostring(p[2])..tostring(p[3])..tostring(p[4]), mom4_prop)
+    prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
+    h5_force_write(writer, prop_path, mom4_prop)
 
-    -- invert prop to amputate vertex function legs
+    -- Covariant derivative (Dfor - Dback)_\mu. S can be a fermion field or a propagator.
+    -- function D(S, mu)
+    --   -- U[mu] is 1 indexed, so use mu + 1 if mu goes 0 to 3.
+    --   Udagger = U[mu + 1]:shift(mu, "from_backward"):adjoin()
+    --   return U[mu + 1] * S:shift(mu, "from_forward") + Udagger * S:shift(mu, "from_backward") - 2 * S
+    -- end
+
+    -- u = L:DiracFermion(3)
+    -- Tu33 = (ubar * D(gamma{mu = 3} * u, 3) + ubar * gamma{mu = 3} * D(u, 3)) / 2    -- TODO might have to trace subtract
+    -- Tu44 = (ubar * D(gamma{mu = 4} * u, 3) + ubar * gamma{mu = 4} * D(u, 4)) / 2
+    -- Ou = (Tu33 - Tu44) / math.sqrt(2)
+    -- Od = (Td33 - Td44) / math.sqrt(2)
+    -- Dgamma33 = D(gamma{mu = 3} * S, 3) + gamma{mu = 3} * D(S, 3)
+    -- Dgamma44 = D(gamma{mu = 4} * S, 4) + gamma{mu = 4} * D(S, 4)
 
     -- compute momentum projected Green's function G(p)
+    norm = 1 / (2 * math.sqrt(2) * hypervolume)
+    JS33 = U[4] * gamma{mu = 3} * S:shift(3, "from_forward") + U[4]:shift(3, "from_backward"):adjoin() *
+            gamma{mu = 3} * S:shift(3, "from_backward") - 2 * gamma{mu = 3} * S
+    -- TODO is the mu = 4 index time?
+    JS44 = U[1] * gamma{mu = 0} * S:shift(0, "from_forward")  + U[1]:shift(0, "from_backward"):adjoin() *
+            gamma{mu = 0} * S:shift(0, "from_backward") - 2 * gamma{mu = 0} * S
+    JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z')
+    G = norm * ( gamma{mu = 5} * S:adjoin() * gamma{mu = 5} * JS ):sum()
 
+    threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
+    h5_force_write(writer, threept_path, G)
+
+    -- prop should be S(z, p) = \sum_x S(z, x) e^{ipx}, where $S$ is the propagator.
+
+    -- Here down is done in the Python script.
+    -- invert prop to amputate vertex function legs
     -- Amputate legs to get vertex function \Gamma(p)
-
     -- Compute quark field renormalization
-
     -- Compute \Gamma_{Born}(p)
-
     -- Compute operator renormalization Z(p)
   end
 end
@@ -102,8 +128,6 @@ local bcs = {1,1,1,-1}
 local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
---TODO what is eta?
-
 -- momenta to compute Z(p) at
 local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 
@@ -113,7 +137,7 @@ if status then
   local hdf5params = { method = "phdf5" }
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-  compute_npr(L, U, ferm_prop, p_list_NPR, hypervolume, L_mom, writer)
+  compute_npr(L, U, ferm_prop, p_list_NPR, hypervolume, L_mom, clover, writer)
 
   writer:close()
 else
