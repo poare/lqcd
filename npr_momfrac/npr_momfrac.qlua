@@ -1,3 +1,5 @@
+#!/usr/bin/env qlua
+
 require "stdlib"
 require "lib/fermion"
 require "lib/clover_ferm"
@@ -125,6 +127,10 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 
 gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+
+U = initGaugeFieldLime(L, gauge_file)
+print("past that")
+
 status, U = pcall(initGaugeFieldLime, L, gauge_file)
 if status then
   -- Open file writer
