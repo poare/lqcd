@@ -12,7 +12,6 @@ require "lib/propagator"
 -------------------------------------------------------------------
 
 function initGaugeFieldLime(L, file)
-  print(file .. "\n")
   reader, rinfo = qcd.qdpc.Reader(L, file)
   U, uInfo = reader:ColorMatrix(#L)
   return U
@@ -39,6 +38,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     -- Write momentum projected propagator to file (?)
     prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
     h5_force_write(writer, prop_path, mom4_prop)
+    printf("Propagator written at path: %s\n", prop_path)
 
     -- Covariant derivative (Dfor - Dback)_\mu. S can be a fermion field or a propagator.
     -- function D(S, mu)
@@ -67,6 +67,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
 
     threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgid)
     h5_force_write(writer, threept_path, G)
+    printf("Three point function written at: %s\n", threept_path)
 
     -- prop should be S(z, p) = \sum_x S(z, x) e^{ipx}, where $S$ is the propagator.
 
@@ -127,13 +128,15 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 
 gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+printf("Reading gauge file at: %s\n", gauge_file)
 
 status, U = pcall(initGaugeFieldLime, L, gauge_file)
 if status then
   -- Open file writer
   local hdf5params = { method = "phdf5" }
   local writer = qcd.hdf5.Writer(filename, hdf5params)
-
+  
+  print("Gauge file read. Computing NPR.")
   compute_npr(L, U, ferm_prop, p_list_NPR, hypervolume, L_mom, clover, writer)
 
   writer:close()
@@ -141,4 +144,5 @@ else
   printf("No gauge field configuration at %s.\n", gauge_file)
   logs_dir = string.format("%s/lqcd/npr_momfrac/logs/%s_%d", lqcd_dir, cfgbase, jobid)
   os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
+  print(U)
 end
