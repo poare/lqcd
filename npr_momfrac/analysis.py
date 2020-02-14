@@ -12,9 +12,13 @@ import os
 
 mom_list =[[2,2,2,2],[2,2,2,4],[2,2,2,6],[3,3,3,2],[3,3,3,4],[3,3,3,6],[3,3,3,8],[4,4,4,4],[4,4,4,6],[4,4,4,8]]
 n_boot = 200
+num_cfgs = 0
 
 def get_mom_list():
     return mom_list
+
+def get_num_cfgs():
+    return num_cfgs
 
 def pstring_to_list(pstring):
     return [int(pstring[1]), int(pstring[2]), int(pstring[3]), int(pstring[4])]
@@ -33,10 +37,11 @@ def readfile(directory):
         files.extend(file)
     props = {}
     threepts = {}
-    numcfgs = len(files)
+    global num_cfgs
+    num_cfgs = len(files)
     for i, p in enumerate(mom_str_list):
-        props[p] = np.zeros((numcfgs, 3, 4, 3, 4), dtype = np.complex64)
-        threepts[p] = np.zeros((numcfgs, 3, 4, 3, 4), dtype = np.complex64)
+        props[p] = np.zeros((num_cfgs, 3, 4, 3, 4), dtype = np.complex64)
+        threepts[p] = np.zeros((num_cfgs, 3, 4, 3, 4), dtype = np.complex64)
     idx = 0
     for file in files:
         path_to_file = directory + '/' + file
@@ -71,25 +76,32 @@ def bootstrap(D):
                 samples[p][boot_id, i, :, :, :, :] = S[cfgidx, :, :, :, :]
     return samples
 
-# Need to implement all of these
-# invert prop to amputate vertex function legs
-def amputate(props, threepts):
-    Gamma = {}
-    num_cfgs = props[mom_str_list[0]].shape[1]
+def invert_prop(props):
+    Sinv = {}
     for p in mom_str_list:
-        Gamma[p] = np.zeros(props[p].shape, dtype = np.complex64)
+        Sinv[p] = np.zeros(props[p].shape, dtype = np.complex64)
         for b in range(n_boot):
             for cfgidx in range(num_cfgs):
-                Sinv = np.linalg.tensorinv(props[p][b, cfgidx])
-                G = threepts[p][b, cfgidx]
-                Gamma[p][b, cfgidx] = Sinv * G * Sinv
-    return Gamma
+                Sinv[p][b, cfgidx, :, :, :, :] = np.linalg.tensorinv(props[p][b, cfgidx])
+    return Sinv
 
 # Amputate legs to get vertex function \Gamma(p)
+def amputate(props_inv, threepts):
+    Gamma = {}
+    for p in mom_str_list:
+        Gamma[p] = np.zeros(props_inv[p].shape, dtype = np.complex64)
+        for b in range(n_boot):
+            for cfgidx in range(num_cfgs):
+                Sinv = props_inv[p][b, cfgidx]
+                G = threepts[p][b, cfgidx]
+                # TODO check this is a proper contraction
+                Gamma[p][b, cfgidx] = np.einsum('aibj,bjck,ckdl->aidl', Sinv, G, Sinv)
+    return Gamma
 
 
 # Compute quark field renormalization
-
+def get_quark_renorm(props):
+    return None
 
 # Compute \Gamma_{Born}(p)
 
