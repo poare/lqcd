@@ -17,6 +17,34 @@ function initGaugeFieldLime(L, file)
   return U
 end
 
+function random_state_generator(L)
+  local r = L:Int(os.random())
+  for i = 0, #L - 1 do
+    r = r * L[i] + L:pcoord(i)
+  end
+  S = L:RandomState(os.random(), r)
+  return S
+end
+
+-- Projects random 3 by 3 matrix X onto SUn
+function toSUn(L, X)
+  local Y = (X - X:adjoin()) / 2
+  return (Y - Y:trace() / qcd.Nc * L:ColorMatrix(complex(1,0))):exp()
+end
+
+function weak_SUn(L, S)
+  return toSUn(L, 0.2 * S:gaussian_ColorMatrix())
+end
+
+function random_SUn_field(L)
+  S = random_state_generator(L)
+  local v = weak_SUn(L, S)
+  for i = 1, 100 do
+    v = v * weak_SUn(L, S)
+  end
+  return v:proj(1e-6, 150)
+end
+
 function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer)
   local bvec = {0,0,0,0.5}
 
@@ -41,27 +69,24 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
+    -- Test  correct by performing a gauge transformation.
+    printf("Computing observables after gauge transformation.")
+    local omega = random_SUn_field(L)
+    local Uprime = {}
+    for i = 0, #L - 1 do
+      Uprime[i + 1] = omega * U[i + 1]
+    end
+    local propprime = compute_propagator(Uprime, ferm_prop, src)
+    local mom4_prop_prime = (FT * propprime):sum()
+    local prop_prime_path = string.format("propprime/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    h5_force_write(writer, prop_prime_path, mom4_prop_prime)
+
     -- Currently assuming that the prop that I compute is S_p(z). Need to confirm this.
-
-    -- Covariant derivative (Dfor - Dback)_\mu. S can be a fermion field or a propagator.
-    -- function D(S, mu)
-    --   -- U[mu] is 1 indexed, so use mu + 1 if mu goes 0 to 3.
-    --   Udagger = U[mu + 1]:shift(mu, "from_backward"):adjoin()
-    --   return U[mu + 1] * S:shift(mu, "from_forward") + Udagger * S:shift(mu, "from_backward") - 2 * S
-    -- end
-
-    -- u = L:DiracFermion(3)
-    -- Tu33 = (ubar * D(gamma{mu = 3} * u, 3) + ubar * gamma{mu = 3} * D(u, 3)) / 2    -- TODO might have to trace subtract
-    -- Tu44 = (ubar * D(gamma{mu = 4} * u, 3) + ubar * gamma{mu = 4} * D(u, 4)) / 2
-    -- Ou = (Tu33 - Tu44) / math.sqrt(2)
-    -- Od = (Td33 - Td44) / math.sqrt(2)
-    -- Dgamma33 = D(gamma{mu = 3} * S, 3) + gamma{mu = 3} * D(S, 3)
-    -- Dgamma44 = D(gamma{mu = 4} * S, 4) + gamma{mu = 4} * D(S, 4)
 
     -- compute momentum projected Green's function G(p)
     -- TODO make sure that prop is a momentum projected propagator. May need to compute S(x, y) first
     -- and then momentum project. The propagator we're supposed to save is S(x, y), and we need
-    -- S_p(x) for the next part, so may be necessary to change up how I'm writing this code. 
+    -- S_p(x) for the next part, so may be necessary to change up how I'm writing this code.
     local norm = 1 / (2 * math.sqrt(2) * hypervolume)
     local JS33 = U[4] * (gamma{mu = 3} * prop:shift(3, "from_forward")) + U[4]:shift(3, "from_backward"):adjoin() *
             (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
@@ -94,17 +119,16 @@ end
 if jobid and cfgpath and cfgbase then
     printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
 else
-    error("Must enter jobid, cfgpath, and cfgbase.\n")
+    printf("No jobid, cfgpath, cfgbase entered.")
 end
 
-if mq then
-    kappa = 1 / (2 * mq + 8)
-end
-
-if Lx and Lt and beta and kappa then
-    printf("Numerical parameters:\nLattice size: (%d, %d, %d, %d).\nBeta: %f.\nKappa: %f.\n", Lx, Lx, Lx, Lt, beta, kappa)
-else
-    error("Numerical parameters must be entered: Lx, Lt, beta, mq or kappa.\n")
+-- Enter parameters to test on one configuration.
+if test then
+  jobid = 0
+  cfgpath = "/Users/poare/lqcd/npr_momfrac/testing/"
+  cfgbase = "cl3_16_48_b6p1_m0p2450"
+  cfgnum = 200
+  printf("Running test configuration.")
 end
 
 -- Set parameters
@@ -112,6 +136,12 @@ Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
 lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
+
+Lx = 16
+Lt = 48
+beta = 6.1
+mq = 0.2450
+kappa = 1 / (2 * mq + 8)
 
 volume = 1    -- spatial volume
 for i = 0, #L - 2 do

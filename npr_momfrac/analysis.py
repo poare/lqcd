@@ -32,6 +32,9 @@ def get_mom_list():
 def get_num_cfgs():
     return num_cfgs
 
+def get_hypervolume():
+    return hypervolume
+
 def pstring_to_list(pstring):
     return [int(pstring[1]), int(pstring[2]), int(pstring[3]), int(pstring[4])]
 
@@ -123,6 +126,7 @@ def quark_renorm(props_inv):
         pstring = plist_to_string(p)
         Zq[pstring] = np.zeros((n_boot, num_cfgs), dtype = np.complex64)
         phase = [np.sin(2 * np.pi * (p[mu] + bvec[mu]) / LL[mu]) for mu in range(4)]
+        # phase is order 1, looks like. 707 and .3 and stuff like that
         for b in range(n_boot):
             for cfgidx in range(num_cfgs):
                 Sinv = props_inv[pstring][b, cfgidx]

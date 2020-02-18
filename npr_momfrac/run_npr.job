@@ -28,12 +28,7 @@ mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
 
-Lx=16
-Lt=48
-beta=6.1
-mq=.2450
-
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' Lx = ${Lx} Lt = ${Lt} beta = ${beta} mq = ${mq}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}'"
 
 for cfg in `seq 100 10 3200`
 do
