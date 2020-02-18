@@ -6,17 +6,22 @@ import numpy as np
 import time
 import random
 
-datapath = "/data/wombat/users/phiala/beamNPRanalysis/su3_24_48_b6p10050/"
-datafilenameroot = "pion_beam_npr_matrix_k0p1248_"
+# datapath = "/data/wombat/users/phiala/beamNPRanalysis/su3_24_48_b6p10050/"
+# datafilenameroot = "pion_beam_npr_matrix_k0p1248_"
+datapath = "/Users/poare/lqcd/npr_momfrac/examples/"
+datafilenameroot = "script_output_EXAMPLE.h5"
+
 
 L = 24
 T = 48
 
-outdataname = "pion_beam_npr_24_Sept6_k0p1248.h5"
-outdatapath = "//data/wombat/users/phiala/beamNPRanalysis/su3_24_48_b6p10050/"
+outdatapath = "/Users/poare/lqcd/npr_momfrac/examples/"
+outdataname = "analysis_EXAMPLE_output.h5"
+# outdatapath = "//data/wombat/users/phiala/beamNPRanalysis/su3_24_48_b6p10050/"
 outfile = h5py.File(outdatapath+outdataname,"w")
 
-configs = list(range(100,115))
+# configs = list(range(100,115))
+configs = [0]
 #configs = list(range(110,140))
 #configs.remove(129)
 #configs.remove(121)
@@ -49,12 +54,12 @@ def bootstrap_resample(X, weights=None, n=None, nboots=Nboot):
 
     if weights == None:
         weights = np.ones((len(X)))
-        
+
     np.random.seed(5)
 
     ALL_resamples=np.zeros((nboots,)+X.shape[1:],dtype=complex)
 
-    weights2=weights/float(np.sum(weights)) 
+    weights2=weights/float(np.sum(weights))
     ttmp = range(len(X))
 
     for ii in range(nboots):
@@ -69,7 +74,7 @@ V = (L**3)*T
 #get two-points
 for mom in momenta:
 #for mom in [momenta[0]]:
-    
+
     groupstring = str(mom[0])+str(mom[1])+str(mom[2])+str(mom[3])
     momgroup = outfile.create_group(groupstring)
 
@@ -82,7 +87,8 @@ for mom in momenta:
     for cfg in range(len(configs)):
 
 #        print cfg
-        twoptfile = h5py.File(datapath+datafilenameroot+str(configs[cfg])+".h5","r")
+        # twoptfile = h5py.File(datapath+datafilenameroot+str(configs[cfg])+".h5","r")
+        twoptfile = h5py.File(datapath + datafilenameroot, 'r')
         tmp = twoptfile.get("/prop/p"+groupstring).value
         twopt[cfg,:,:,:,:] = np.einsum('ijab->aibj',tmp[:,:,:,:])
 
@@ -92,15 +98,16 @@ for mom in momenta:
     for b in range(Nboot):
         INVERSEtwoptBOOT[b] = np.linalg.tensorinv(twoptBOOT[b])
 
-    print(Nboot)
+    print("Nboot is: " + Nboot)
 
     Zq = V*(1j)*(sum(np.einsum('ij,bajai->b',gammas[i],INVERSEtwoptBOOT)*np.sin(2*np.pi*(mom[i]+[0,0,0,0.5][i])/LL[i]) for i in range(4)))/(12*sum((np.sin(2*np.pi*(mom[i]+[0,0,0,0.5][i])/LL[i]))**2 for i in range(4)))
 
+    print("Zq is:")
     print(Zq)
 
     Zqdat = momgroup.create_dataset("Zq", (Nboot,), dtype=complex)
     Zqdat[:] = Zq[:]
-    
+
  #   for eta in [etalist[0]]:
     for eta in etalist:
         print("eta = "+str(eta))
@@ -113,32 +120,32 @@ for mom in momenta:
 
             staplestring = "/eta"+str(eta)+"/mu"+str(mu)
             threept = np.zeros((len(configs),2*eta+1,2*eta+1,16,3,4,3,4),dtype=complex)
-                    
+
             for cfg in range(len(configs)):
 
                 print(cfg)
-                threeptfile = h5py.File(datapath+datafilenameroot+str(configs[cfg])+".h5","r")
+                # threeptfile = h5py.File(datapath+datafilenameroot+str(configs[cfg])+".h5","r")
+                threeptfile = h5py.File(datapath + datafilenameroot, 'r')
                 tmp = threeptfile.get("/threept"+staplestring+"/bTsign1/p"+groupstring).value
-                tmpneg = threeptfile.get("/threept"+staplestring+"/bTsign-1/p"+groupstring).value                
-                
+                tmpneg = threeptfile.get("/threept"+staplestring+"/bTsign-1/p"+groupstring).value
+
                 threept[cfg,eta::,:,:,:,:,:] = np.einsum('tzgijab->tzgaibj',tmp)
                 threept[cfg,0:(eta+1),:,:,:,:,:] = np.einsum('tzgijab->tzgaibj',tmpneg[::-1])
-                
+
             threeptBOOT = bootstrap_resample(threept)
-                
+
             Lambda = V*np.einsum('baick,btzgckdl,bdlej->btzgaiej',INVERSEtwoptBOOT,threeptBOOT,INVERSEtwoptBOOT)
 
             Vproj = np.zeros((2*eta+1,2*eta+1,len(gammaList),len(gammaList),Nboot),dtype=complex)
-               
+
             for gamma in range(len(gammaList)):
 
                 #print(gamma)
                 Vproj[:,:,:,gamma,:] = np.einsum('btzgaiaj,ji->tzgb',Lambda,gammaList[gamma])
 
             etadatV[:,:,mu,:,:,:] = Vproj[:,:,:,:]
-    
+
             ipdotb = [[1/(np.exp((1j*2*np.pi/L)*(bz*mom[2]+bT*mom[mu]))) for bz in range(-eta,eta+1)] for bT in range(-eta,eta+1)]
 
             tmp = np.einsum('tzghb,tz->tzghb',Vproj,ipdotb)/(6*Zq[:])
             etadatZinv[:,:,mu,:,:,:] = tmp
-
