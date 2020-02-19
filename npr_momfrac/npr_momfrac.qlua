@@ -22,7 +22,7 @@ function random_state_generator(L)
   for i = 0, #L - 1 do
     r = r * L[i] + L:pcoord(i)
   end
-  S = L:RandomState(os.random(), r)
+  local S = L:RandomState(os.random(), r)
   return S
 end
 
@@ -37,7 +37,7 @@ function weak_SUn(L, S)
 end
 
 function random_SUn_field(L)
-  S = random_state_generator(L)
+  local S = random_state_generator(L)
   local v = weak_SUn(L, S)
   for i = 1, 100 do
     v = v * weak_SUn(L, S)
