@@ -51,7 +51,8 @@ end
 function gauge_transform(L, U, omega)
   local Uprime = {}
     for mu = 0, #L - 1 do
-      Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_forward"):adjoin()
+      -- Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_forward"):adjoin()
+      Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_backward"):adjoin()
     end
   return Uprime
 end
