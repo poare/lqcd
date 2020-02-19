@@ -87,7 +87,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     print("Computing observables after gauge transformation.")
     -- local omega = random_SUn_field(L)
     local S = random_state_generator(L)
-    local omega = SUn.randomAlgebra(S, 3):expi()
+    local omega = (complex(0, 1) * SUn.randomAlgebra(S, 3)):exp()
     local Uprime = gauge_transform(L, U, omega)
     local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
     local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
