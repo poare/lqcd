@@ -56,7 +56,7 @@ function gauge_transform(L, U, omega)
   return Uprime
 end
 
-function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer)
+function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer, cfgnum)
   local bvec = {0,0,0,0.5}
 
   for pidx = 1, #p_list do
@@ -77,7 +77,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     local mom4_prop = (FT * prop):sum()    -- this is S(p)
 
     -- Write momentum projected propagator to file (?)
-    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    local prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
@@ -89,7 +89,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
     local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
     local mom4_prop_prime = (FT * propprime):sum()
-    local prop_prime_path = string.format("propprime/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    local prop_prime_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, prop_prime_path, mom4_prop_prime)
 
     -- Currently assuming that the prop that I compute is S_p(z). Need to confirm this.
@@ -105,7 +105,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
     local G = norm * ( gamma{mu = 5} * prop:adjoin() * gamma{mu = 5} * JS ):sum()
 
-    local threept_path = string.format("threept/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    local threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, threept_path, G)
     printf("Three point function written at: %s\n", threept_path)
 
@@ -167,7 +167,8 @@ local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
-local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+-- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+local p_list_NPR = {{2, 2, 2, 2}}
 
 gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
