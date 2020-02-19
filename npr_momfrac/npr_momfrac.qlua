@@ -122,14 +122,12 @@ else
     printf("No jobid, cfgpath, cfgbase entered.")
 end
 
--- Enter parameters to test on one configuration.
-if test then
-  jobid = 0
-  cfgpath = "/Users/poare/lqcd/npr_momfrac/testing/"
-  cfgbase = "cl3_16_48_b6p1_m0p2450"
-  cfgnum = 200
-  printf("Running test configuration.")
-end
+-- Uncomment to run test locally
+-- jobid = 0
+-- cfgpath = "/Users/poare/lqcd/npr_momfrac/testing/"
+-- cfgbase = "cl3_16_48_b6p1_m0p2450"
+-- cfgnum = 200
+-- printf("Running test configuration.")
 
 -- Set parameters
 Nc = 3    -- qcd.Nc
