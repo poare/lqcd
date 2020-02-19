@@ -46,6 +46,16 @@ function random_SUn_field(L)
   return v:proj(1e-6, 150)
 end
 
+-- Performs gauge transformation \Omega on gauge field U. This is the transformation
+--  U_\mu(n)\mapsto \Omega(n) U_\mu(n) \Omega(n + \hat{mu}) (eqn 3.6)
+function gauge_transform(L, U, omega)
+  local Uprime = {}
+    for mu = 0, #L - 1 do
+      Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_forward"):adjoin()
+    end
+  return Uprime
+end
+
 function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer)
   local bvec = {0,0,0,0.5}
 
@@ -60,6 +70,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     local FT = FTarg:expi()
 
     -- what does spacetime_wall_source do? Source with definite momentum?
+    -- TODO should I compute with a point source since I know how to do that?
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y) (or might be sum_y e^(ipy) S(x, y))
     local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
@@ -73,10 +84,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     -- Test  correct by performing a gauge transformation.
     print("Computing observables after gauge transformation.")
     local omega = random_SUn_field(L)
-    local Uprime = {}
-    for i = 0, #L - 1 do
-      Uprime[i + 1] = omega * U[i + 1]
-    end
+    local Uprime = gauge_transform(L, U, omega)
     local propprime = compute_propagator(Uprime, ferm_prop, src)
     local mom4_prop_prime = (FT * propprime):sum()
     local prop_prime_path = string.format("propprime/p%d%d%d%d", p[1], p[2], p[3], p[4])
@@ -85,9 +93,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     -- Currently assuming that the prop that I compute is S_p(z). Need to confirm this.
 
     -- compute momentum projected Green's function G(p)
-    -- TODO make sure that prop is a momentum projected propagator. May need to compute S(x, y) first
-    -- and then momentum project. The propagator we're supposed to save is S(x, y), and we need
-    -- S_p(x) for the next part, so may be necessary to change up how I'm writing this code.
+    -- TODO the object prop is the two point propagator S(x, y)
     local norm = 1 / (2 * math.sqrt(2) * hypervolume)
     local JS33 = U[4] * (gamma{mu = 3} * prop:shift(3, "from_forward")) + U[4]:shift(3, "from_backward"):adjoin() *
             (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
