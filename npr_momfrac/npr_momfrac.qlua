@@ -6,6 +6,7 @@ require "lib/clover_ferm"
 require "lib/group"
 require "lib/musing"
 require "lib/propagator"
+require "lib/su-n"
 
 -------------------------------------------------------------------
 ------------------------ UTILITY FUNCTIONS ------------------------
@@ -51,8 +52,7 @@ end
 function gauge_transform(L, U, omega)
   local Uprime = {}
     for mu = 0, #L - 1 do
-      -- Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_forward"):adjoin()
-      Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_backward"):adjoin()
+      Uprime[mu + 1] = omega * U[mu + 1] * omega:shift(mu, "from_forward"):adjoin()
     end
   return Uprime
 end
@@ -73,7 +73,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     -- what does spacetime_wall_source do? Source with definite momentum?
     -- TODO should I compute with a point source since I know how to do that?
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y) (or might be sum_y e^(ipy) S(x, y))
+    local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
     local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()    -- this is S(p)
 
@@ -85,7 +85,9 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     -- Test  correct by performing a gauge transformation.
     -- TODO if this still doesn't work then use "from_backward" in the shift
     print("Computing observables after gauge transformation.")
-    local omega = random_SUn_field(L)
+    -- local omega = random_SUn_field(L)
+    local S = random_state_generator(L)
+    local omega = SUn.exp(SUn.randomAlgebra(S, 3))
     local Uprime = gauge_transform(L, U, omega)
     local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
     local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
