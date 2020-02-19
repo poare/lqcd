@@ -82,10 +82,12 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     printf("Propagator written at path: %s\n", prop_path)
 
     -- Test  correct by performing a gauge transformation.
+    -- TODO if this still doesn't work then use "from_backward" in the shift
     print("Computing observables after gauge transformation.")
     local omega = random_SUn_field(L)
     local Uprime = gauge_transform(L, U, omega)
-    local propprime = compute_propagator(Uprime, ferm_prop, src)
+    local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
+    local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
     local mom4_prop_prime = (FT * propprime):sum()
     local prop_prime_path = string.format("propprime/p%d%d%d%d", p[1], p[2], p[3], p[4])
     h5_force_write(writer, prop_prime_path, mom4_prop_prime)
