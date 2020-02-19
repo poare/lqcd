@@ -28,8 +28,9 @@ end
 
 -- Projects random 3 by 3 matrix X onto SUn
 function toSUn(L, X)
+  Nc = 3
   local Y = (X - X:adjoin()) / 2
-  return (Y - Y:trace() / qcd.Nc * L:ColorMatrix(complex(1,0))):exp()
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1,0))):exp()
 end
 
 function weak_SUn(L, S)
