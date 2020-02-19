@@ -21,14 +21,13 @@ cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
 
 home=/home/poare/lqcd/npr_momfrac
-logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
+tests=${home}/testing/logs
 output=${home}/output/${cfgbase}_${SLURM_JOB_ID}
 
-mkdir ${logs}
-mkdir ${logs}/no_output
+mkdir ${tests}
 mkdir ${output}
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}'"
 
 cfg=200
-mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac.qlua > ${logs}/cfg${cfg}.txt
+mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac.qlua > ${tests}/job${SLURM_JOB_ID}.txt
