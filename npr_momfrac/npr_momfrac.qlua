@@ -160,7 +160,7 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 -- momenta to compute Z(p) at
 local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 
-gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime")
+gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
 
 status, U, finfo, info = pcall(load_conf, L, gauge_file)
