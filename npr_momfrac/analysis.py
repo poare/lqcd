@@ -10,6 +10,13 @@ import os
   # c is a color index
   # s is a spinor index
 
+# Functions which work and match what they're suppose to do (i.e. Phiala's code): readfile,
+# bootstrap, invert_prop, quark_renorm.
+# See if I can get my code to work with the weird staple objects next to test the rest of the
+# analysis. 
+
+g = np.diag([1, -1, -1, -1])
+
 gamma = np.zeros((4,4,4),dtype=complex)
 gamma[0] = gamma[0] + np.array([[0,0,0,1j],[0,0,1j,0],[0,-1j,0,0],[-1j,0,0,0]])
 gamma[1] = gamma[1] + np.array([[0,0,0,-1],[0,0,1,0],[0,1,0,0],[-1,0,0,0]])
@@ -22,9 +29,11 @@ L = 16
 T = 48
 LL = [L, L, L, T]
 hypervolume = (L ** 3) * T
+# LL = [24, 24, 24, 48]    # only for debugging purposes, since Phiala's code is on a 24^3 x 48 lattice.
+# hypervolume = (24 ** 3) * T
 
 n_boot = 200
-num_cfgs = 27
+num_cfgs = 1
 
 def get_mom_list():
     return mom_list
@@ -35,16 +44,24 @@ def get_num_cfgs():
 def get_hypervolume():
     return hypervolume
 
+def get_metric():
+    return g
+
 def pstring_to_list(pstring):
     return [int(pstring[1]), int(pstring[2]), int(pstring[3]), int(pstring[4])]
 
 def plist_to_string(p):
     return 'p' + str(p[0]) + str(p[1]) + str(p[2]) + str(p[3])
 
-def norm(p):
+# squares a 4 vector.
+def square(p):
     if type(p) is str:
         p = pstring_to_list(p)
-    return np.sqrt(np.sum([p[mu] ** 2 for mu in range(4)]))
+    p = np.array([p])
+    return np.dot(p, np.dot(g, p.T))[0, 0]
+
+def norm(p):
+    return np.sqrt(np.abs(square(p)))
 
 mom_str_list = [plist_to_string(p) for p in mom_list]
 
@@ -119,7 +136,7 @@ def amputate(props_inv, threepts):
     return Gamma
 
 
-# Compute quark field renormalization
+# Compute quark field renormalization. This agrees with Phiala's code.
 def quark_renorm(props_inv):
     Zq = {}
     for p in mom_list:

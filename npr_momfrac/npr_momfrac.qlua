@@ -57,8 +57,29 @@ function gauge_transform(L, U, omega)
   return Uprime
 end
 
-function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer, cfgnum)
+-- Test propagator by performing a gauge transformation. Will store the result at
+-- path propprime/pstring/cfgnum.
+function run_gauge_transform_test(L, U, FT, ferm_prop, writer, p, Nc, cfgnum)
+  print("Computing observables after gauge transformation.")
+  local S = random_state_generator(L)
+  local omega = (complex(0, 1) * SUn.randomAlgebra(S, Nc)):exp()
+  local Uprime = gauge_transform(L, U, omega)
+  local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
+  local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
+  local mom4_prop_prime = (FT * propprime):sum()
+  local prop_prime_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+  h5_force_write(writer, prop_prime_path, mom4_prop_prime)
+end
+
+function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer, Nc, cfgnum)
   local bvec = {0,0,0,0.5}
+
+  -- Uncomment for point source
+  --[[
+  local src = compute_point_source(U, {0, 0, 0, 0})
+  local prop = compute_propagator(U, ferm_prop, src)
+  local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+  --]]
 
   for pidx = 1, #p_list do
     printf("p index: %d\n", pidx)
@@ -70,43 +91,28 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     end
     local FT = FTarg:expi()
 
-    -- what does spacetime_wall_source do? Source with definite momentum?
-    -- TODO should I compute with a point source since I know how to do that?
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
     local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
-    local mom4_prop = (FT * prop):sum()    -- this is S(p)
+    local mom4_prop = (FT * prop):sum()    -- this is S(p) times V. TODO divide by V
 
     -- Write momentum projected propagator to file (?)
     local prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
-    -- Test  correct by performing a gauge transformation.
-    -- TODO if this still doesn't work then use "from_backward" in the shift
-    print("Computing observables after gauge transformation.")
-    -- local omega = random_SUn_field(L)
-    local S = random_state_generator(L)
-    local omega = (complex(0, 1) * SUn.randomAlgebra(S, 3)):exp()
-    local Uprime = gauge_transform(L, U, omega)
-    local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
-    local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
-    local mom4_prop_prime = (FT * propprime):sum()
-    local prop_prime_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-    h5_force_write(writer, prop_prime_path, mom4_prop_prime)
-
-    -- Currently assuming that the prop that I compute is S_p(z). Need to confirm this.
+    run_gauge_transform_test(L, U, FT, ferm_prop, writer, p, Nc, cfgnum)
 
     -- compute momentum projected Green's function G(p)
-    -- TODO the object prop is the two point propagator S(x, y)
+    -- prop is the propagator S(x) = S(p, x) from Phiala's paper
     local norm = 1 / (2 * math.sqrt(2) * hypervolume)
+    -- Recall U_mu = U[mu + 1] and the mu = 4 index is time (mu = 0), so U[1] = U_0, U[4] = U_3, ...
     local JS33 = U[4] * (gamma{mu = 3} * prop:shift(3, "from_forward")) + U[4]:shift(3, "from_backward"):adjoin() *
             (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
-    -- TODO is the mu = 4 index time?
     local JS44 = U[1] * (gamma{mu = 0} * prop:shift(0, "from_forward"))  + U[1]:shift(0, "from_backward"):adjoin() *
             (gamma{mu = 0} * prop:shift(0, "from_backward")) - 2 * gamma{mu = 0} * prop
     local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
-    local G = norm * ( gamma{mu = 5} * prop:adjoin() * gamma{mu = 5} * JS ):sum()
+    local G = norm * ( antiprop * JS ):sum()
 
     local threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, threept_path, G)
@@ -152,17 +158,18 @@ L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
 lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
 
-volume = 1    -- spatial volume
-for i = 0, #L - 2 do
-  volume = volume * L[i]
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
 end
-hypervolume = volume * L[3]
 
 -- Paths to output file.
 folder = string.format("%s/lqcd/npr_momfrac/output", lqcd_dir)
 out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
 local csw = 1
 local bcs = {1,1,1,-1}
@@ -178,12 +185,15 @@ print("Reading gauge file at: %s\n", gauge_file)
 
 status, U, finfo, info = pcall(load_conf, L, gauge_file)
 if status then
+  -- project gauge configuration onto SU(3)
+  for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
   -- Open file writer
   local hdf5params = { method = "phdf5" }
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  compute_npr(L, U, ferm_prop, p_list_NPR, hypervolume, L_mom, clover, writer, cfgnum)
+  compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, clover, writer, Nc, cfgnum)
 
   writer:close()
 else
