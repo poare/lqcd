@@ -59,10 +59,10 @@ end
 
 -- Test propagator by performing a gauge transformation. Will store the result at
 -- path propprime/pstring/cfgnum.
-function run_gauge_transform_test(L, U, FT, ferm_prop, writer, p, Nc, cfgnum)
+function run_gauge_transform_test(L, U, FT, ferm_prop, group, writer, p, Nc, cfgnum)
   print("Computing observables after gauge transformation.")
   local S = random_state_generator(L)
-  local omega = (complex(0, 1) * SUn.randomAlgebra(S, Nc)):exp()
+  local omega = group.toGroup((complex(0, 1) * group.randomAlgebra(S, Nc)):exp())
   local Uprime = gauge_transform(L, U, omega)
   local srcprime = compute_spacetime_wall_source_antiperiodicBC(Uprime, p)
   local propprime = compute_propagator(Uprime, ferm_prop, srcprime)
@@ -71,7 +71,7 @@ function run_gauge_transform_test(L, U, FT, ferm_prop, writer, p, Nc, cfgnum)
   h5_force_write(writer, prop_prime_path, mom4_prop_prime)
 end
 
-function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer, Nc, cfgnum)
+function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum)
   local bvec = {0,0,0,0.5}
 
   -- Uncomment for point source
@@ -101,7 +101,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
-    run_gauge_transform_test(L, U, FT, ferm_prop, writer, p, Nc, cfgnum)
+    run_gauge_transform_test(L, U, FT, ferm_prop, group, writer, p, Nc, cfgnum)
 
     -- compute momentum projected Green's function G(p)
     -- prop is the propagator S(x) = S(p, x) from Phiala's paper
@@ -193,7 +193,7 @@ if status then
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, clover, writer, Nc, cfgnum)
+  compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum)
 
   writer:close()
 else
