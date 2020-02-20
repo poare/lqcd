@@ -13,7 +13,7 @@ import os
 # Functions which work and match what they're suppose to do (i.e. Phiala's code): readfile,
 # bootstrap, invert_prop, quark_renorm.
 # See if I can get my code to work with the weird staple objects next to test the rest of the
-# analysis. 
+# analysis.
 
 g = np.diag([1, -1, -1, -1])
 
@@ -68,7 +68,7 @@ mom_str_list = [plist_to_string(p) for p in mom_list]
 # directory should contain hdf5 files. Will return props and threepts in form
 # of a momentum dictionary with arrays of the form [cfg, c, s, c, s] where s
 # is a Dirac index and c is a color index.
-def readfile(directory):
+def readfile(directory, gauged = False):
     files = []
     for (dirpath, dirnames, file) in os.walk(directory):
         files.extend(file)
@@ -84,8 +84,12 @@ def readfile(directory):
         path_to_file = directory + '/' + file
         f = h5py.File(path_to_file, 'r')
         for pstring in mom_str_list:
-            prop_path = 'prop/' + pstring
-            threept_path = 'threept/' + pstring
+            if gauged:
+                prop_path = 'propprime/' + pstring
+                threept_path = 'threeptprime/' + pstring
+            else:
+                prop_path = 'prop/' + pstring
+                threept_path = 'threept/' + pstring
 
             # delete this block once I push the new code
             config_id = str([x for x in f[prop_path].keys()][0])
@@ -101,8 +105,9 @@ def readfile(directory):
 
 # Bootstraps a set of propagator labelled by momentum. Will return a momentum
 # dictionary, and the value of each key will be [boot, cfg, c, s, c, s].
-def bootstrap(D):
+def bootstrap(D, seed = 0):
     samples = {}
+    np.random.seed(seed)
     for p in mom_str_list:
         S = D[p]
         num_configs = S.shape[0]
@@ -131,8 +136,8 @@ def amputate(props_inv, threepts):
             for cfgidx in range(num_cfgs):
                 Sinv = props_inv[p][b, cfgidx]
                 G = threepts[p][b, cfgidx]
-                # TODO check this is a proper contraction
-                Gamma[p][b, cfgidx] = np.einsum('aibj,bjck,ckdl->aidl', Sinv, G, Sinv)
+                #TODO check this normalization
+                Gamma[p][b, cfgidx] = np.einsum('aibj,bjck,ckdl->aidl', Sinv, G, Sinv)# * hypervolume
     return Gamma
 
 
@@ -149,7 +154,7 @@ def quark_renorm(props_inv):
                 Sinv = props_inv[pstring][b, cfgidx]
                 num = sum([phase[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)])
                 denom = 12 * sum([np.sin(2 * np.pi * (p[mu] + bvec[mu]) / LL[mu]) ** 2 for mu in range(4)])
-                Zq[pstring][b, cfgidx] = hypervolume * (1j) * num / denom
+                Zq[pstring][b, cfgidx] = (1j) * (num / denom)# * hypervolume
     return Zq
 
 # Compute \Gamma_{Born}(p). Should be a function of p with Dirac indices. For the mom frac
@@ -160,27 +165,7 @@ def born_term():
     Gamma_B_inv = {}
     for p in mom_list:
         pstring = plist_to_string(p)
-        # Gamma_B[pstring] is a (4, 4, 4, 4) matrix. The first two indices are mu and nu, the last 2 are Dirac indices.
-        # Gamma_B[pstring] = np.zeros((4, 4, 4, 4), dtype = np.complex64)
-        # Gamma_B_inv[pstring] = np.zeros((4, 4, 4, 4), dtype = np.complex64)
-        # for mu in range(4):
-        #     for nu in range(4):
-        #         for i in range(4):
-        #             for j in range(4):
-        #                 Gamma_B[pstring][mu, i, nu, j] = (1j) * (gamma[mu][i, j] * p[nu] + gamma[nu][i, j] * p[mu])
-        #                 # Gamma_B_inv[pstring] = np.linalg.tensorinv(Gamma_B[pstring])
-        #                 # TODO Gamma_B is singular (?) if you do an entire inversion. Probably only invert
-        #                 # the Dirac structure.
-        #         Gamma_B_inv[pstring][mu, :, nu, :] = np.linalg.inv(Gamma_B[pstring][mu, :, nu, :])
-        # TDOO the Born term shouldn't have Lorentz indices, should have the same structure as the
-        # operator $\mathcal O$. Take the 3, 3 components and subtract off the 4, 4 components to get a
-        # Dirac matrix which is a singlet in Lorentz space.
-        Gamma_B[pstring] = np.zeros((4, 4), dtype = np.complex64)
-        Gamma_B_inv[pstring] = np.zeros((4, 4), dtype = np.complex64)
-        for i in range(4):
-            for j in range(4):
-                # TODO: is mu = 4 the same as mu = 0?
-                Gamma_B[pstring][i, j] = (1j) * (gamma[3][i, j] * p[3] - gamma[0][i, j] * p[0]) / np.sqrt(2)
+        Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[3] * gamma[3] - p[0] * gamma[0])
         Gamma_B_inv[pstring] = np.linalg.inv(Gamma_B[pstring])
     return Gamma_B, Gamma_B_inv
 
@@ -193,7 +178,8 @@ def get_Z(Zq, Gamma, Gamma_B_inv):
         for b in range(n_boot):
             for cfgidx in range(num_cfgs):
                 trace = np.einsum('aiaj,ji', Gamma[p][b, cfgidx], Gamma_B_inv[p])
-                Z[p][b, cfgidx] = 12 * np.dot(Zq[p][b, cfgidx], trace)
+                # Z[p][b, cfgidx] = 12 * np.dot(Zq[p][b, cfgidx], trace)
+                Z[p][b, cfgidx] = 12 * Zq[p][b, cfgidx] / trace
     return Z
 
 # Do the statistics on Z[p][b, cfg] by computing statistics on each boostrapped
