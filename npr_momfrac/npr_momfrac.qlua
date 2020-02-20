@@ -112,7 +112,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, clover, writer
     local JS44 = U[1] * (gamma{mu = 0} * prop:shift(0, "from_forward"))  + U[1]:shift(0, "from_backward"):adjoin() *
             (gamma{mu = 0} * prop:shift(0, "from_backward")) - 2 * gamma{mu = 0} * prop
     local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
-    local G = norm * ( antiprop * JS ):sum()
+    local G = norm * ( anti_prop * JS ):sum()
 
     local threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, threept_path, G)
