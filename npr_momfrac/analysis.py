@@ -16,6 +16,7 @@ import os
 # analysis.
 
 g = np.diag([1, -1, -1, -1])
+# g = np.diag([1, 1, 1, 1])    # in Euclidean space?
 
 gamma = np.zeros((4,4,4),dtype=complex)
 gamma[0] = gamma[0] + np.array([[0,0,0,1j],[0,0,1j,0],[0,-1j,0,0],[-1j,0,0,0]])

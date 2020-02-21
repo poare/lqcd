@@ -1,0 +1,303 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+--require "lib/quda"
+
+function prop_to_mat(prop)
+   local L = prop.lattice
+   local Nc = prop:colors()
+   local prop_mat = L:ColorMatrixN(Nc * qcd.Ns)
+   for c = 0, Nc - 1 do
+      for d = 0, qcd.Ns - 1 do
+         for cp = 0, Nc - 1 do
+            for dp = 0, qcd.Ns - 1 do
+               prop_mat[{a=(d*Nc + c), b=(dp*Nc + cp)}] = prop[{c=c,d=d}][{c=cp,d=dp}]
+            end
+         end
+      end
+   end
+   return prop_mat
+end
+
+function mat_to_prop(mat)
+   local L = mat.lattice
+   local Nc = (mat:colors())/(qcd.Ns)
+   local prop = L:DiracPropagatorN(Nc)
+   for c = 0, Nc - 1 do
+      for d = 0, qcd.Ns - 1 do
+         local tmp = L:DiracFermionN(Nc)
+         for cp = 0, Nc - 1 do
+            for dp = 0, qcd.Ns - 1 do
+               tmp[{c=cp,d=dp}] = mat[{a=(d*Nc + c), b=(dp*Nc + cp)}]
+               -- THIS SILENTLY FAILS!!! (assigns 0)
+               -- prop[{c=c,d=d}][{c=cp,d=dp}] = mat[{a=(d*Nc + c), b=(dp*Nc + cp)}]
+            end
+         end
+         prop[{c=c,d=d}] = tmp
+      end
+   end
+   return prop
+end
+
+
+function compute_TMD_beam_function_NPR(U, L_mom, p_list, eta_min, eta_max, eta_skip, ferm_prop, bcs, h5_writer)
+   local L = U[1].lattice
+   local Lx = L[0]
+   local Nc = U[1]:colors()
+   local bvec = {0,0,0,0.5}
+
+   --local L_mom4 = qcd.lattice{1}
+   --local mom4_I = {L:Int(0)}
+   --local mom4_proj_gather = qcd.gather(L_mom4, L, mom4_I)
+
+   local loop_timer = create_timer("big staple")
+   for pnum = 1, #p_list do
+      printf("pnum = %d / %d \n", pnum, #p_list)
+      loop_timer()
+      local p = p_list[pnum]
+      -- build props
+      local Vol = 1
+      for mu = 0, #L - 1 do
+         Vol = Vol * L[mu]
+      end
+      local FTarg = L:Real(0)
+      for mu = 0, #L - 1 do
+         FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu+1]+bvec[mu+1]) * 2*math.pi/L[mu]
+      end
+      local FT = FTarg:expi()
+      local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
+      --hmc_mosaic.printscalar(src[{c=0,d=0}][{c=0,d=0}], "src")
+      local prop = compute_propagator(U, ferm_prop, src)
+      --hmc_mosaic.printscalar(prop[{c=0,d=0}][{c=0,d=0}], "prop")
+      local anti_prop = gamma{mu=5} * prop:adjoin() * gamma{mu=5}
+      --local mom4_prop = mom4_proj_gather:add(FT * prop)
+      local mom4_prop = (FT * prop):sum()
+      -- invert prop
+--      local mom4_prop_mat = prop_to_mat(mom4_prop)
+--      local mom4_prop_mat_inv = mom4_prop_mat:inverse()
+--      local mom4_prop_inv = mat_to_prop(mom4_prop_mat_inv)
+--      printf("1/12 Tr(prop * prop-1) = "..tostring(1/12*((mom4_prop_mat * mom4_prop_mat_inv):trace():sum())).."\n")
+--      printf("1/12 Tr(prop * prop-1) = "..tostring(1/12*((mom4_prop * mom4_prop_inv):trace():sum())).."\n")
+--      -- wavefunction renorm
+--      local Zq = complex(0,0)
+--      local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+--      for nu = 0, #L -1 do
+--         local shifted_prop =  (1-gamma{mu=nu}) * (U[nu+1] * ferm_shift(prop, nu, "from_forward"))
+--         local shifted_anti_prop = (ferm_shift(anti_prop, nu, "from_forward") * (1+gamma{mu=nu})) * U[nu+1]:adjoin()
+--         local G_Vc = mom4_proj_gather:add( 1/4 * (shifted_anti_prop * prop - anti_prop * shifted_prop) + 1/4 * ferm_shift((shifted_anti_prop * prop - anti_prop * shifted_prop), nu, "from_backward") )
+--         --local G_Vc = mom4_proj_gather:add( 1/2 * shifted_anti_prop * prop - 1/2 * anti_prop * shifted_prop)
+--         --local G_Vc = mom4_proj_gather:add( anti_prop * gamma{mu=nu} * prop )
+--         local Lambda_Vc = (gamma{mu=5} * mom4_prop_inv:adjoin() * gamma{mu=5}) * G_Vc * mom4_prop_inv * Vol
+--         Zq = Zq + 1/48 * ( Lambda_Vc * gamma{mu=nu} ):trace():sum()
+--         printf("Zq_Vc("..make_coord_name(p)..") = "..tostring(1/(1/12 * ( Lambda_Vc * gamma{mu=nu} ):trace():sum())).."\n")
+--      end
+--      printf("Zq_Vc("..make_coord_name(p)..") = "..tostring(1/Zq).."\n")
+--      h5_force_write(h5_writer, "Zq_Vc/p1/"..tostring(p[1]).."/p2/"..tostring(p[2]).."/p3/"..tostring(p[3]).."/p4/"..tostring(p[4]), 1/Zq)
+--      -- two ways
+--      local Zqnum = complex(0,0)
+--      local Zqden = complex(0,0)
+--      for mu = 0, #L -1 do
+--         Zqnum = Zqnum + complex(0,1) * math.sin(p[mu+1]*2*math.pi/L[mu]) * ((gamma{mu=mu} * Vol * mom4_prop_inv):trace():sum())
+--         Zqden = Zqden + 12 * math.sin(p[mu+1]*2*math.pi/L[mu])^2
+--      end
+--      printf("Zq_prop("..make_coord_name(p)..") = "..tostring(Zqnum/Zqden).."\n")
+--      h5_force_write(h5_writer, "Zq_prop/p1/"..tostring(p[1]).."/p2/"..tostring(p[2]).."/p3/"..tostring(p[3]).."/p4/"..tostring(p[4]), Zqnum/Zqden)
+      --local L_prop = qcd.lattice{3, 4, 3, 4}
+      --local prop_data = L_prop:Complex(0)
+      --for c = 0, Nc - 1 do
+      --   for d = 0, qcd.Ns - 1 do
+      --      for cp = 0, Nc - 1 do
+      --         for dp = 0, qcd.Ns - 1 do
+                  --prop_data[{c,d,cp,dp}] = mom4_prop[{c=c,d=d}][{c=cp,d=dp}][{0}]
+      --            prop_data[{c,d,cp,dp}] = mom4_prop[{c=c,d=d}][{c=cp,d=dp}]
+      --         end
+      --      end
+      --   end
+      --end
+      h5_force_write(h5_writer, "prop/p"..tostring(p[1])..tostring(p[2])..tostring(p[3])..tostring(p[4]), mom4_prop)
+      -- add staple
+      --[[
+      for mu = 0, 1 do
+         for Tsign = -1, 1, 2 do
+            -- forwards piece [y, y + (eta-1)*zhat]
+            local fWline = L:ColorMatrixN(Nc,complex(1,0))
+            local fUz = U[2+1]:adjoin()
+            -- backwards piece [y - bT*xhat + eta*zhat, y - bT*xhat + bz*zhat]
+            local bWline = L:ColorMatrixN(Nc,complex(1,0))
+            local bUz = U[2+1]
+            bUz = bUz:shift( 2, "from_backward" )
+            -- transverse piece [y + eta*zhat, y - bT*xhat + eta*zhat]
+            local xWline = L:ColorMatrixN(Nc,complex(1,0))
+            local Ux = U[mu+1]
+            -- displaced prop
+            local shifted_seq_prop = anti_prop
+            for eta = 0, eta_min - 1 do
+               printf("eta = %d / %d \n", eta, eta_max)
+               loop_timer()
+               -- add to forwards line
+               fWline = fUz * fWline
+               fUz = fUz:shift( 2, "from_forward" )
+               bUz = bUz:shift( 2, "from_forward" )
+               shifted_seq_prop = shifted_seq_prop:shift( 2, "from_forward" )
+               Ux = Ux:shift( 2, "from_forward" )
+               xWline = xWline:shift( 2, "from_forward" )
+            end
+            local eta_count = 0
+            for eta = eta_min, eta_max do
+               if (eta_count % eta_skip) == 0 then
+                  printf("eta = %d / %d \n", eta, eta_max)
+                  loop_timer()
+                  local L_NPR = qcd.lattice{eta+1, 2*eta+1, 16}
+                  local G_3pt_data = L_NPR:DiracPropagatorN(3)
+                  local part_shifted_seq_prop = shifted_seq_prop
+                  local part_bWline = bWline
+                  local part_bUz = bUz
+                  local part_Ux = Ux
+                  local part_xWline = xWline
+                  for bT = 0, eta do
+                     local full_shifted_seq_prop = part_shifted_seq_prop
+                     local full_bWline = part_bWline
+                     local full_bUz = part_bUz
+                     for bz = eta, -eta, -1 do
+                        -- make 3pt
+                        local staple_shifted_seq_prop = full_shifted_seq_prop * full_bWline * part_xWline * fWline
+                        for n = 0, 15 do
+                           --local G3pt = mom4_proj_gather:add( staple_shifted_seq_prop * (gamma{n=n}/2) * prop )
+                           G_3pt_data[{bT,eta+bz,n}] = ( staple_shifted_seq_prop * (gamma{n=n}/2) * prop ):sum()
+                           --local G3pt = ( staple_shifted_seq_prop * (gamma{n=n}/2) * prop ):sum()
+                           --for c = 0, Nc - 1 do
+                           --   for d = 0, qcd.Ns - 1 do
+                           --      for cp = 0, Nc - 1 do
+                           --         for dp = 0, qcd.Ns - 1 do
+                                       --G_3pt_data[{eta+Tsign*bT,eta+bz,mu,n,c,d,cp,dp}] = G3pt[{c=c,d=d}][{c=cp,d=dp}][{0}]
+                           --         end
+                           --      end
+                           --   end
+                           --end
+                        end
+                        -- make amputated vertex function
+--                        local Lambda = (gamma{mu=5} * mom4_prop_inv:adjoin() * gamma{mu=5}) * G3pt * mom4_prop_inv * Vol
+--                        local bp = Tsign * p[mu+1] * bT * 2 * math.pi/L[mu] + p[3] * bz * 2 * math.pi/L[2]
+--                        local bFac = 6 * complex(math.cos(bp), math.sin(bp))
+--                        for g = 0, 15 do
+--                           local V = (Lambda * gamma{n=g}):trace():sum()
+--                           local Z =  bFac / V
+--                           if g==8 then
+--                              printf("bp = "..tostring(bp).."\n")
+--                              printf("Z = "..tostring(Z).."\n")
+--                           end
+--                           h5_force_write(h5_writer, "NPR/P/"..tostring(g).."/eta/"..tostring(eta).."/bT/"..tostring(Tsign * bT).."/bz/"..tostring(bz).."/p1/"..tostring(p[1]).."/p2/"..tostring(p[2]).."/p3/"..tostring(p[3]).."/p4/"..tostring(p[4]).."/mu/"..tostring(mu), Z)
+--                        end
+                        -- add to backwards line
+                        full_bWline = full_bUz * full_bWline
+                        full_bUz = full_bUz:shift( 2, "from_backward" )
+                        full_shifted_seq_prop = full_shifted_seq_prop:shift( 2, "from_backward" )
+                     end
+                     -- add to transverse line
+                     if Tsign == 1 then
+                        part_bUz = part_bUz:shift( mu, "from_forward" )
+                        part_shifted_seq_prop = part_shifted_seq_prop:shift( mu, "from_forward" )
+                        part_Ux = part_Ux:shift( mu, "from_forward" )
+                        part_xWline = part_Ux * part_xWline
+                     elseif Tsign == -1 then
+                        part_bUz = part_bUz:shift( mu, "from_backward" )
+                        part_shifted_seq_prop = part_shifted_seq_prop:shift( mu, "from_backward" )
+                        part_Ux = part_Ux:shift( mu, "from_backward" )
+                        part_xWline = part_Ux * part_xWline
+                     end
+                  end
+                  printf("starting write \n")
+                  loop_timer()
+                  h5_force_write(h5_writer, "threept/eta"..tostring(eta).."/mu"..tostring(mu).."/bTsign"..tostring(Tsign).."/p"..tostring(p[1])..tostring(p[2])..tostring(p[3])..tostring(p[4]), G_3pt_data)
+                  -- add to forwards line
+                  fWline = fUz * fWline
+                  fUz = fUz:shift( 2, "from_forward" )
+                  bUz = bUz:shift( 2, "from_forward" )
+                  shifted_seq_prop = shifted_seq_prop:shift( 2, "from_forward" )
+                  Ux = Ux:shift( 2, "from_forward" )
+                  xWline = xWline:shift( 2, "from_forward" )
+               else
+                  printf("eta = %d / %d \n", eta, eta_max)
+                  loop_timer()
+                  -- add to forwards line
+                  fWline = fUz * fWline
+                  fUz = fUz:shift( 2, "from_forward" )
+                  bUz = bUz:shift( 2, "from_forward" )
+                  shifted_seq_prop = shifted_seq_prop:shift( 2, "from_forward" )
+                  Ux = Ux:shift( 2, "from_forward" )
+                  xWline = xWline:shift( 2, "from_forward" )
+               end
+               eta_count = eta_count + 1
+            end
+         end
+      end
+      ]]
+   end
+   loop_timer()
+end
+
+
+local Lx = 24
+local Lt = 48
+--local Lx = 4
+--local Lt = 8
+local L = qcd.lattice{Lx,Lx,Lx,Lt}
+local L_mom = qcd.lattice{Lt}
+local Nc = 3
+local group = group.get(Nc)
+-- Here group is "SUn", and is equipped with the functions in su-n.qlua in mosaic.
+
+--local U = {}
+--for mu = 0, #L-1 do
+--   U[mu+1] = group.exp(complex(0,0)*L:ColorMatrixN(Nc))
+--end
+--init_weak_field(L, latRnd, group, Nc, U)
+
+local Ureader, Urinfo, U, u_info
+--local cfgbase = "su3_32_64_b6p30168_flow_gf"
+--local cfg_dir = "/scratch/04306/tg836058/"..cfgbase.."/"
+--/global/cscratch1/sd/pshanaha/mstherm/su3_24_48_b6p10050_flow1_gf/cfgs/su3_24_48_b6p10050.lime100_flow1_gf
+-- local cfgbase = "su3_24_48_b6p10050"
+-- local cfg_dir = "/global/cscratch1/sd/pshanaha/mstherm/"..cfgbase.."_flow1_gf/cfgs/"
+
+local cfg_dir = "/data/d10b/ensembles/isoClover/"
+local cfgbase = "cl3_16_48_b6p1_m0p2450"
+printf(cfg_dir..cfgbase..".lime"..cfgnum.."\n")
+Ureader, Urinfo = qcd.qdpc.Reader(L, cfg_dir..cfgbase.."/cfgs/"...cfgbase..."_cfg_"...cfgnum...".lime")
+U, u_info = Ureader:ColorMatrix(#L)
+printf(Urinfo.."\n")
+printf(u_info.."\n")
+Ureader:close()
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+-- local kappa = 0.121
+local mq = 0.2450
+local kappa = 1 / (2 * mq + 8)
+local csw = 1
+local bcs = {1,1,1,-1}
+--qcd.quda.init(L)
+local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+--local clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+
+-- prepare to write props
+os.execute("mkdir -p /home/poare/lqcd/npr_momfrac/examples/meas/"..cfgbase)
+local NPRhdf5 = "/home/poare/lqcd/npr_momfrac/examples/meas/"..cfgbase.."/pion_beam_npr_matrix_"..tostring(cfgnum)..".h5"
+
+local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+local eta_min = 7
+local eta_max = 11
+local eta_skip = 2
+
+
+local hdf5params = { method = "phdf5" }
+local h5_writer = qcd.hdf5.Writer(NPRhdf5, hdf5params)
+compute_TMD_beam_function_NPR(U, L_mom, p_list_NPR, eta_min, eta_max, eta_skip, ferm_prop, bcs, h5_writer)
+h5_writer:close()
+--qcd.quda.fini()
