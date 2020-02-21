@@ -50,11 +50,11 @@ function compute_TMD_beam_function_NPR(U, L_mom, p_list, eta_min, eta_max, eta_s
    local Lx = L[0]
    local Nc = U[1]:colors()
    local bvec = {0,0,0,0.5}
-   
+
    --local L_mom4 = qcd.lattice{1}
    --local mom4_I = {L:Int(0)}
    --local mom4_proj_gather = qcd.gather(L_mom4, L, mom4_I)
-   
+
    local loop_timer = create_timer("big staple")
    for pnum = 1, #p_list do
       printf("pnum = %d / %d \n", pnum, #p_list)
@@ -182,7 +182,7 @@ function compute_TMD_beam_function_NPR(U, L_mom, p_list, eta_min, eta_max, eta_s
                         -- make amputated vertex function
 --                        local Lambda = (gamma{mu=5} * mom4_prop_inv:adjoin() * gamma{mu=5}) * G3pt * mom4_prop_inv * Vol
 --                        local bp = Tsign * p[mu+1] * bT * 2 * math.pi/L[mu] + p[3] * bz * 2 * math.pi/L[2]
---                        local bFac = 6 * complex(math.cos(bp), math.sin(bp)) 
+--                        local bFac = 6 * complex(math.cos(bp), math.sin(bp))
 --                        for g = 0, 15 do
 --                           local V = (Lambda * gamma{n=g}):trace():sum()
 --                           local Z =  bFac / V
@@ -248,6 +248,7 @@ local L = qcd.lattice{Lx,Lx,Lx,Lt}
 local L_mom = qcd.lattice{Lt}
 local Nc = 3
 local group = group.get(Nc)
+-- Here group is "SUn", and is equipped with the functions in su-n.qlua in mosaic.
 
 --local U = {}
 --for mu = 0, #L-1 do

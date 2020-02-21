@@ -114,14 +114,14 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     -- prop is the propagator S(x) = S(p, x) from Phiala's paper
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
     -- Recall U_mu = U[mu + 1] and the mu = 4 index is time (mu = 0), so U[1] = U_0, U[4] = U_3, ...
-    -- local JS33 = U[4] * (gamma{mu = 3} * prop:shift(3, "from_forward")) + U[4]:shift(3, "from_backward"):adjoin() *
-    --         (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
-    -- local JS44 = U[1] * (gamma{mu = 0} * prop:shift(0, "from_forward"))  + U[1]:shift(0, "from_backward"):adjoin() *
-    --         (gamma{mu = 0} * prop:shift(0, "from_backward")) - 2 * gamma{mu = 0} * prop
-    local JS33 = U[2 + 1] * (gamma{mu = 3} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
-            (gamma{mu = 3} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 3} * prop
-    local JS44 = U[3 + 1] * (gamma{mu = 0} * prop:shift(3, "from_forward"))  + U[3 + 1]:shift(3, "from_backward"):adjoin() *
-            (gamma{mu = 0} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 0} * prop
+    -- local JS33 = U[2 + 1] * (gamma{mu = 3} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
+    --         (gamma{mu = 3} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 3} * prop
+    -- local JS44 = U[3 + 1] * (gamma{mu = 0} * prop:shift(3, "from_forward"))  + U[3 + 1]:shift(3, "from_backward"):adjoin() *
+    --         (gamma{mu = 0} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 0} * prop
+    local JS33 = U[2 + 1] * (gamma{mu = 2} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
+            (gamma{mu = 2} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 2} * prop
+    local JS44 = U[3 + 1] * (gamma{mu = 3} * prop:shift(3, "from_forward"))  + U[3 + 1]:shift(3, "from_backward"):adjoin() *
+            (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
     local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
     local G = norm * (anti_prop * JS):sum()
 
@@ -167,12 +167,14 @@ end
 Lx = 16
 Lt = 48
 beta = 6.1
-mq = 0.2450
+mq = -0.2450
 kappa = 1 / (2 * mq + 8)
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
 lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
+-- compare at cfg 200
+-- compare at point source and momentum smeared source, momentum [2 2 2 2]
 
 vol = 1        -- hypervolume
 for i = 0, #L - 1 do

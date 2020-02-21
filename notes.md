@@ -165,4 +165,17 @@ Phiala meeting 2/18:
 - Go over bootstrapping statistics-- Given $Z[q][b, cfg_idx]$, what do I do?
 - Is the Born term just $p_{\{3} \gamma_{3\}} - p_{\{4} \gamma_{4\}}$ for
 - gamma[mu = 4] is the same as gamma[0]?
-- What is the format of the script output? 
+- What is the format of the script output?
+
+Meeting 2/21:
+- Get the tag so that slurm doesn't reboot my job midway through
+- Gauge transformations: Should the outputs be exactly identical? (i.e. propagators are changing under gauge
+  transformation but the propagators look right).
+  - Anything without color indices should be exactly identical because of course that means its a gauge invariant.
+- How to get g_{MS bar}? Is it just $\beta = g^2 / 16*\pi^2$?
+  - No, you can look up tables on this for later.
+  - Phiala's gluon ff paper also has a discussion of this
+- Right now, none of the configurations are gauge fixed so it shouldn't give a nice result (David doing gauge fixing and will put the results up in a subfolder with gf)
+- Compare with David-- run on configuration 200, at p = [2, 2, 2, 2]. Run with the momentum source I have,
+  and also run with a point source.
+- David has the GPU build of QLUA running so it should invert things very very fast
