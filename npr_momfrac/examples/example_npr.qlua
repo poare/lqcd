@@ -242,7 +242,9 @@ function compute_TMD_beam_function_NPR(U, L_mom, p_list, eta_min, eta_max, eta_s
 end
 
 
-local Lx = 24
+-- local Lx = 24
+-- local Lt = 48
+local Lx = 16
 local Lt = 48
 --local Lx = 4
 --local Lt = 8
@@ -267,8 +269,10 @@ local Ureader, Urinfo, U, u_info
 
 local cfg_dir = "/data/d10b/ensembles/isoClover/"
 local cfgbase = "cl3_16_48_b6p1_m0p2450"
-printf(cfg_dir..cfgbase..".lime"..cfgnum.."\n")
-Ureader, Urinfo = qcd.qdpc.Reader(L, cfg_dir..cfgbase.."/cfgs/"..cfgbase.."_cfg_"..cfgnum..".lime")
+-- printf(cfg_dir..cfgbase..".lime"..cfgnum.."\n")
+file = cfg_dir..cfgbase.."/cfgs/"..cfgbase.."_cfg_"..cfgnum..".lime"
+print(file)
+Ureader, Urinfo = qcd.qdpc.Reader(L, file)
 U, u_info = Ureader:ColorMatrix(#L)
 printf(Urinfo.."\n")
 printf(u_info.."\n")
