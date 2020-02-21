@@ -268,7 +268,7 @@ local Ureader, Urinfo, U, u_info
 local cfg_dir = "/data/d10b/ensembles/isoClover/"
 local cfgbase = "cl3_16_48_b6p1_m0p2450"
 printf(cfg_dir..cfgbase..".lime"..cfgnum.."\n")
-Ureader, Urinfo = qcd.qdpc.Reader(L, cfg_dir..cfgbase.."/cfgs/"...cfgbase..."_cfg_"...cfgnum...".lime")
+Ureader, Urinfo = qcd.qdpc.Reader(L, cfg_dir..cfgbase.."/cfgs/"..cfgbase.."_cfg_"..cfgnum..".lime")
 U, u_info = Ureader:ColorMatrix(#L)
 printf(Urinfo.."\n")
 printf(u_info.."\n")
