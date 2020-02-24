@@ -280,7 +280,7 @@ Ureader:close()
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
 -- local kappa = 0.121
-local mq = 0.2450
+local mq = -0.2450
 local kappa = 1 / (2 * mq + 8)
 local csw = 1
 local bcs = {1,1,1,-1}
@@ -294,7 +294,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 os.execute("mkdir -p /home/poare/lqcd/npr_momfrac/examples/meas/"..cfgbase)
 local NPRhdf5 = "/home/poare/lqcd/npr_momfrac/examples/meas/"..cfgbase.."/pion_beam_npr_matrix_"..tostring(cfgnum)..".h5"
 
-local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+-- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+local p_list_NPR = {{2, 2, 2, 2}}
 local eta_min = 7
 local eta_max = 11
 local eta_skip = 2

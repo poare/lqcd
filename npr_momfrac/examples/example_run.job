@@ -22,7 +22,7 @@ logs=${home}/logs/job${SLURM_JOB_ID}
 
 mkdir ${logs}
 
-for cfg in `seq 100 10 1000`
+for cfg in `seq 200 10 250`
 do
 	mpirun -np 4 $EXE -e "cfgnum = ${cfg}" ${home}/example_npr.qlua > ${logs}/cfg${cfg}.txt
 done
