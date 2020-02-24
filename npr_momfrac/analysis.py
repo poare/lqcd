@@ -120,6 +120,7 @@ def bootstrap(D, seed = 0):
                 samples[p][boot_id, i, :, :, :, :] = S[cfgidx, :, :, :, :]
     return samples
 
+# Invert propagator to get S^{-1}. This agrees with Phiala's code.
 def invert_prop(props):
     Sinv = {}
     for p in mom_str_list:
@@ -138,7 +139,6 @@ def amputate(props_inv, threepts):
             for cfgidx in range(num_cfgs):
                 Sinv = props_inv[p][b, cfgidx]
                 G = threepts[p][b, cfgidx]
-                #TODO check this normalization
                 Gamma[p][b, cfgidx] = np.einsum('aibj,bjck,ckdl->aidl', Sinv, G, Sinv) * hypervolume
     return Gamma
 

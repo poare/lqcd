@@ -60,6 +60,12 @@ function gauge_transform(L, U, group)
   return Uprime
 end
 
+-- Computes the operator O_{\nu\nu} for direction \nu. Note \nu = 0 is x, ..., \nu = 3 is t.
+function O(U, prop, nu)
+  return U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) + U[nu + 1]:shift(nu, "from_backward"):adjoin() *
+      (gamma{mu = nu} * prop:shift(nu, "from_backward")) - 2 * gamma{mu = nu} * prop
+end
+
 -- Test propagator by performing a gauge transformation. Will store the result at
 -- path propprime/pstring/cfgnum.
 function run_gauge_transform_test(L, U, FT, ferm_prop, group, writer, p, Nc, cfgnum)
@@ -98,7 +104,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
     local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
-    local mom4_prop = (FT * prop):sum()    -- this is S(p) times V. TODO divide by V?
+    local mom4_prop = (FT * prop):sum()
 
     -- Write momentum projected propagator to file (?)
     local prop_path
@@ -114,15 +120,25 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     -- prop is the propagator S(x) = S(p, x) from Phiala's paper
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
     -- Recall U_mu = U[mu + 1] and the mu = 4 index is time (mu = 0), so U[1] = U_0, U[4] = U_3, ...
-    -- local JS33 = U[2 + 1] * (gamma{mu = 3} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
-    --         (gamma{mu = 3} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 3} * prop
-    -- local JS44 = U[3 + 1] * (gamma{mu = 0} * prop:shift(3, "from_forward"))  + U[3 + 1]:shift(3, "from_backward"):adjoin() *
-    --         (gamma{mu = 0} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 0} * prop
-    local JS33 = U[2 + 1] * (gamma{mu = 2} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
-            (gamma{mu = 2} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 2} * prop
-    local JS44 = U[3 + 1] * (gamma{mu = 3} * prop:shift(3, "from_forward"))  + U[3 + 1]:shift(3, "from_backward"):adjoin() *
-            (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
-    local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
+    -- local JS33 = U[2 + 1] * (gamma{mu = 2} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
+    --         (gamma{mu = 2} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 2} * prop
+    -- local JS44 = U[3 + 1] * (gamma{mu = 3} * prop:shift(3, "from_forward")) + U[3 + 1]:shift(3, "from_backward"):adjoin() *
+    --         (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
+    local JS = {}
+    for mu = 0, #L - 1 do
+      JS[mu] = O(U, prop, mu)
+      local matrix_element = (antiprop * JS[mu]):sum()
+      local op_path
+      if gauge then
+        op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu, mu, p[1], p[2], p[3], p[4], cfgnum)
+      else
+        op_path = string.format("O%d%d/p%d%d%d%d/cfg%d", mu, mu, p[1], p[2], p[3], p[4], cfgnum)
+      end
+      h5_force_write(writer, op_path, matrix_element)
+      printf("Matrix element O%d%d written at: %s\n", mu, mu, op_path)
+    end
+    -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
+    local JS = JS[2] - JS[3]
     local G = norm * (anti_prop * JS):sum()
 
     local threept_path
@@ -133,15 +149,6 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     end
     h5_force_write(writer, threept_path, G)
     printf("Three point function written at: %s\n", threept_path)
-
-    -- prop should be S(z, p) = \sum_x S(z, x) e^{ipx}, where $S$ is the propagator.
-
-    -- Here down is done in the Python script.
-    -- invert prop to amputate vertex function legs
-    -- Amputate legs to get vertex function \Gamma(p)
-    -- Compute quark field renormalization
-    -- Compute \Gamma_{Born}(p)
-    -- Compute operator renormalization Z(p)
   end
 end
 
@@ -195,8 +202,8 @@ local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
-local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
--- local p_list_NPR = {{2, 2, 2, 2}}
+-- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+local p_list_NPR = {{2, 2, 2, 2}}
 
 gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
