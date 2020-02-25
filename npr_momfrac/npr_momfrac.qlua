@@ -88,7 +88,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
   --[[
   local src = compute_point_source(U, {0, 0, 0, 0})
   local prop = compute_propagator(U, ferm_prop, src)
-  local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+  local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
   --]]
 
   for pidx = 1, #p_list do
@@ -103,7 +103,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
 
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
-    local anti_prop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+    local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()
 
     -- Write momentum projected propagator to file (?)
@@ -139,7 +139,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     end
     -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
     local JS = JS[2] - JS[3]
-    local G = norm * (anti_prop * JS):sum()
+    local G = norm * (antiprop * JS):sum()
 
     local threept_path
     if gauge then
