@@ -12,6 +12,25 @@ require "lib/su-n"
 ------------------------ UTILITY FUNCTIONS ------------------------
 -------------------------------------------------------------------
 
+-- Prints a qcd.DiracPropagator object
+function show_propagator(name, m)
+    local nc = m:colors()
+    for ci = 0, nc - 1 do
+    for cj = 0, nc - 1 do
+        for si = 0, qcd.Ns - 1 do
+            printf("%s[%d,%d,%d,.] ", name, ci,cj,si)
+            for sj = 0, qcd.Ns - 1 do
+              local zv = m[{c=ci,d=si}]
+              local z = zv[{c=cj,d=sj}]
+              printf("  [%1.12e %1.12e]", z:real(), z:imag())
+            end
+            printf("\n")
+          end
+        end
+      end
+      printf("\n")
+    end
+
 function initGaugeFieldLime(L, file)
   reader, rinfo = qcd.qdpc.Reader(L, file)
   U, uInfo = reader:ColorMatrix(#L)
@@ -197,7 +216,7 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
-local csw = 1
+local csw = 1.2493
 local bcs = {1,1,1,-1}
 local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
