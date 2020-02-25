@@ -125,8 +125,8 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     end
     local FT = FTarg:expi()
 
-    -- local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    local src = compute_spacetime_wall_source_periodicBC(U, p)
+    local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
+    -- local src = compute_spacetime_wall_source_periodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
     local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()
