@@ -86,8 +86,6 @@ function O(U, prop, antiprop, nu)
   local antiprop_D = 0.5 * ((antiprop:shift(nu, "from_forward") * gamma{mu = nu}) * U[nu + 1]:adjoin()
           - (antiprop:shift(nu, "from_backward") * gamma{mu = nu}) * U[nu + 1]:shift(nu, "from_backward"))
   return (antiprop * D_prop - antiprop_D * prop):sum()
-  -- return U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) + U[nu + 1]:shift(nu, "from_backward"):adjoin() *
-  --     (gamma{mu = nu} * prop:shift(nu, "from_backward")) - 2 * gamma{mu = nu} * prop
 end
 
 -- Test propagator by performing a gauge transformation. Will store the result at
@@ -165,8 +163,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
       printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
     end
     -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
-    local JS = JS[2] - JS[3]
-    local G = norm * (antiprop * JS):sum()
+    local G = norm * (JS[2] - JS[3])
 
     local threept_path
     if gauge then
