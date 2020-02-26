@@ -1,3 +1,14 @@
 NPR MOMENTUM FRACTION LOGS:
-2/12: The current bug is when I cd into mosaic. Make sure all my paths are correct, because for some reason it's having trouble reading files once I've cd'd into mosaic in the shell script.
+- 2/12: The current bug is when I cd into mosaic. Make sure all my paths are correct, because for some reason it's having trouble reading files once I've cd'd into mosaic in the shell script.
   - Edit: Fixed this, for some reason you have to use the mosaic reader load_conf
+- 2/13: Job 13560 is running all the configurations, and Job 13561 is running 100 to 1000. Takes a while to run.
+  - TODO: Need to determine if what we're computing is actually S_p(x), and if this makes the S(p) value that we return weird at all.
+    - Write code in analysis.py to do the analysis.
+- 2/19:
+  - Job 14533: Running on U and gauge transformed version of U to see what we get. The previous job number (14505) should have code in prop, but broke when doing the gauge transformation.
+- 2/20: The previous two jobs were run with different indices than I should have used-- I've changed that in the code. Job 14565 will be running both with the new operator and with no normalization (1 / V) on the Green's function in the QLUA code. Will have to slightly edit the analysis code to reflect that.
+  - Job 14570: Running updated code with correct operator. Also deleted 1 / V normalization, so will need to update analysis.py accordingly.
+- 2/21: Error on my indices in the qlua script. The gamma matrices use the same conventions as the lattice indexing, so 0 is x, 1 is y, 2 is z, and 3 is t. Changed it and now running Job 14779.
+  - Particularly interested in momentum [2, 2, 2, 2] and configuration 200 to compare with David. Also the output data will be junk until we gauge fix, but we can still compare with one another. 
+- 2/24: Job 14893 is the first that I'm running to try to compare with David. If it breaks, keep fixing the bugs. Once it's done, scp it over and add it to the p2222_cfg_200 folder in the output directory on my laptop. 
+  - Small bug in that, so use Job 14896. After this will run it with periodic BCs so that we know which one is correct (Job 14907).
