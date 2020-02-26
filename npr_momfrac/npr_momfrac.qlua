@@ -106,13 +106,6 @@ end
 function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum, gauge)
   local bvec = {0,0,0,0.5}
 
-  -- Uncomment for point source
-  --[[
-  local src = compute_point_source(U, {0, 0, 0, 0})
-  local prop = compute_propagator(U, ferm_prop, src)
-  local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
-  --]]
-
   for pidx = 1, #p_list do
     printf("p index: %d\n", pidx)
     local p = p_list[pidx]
@@ -124,7 +117,6 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     local FT = FTarg:expi()
 
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    -- local src = compute_spacetime_wall_source_periodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
     local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()
@@ -140,17 +132,9 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     printf("Propagator written at path: %s\n", prop_path)
 
     -- compute momentum projected Green's function G(p)
-    -- prop is the propagator S(x) = S(p, x) from Phiala's paper
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
-    -- Recall U_mu = U[mu + 1] and the mu = 4 index is time (mu = 0), so U[1] = U_0, U[4] = U_3, ...
-    -- local JS33 = U[2 + 1] * (gamma{mu = 2} * prop:shift(2, "from_forward")) + U[2 + 1]:shift(2, "from_backward"):adjoin() *
-    --         (gamma{mu = 2} * prop:shift(2, "from_backward")) - 2 * gamma{mu = 2} * prop
-    -- local JS44 = U[3 + 1] * (gamma{mu = 3} * prop:shift(3, "from_forward")) + U[3 + 1]:shift(3, "from_backward"):adjoin() *
-    --         (gamma{mu = 3} * prop:shift(3, "from_backward")) - 2 * gamma{mu = 3} * prop
     local JS = {}
     for mu = 0, #L - 1 do
-      -- JS[mu] = O(U, prop, mu)
-      -- local matrix_element = (antiprop * JS[mu]):sum()
       local matrix_element = O(U, prop, antiprop, mu)
       JS[mu] = matrix_element
       local op_path
@@ -245,9 +229,9 @@ if status then
   print("Gauge file read. Computing NPR.")
   compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
 
-  -- Gauge transform to see if this is possibly correct.
-  Uprime = gauge_transform(L, U, group)
-  compute_npr(L, Uprime, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, true)
+  -- Gauge transform to test if this can be correct
+  -- Uprime = gauge_transform(L, U, group)
+  -- compute_npr(L, Uprime, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, true)
 
   writer:close()
 else
