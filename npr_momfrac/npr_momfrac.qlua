@@ -207,14 +207,27 @@ local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 -- local csw = 1.2493
 local csw = 1    -- uncomment after testing is done
 local bcs = {1,1,1,-1}
-local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+
+local clover
+if gpu then
+    qcd.quda.init(L)
+    clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+else
+    clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+end
+
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
--- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
-local p_list_NPR = {{2, 2, 2, 2}}
+local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+-- local p_list_NPR = {{2, 2, 2, 2}}
 
-gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file
+if gf then
+    gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase.."_cfg_%d.lime", cfgnum)
+else
+    gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+end
 print("Reading gauge file at: %s\n", gauge_file)
 
 status, U, finfo, info = pcall(load_conf, L, gauge_file)
@@ -239,4 +252,8 @@ else
   logs_dir = string.format("%s/lqcd/npr_momfrac/logs/%s_%d", lqcd_dir, cfgbase, jobid)
   os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
   print(U)
+end
+
+if gpu then
+    qcd.quda.fini()
 end
