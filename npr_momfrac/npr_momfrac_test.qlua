@@ -145,11 +145,12 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
 
     -- Write momentum projected propagator to file
     local prop_path
+    local prop_path_neg
     if gauge then
       prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
-      prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      prop_path_neg = string.format("prop_neg/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      prop_path = string.format("prop_operator/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      prop_path_neg = string.format("prop__operator_neg/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, prop_path, mom4_prop)
     h5_force_write(writer, prop_path_neg, mom4_prop_neg)
@@ -163,11 +164,12 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local matrix_element_pos = (FT * M[mu]):sum()
       JS[mu] = matrix_element
       local op_path
+      local op_path_pos
       if gauge then
         op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
       else
-        op_path = string.format("O%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
-        op_path_pos = string.format("Opos%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+        op_path = string.format("O_operator%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+        op_path_pos = string.format("O_operator_pos%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
       end
       h5_force_write(writer, op_path, matrix_element)
       h5_force_write(writer, op_path_pos, matrix_element_pos)
@@ -226,6 +228,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
       local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, nu)):sum()
       JS[mu] = matrix_element
       local op_path
+      local op_path_sequential
       if gauge then
         op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
       else
