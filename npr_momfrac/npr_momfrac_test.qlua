@@ -225,7 +225,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     for mu = 0, #L - 1 do
       local matrix_element = O(U, prop, antiprop, mu)
       -- make sure O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum()
-      local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, nu)):sum()
+      local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, mu)):sum()
       JS[mu] = matrix_element
       local op_path
       local op_path_sequential
