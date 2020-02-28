@@ -30,4 +30,4 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}'"
 
 cfg=200
-mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac.qlua > ${tests}/job${SLURM_JOB_ID}.txt
+mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac_test.qlua > ${tests}/job${SLURM_JOB_ID}.txt
