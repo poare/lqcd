@@ -91,8 +91,8 @@ end
 -- TODO make sure that this is actually J(z, z'). Might be good to test it against O,
 -- i.e. make sure O(U, prop, antiprop, nu) = antiprop * get_sequential_source(U, prop, nu):sum()
 function get_sequential_source(U, prop, nu)
-  return U[mu + 1] * (gamma{mu = nu} * prop:shift(mu, "from_forward")) - U[mu + 1]:shift(mu,
-          "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(mu, "from_backward"))
+  return U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
+          "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
 end
 
 -- Test propagator by performing a gauge transformation. Will store the result at
