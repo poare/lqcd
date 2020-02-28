@@ -19,6 +19,8 @@ EXE=qlua
 
 cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
+gf=true
+gpu=false
 
 home=/home/poare/lqcd/npr_momfrac
 tests=${home}/testing/logs
@@ -27,7 +29,7 @@ output=${home}/output/${cfgbase}_${SLURM_JOB_ID}
 mkdir ${tests}
 mkdir ${output}
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}'"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
 
 cfg=200
 mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac_test.qlua > ${tests}/job${SLURM_JOB_ID}.txt
