@@ -12,3 +12,5 @@ NPR MOMENTUM FRACTION LOGS:
   - Particularly interested in momentum [2, 2, 2, 2] and configuration 200 to compare with David. Also the output data will be junk until we gauge fix, but we can still compare with one another. 
 - 2/24: Job 14893 is the first that I'm running to try to compare with David. If it breaks, keep fixing the bugs. Once it's done, scp it over and add it to the p2222_cfg_200 folder in the output directory on my laptop. 
   - Small bug in that, so use Job 14896. After this will run it with periodic BCs so that we know which one is correct (Job 14907).
+- 2/26: Job 15909 is running the code on the gauge fixed configurations.
+  - Job 15910 is trying to run code on the GPU. Might need to edit my bash file to get it to run right though.

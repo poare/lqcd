@@ -7,6 +7,7 @@ require "lib/group"
 require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
+require "lib/quda"
 
 -------------------------------------------------------------------
 ------------------------ UTILITY FUNCTIONS ------------------------
@@ -267,8 +268,6 @@ Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
 lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
--- compare at cfg 200
--- compare at point source and momentum smeared source, momentum [2 2 2 2]
 
 vol = 1        -- hypervolume
 for i = 0, #L - 1 do
@@ -283,8 +282,8 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
--- local csw = 1.2493
-local csw = 1    -- uncomment after testing is done
+local csw = 1.2493
+--local csw = 1    -- uncomment after testing is done
 local bcs = {1,1,1,-1}
 
 local clover
