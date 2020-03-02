@@ -1,0 +1,119 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage[margin = 1in]{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[shortlabels]{enumitem}
+\usepackage{float}
+\usepackage{tikz-cd}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+
+%SetFonts
+
+%SetFonts
+
+
+\title{Renormalization}
+\author{Patrick Oare}
+\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+\section{Regularization-Independent Momentum Subtraction (RI-MOM)}
+
+The RI-MOM scheme (also known as Rome-Southampton) is a renormalization scheme well equipped to deal with 
+the lattice, namely because we can calculate the relevant quantities that define the scheme easily on the lattice. The 
+lattice spacing $a$ provides us a with a natural UV regulator, and RI-MOM will tell us how to go from such a regulated 
+result to a physical observable quantity. 
+
+The RI-MOM has a relatively simple renormalization condition. We will define it here for an arbitrary Green's function, 
+for example a three point function. For a renormalization scale $\mu$ and working in a fixed gauge, \textbf{we 
+define the amputated, renormalized Green's function at momentum $p^2 = -\mu^2$ to be equal to its tree level 
+value}. 
+
+In practice on the lattice, there are two things that we must compute. We will work with a specific example here for a 
+given quark field $q(x)$. Suppose the operator we are trying to compute is $\mathcal O(z)$. We will renormalize the 
+three point function:
+\begin{equation}
+	G(p) = \frac{1}{V}\sum_{x, y, z}e^{-ip\cdot (x - y)}\langle q(x)\mathcal O(z) q(y)\rangle
+\end{equation}
+i.e. we are projecting the source and sink to a definite momentum and projecting the operator $\mathcal O(z)$ to zero 
+momentum. 
+
+We also will need to compute the momentum projected propagator:
+\begin{equation}
+	S(p) = \frac{1}{V}\sum_{x, y}e^{-ip\cdot(x - y)} S(x, y)
+\end{equation}
+where $S^{ab}_{ij}(x, y) = \langle q^a_i(x)\bar q^b_j(y)\rangle$ is the standard propagator. On the lattice, the two objects that we must compute 
+directly are $S(p)$ and $G(p)$, and everything else follows once we have these quantities. 
+
+To explain the method, our goal is to compute the operator renormalization:
+\begin{equation}
+	\mathcal O_R(\mu) = \mathcal Z(\mu)\mathcal O_{lat}
+\end{equation}
+where $\mathcal O_R(\mu)$ is our renormalized operator, $\mathcal Z(\mu)$ is the renormalization coefficient of 
+interest, and $\mathcal O_{lat}$ is the lattice (bare) operator. We will also assume the quark fields have been 
+renormalized by some quark field renormalization $\mathcal Z_q$:
+\begin{equation}
+	q_{lat} = \sqrt{\mathcal Z_q} q_R(\mu)
+\end{equation}
+There is an analytical expression for $\mathcal{Z}_q$ on the lattice in the RI-MOM scheme, and it has been determined 
+to be:
+\begin{equation}
+	\mathcal Z_q(p)|_{p^2 = -\mu_R^2} = \left[\frac{tr\left\{-i\sum_{\nu = 1}^4 \gamma_\nu \sin(ap_\nu) a S(p)^{-1}\right\}}{12\sum_{\nu = 1}^4 \sin^2(ap_\nu)}\right]_{p^2 = -\mu^2}
+\end{equation}
+The twelve on the bottom is a normalization $12 = 3\times 4$ for the number of color and number of spin indices, which we will 
+see in many of the expressions. 
+
+Let $\Gamma(p)$ be the amputated three point function, bare or renormalized. We can relate $\Gamma$ to the other 
+quantities we have already computed by using the inverse of the propagator to manually cut the legs off the full three 
+point function:
+\begin{equation}
+	\Gamma(p) = S(p)^{-1} G(p) S(p)^{-1}
+\end{equation}
+We will denote the tree level version of this by $\Gamma_B$, where the $B$ subscript stands for Born term. 
+
+Using our quantities already computed on the lattice, we can compute the bare $\Gamma_{lat}(p)$ directly in terms 
+of the renormalized quantities. In the continuum limit, the renormalized Green's function will be:
+\begin{align}
+	G_R(p; \mu) &= \int d^4x \, d^4 y\, d^4 z\, e^{-ip\cdot (x - y)} \langle q_R(x; \mu) \mathcal O_R(z; \mu) q_R(y; \mu) \rangle \\
+	&= \mathcal Z_q(\mu)^{-1} \mathcal Z(\mu) \int d^4x \, d^4 y\, d^4 z\, e^{-ip\cdot (x - y)} \langle q_{lat}(x) \mathcal O_{lat}(z) q_{lat}(y) \rangle \\
+	&= \mathcal Z_q(\mu)^{-1} \mathcal Z(\mu) G_{lat}(p)
+\end{align}
+This relation translates immediately to the amputated Green's function $\Gamma(p)$:
+\begin{equation}
+	\Gamma_R(p; \mu) = \mathcal Z_q(\mu)^{-1}\mathcal Z(\mu) \Gamma_{lat}(p)
+\end{equation}
+
+We are now in a position to apply the renormalization condition. We must equate the renormalized, amputated Green's function to the 
+tree level Green's function $\Gamma_B(p)$. This gives us:
+\begin{equation}
+	\mathcal Z_q(\mu)^{-1}\mathcal Z(\mu) \Gamma(p) = \Gamma_B(p)
+\end{equation}
+Dividing by a conventional factor of 12 as a normalization and inverting, we can clean this expression up into a simple equation for $\mathcal Z(\mu)$:
+\begin{equation}
+	\mathcal Z(p^2 = -\mu^2) = \left[\frac{12\mathcal Z_q(p)}{tr\left\{\Gamma(p)\Gamma_B(p)^{-1}\right\}}\right]_{p^2 = -\mu^2}
+\end{equation}
+
+\section{Continuum Schemes: $\overline{MS}$, on-shell, and off-shell}
+
+\section{Matching between schemes}
+
+\section{Example: Isospin}
+
+\end{document}
