@@ -16,8 +16,8 @@ from scipy.special import zeta
 # See if I can get my code to work with the weird staple objects next to test the rest of the
 # analysis.
 
-g = np.diag([1, -1, -1, -1])
-# g = np.diag([1, 1, 1, 1])    # in Euclidean space?
+# g = np.diag([1, -1, -1, -1])
+g = np.diag([1, 1, 1, 1])    # in Euclidean space?
 
 gamma = np.zeros((4,4,4),dtype=complex)
 gamma[0] = gamma[0] + np.array([[0,0,0,1j],[0,0,1j,0],[0,-1j,0,0],[-1j,0,0,0]])
@@ -26,7 +26,12 @@ gamma[2] = gamma[2] + np.array([[0,0,1j,0],[0,0,0,-1j],[-1j,0,0,0],[0,1j,0,0]])
 gamma[3] = gamma[3] + np.array([[0,0,1,0],[0,0,0,1],[1,0,0,0],[0,1,0,0]])
 bvec = [0, 0, 0, .5]
 
-mom_list =[[2,2,2,2],[2,2,2,4],[2,2,2,6],[3,3,3,2],[3,3,3,4],[3,3,3,6],[3,3,3,8],[4,4,4,4],[4,4,4,6],[4,4,4,8]]
+# mom_list =[[2,2,2,2],[2,2,2,4],[2,2,2,6],[3,3,3,2],[3,3,3,4],[3,3,3,6],[3,3,3,8],[4,4,4,4],[4,4,4,6],[4,4,4,8]]
+mom_list = []
+for i in range(1, 8 + 1):
+    for j in range(2, 10 + 1, 2):
+        if j + 1 >= i and not (i == 8 and j == 10):
+            mom_list.append([i, i, i, j])
 L = 16
 T = 48
 LL = [L, L, L, T]
@@ -66,6 +71,13 @@ def norm(p):
     return np.sqrt(np.abs(square(p)))
 
 mom_str_list = [plist_to_string(p) for p in mom_list]
+
+def set_mom_list(plist):
+    global mom_list
+    global mom_str_list
+    mom_list = plist
+    mom_str_list = [plist_to_string(x) for x in plist]
+    return True
 
 # directory should contain hdf5 files. Will return props and threepts in form
 # of a momentum dictionary with arrays of the form [cfg, c, s, c, s] where s
@@ -225,3 +237,27 @@ def to_MSbar(Z):
         Zconv = 1 + c1 * x + c2 * (x ** 2) + c3 * (x ** 3)
         Zms[pstring] = Zconv * Z[pstring]
     return Zms
+
+# Determines how the error at base_time scales as we increase the number of
+# samples used in the computation. Z is the set of wavefunction renormalizations.
+# n_start and n_step are the configuration numbers to start and end at, and
+# n_step is the number of steps to take between different configuration numberes.
+# To see pictorally, plot returned cfg_list versus err
+def error_analysis(Z, n_start, n_step):
+    mom = mom_str_list[0]
+    num_configs = Z[mom].shape[1]
+    cfg_list = range(n_start, num_configs, n_step)
+    err = np.zeros(len(cfg_list))
+    means = np.zeros(len(cfg_list))
+    for i, n in enumerate(cfg_list):    # sample n configurations from C
+        config_ids = np.random.choice(num_configs, n, replace = False)
+        # Z_sub = Z[:, config_ids]    #now get error on the subsampled C
+        # subensemble = bootstrap(C_sub)
+        subensemble = Z[mom][:, config_ids]
+        # n_boot x n matrix. Average over n_boot
+        subensemble_avg = np.mean(subensemble, axis = 1)
+        μ = np.abs(np.mean(subensemble_avg, axis = 0))
+        σ = np.abs(np.std(subensemble_avg, axis = 0))
+        err[i] = σ
+        means[i] = μ
+    return cfg_list, err, means
