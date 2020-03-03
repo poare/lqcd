@@ -113,7 +113,8 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   print("Computing through the operator.")
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
-  local src = compute_point_source(U, origin)
+  --local src = compute_point_source(U, origin)
+  local src = compute_spacetime_wall_source_antiperiodicBC(U, {0, 0, 0, 0})
   local prop = compute_propagator(U, ferm_prop, src)
   local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
 
@@ -121,9 +122,9 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   local b = {}
   local M = {}
   for mu = 0, #L - 1 do
-    --b[mu] = get_sequential_source(U, prop, mu)
-    local src_adj = get_sequential_source(U, prop:adjoin(), mu)
-    b[mu] = gamma{mu = 5} * src_adj
+    b[mu] = get_sequential_source(U, prop, mu)
+    --local src_adj = get_sequential_source(U, prop:adjoin(), mu)
+    --b[mu] = gamma{mu = 5} * src_adj
     M[mu] = compute_propagator(U, ferm_prop, b[mu])
   end
 
@@ -161,7 +162,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     local JS = {}
     for mu = 0, #L - 1 do
       local matrix_element = (FT * M[mu]):sum()
-      local matrix_element_adjoin = (FT * (gamma{mu = 5} * M[mu]:adjoin())):sum()
+      local matrix_element_adjoin = (FT * M[mu]):sum()
       JS[mu] = matrix_element
       local op_path
       local op_path_pos
@@ -245,8 +246,12 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     local JS = {}
     for mu = 0, #L - 1 do
       local matrix_element = O(U, prop, antiprop, mu)
-      -- make sure O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum()
-      local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, mu)):sum()
+      -- make sure O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum() (this works)
+      --local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, mu)):sum()
+      -- TODO this should give me the same matrix element with sequential source
+      local src_seq = get_sequential_source(U, prop, mu)
+      local M = compute_propagator(U, ferm_prop, src_seq)
+      local matrix_element_sequential = (FT_neg * M):sum()    -- TODO if this doesn't match, then try normal FT
       JS[mu] = matrix_element
       local op_path
       local op_path_sequential

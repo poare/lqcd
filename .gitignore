@@ -1,0 +1,15 @@
+pion_mass/logs
+pion_mass/output
+pion_mass/bash_output
+pion_mass/old_scripts/old_logs
+pion_mass/old_scripts/old_output
+pion_mass/test_cfgs/logs
+
+npr_momfrac/logs
+npr_momfrac/output
+npr_momfrac/testing/logs
+npr_momfrac/bash_output
+npr_momfrac/testing/output
+npr_momfrac/testing/bash_output
+npr_momfrac/examples/logs
+npr_momfrac/examples/meas
