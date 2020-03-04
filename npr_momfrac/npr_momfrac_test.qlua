@@ -162,7 +162,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     local JS = {}
     for mu = 0, #L - 1 do
       local matrix_element = (FT * M[mu]):sum()
-      local matrix_element_adjoin = (FT * M[mu]):sum()
+      local matrix_element_adjoin = (FT_neg * M[mu]):sum()    -- really matrix_element with neg phase
       JS[mu] = matrix_element
       local op_path
       local op_path_pos
@@ -203,8 +203,8 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     local FTarg_neg = L:Real(0)
     local FTarg_neg_bc = L:Real(0)
     for mu = 0, #L - 1 do
-      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu] 
-      FTarg_neg = FTarg_neg - L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu] 
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      FTarg_neg = FTarg_neg - L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       FTarg_neg_bc = FTarg_neg_bc - L:Real(L:pcoord(mu)) * (p[mu + 1] - bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
     local FT = FTarg:expi()

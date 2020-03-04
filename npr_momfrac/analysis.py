@@ -27,11 +27,21 @@ gamma[3] = gamma[3] + np.array([[0,0,1,0],[0,0,0,1],[1,0,0,0],[0,1,0,0]])
 bvec = [0, 0, 0, .5]
 
 # mom_list =[[2,2,2,2],[2,2,2,4],[2,2,2,6],[3,3,3,2],[3,3,3,4],[3,3,3,6],[3,3,3,8],[4,4,4,4],[4,4,4,6],[4,4,4,8]]
+
+# mom_list for 16142
+# mom_list = []
+# for i in range(1, 8 + 1):
+#     for j in range(2, 10 + 1, 2):
+#         if j + 1 >= i and not (i == 8 and j == 10):
+#             mom_list.append([i, i, i, j])
+
+#mom_list for 16165
 mom_list = []
-for i in range(1, 8 + 1):
-    for j in range(2, 10 + 1, 2):
-        if j + 1 >= i and not (i == 8 and j == 10):
+for i in range(1, 16 + 1):
+    for j in range(i, 16 + 1):
+        if j % 2 == 0:
             mom_list.append([i, i, i, j])
+
 L = 16
 T = 48
 LL = [L, L, L, T]
