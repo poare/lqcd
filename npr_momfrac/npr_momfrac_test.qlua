@@ -251,7 +251,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
       -- TODO this should give me the same matrix element with sequential source
       local src_seq = get_sequential_source(U, prop, mu)
       local M = compute_propagator(U, ferm_prop, src_seq)
-      local matrix_element_sequential = (FT_neg * M):sum()    -- TODO if this doesn't match, then try normal FT
+      local matrix_element_sequential = (FT * M):sum()    -- TODO if this doesn't match, then try normal FT
       JS[mu] = matrix_element
       local op_path
       local op_path_sequential
