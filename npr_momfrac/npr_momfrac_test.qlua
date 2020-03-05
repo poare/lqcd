@@ -117,7 +117,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
 
-  local src = compute_point_source(U, origin)
+  -- local src = compute_point_source(U, origin)
   -- local src = compute_spacetime_wall_source_antiperiodicBC(U, {0, 0, 0, 0})
   --print("Computing point source")
   --local pt_prop = compute_propagator(U, ferm_prop, src)
@@ -134,65 +134,62 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     local p = S_p_list[i]
     printf("pidx is: %d", i)
     printf("Momentum source (%d, %d, %d, %d) computed", p[1], p[2], p[3], p[4])
-    local srci = compute_spacetime_wall_source_antiperiodicBC(U, S_p_list[i])
-    local propi = compute_propagator(U, ferm_prop, srci)
-    S_list[#S_list + 1] = propi
+    local src = compute_spacetime_wall_source_antiperiodicBC(U, S_p_list[i])
+    local prop = compute_propagator(U, ferm_prop, src)
+    S_list[#S_list + 1] = prop
   end
 
   -- TODO test for O11, O22, etc. Later for just the operator, only need to compute for 33 - 44
-  local b = {}
-  local M = {}
   for i = 1, #S_list do
-    b[i] = {}
-    M[i] = {}
+    printf("Computing for propagator %d.\n", i)
+    local b = {}
+    local M = {}
     local prop = S_list[i]
-    for mu = 0, #L - 1 do
-      b[i][mu] = get_sequential_source(U, prop, mu)
-      M[i][mu] = compute_propagator(U, ferm_prop, b[i][mu])
+    for mu = 2, #L - 1 do
+      print("Computing sequential propagator for mu = %d.\n", mu)
+      b[mu] = get_sequential_source(U, prop, mu)
+      M[mu] = compute_propagator(U, ferm_prop, b[mu])
     end
-  end
+    print("Sequential sources initialized.")
 
-  for pidx = 1, #p_list do
-    printf("p index: %d\n", pidx)
-    local p = p_list[pidx]
-    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
-    local FTarg = L:Real(0)
-    local FTarg_neg = L:Real(0)
-    for mu = 0, #L - 1 do
-      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      FTarg_neg = FTarg_neg - L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-    end
-    local FT = FTarg:expi()
-    local FT_neg = FTarg_neg:expi()
-
-    local mom4_prop = (FT * prop):sum()
-    --local mom4_prop_neg = (FT_neg * prop):sum()
-
-    -- Write momentum projected propagator to file
-    local prop_path
-    --local prop_path_neg
-    if gauge then
-      prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-    else
-      prop_path = string.format("prop_operator/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      --prop_path_neg = string.format("prop__operator_neg/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-    end
-    h5_force_write(writer, prop_path, mom4_prop)
-    --h5_force_write(writer, prop_path_neg, mom4_prop_neg)
-    printf("Propagator written at path: %s\n", prop_path)
-
-    -- compute momentum projected Green's function G(p)
-    local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
-    local JS = {}
-    local JSneg = {}
-    for i = 1, #S_list do
-      JS[i] = {}
-      JSneg[i] = {}
+    for pidx = 1, #p_list do
+      printf("p index: %d\n", pidx)
+      local p = p_list[pidx]
+      printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
+      local FTarg = L:Real(0)
+      local FTarg_neg = L:Real(0)
       for mu = 0, #L - 1 do
-        local matrix_element = (FT * M[i][mu]):sum()
-        local matrix_element_neg = (FT_neg * M[i][mu]):sum()    -- really matrix_element with neg phase
-        JS[i][mu] = matrix_element
-        JSneg[i][mu] = matrix_element_neg
+        FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+        FTarg_neg = FTarg_neg - L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      end
+      local FT = FTarg:expi()
+      local FT_neg = FTarg_neg:expi()
+
+      local mom4_prop = (FT * prop):sum()
+
+      -- Write momentum projected propagator to file
+      local prop_path
+      --local prop_path_neg
+      if gauge then
+        prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      else
+        prop_path = string.format("prop/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
+        --prop_path_neg = string.format("prop__operator_neg/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      end
+      h5_force_write(writer, prop_path, mom4_prop)
+      --h5_force_write(writer, prop_path_neg, mom4_prop_neg)
+      printf("Propagator written at path: %s\n", prop_path)
+
+      -- compute momentum projected Green's function G(p)
+      local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
+
+      local JS = {}
+      local JSneg = {}
+      for mu = 2, #L - 1 do
+        local matrix_element = (FT * M[mu]):sum()
+        local matrix_element_neg = (FT_neg * M[mu]):sum()    -- really matrix_element with neg phase
+        JS[mu] = matrix_element
+        JSneg[mu] = matrix_element_neg
         local op_path
         local op_path_neg
         if gauge then
@@ -206,8 +203,8 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
         printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
       end
       -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
-      local G = norm * (JS[i][2] - JS[i][3])
-      local Gneg = norm * (JSneg[i][2] - JSneg[i][3])
+      local G = norm * (JS[2] - JS[3])
+      local Gneg = norm * (JSneg[2] - JSneg[3])
 
       local threept_path
       local threept_neg_path
