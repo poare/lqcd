@@ -371,7 +371,7 @@ local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},
 
 local gauge_file
 if gf then
-    gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase.."_cfg_%d.lime", cfgnum)
+    gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 else
     gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 end
