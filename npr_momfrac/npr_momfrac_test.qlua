@@ -7,6 +7,9 @@ require "lib/group"
 require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
+if gpu then
+  require "lib/quda"
+end
 
 -------------------------------------------------------------------
 ------------------------ UTILITY FUNCTIONS ------------------------
@@ -113,19 +116,34 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   print("Computing through the operator.")
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
-  --local src = compute_point_source(U, origin)
-  local src = compute_spacetime_wall_source_antiperiodicBC(U, {0, 0, 0, 0})
-  local prop = compute_propagator(U, ferm_prop, src)
-  local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+
+  local src = compute_point_source(U, origin)
+  -- local src = compute_spacetime_wall_source_antiperiodicBC(U, {0, 0, 0, 0})
+  local pt_prop = compute_propagator(U, ferm_prop, src)
+
+  -- Determine propagators to compute. Use some point sources, some momentum sources, etc.
+  -- Will need to replace the "prop" term in get_sequential_source with an iteration over
+  -- all propagators in S_list
+  -- add in any propagators I want in S_list, then also add momentum sources.
+  local S_list = {pt_prop}
+  local S_p_list = {{0, 0, 0, 0}, {1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}}
+  for i = 1, #S_p_list do
+    local srci = compute_spacetime_wall_source_antiperiodicBC(U, S_p_list[i])
+    local propi = compute_propagator(U, ferm_prop, srci)
+    S_list[#S_list + 1] = propi
+  end
 
   -- TODO test for O11, O22, etc. Later for just the operator, only need to compute for 33 - 44
   local b = {}
   local M = {}
-  for mu = 0, #L - 1 do
-    b[mu] = get_sequential_source(U, prop, mu)
-    --local src_adj = get_sequential_source(U, prop:adjoin(), mu)
-    --b[mu] = gamma{mu = 5} * src_adj
-    M[mu] = compute_propagator(U, ferm_prop, b[mu])
+  for i = 1, #S_list do
+    b[i] = {}
+    M[i] = {}
+    local prop = S_list[i]
+    for mu = 0, #L - 1 do
+      b[i][mu] = get_sequential_source(U, prop, mu)
+      M[i][mu] = compute_propagator(U, ferm_prop, b[i][mu])
+    end
   end
 
   for pidx = 1, #p_list do
@@ -160,33 +178,43 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     -- compute momentum projected Green's function G(p)
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
     local JS = {}
-    for mu = 0, #L - 1 do
-      local matrix_element = (FT * M[mu]):sum()
-      local matrix_element_adjoin = (FT_neg * M[mu]):sum()    -- really matrix_element with neg phase
-      JS[mu] = matrix_element
-      local op_path
-      local op_path_pos
-      if gauge then
-        op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
-      else
-        op_path = string.format("O_operator%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
-        op_path_pos = string.format("O_operator_adj%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+    local JSneg = {}
+    for i = 1, #S_list do
+      JS[i] = {}
+      JSneg[i] = {}
+      for mu = 0, #L - 1 do
+        local matrix_element = (FT * M[i][mu]):sum()
+        local matrix_element_neg = (FT_neg * M[i][mu]):sum()    -- really matrix_element with neg phase
+        JS[i][mu] = matrix_element
+        JSneg[i][mu] = matrix_element_neg
+        local op_path
+        local op_path_neg
+        if gauge then
+          op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+        else
+          op_path = string.format("O_operator%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
+          op_path_neg = string.format("O_operator_neg%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
+        end
+        h5_force_write(writer, op_path, matrix_element)
+        h5_force_write(writer, op_path_neg, matrix_element_neg)
+        printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
       end
-      h5_force_write(writer, op_path, matrix_element)
-      h5_force_write(writer, op_path_pos, matrix_element_adjoin)
-      printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
-    end
-    -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
-    local G = norm * (JS[2] - JS[3])
+      -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
+      local G = norm * (JS[i][2] - JS[i][3])
+      local Gneg = norm * (JSneg[i][2] - JSneg[i][3])
 
-    local threept_path
-    if gauge then
-      threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-    else
-      threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      local threept_path
+      local threept_neg_path
+      if gauge then
+        threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      else
+        threept_path = string.format("threept/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
+        threept_neg_path = string.format("threept_neg/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
+      end
+      h5_force_write(writer, threept_path, G)
+      h5_force_write(writer, threept_neg_path, Gneg)
+      printf("Three point function written at: %s\n", threept_path)
     end
-    h5_force_write(writer, threept_path, G)
-    printf("Three point function written at: %s\n", threept_path)
   end
 end
 
@@ -338,8 +366,8 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
--- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
-local p_list_NPR = {{2, 2, 2, 2}}
+local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+-- local p_list_NPR = {{2, 2, 2, 2}}
 
 local gauge_file
 if gf then
@@ -359,7 +387,7 @@ if status then
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
+  -- compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
 
   compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
 
