@@ -130,7 +130,8 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   --local S_list = {pt_prop}
   local S_list = {}
   -- Run with 3 different wall sources to see how it goes. TODO try point sources.
-  local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {4, 4, 4, 4}}
+  -- local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {4, 4, 4, 4}}
+  local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {-2, -2, -2, -2}, {2, 2, -2, -2}, {-2, -2, 2, 2}}
   for i = 1, #S_p_list do
     local p = S_p_list[i]
     printf("pidx is: %d", i)
@@ -370,8 +371,25 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
-local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
+-- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 -- local p_list_NPR = {{2, 2, 2, 2}}
+local p_list_NPR = {}
+for i = 1, 4 do
+  for j = 1, 8 do
+    if j % 2 == 0 then
+      p_list_NPR[#p_list_NPR + 1] = {i, i, i, j}
+      p_list_NPR[#p_list_NPR + 1] = {i, i, -i, j}
+      p_list_NPR[#p_list_NPR + 1] = {i, -i, i, j}
+      p_list_NPR[#p_list_NPR + 1] = {i, -i, -i, j}
+      p_list_NPR[#p_list_NPR + 1] = {-i, i, i, j}
+      p_list_NPR[#p_list_NPR + 1] = {-i, i, -i, j}
+      p_list_NPR[#p_list_NPR + 1] = {-i, -i, i, j}
+      p_list_NPR[#p_list_NPR + 1] = {-i, -i, -i, j}
+    end
+  end
+end
+
+printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 local gauge_file
 if gf then

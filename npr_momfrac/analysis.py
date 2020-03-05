@@ -26,7 +26,10 @@ gamma[2] = gamma[2] + np.array([[0,0,1j,0],[0,0,0,-1j],[-1j,0,0,0],[0,1j,0,0]])
 gamma[3] = gamma[3] + np.array([[0,0,1,0],[0,0,0,1],[1,0,0,0],[0,1,0,0]])
 bvec = [0, 0, 0, .5]
 
-# mom_list =[[2,2,2,2],[2,2,2,4],[2,2,2,6],[3,3,3,2],[3,3,3,4],[3,3,3,6],[3,3,3,8],[4,4,4,4],[4,4,4,6],[4,4,4,8]]
+mom_list =[[2,2,2,2],[2,2,2,4],[2,2,2,6],[3,3,3,2],[3,3,3,4],[3,3,3,6],[3,3,3,8],[4,4,4,4],[4,4,4,6],[4,4,4,8]]
+
+# propagator mom_list for 16583 test
+prop_mom_list = [[0, 0, 0, 0], [2, 2, 2, 2], [4, 4, 4, 4]]
 
 # mom_list for 16142
 # mom_list = []
@@ -36,11 +39,11 @@ bvec = [0, 0, 0, .5]
 #             mom_list.append([i, i, i, j])
 
 #mom_list for 16165
-mom_list = []
-for i in range(1, 16 + 1):
-    for j in range(i, 16 + 1):
-        if j % 2 == 0:
-            mom_list.append([i, i, i, j])
+# mom_list = []
+# for i in range(1, 16 + 1):
+#     for j in range(i, 16 + 1):
+#         if j % 2 == 0:
+#             mom_list.append([i, i, i, j])
 
 L = 16
 T = 48
@@ -54,6 +57,9 @@ num_cfgs = 1
 
 def get_mom_list():
     return mom_list
+
+def get_prop_mom_list():
+    return prop_mom_list
 
 def get_num_cfgs():
     return num_cfgs
@@ -92,7 +98,7 @@ def set_mom_list(plist):
 # directory should contain hdf5 files. Will return props and threepts in form
 # of a momentum dictionary with arrays of the form [cfg, c, s, c, s] where s
 # is a Dirac index and c is a color index.
-def readfile(directory, gauged = False):
+def readfile(directory, gauged = False, dpath = ''):
     files = []
     for (dirpath, dirnames, file) in os.walk(directory):
         files.extend(file)
@@ -109,11 +115,11 @@ def readfile(directory, gauged = False):
         f = h5py.File(path_to_file, 'r')
         for pstring in mom_str_list:
             if gauged:
-                prop_path = 'propprime/' + pstring
-                threept_path = 'threeptprime/' + pstring
+                prop_path = 'propprime/' + dpath + pstring
+                threept_path = 'threeptprime/' + dpath + pstring
             else:
-                prop_path = 'prop/' + pstring
-                threept_path = 'threept/' + pstring
+                prop_path = 'prop/' + dpath + pstring
+                threept_path = 'threept/' + dpath + pstring
 
             # delete this block once I push the new code
             config_id = str([x for x in f[prop_path].keys()][0])
@@ -271,3 +277,33 @@ def error_analysis(Z, n_start, n_step):
         err[i] = σ
         means[i] = μ
     return cfg_list, err, means
+
+def run_analysis(directory, s = 0):
+    Γ_B, Γ_B_inv = born_term()
+    props, threepts = readfile(directory)
+    props_boot = bootstrap(props, seed = s)
+    threept_boot = bootstrap(threepts, seed = s)
+    props_inv = invert_prop(props_boot)
+    Γ = amputate(props_inv, threept_boot)
+    Zq = quark_renorm(props_inv)
+    Z = get_Z(Zq, Γ, Γ_B_inv)
+    mu, sigma = get_statistics_Z(Z)
+    return mu, sigma
+
+def test_analysis_propagators(directory, s = 0):
+    mu, sigma = [], []
+    Γ_B, Γ_B_inv = born_term()
+    for idx in range(len(prop_mom_list)):
+        print('Computing for momentum index ' + str(idx))
+        mom_prop_path = 'prop' + str(idx + 1) + '/'
+        props, threepts = readfile(directory, dpath = mom_prop_path)
+        props_boot = bootstrap(props, seed = s)
+        threept_boot = bootstrap(threepts, seed = s)
+        props_inv = invert_prop(props_boot)
+        Γ = amputate(props_inv, threept_boot)
+        Zq = quark_renorm(props_inv)
+        Z = get_Z(Zq, Γ, Γ_B_inv)
+        mu_p, sigma_p = get_statistics_Z(Z)
+        mu.append(mu_p)
+        sigma.append(sigma_p)
+    return mu, sigma

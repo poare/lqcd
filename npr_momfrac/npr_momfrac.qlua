@@ -158,7 +158,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
     local JS = {}
     local JSneg = {}
-    for mu = 0, #L - 1 do
+    for mu = 2, #L - 1 do
       local matrix_element = (FT * M[mu]):sum()
       local matrix_element_neg = (FT_neg * M[mu]):sum()
       JS[mu] = matrix_element
