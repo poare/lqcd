@@ -129,7 +129,8 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   -- add in any propagators I want in S_list, then also add momentum sources.
   --local S_list = {pt_prop}
   local S_list = {}
-  local S_p_list = {{0, 0, 0, 0}, {1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}}
+  -- Run with 3 different wall sources to see how it goes. TODO try point sources.
+  local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {4, 4, 4, 4}}
   for i = 1, #S_p_list do
     local p = S_p_list[i]
     printf("pidx is: %d", i)
@@ -146,7 +147,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     local M = {}
     local prop = S_list[i]
     for mu = 2, #L - 1 do
-      print("Computing sequential propagator for mu = %d.\n", mu)
+      printf("Computing sequential propagator for mu = %d.\n", mu)
       b[mu] = get_sequential_source(U, prop, mu)
       M[mu] = compute_propagator(U, ferm_prop, b[mu])
     end
