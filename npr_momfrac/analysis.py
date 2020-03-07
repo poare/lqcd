@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.optimize import root
 import h5py
 import os
@@ -278,6 +277,36 @@ def error_analysis(Z, n_start, n_step):
         means[i] = μ
     return cfg_list, err, means
 
+def save_mu_sigma(mu, sigma, directory, clear_path = False):
+    mu_file = directory + '/mu.npy'
+    sigma_file = directory + '/sigma.npy'
+    if clear_path:
+        os.remove(mu_file)
+        os.remove(sigma_file)
+    np.save(mu_file, mu)
+    np.save(sigma_file, sigma)
+    return True
+
+# note this returns np structured arrays, so use mu.get('p2222') for example
+def load_mu_sigma(directory):
+    mu = np.load(directory + '/mu.npy')
+    sigma = np.load(directory + '/sigma.npy')
+    return mu, sigma
+
+# momenta is subset of mom_list
+def subsample(mu, sigma, momenta):
+    mu_sub, sigma_sub = [], []
+    for mu_i, sigma_i in zip(mu, sigma):
+        cur_mu = {}
+        cur_sigma = {}
+        for p in momenta:
+            pstring = plist_to_string(p)
+            cur_mu[pstring] = mu_i[pstring]
+            cur_sigma[pstring] = sigma_i[pstring]
+        mu_sub.append(cur_mu)
+        sigma_sub.append(cur_sigma)
+    return mu_sub, sigma_sub
+
 def run_analysis(directory, s = 0):
     Γ_B, Γ_B_inv = born_term()
     props, threepts = readfile(directory)
@@ -294,7 +323,7 @@ def test_analysis_propagators(directory, s = 0):
     mu, sigma = [], []
     Γ_B, Γ_B_inv = born_term()
     for idx in range(len(prop_mom_list)):
-        print('Computing for momentum index ' + str(idx))
+        print('Computing for propagator momentum ' + str(prop_mom_list[idx]))
         mom_prop_path = 'prop' + str(idx + 1) + '/'
         props, threepts = readfile(directory, dpath = mom_prop_path)
         props_boot = bootstrap(props, seed = s)
