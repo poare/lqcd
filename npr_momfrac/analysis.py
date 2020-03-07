@@ -291,7 +291,9 @@ def save_mu_sigma(mu, sigma, directory, clear_path = False):
 def load_mu_sigma(directory):
     mu = np.load(directory + '/mu.npy')
     sigma = np.load(directory + '/sigma.npy')
-    return mu, sigma
+    p_list = np.load(directory + '/mom_list.npy')
+    prop_p_list = np.load(directory + '/prop_mom_list.npy')
+    return mu, sigma, p_list, prop_p_list
 
 # momenta is subset of mom_list
 def subsample(mu, sigma, momenta):

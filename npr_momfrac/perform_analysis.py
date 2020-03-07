@@ -28,11 +28,15 @@ analysis.prop_mom_list = prop_mom_list
 analysis.mom_list = mom_list
 analysis.mom_str_list = mom_str_list
 
-out_folder = '/Users/theoares/lqcd/npr_momfrac/analysis_output'
-out_file = out_folder + '/job' + str(job_num)
-data_directory = './output/' + cfgbase + '_' + str(job_num)
+out_dir = '/Users/theoares/lqcd/npr_momfrac/analysis_output/job' + str(job_num)
+data_dir = './output/' + cfgbase + '_' + str(job_num)
 
-mu, sigma = analysis.test_analysis_propagators(data_directory)
+mu, sigma = analysis.test_analysis_propagators(data_dir)
 
-os.execute('mkdir ' + out_folder)
-analysis.save_mu_sigma(mu, sigma, analysis_out_file)
+os.mkdir(out_dir)
+np.save(out_dir + '/mu.npy', mu)
+np.save(out_dir + '/sigma.npy', sigma)
+np.save(out_dir + '/mom_list.npy', mom_list)
+np.save(out_dir + '/prop_mom_list.npy', prop_mom_list)
+
+print('Output saved in directory: ' + out_dir)
