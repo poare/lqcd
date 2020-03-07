@@ -6,4 +6,5 @@ This directory is for local testing with QLUA, and running very small configurat
 - Next up: Have to figure out the propagator stuff. 
 - Job 14502: Added in group.togroup on the gauge field, see if that helps anything.
 - Job 14503: Added in extra group projection in gauge transformation \Omega(n) to see if that helps.
-- Job 15890: Propagators match with David's code. Running this job to compare Green's functions with David. 
+- Job 15890: Propagators match with David's code. Running this job to compare Green's functions with David.
+- Job 16636: Running through the operator with a whole lot of momenta. Job 16637 is also running with momenta from 1000 to 1500

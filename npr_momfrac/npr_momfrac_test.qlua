@@ -131,7 +131,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   local S_list = {}
   -- Run with 3 different wall sources to see how it goes. TODO try point sources.
   -- local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {4, 4, 4, 4}}
-  local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {-2, -2, -2, -2}, {2, 2, -2, -2}, {-2, -2, 2, 2}}
+  local S_p_list = {{1, 1, 1, 1}, {-1, -1, -1, -1}, {3, 3, 3, 3}, {-3, -3, -3, -3}}
   for i = 1, #S_p_list do
     local p = S_p_list[i]
     printf("pidx is: %d", i)
