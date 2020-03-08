@@ -8,10 +8,12 @@ cfgbase = 'cl3_16_48_b6p1_m0p2450'
 
 ################################# PARAMETERS ################################
 # job_num = 16583
-job_num = 16636
+# job_num = 16636
+job_num = 16677
 
 # Momentum the propagators are run at.
-prop_mom_list = [[0, 0, 0, 0], [2, 2, 2, 2], [-2, -2, -2, -2], [2, 2, -2, -2], [-2, -2, 2, 2]]
+# prop_mom_list = [[0, 0, 0, 0], [2, 2, 2, 2], [-2, -2, -2, -2], [2, 2, -2, -2], [-2, -2, 2, 2]]
+prop_mom_list = [[1, 1, 1, 1], [-1, -1, -1, -1], [3, 3, 3, 3], [-3, -3, -3, -3]]
 
 # Sink momentum that we tie up at.
 mom_list = []

@@ -131,7 +131,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   local S_list = {}
   -- Run with 3 different wall sources to see how it goes. TODO try point sources.
   -- local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {4, 4, 4, 4}}
-  local S_p_list = {{1, 1, 1, 1}, {-1, -1, -1, -1}, {3, 3, 3, 3}, {-3, -3, -3, -3}}
+  local S_p_list = {{0, 0, 0, 0}, {1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}}
   for i = 1, #S_p_list do
     local p = S_p_list[i]
     printf("pidx is: %d", i)
@@ -186,12 +186,12 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
 
       local JS = {}
-      local JSneg = {}
+      -- local JSneg = {}
       for mu = 2, #L - 1 do
         local matrix_element = (FT * M[mu]):sum()
-        local matrix_element_neg = (FT_neg * M[mu]):sum()    -- really matrix_element with neg phase
+        -- local matrix_element_neg = (FT_neg * M[mu]):sum()    -- really matrix_element with neg phase
         JS[mu] = matrix_element
-        JSneg[mu] = matrix_element_neg
+        -- JSneg[mu] = matrix_element_neg
         local op_path
         local op_path_neg
         if gauge then
@@ -206,18 +206,18 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       end
       -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
       local G = norm * (JS[2] - JS[3])
-      local Gneg = norm * (JSneg[2] - JSneg[3])
+      -- local Gneg = norm * (JSneg[2] - JSneg[3])
 
       local threept_path
-      local threept_neg_path
+      -- local threept_neg_path
       if gauge then
         threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
       else
         threept_path = string.format("threept/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
-        threept_neg_path = string.format("threept_neg/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
+        -- threept_neg_path = string.format("threept_neg/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
       end
       h5_force_write(writer, threept_path, G)
-      h5_force_write(writer, threept_neg_path, Gneg)
+      -- h5_force_write(writer, threept_neg_path, Gneg)
       printf("Three point function written at: %s\n", threept_path)
     end
   end
@@ -374,17 +374,38 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 -- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
 -- local p_list_NPR = {{2, 2, 2, 2}}
 local p_list_NPR = {}
-for i = 1, 4 do
-  for j = 1, 8 do
-    if j % 2 == 0 then
-      p_list_NPR[#p_list_NPR + 1] = {i, i, i, j}
-      p_list_NPR[#p_list_NPR + 1] = {i, i, -i, j}
-      p_list_NPR[#p_list_NPR + 1] = {i, -i, i, j}
-      p_list_NPR[#p_list_NPR + 1] = {i, -i, -i, j}
-      p_list_NPR[#p_list_NPR + 1] = {-i, i, i, j}
-      p_list_NPR[#p_list_NPR + 1] = {-i, i, -i, j}
-      p_list_NPR[#p_list_NPR + 1] = {-i, -i, i, j}
-      p_list_NPR[#p_list_NPR + 1] = {-i, -i, -i, j}
+local nhat = {.5, .5, .5, .5}
+-- for i = 1, 4 do
+--   for j = 1, 8 do
+--     if j % 2 == 0 then
+--       p_list_NPR[#p_list_NPR + 1] = {i, i, i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {i, i, -i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {i, -i, i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {i, -i, -i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {-i, i, i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {-i, i, -i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {-i, -i, i, j}
+--       p_list_NPR[#p_list_NPR + 1] = {-i, -i, -i, j}
+--     end
+--   end
+-- end
+local r = 2
+for i = 1, 5 do
+  for j = 1, 5 do
+    for k = 1, 5 do
+      for l = 1, 5 do
+        local x = {i, j, k, l}
+        local proj = {}
+        local xdotn = i * nhat[1] + j * nhat[2] + k * nhat[3] + l * nhat[4]
+        local sum = 0
+        for mu = 0, #L - 1 do
+          proj[mu + 1] = xdotn * nhat[mu + 1]
+          sum = sum + (x[mu + 1] - nhat[mu + 1]) * (x[mu + 1] - nhat[mu + 1])
+        end
+        if sum <= r * r then
+          p_list_NPR[#p_list_NPR + 1] = x
+        end
+      end
     end
   end
 end

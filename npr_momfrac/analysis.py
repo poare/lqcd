@@ -309,6 +309,17 @@ def subsample(mu, sigma, momenta):
         sigma_sub.append(cur_sigma)
     return mu_sub, sigma_sub
 
+# returns a subset of momenta with radius r away from the diagonal [1, 1, 1, 1]
+def cylinder(plist, r):
+    nhat = np.array([1, 1, 1, 1]) / 2
+    psub = []
+    for x in plist:
+        proj = np.dot(nhat, x) * nhat
+        dist = np.linalg.norm(x - proj)
+        if dist < r:
+            psub.append(x)
+    return np.array(psub)
+
 def run_analysis(directory, s = 0):
     Γ_B, Γ_B_inv = born_term()
     props, threepts = readfile(directory)
