@@ -9,18 +9,21 @@ cfgbase = 'cl3_16_48_b6p1_m0p2450'
 ################################# PARAMETERS ################################
 # job_num = 16583
 # job_num = 16636
-job_num = 16677
+# job_num = 16677
+job_num = 16872
 
 # Momentum the propagators are run at.
 # prop_mom_list = [[0, 0, 0, 0], [2, 2, 2, 2], [-2, -2, -2, -2], [2, 2, -2, -2], [-2, -2, 2, 2]]
-prop_mom_list = [[1, 1, 1, 1], [-1, -1, -1, -1], [3, 3, 3, 3], [-3, -3, -3, -3]]
+prop_mom_list = [[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]
 
 # Sink momentum that we tie up at.
-mom_list = []
-for i in range(1, 4 + 1):
-    for j in range(1, 8 + 1):
-        if j % 2 == 0:
-            mom_list.extend([[i, i, i, j], [i, i, -i, j], [i, -i, i, j], [i, -i, -i, j], [-i, i, i, j], [-i, i, -i, j], [-i, -i, i, j], [-i, -i, -i, j]])
+mom_tot = []
+for i in range(1, 6):
+    for j in range(1, 6):
+        for k in range(1, 6):
+            for l in range(1, 6):
+                mom_tot.append([i, j, k, l])
+mom_list = analysis.cylinder(mom_tot, 2)
 #############################################################################
 print('Propagator momenta: ' + str(prop_mom_list))
 print('Sink momenta: ' + str(mom_list))

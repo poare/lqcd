@@ -316,7 +316,7 @@ def cylinder(plist, r):
     for x in plist:
         proj = np.dot(nhat, x) * nhat
         dist = np.linalg.norm(x - proj)
-        if dist < r:
+        if dist <= r:
             psub.append(x)
     return np.array(psub)
 
@@ -339,11 +339,16 @@ def test_analysis_propagators(directory, s = 0):
         print('Computing for propagator momentum ' + str(prop_mom_list[idx]))
         mom_prop_path = 'prop' + str(idx + 1) + '/'
         props, threepts = readfile(directory, dpath = mom_prop_path)
+        print('Bootstrapping.')
         props_boot = bootstrap(props, seed = s)
         threept_boot = bootstrap(threepts, seed = s)
+        print('Inverting propagators.')
         props_inv = invert_prop(props_boot)
+        print('Amputating legs.')
         Γ = amputate(props_inv, threept_boot)
+        print('Computing quark field renormalization.')
         Zq = quark_renorm(props_inv)
+        print('Computing operator renormalization.')
         Z = get_Z(Zq, Γ, Γ_B_inv)
         mu_p, sigma_p = get_statistics_Z(Z)
         mu.append(mu_p)
