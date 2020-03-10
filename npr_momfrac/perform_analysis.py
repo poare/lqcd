@@ -36,7 +36,7 @@ analysis.mom_str_list = mom_str_list
 out_dir = '/Users/theoares/lqcd/npr_momfrac/analysis_output/job' + str(job_num)
 data_dir = './output/' + cfgbase + '_' + str(job_num)
 
-mu, sigma = analysis.test_analysis_propagators(data_dir)
+mu, sigma = analysis.run_analysis_single_momenta(data_dir)
 
 os.mkdir(out_dir)
 np.save(out_dir + '/mu.npy', mu)

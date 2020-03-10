@@ -96,8 +96,9 @@ def set_mom_list(plist):
 
 # directory should contain hdf5 files. Will return props and threepts in form
 # of a momentum dictionary with arrays of the form [cfg, c, s, c, s] where s
-# is a Dirac index and c is a color index.
-def readfile(directory, gauged = False, dpath = ''):
+# is a Dirac index and c is a color index. If sink_momenta is passed in (a
+# list of momenta) then only read those momenta in.
+def readfile(directory, gauged = False, dpath = '', sink_momenta = None):
     files = []
     for (dirpath, dirnames, file) in os.walk(directory):
         files.extend(file)
@@ -105,14 +106,18 @@ def readfile(directory, gauged = False, dpath = ''):
     threepts = {}
     global num_cfgs
     num_cfgs = len(files)
-    for i, p in enumerate(mom_str_list):
+    if sink_momenta:
+        str_list = sink_momenta
+    else:
+        str_list = mom_str_list
+    for i, p in enumerate(str_list):
         props[p] = np.zeros((num_cfgs, 3, 4, 3, 4), dtype = np.complex64)
         threepts[p] = np.zeros((num_cfgs, 3, 4, 3, 4), dtype = np.complex64)
     idx = 0
     for file in files:
         path_to_file = directory + '/' + file
         f = h5py.File(path_to_file, 'r')
-        for pstring in mom_str_list:
+        for pstring in str_list:
             if gauged:
                 prop_path = 'propprime/' + dpath + pstring
                 threept_path = 'threeptprime/' + dpath + pstring
@@ -353,4 +358,36 @@ def test_analysis_propagators(directory, s = 0):
         mu_p, sigma_p = get_statistics_Z(Z)
         mu.append(mu_p)
         sigma.append(sigma_p)
+    return mu, sigma
+
+# load in a single momentum at a time so that it doesn't overload python (for large data configs)
+def run_analysis_single_momenta(directory, s = 0):
+    mu, sigma = [{}] * len(prop_mom_list), [{}] * len(prop_mom_list)
+    Γ_B, Γ_B_inv = born_term()
+    global mom_list
+    global mom_str_list
+    mom_str_list_cp = mom_str_list
+    for idx in range(len(prop_mom_list)):
+        print('Computing for propagator momentum ' + str(prop_mom_list[idx]))
+        mom_prop_path = 'prop' + str(idx + 1) + '/'
+        for p in mom_str_list_cp:
+            print('Computing for sink momentum ' + p)
+            mom_list = [pstring_to_list(p)]
+            mom_str_list = [p]
+            # props, threepts = readfile(directory, dpath = mom_prop_path, sink_momenta = [p])
+            props, threepts = readfile(directory, dpath = mom_prop_path)
+            print('Bootstrapping.')
+            props_boot = bootstrap(props, seed = s)
+            threept_boot = bootstrap(threepts, seed = s)
+            print('Inverting propagators.')
+            props_inv = invert_prop(props_boot)
+            print('Amputating legs.')
+            Γ = amputate(props_inv, threept_boot)
+            print('Computing quark field renormalization.')
+            Zq = quark_renorm(props_inv)
+            print('Computing operator renormalization.')
+            Z = get_Z(Zq, Γ, Γ_B_inv)
+            mu_p, sigma_p = get_statistics_Z(Z)
+            mu[idx][p] = mu_p
+            sigma[idx][p] = sigma_p
     return mu, sigma
