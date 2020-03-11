@@ -194,15 +194,15 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
         JS[mu] = matrix_element
         -- JSneg[mu] = matrix_element_neg
         local op_path
-        local op_path_neg
+        -- local op_path_neg
         if gauge then
           op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
         else
           op_path = string.format("O_operator%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
-          op_path_neg = string.format("O_operator_neg%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
+          -- op_path_neg = string.format("O_operator_neg%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
         end
         h5_force_write(writer, op_path, matrix_element)
-        h5_force_write(writer, op_path_neg, matrix_element_neg)
+        -- h5_force_write(writer, op_path_neg, matrix_element_neg)
         printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
       end
       -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
@@ -357,8 +357,8 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
--- local csw = 1.2493
-local csw = 1    -- uncomment after testing is done
+local csw = 1.2493
+-- local csw = 1    -- uncomment after testing is done
 local bcs = {1,1,1,-1}
 
 local clover
@@ -401,7 +401,7 @@ for i = 1, 5 do
         local sum = 0
         for mu = 0, #L - 1 do
           proj[mu + 1] = xdotn * nhat[mu + 1]
-          sum = sum + (x[mu + 1] - nhat[mu + 1]) * (x[mu + 1] - nhat[mu + 1])
+          sum = sum + (x[mu + 1] - proj[mu + 1]) * (x[mu + 1] - proj[mu + 1])
         end
         if sum <= r * r then
           p_list_NPR[#p_list_NPR + 1] = x
