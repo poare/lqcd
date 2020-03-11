@@ -1,0 +1,238 @@
+
+spectrum = {}
+
+-- Implementation of the Ritz algorithm for finding the largest
+-- and smallest eigenvalues of the Hermitian operator A = Mdag*M.
+-- Based on arXiv:hep-lat/9507023.
+function spectrum.ritz(L, S, Nc, M, Mdag, stop_rsd, max_iter, compute_max)
+
+  -- Utility function
+  local function minimize_theta(a, b, c, d, e, f)
+
+    local p = b * ( d - f ) + e * ( c - a )
+    local q = b * ( d + f ) - e * ( c + a )
+    local r = 2.0 * ( c*d - a*f )
+
+    -- Solve: p + q*cos(2t) + r*sin(2t) = 0
+    local den = math.sqrt(q*q + r*r)
+    local ca  = q / den
+
+    local ci = math.sqrt( 0.5 * (1.0 + ca) )
+    local si = math.sqrt( 0.5 * (1.0 - ca) )
+    if (r < 0.0) then
+      si = -si
+    end
+
+    local cb = -p / den
+    if (math.abs(cb) > 1.0) then
+      error("cos(psi) > 1!?")
+    end
+    local cj = math.sqrt( 0.5 * (1.0 + cb) )
+    local sj = math.sqrt( 0.5 * (1.0 - cb) )
+
+    local ct1 = ci*cj + si*sj
+    local st1 = si*cj - ci*sj
+    local v1  = ( a*ct1*ct1 + b*st1*ct1 + c*st1*st1 ) / ( d*ct1*ct1 + e*st1*ct1 + f*st1*st1 )
+
+    local ct2 = ci*cj - si*sj
+    local st2 = si*cj + ci*sj
+    local v2  = ( a*ct2*ct2 + b*st2*ct2 + c*st2*st2 ) / ( d*ct2*ct2 + e*st2*ct2 + f*st2*st2 )
+
+    if (v1 < v2) then
+      return v1, ct1, st1
+    else
+      return v2, ct2, st2
+    end
+
+  end
+
+  -- Start timer
+  local timer = create_timer('Ritz')
+
+  if compute_max then
+    print("\n=============== Starting Ritz solver for maximum eigenvalue ===============\n")
+  else
+    print("\n=============== Starting Ritz solver for minimum eigenvalue ===============\n")
+  end
+
+  -- Random, normalized initial guess
+  local x = S:gaussian_DiracFermionN(Nc)
+  x = x / math.sqrt(x:norm2())
+  local xnorm2 = x:norm2()
+  
+  -- Tmp fields
+  local y = L:DiracFermionN(Nc)
+  local p = L:DiracFermionN(Nc)
+  local z = L:DiracFermionN(Nc)
+  local t = L:DiracFermionN(Nc)
+  local u = L:DiracFermionN(Nc)
+
+  -- y = A*x, A = +/- Mdag*M
+  t = M(x)
+  local mu = t:norm2()
+  y = Mdag(t)
+  if compute_max then
+    y = -y
+    mu = -mu
+  end
+
+  p = -mu*x + y
+  local gnorm2 = p:norm2()
+  local pnorm = math.sqrt(gnorm2)
+
+  -- Ritz iterations
+  local iter = 0
+  repeat
+
+    -- Status update
+    if (iter % 100 == 0) then
+      local current_eval = mu / xnorm2
+      if compute_max then
+        current_eval = -current_eval
+      end
+      printf("-- Iteration %d: |p| = %1.4e, target = %1.1e, eval = %1.4e\n", iter, pnorm, stop_rsd, current_eval)
+    end
+
+    -- Check for convergence 
+    if (pnorm < stop_rsd) then
+      break
+    end
+
+    -- z = A*p
+    t = M(p)
+    local pap = t:norm2()
+    z = Mdag(t)
+    if compute_max then
+      z = -z
+      pap = -pap
+    end
+
+    -- Minimize x * cos(theta) + p / pnorm * sin(theta) in theta
+    local d = x:norm2()
+    local e = 2.0 * qcd.dot(x,p):real():sum() / pnorm
+    local f = 1.0
+    local a = mu * d
+    local b = 2.0 * qcd.dot(x,z):real():sum() / pnorm
+    local c = pap / ( pnorm * pnorm )
+    local ct
+    local st
+    mu, ct, st = minimize_theta(a, b, c, d, e, f)
+
+    -- Update steps
+    x = ct*x + st*p/pnorm
+    xnorm2 = x:norm2()
+    
+    y = ct*y + st*z/pnorm
+    
+    t = -mu*x + y
+    local gnew = t:norm2()
+    local beta = ct * gnew / gnorm2
+    gnorm2 = gnew
+
+    local xpp = qcd.dot(x,p):real():sum()
+    u = -xpp*x + p
+
+    p = beta*u + t
+    pnorm = math.sqrt(p:norm2())
+
+    iter = iter + 1
+
+  until iter >= max_iter
+
+  if compute_max then
+    mu = -mu
+  end
+
+  xnorm2 = x:norm2()
+
+  print('\n================================= Summary =================================\n')
+  if (iter < max_iter) then
+    printf("-- Ritz converged at iteration %d.\n", iter)
+  else
+    error('Ritz failed to converge.')
+  end
+  printf('-- Final estimate: eval = %1.8e\n', mu/xnorm2)
+  timer()
+  print("\n===========================================================================\n")
+
+  return mu / xnorm2
+
+end
+
+function spectrum.lanczos(t)
+   local lanczos = {}
+   local function get_value(n, d)
+      return t[n] or d
+   end
+   local vdim        = get_value("Dim",        150)
+   local scan        = get_value("Scan",      false)
+
+   function lanczos:distill(A, b)
+      local T = matrix.real {vdim, vdim}
+      local rho = b or S:gaussian_DiracFermionN(Nc)
+      local r = rho:norm2()
+      rho = rho / math.sqrt(r)
+      local b0 = rho
+      local bn = b0
+      local zeta = A(rho)
+      local tx = qcd.dot(rho, zeta):real():sum()
+      T[{0,0}] = tx
+      zeta = -tx*rho + zeta
+      r = math.sqrt( zeta:norm2() )
+      rho = zeta / r
+      local k
+      for k = 1, vdim - 1 do
+         T[{k - 1, k}] = r
+         T[{k, k - 1}] = r
+         local zeta = A(rho)
+         zeta = -r*bn + zeta
+         bn = rho
+         local tx = qcd.dot(rho, zeta):real():sum()
+         T[{k,k}] = tx
+         zeta = -tx*rho + zeta
+         r = math.sqrt( zeta:norm2() )
+         rho = zeta / r
+      end
+      local M, Y = T:symmetric_eigen()
+      
+      local function eigen(n)
+         local v = Y[{0,n}]*b0
+         local bn = b0
+         local rho = b0
+         local zeta = A(rho)
+         local tx = qcd.dot(rho, zeta):real():sum()
+         zeta = -tx*rho + zeta
+         r = math.sqrt( zeta:norm2() )
+         rho = zeta / r
+         local k
+         for k = 1, vdim - 1 do
+            v = Y[{k,n}]*rho + v
+            local zeta = A(rho)
+            zeta = -r*bn + zeta
+            bn = rho
+            local tx = qcd.dot(rho, zeta):real():sum()
+            zeta = -tx*rho + zeta
+            r = math.sqrt( zeta:norm2() )
+            rho = zeta / r
+         end
+         local vn = math.sqrt( v:norm2() )
+         v = v / vn
+         local Av = A(v)
+         local ll = qcd.dot(v, Av):real():sum()
+         return ll, v
+      end
+
+      local res = {Eigen = eigen}
+      if scan then
+         local s = {}
+         local k
+         for k = 1, vdim do
+            s[k] = T:symmetric_eigen(k)
+         end
+         res.Scan = s
+      end
+      return res
+   end
+
+   return lanczos
+end

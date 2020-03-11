@@ -1,0 +1,169 @@
+require "stdlib";
+--require "gauge";
+require "quda";
+
+--- test of the inverter
+
+function create_solver(U, c_sw, kappa, adj)
+   if adj then U = toSO3(U) end
+   local gauge_params = {
+      type                      = "WILSON",
+      gauge_order               = "QDP",
+      anisotropy                = 1.0,
+      t_boundary                = "ANTI_PERIODIC"
+   };
+
+   --- With current setup, Multigrid performs a two-level (1 coarse lattice, 1 fine lattice) approach
+   --- For 2 coarse levels, add another "coarse level" table params in multigrid_params.levels, and so on
+   local multrigrid_params = {
+      -- generic MG params
+      setup_type                = "NULL",
+      post_orthonormalize       = "YES",
+      pre_orthonormalize        = "NO",
+      compute_null_vector       = "YES",
+      generate_all_levels       = "YES",
+      run_verify                = "YES",
+      vec_infile                = "",
+      vec_outfile               = "",
+      levels = {
+	 -- coarse level 0 params
+         {
+            geo_block_size            = {4, 4, 4, 4},  -- Block size
+            spin_block_size           = 2,             -- 2 for level 0, 1 afterwards
+            n_vec                     = 24,            -- Number of Null vectors, 24 or 32 usually work well
+            precision_null            = "HALF",        -- Precision to store the Null-space vectors
+            verbosity                 = "SUMMARIZE",   -- Verbosity on each level of the multigrid
+            setup_inv_type            = "BICGSTAB",    -- Inverter to use in the setup phase
+            num_setup_iter            = 1,             -- experimental, keep to one for now
+            setup_tol                 = 5e-6,          -- Tolerance to use in the setup phase, usually set to5e-6
+            setup_maxiter             = 500,           -- Maximum number of iterations for each setup solver, usually set to 500
+            coarse_solver             = "GCR",         -- The solver that wraps around the coarse grid correction and smoother (levels 1+)
+            coarse_solver_tol         = 0.25,          -- Tolerance for the solver that wraps around the coarse grid correction and smoother (levels 1+)
+            coarse_solver_maxiter     = 10000,         -- Tolerance for the solver that wraps around the coarse grid correction and smoother (levels 1+)
+            smoother                  = "MR",          -- Smoother to use on each level
+            smoother_tol              = 0.25,          -- Tolerance to use for the smoother / solver on each level
+            nu_pre                    = 0,             -- Number of pre-smoother applications
+            nu_post                   = 6,             -- Number of post-smoother applications
+            omega                     = 1.0,           -- Over/under relaxation factor for the smoother at each level, 0.8-1.0
+            smoother_schwarz_type     = "INVALID",    -- Whether to use additive or multiplicative Schwarz preconditioning in the smoother
+            smoother_solve_type       = "DIRECT_PC",   -- The type of smoother solve to do on each grid (e/o preconditioning or not)
+            coarse_grid_solution_type = "MATPC",       -- The type of residual to send to the next coarse grid, and thus the type of solution to receive back from this coarse grid, if smoother_solve_type == DIRECT_PC then set to MATPC, otherwise to MAT
+            cycle_type                = "RECURSIVE",   -- Set always to "RECURSIVE"
+            global_reduction          = "NO",          -- Whether to use global reductions or not for the smoother / solver at each level - experimental. If smoother_schwarz_type != FALSE, this must be set to NO
+            location                  = "CUDA",        -- MG Solver location
+            setup_location            = "CUDA",        -- Location where each level should be done
+            mu_factor                 = 1.             -- twisted mass coarse level mu-factor, irrelevant here
+         },
+	 -- finest level params
+         {
+            verbosity                 = "VERBOSE",         -- Verbosity on each level of the multigrid
+            smoother                  = "GCR",            -- Smoother to use on each level
+            smoother_tol              = 0.1,              -- Tolerance to use for the smoother / solver on each level
+            smoother_schwarz_type     = "INVALID", -- Whether to use additive or multiplicative Schwarz preconditioning in the smoother
+            smoother_schwarz_cycle    = 2,
+            smoother_solve_type       = "DIRECT_PC",      -- The type of smoother solve to do on each grid (e/o preconditioning or not)
+            coarse_grid_solution_type = "MATPC",          -- The type of residual to send to the next coarse grid, and thus the type of solution to receive back from this coarse grid. If smoother_solve_type == DIRECT_PC then set to MATPC, otherwise to MAT
+            cycle_type                = "RECURSIVE",      -- Set always to "RECURSIVE"
+            global_reduction          = "NO",             -- Whether to use global reductions or not for the smoother / solver at each level - experimental. If smoother_schwarz_type != FALSE, this must be set to NO
+            location                  = "CUDA",           -- MG Solver location
+            setup_location            = "CUDA",           -- Location where each level should be done
+         }
+      }
+   };
+
+   --- Outer solver params
+   local invert_params = {
+      kappa                              = kappa,
+      Ls                                 = 1,
+      sp_pad                             = 0,
+      cl_pad                             = 0,
+      cpu_prec                           = "DOUBLE",
+      cuda_prec                          = "DOUBLE",
+      cuda_prec_precondition             = "HALF",
+      cuda_prec_sloppy                   = "SINGLE",
+      preserve_source                    = "NO",
+      gamma_basis                        = "DEGRAND_ROSSI",
+      dirac_order                        = "QDP",
+      clover_cpu_prec                    = "DOUBLE",
+      clover_cuda_prec                   = "DOUBLE",
+      clover_cuda_prec_precondition      = "SINGLE",
+      clover_cuda_prec_sloppy            = "SINGLE",
+      clover_order                       = "PACKED",
+      input_location                     = "CPU",
+      output_location                    = "CPU",
+      dslash_type                        = "WILSON",
+      dagger                             = "NO",
+      mass_normalization                 = "MASS",
+      solution_type                      = "MAT",
+      solve_type                         = "DIRECT_PC",
+      matpc_type                         = "EVEN_EVEN",
+      inv_type                           = "GCR",
+      verbosity                          = "VERBOSE",
+      verbosity_precondition             = "SILENT",
+      inv_type_precondition              = "MG",
+      pipeline                           = 0,
+      gcrNkrylov                         = 10,
+      tol                                = 1e-10,
+      residual_type                      = "L2_RELATIVE",
+      tol_hq                             = 0.0,
+      maxiter                            = 10000,
+      reliable_delta                     = 1e-4,
+      schwarz_type                       = "ADDITIVE",
+      precondition_cycle                 = 1,
+      tol_precondition                   = 0.1,
+      maxiter_precondition               = 1,
+      omega                              = 1.0
+   };
+   ------------------------------------------------
+
+   --- Inner solver params
+   local inner_params = {
+      kappa                              = kappa,
+      Ls                                 = 1,                       -- Hard coded in Quda
+      sp_pad                             = 0,                       -- Hard coded in Quda
+      cl_pad                             = 0,                       -- Hard coded in Quda
+      cpu_prec                           = "DOUBLE",
+      cuda_prec                          = "DOUBLE",
+      cuda_prec_precondition             = "HALF",
+      cuda_prec_sloppy                   = "SINGLE",
+      preserve_source                    = "NO",                    -- Hard coded in Quda
+      gamma_basis                        = "DEGRAND_ROSSI",         -- Hard coded in Quda
+      dirac_order                        = "DIRAC_ORDER",           -- Hard coded in Quda
+      clover_cpu_prec                    = "DOUBLE",
+      clover_cuda_prec                   = "DOUBLE",
+      clover_cuda_prec_precondition      = "SINGLE",
+      clover_cuda_prec_sloppy            = "SINGLE",
+      clover_order                       = "PACKED",                -- Hard coded in Quda
+      input_location                     = "CPU",                   -- Hard coded in Quda
+      output_location                    = "CPU",                   -- Hard coded in Quda
+      dslash_type                        = "WILSON",
+      dagger                             = "NO",                    -- Hard coded in Quda
+      mass_normalization                 = "MASS",                 -- Hard coded in Quda
+      matpc_type                         = "EVEN_EVEN",
+      solution_type                      = "MAT",                   -- Hard coded in Quda
+      solve_type                         = "DIRECT",                -- Hard coded in Quda
+      -- From hereafter, Ignored by MG setup, but set to pass Init test
+      inv_type                           = "GCR",
+      tol                                = 1e-10,
+      maxiter                            = 10000,
+      reliable_delta                     = 1e-10,
+      gcrNkrylov                         = 10,
+      verbosity                          = "VERBOSE",
+      verbosity_precondition             = "VERBOSE"
+   };
+
+   local QS = qcd.quda.inverter.multigrid(U,
+                                          gauge_params,
+                                          invert_params,
+                                          multrigrid_params,
+                                          inner_params);
+   return QS
+end
+
+function run_solver(QS, rhs)
+   local rhs,ipres = QS:solve(rhs);
+   printf("  QS solver iparams output:\n");
+   printf("     .iter      = %d\n", ipres.iter);
+   printf("     .true_res  = %g\n", ipres.true_res);
+   return rhs;
+end

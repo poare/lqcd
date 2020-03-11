@@ -1,0 +1,81 @@
+-- cfg directory and hdf5 naming scheme.
+
+cfg_names = {}
+
+-- Various physical schemes should be assigned their own naming function in this
+-- dispatcher code.
+local naming_scheme = {
+   wilson_quenched = function(params, grouptag)
+      assert(params.beta ~= nil)
+      return string.format("%s_w_b%.2f", grouptag, params.beta)
+   end,
+   wilson_improved_quenched = function(params, grouptag)
+      assert(params.beta ~= nil and params.u0 ~= nil)
+      return string.format("%s_w_b%.2f_u%.3f", grouptag, params.beta, params.u0)
+   end,
+   wilson_quenched_sk = function(params, grouptag)
+      assert(params.beta ~= nil and params.tM ~= nil and params.tE ~= nil)
+      return string.format("%s_wsk_b%.2f_tM%d_tE%d", grouptag, params.beta,
+                           params.tM, params.tE)
+   end,
+   clover_on_improved = function(params, grouptag)
+      assert(params.beta ~= nil and params.kappa ~= nil and params.u0 ~= nil)
+      return string.format("%s_cl_b%.2f_k%.3f_u%.3f",
+                           grouptag, params.beta, params.kappa, params.u0)
+   end,
+   wilson_corr_reweight_on_improved = function(params, grouptag)
+      assert(params.beta ~= nil and params.kappa ~= nil and params.u0 ~= nil)
+      return string.format("%s_wcrw_b%.2f_k%.3f_u%.3f_t%d",
+                           grouptag, params.beta, params.kappa,
+                           params.u0, params.reweight_dt)
+   end,
+   wilson_corr_reweight = function(params, grouptag)
+      assert(params.beta ~= nil and params.kappa ~= nil)
+      return string.format("%s_wcrw_b%.2f_k%.3f_rdt%d",
+                           grouptag, params.beta, params.kappa,
+                           params.reweight_dt)
+   end
+}
+
+-- Given directory of configs, table with action params, grouptag, and
+-- lattice L, returns
+-- (1) cfgbase    -- base naming tag, including all action and lattice info
+-- (2) cfghdf5    -- format string giving path to generic cfg in the ensemble
+-- (3) cfgbaseh5  -- path prefix in the config hdf5 databse
+function cfg_names.get_names(cfgdir, params, grouptag, L)
+   local cfgbase = naming_scheme[params.type](params, grouptag)
+   for mu = 0, #L - 1 do
+      cfgbase = string.format(cfgbase.."_%d", L[mu])
+   end
+   if params.tag ~= nil and #params.tag > 0 then
+      cfgbase = cfgbase.."_"..params.tag
+   end
+   
+   local cfghdf5 = cfgdir.."/"..cfgbase.."/"..cfgbase.."_cfg_%d.h5"
+   local cfgbaseh5 = cfgbase.."/cfg"
+   return cfgbase, cfghdf5, cfgbaseh5
+end
+
+
+-- LEGACY:
+-- Config basename, e.g.
+-- u1_w_b2.00_4_4
+function get_cfgbase(grouptag, beta, L)
+   local cfgbase = string.format("%s_w_b%.2f", grouptag, beta)
+   for mu = 0, #L - 1 do
+      cfgbase = string.format(cfgbase.."_%d", L[mu])
+   end
+   return cfgbase
+end
+
+-- Config hdf5 filename pattern, e.g.
+-- ./cfgs/u1_w_b2.00_4_4/u1_w_b2.00_4_4_cfg_%d.h5)
+function get_cfghdf5(prefix, cfgbase)
+   return prefix.."/"..cfgbase.."/"..cfgbase.."_cfg_%d.h5"
+end
+
+-- Config hdf5 database path, e.g.
+-- u1_w_b2.00_4_4/cfg
+function get_cfgbaseh5(cfgbase)
+   return cfgbase.."/cfg"
+end

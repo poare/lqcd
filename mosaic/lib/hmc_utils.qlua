@@ -1,0 +1,100 @@
+-- Utilities for HMC scripts
+
+function find_next_cfg(cfghdf5, n0)
+   for i0s = 0, n0 - 1 do
+      local name = string.format(cfghdf5, i0s)
+      if not io.fexists(name) then
+   	 return i0s
+      else
+         printf("Skipping %s...\n", name)
+      end
+   end
+end
+
+function get_last_cfg_prefix(prefix, n_meas)
+   local out = prefix
+   for i = 1, #n_meas do
+      out = out.."/"..tostring(n_meas[i]-1)
+   end
+   return out
+end
+
+function update_and_log(n_skip, integrator, mx, action, U)
+   for i = 0, n_skip - 1 do
+      local nextU, log
+      nextU, log = integrator(action, U)
+      for mu = 0, #U-1 do
+         U[mu+1] = nextU[mu+1]
+      end
+      local x = string.format(
+         "Trajectory: %5d Delta H: %18.7e Acceptance: %10.6f Changed: %10s",
+         i, log.deltaH, log.prob, log.changed)
+      show_results(mx:measure(U, x))
+   end
+end
+
+-- TODO(gkanwar): thickness should probably be a per-level object
+function init_omelyanQP_integrators(tau, nsteps, L, Nlvl, thickness)
+   local integrators = {}
+   for i = 1, #Nlvl do
+      integrators[i] = hmc_mosaic.omelyanQP(tau, nsteps, L, Nlvl[i], thickness)
+   end
+   return integrators
+end
+
+-- Recursively do multilevel updates, to arbitrary depth.
+-- n_meas[depth], n_skip[depth], and integrators[depth] give values for this level.
+function multilevel_integrate(depth, i_start, n_meas, n_skip, integrators,
+                              mx, action, make_h5_writer, prefix, U)
+   local h5_writer = nil
+   -- explicitly handle this level
+   for i = i_start, n_meas[depth]-1 do
+      printf("\n Level depth %d, cfg # %d \n", depth-1, i)
+      update_and_log(n_skip[depth], integrators[depth], mx, action, U)
+      h5_writer = make_h5_writer(i)
+      assert(h5_writer ~= nil)
+      local inner_prefix = prefix.."/"..tostring(i)
+      -- at depth = 1, do random shift
+      if depth == 1 then
+         local shifts = rnd_shift_and_invert(U, action)
+         h5_save_shifts(h5_writer, inner_prefix, shifts)
+      end
+      h5_save_cfg(h5_writer, inner_prefix, U)
+
+      -- recursively do inner levels (if there are any)
+      if depth < #n_meas then
+         local inner_make_h5_writer = function (i) return h5_writer end
+         multilevel_integrate(depth+1, 0, n_meas, n_skip, integrators,
+                              mx, action, inner_make_h5_writer, inner_prefix, U)
+      end
+
+      -- at depth = 1, must reseed
+      if depth == 1 then
+         h5_save_reseed(h5_writer, inner_prefix, action)
+         h5_writer:close()
+      end
+   end
+end
+
+
+function rnd_shift_and_invert(U, action)
+   local L = U[1].lattice
+   local shifts = {}
+   -- local invs = {}
+   for mu = 1,#L do
+      shifts[mu] = math.floor(action.seqRandom() * 1e9) % L[mu-1]
+      -- invs[mu] = math.floor(seqRnd:random_Real() * 1e9) % 2
+   end
+   printf("Shifting by %s\n",
+          table.concat(shifts, ",")) --, table.concat(invs, ","))
+   for i = 1, #L do
+      for mu = 1, #L do
+         -- many shifts by 1 is silly, but I see no other way :(
+         for dx = 1, shifts[mu] do
+            U[i] = U[i]:shift(mu-1, "from_forward")
+         end
+      end
+   end
+   -- TODO(gkanwar): Inversion not supported easily with qlua ops
+   return shifts
+end

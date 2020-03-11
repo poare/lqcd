@@ -1,0 +1,35 @@
+-- Some helper functions to cache data in the table U. Caches are invalidated
+-- when the checksum becomes different.
+
+caching = {}
+
+-- Unitarity should mean that small perturbations push the trace around too
+local function get_checksum(Ud)
+   return Ud:trace():sum()
+end
+
+-- Store cached value with checksum
+function caching.store(U, tag, value)
+   local checksum = {}
+   for d = 1, #U do
+      checksum[d] = get_checksum(U[d])
+   end
+   U[tag] = {checksum=checksum, value=value}
+end
+-- Get cached value or nil if never stored or invalidated
+-- by the checksum
+function caching.get(U, tag)
+   local cached = U[tag]
+   if cached == nil then return nil end
+   assert(cached.checksum ~= nil)
+   assert(cached.value ~= nil)
+   for d = 1, #U do
+      local checksum_d = get_checksum(U[d])
+      if (cached.checksum[d]:real() ~= checksum_d:real() or
+          cached.checksum[d]:imag() ~= checksum_d:imag()) then
+         U[tag] = nil -- delete cached
+         return nil
+      end
+   end
+   return cached.value
+end

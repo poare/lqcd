@@ -1,0 +1,275 @@
+require "lib/gl"
+
+gauge = {}
+
+-- operations
+--   .initTraj(U)         do nothing
+--   .actionDensity(U)    -1/2 tr(pl + pl^+)
+--   .action(U)           -1/2Nc sum tr(pl+pl^+)
+--   .force(U)            -i/2Nc (pl - pl+)
+--   .count(U)            number of loops on a lattice
+
+local function trivialInitTraj(U, rndGen) end
+
+function gauge.make_sym_xy(part)
+   local t = {name = part, initTraj = trivialInitTraj}
+   -- -1/2Nc tr(pl + pl^+)
+   function t.actionDensity(U)
+      local x, y
+      local v = U[1].lattice:Real(0.0)
+      local dim = #U
+      for x = 0, dim - 1 do
+         for y = x + 1, dim - 1 do
+            v = v - gl.action[part](U,x,y)
+         end
+      end
+      return v / U[1]:colors()
+   end
+   -- -1/2Nc sum(tr(pl + pl^+))
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+   -- function t.count(U)
+   --    local v = gl.count[part]
+   --    local L = U[1].lattice
+   --    local x, y
+   --    local i, w
+   --    for i = 0, #L - 1 do
+   --       v = v * L[i]
+   --    end
+   --    w = 0
+   --    for x = 0, #L - 1 do
+   --       for y = x + 1, #L - 1 do
+   --          w = w + v
+   --       end
+   --    end
+   --    return w
+   -- end
+   -- -i/2Nc (pl - pl+)
+   function t.force(U)
+      local x, y
+      local Nc = U[1]:colors()
+      local L = U[1].lattice
+      local dim = #U
+      local F = {}
+      for x = 0, dim - 1 do
+         local Fx = L:ColorMatrixN(Nc,0.0)
+         for y = 0, dim - 1 do
+            if not (x == y) then
+               Fx = Fx + gl.force[part].dx(U,x,y)
+            end
+         end
+         Fx = Fx - Fx:adjoin()
+         F[x + 1] = complex(0,-1/(2*Nc)) * Fx
+      end
+      return F
+   end
+   return t
+end
+
+function gauge.make_gen_xy(part)
+   local t = {name = part, initTraj = trivialInitTraj}
+   -- -1/2Nc tr(pl + pl^+)
+   function t.actionDensity(U)
+      local x, y
+      local v = U[1].lattice:Real(0.0)
+      local dim = #U
+      for x = 0, dim - 1 do
+         for y = 0, dim - 1 do
+            if not (x == y) then
+               v = v - gl.action[part](U,x,y)
+            end
+         end
+      end
+      return v / U[1]:colors()
+   end
+   -- -1/2Nc sum(tr(pl + pl^+))
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+   -- function t.count(U)
+   --    local v = gl.count[part]
+   --    local L = U[1].lattice
+   --    local x, y
+   --    local i, w
+   --    for i = 0, #L - 1 do
+   --       v = v * L[i]
+   --    end
+   --    w = 0
+   --    for x = 0, #L - 1 do
+   --       for y = 0, #L - 1 do
+   --          if not (x == y) then
+   --             w = w + v
+   --          end
+   --       end
+   --    end
+   --    return w
+   -- end
+   -- -i/2Nc (pl - pl+)
+   function t.force(U)
+      local x, y
+      local Nc = U[1]:colors()
+      local L = U[1].lattice
+      local dim = #U
+      local F = {}
+      for x = 0, dim - 1 do
+         local Fx = L:ColorMatrixN(Nc,0.0)
+         for y = 0, dim - 1 do
+            if not (x == y) then
+               Fx = Fx + gl.force[part].dx(U,x,y)
+               Fx = Fx + gl.force[part].dy(U,y,x)
+            end
+         end
+         Fx = Fx - Fx:adjoin()
+         F[x+1] = complex(0,-1/(2*Nc)) * Fx
+      end
+      return F
+   end
+   return t
+end
+
+function gauge.make_sym_xyz(part)
+   local t = {name = part, initTraj = trivialInitTraj}
+   -- -1/2Nc tr(pl + pl^+)
+   function t.actionDensity(U)
+      local x,y,z
+      local Nc = U[1]:colors()
+      local dim = #U
+      local v = U[1].lattice:Real(0.0)
+      for x = 0, dim - 1 do
+         for y = x + 1, dim - 1 do
+            for z = y + 1, dim - 1 do
+               v = v - gl.action[part](U,x,y,z)
+            end
+         end
+      end
+      return v / U[1]:colors()
+   end
+   -- -1/2Nc sum(tr(pl + pl^+))
+   function t.action(U)
+      return t.actionDensity(U):sum() 
+   end
+   -- function t.count(U)
+   --    local v = gl.count[part]
+   --    local L = U[1].lattice
+   --    local x, y
+   --    local i, w
+   --    for i = 0, #L - 1 do
+   --       v = v * L[i]
+   --    end
+   --    w = 0
+   --    for x = 0, dim - 1 do
+   --       for y = x + 1, dim - 1 do
+   --          for z = y + 1, dim - 1 do
+   --             w = w + v
+   --          end
+   --       end
+   --    end
+   --    return w
+   -- end
+   -- -i/2Nc (pl - pl+)
+   function t.force(U)
+      local x, y
+      local Nc = U[1]:colors()
+      local L = U[1].lattice
+      local dim = #U
+      local F = {}
+      for x = 0, dim - 1 do
+         local Fx = L:ColorMatrixN(Nc,0.0)
+         for y = 0, dim - 1 do
+            if not (y == x) then
+               for z = y+1, dim - 1 do
+                  if not (z == y) and not (z == x) then
+                     Fx = Fx + gl.force[part].dx(U,x,y,z)
+                  end
+               end
+            end
+         end
+         Fx = Fx - Fx:adjoin()
+         F[x+1] = complex(0,-1/(2*Nc)) * Fx
+      end
+      return F
+   end
+   return t
+end
+
+function gauge.make_mix_xyz(part)
+   local t = {name = part, initTraj = trivialInitTraj}
+   -- -1/2Nc tr(pl + pl^+)
+   function t.actionDensity(U)
+      local x,y,z
+      local Nc = U[1]:colors()
+      local dim = #U
+      local v = U[1].lattice:Real(0.0)
+      for x = 0, dim - 1 do
+         for y = x + 1, dim - 1 do
+            for z = 0, dim - 1 do
+               if not (z == x) and not (z == y) then
+                  v = v - gl.action[part](U,x,y,z)
+               end
+            end
+         end
+      end
+      return v / U[1]:colors()
+   end
+   -- -1/2Nc sum(tr(pl + pl^+))
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+   -- function t.count(U)
+   --    local v = gl.count[part]
+   --    local L = U[1].lattice
+   --    local x, y
+   --    local i, w
+   --    for i = 0, #L - 1 do
+   --       v = v * L[i]
+   --    end
+   --    w = 0
+   --    for x = 0, dim - 1 do
+   --       for y = x + 1, dim - 1 do
+   --          for z = 0, dim - 1 do
+   --             if not (z == x) and not (z == y) then
+   --                w = w + v
+   --             end
+   --          end
+   --       end
+   --    end
+   --    return w
+   -- end
+   -- -i/2Nc (pl - pl+)
+   function t.force(U)
+      local x, y
+      local Nc = U[1]:colors()
+      local L = U[1].lattice
+      local dim = #U
+      local F = {}
+      for x = 0, dim - 1 do
+         local Fx = L:ColorMatrixN(Nc,0.0)
+         for y = 0, dim - 1 do
+            if not (y == x) then
+               for z = y+1, dim - 1 do
+                  if not (z == y) and not (z == x) then
+                     Fx = Fx + gl.force[part].dx(U,x,y,z)
+                     Fx = Fx + gl.force[part].dx(U,x,z,y)
+                     Fx = Fx + gl.force[part].dz(U,y,z,x)
+                  end
+               end
+            end
+         end
+         Fx = Fx - Fx:adjoin()
+         F[x+1] = complex(0,-1/(2*Nc)) * Fx
+      end
+      return F
+   end
+   return t
+end
+
+gauge.plaq1  = gauge.make_sym_xy("plaq1")
+gauge.rect1  = gauge.make_gen_xy("rect1")
+gauge.chair1 = gauge.make_mix_xyz("chair1")
+gauge.twist1 = gauge.make_sym_xyz("twist1")
+
+gauge.plaq2  = gauge.make_sym_xy("plaq2")
+gauge.rect2  = gauge.make_gen_xy("rect2")
+gauge.chair2 = gauge.make_mix_xyz("chair2")
+gauge.twist2 = gauge.make_sym_xyz("twist2")

@@ -1,0 +1,40 @@
+require "lib/coords"
+require "lib/musing"
+
+-- wrap phase into [-pi, pi) interval
+function wrap(p)
+   return (p + math.pi) % (2*math.pi) - math.pi
+end
+function unwrap_2d_trivial(phases)
+   return phases
+end
+function unwrap_2d_single_path(uwphases, mu, base_coord)
+   local L = uwphases.lattice
+   for x = 1, math.floor(L[mu]/2) do
+      local coord = table_copy(base_coord)
+      coord[mu+1] = (coord[mu+1] + x)%L[mu]
+      local coord_prev = table_copy(base_coord)
+      coord_prev[mu+1] = (coord_prev[mu+1] + x - 1)%L[mu]
+      uwphases[coord] = wrap(uwphases[coord] - uwphases[coord_prev]) + uwphases[coord_prev]
+   end
+   for x = L[mu]-1, math.floor(L[mu]/2)+1, -1 do
+      local coord = table_copy(base_coord)
+      coord[mu+1] = (coord[mu+1] + x)%L[mu]
+      local coord_prev = table_copy(base_coord)
+      coord_prev[mu+1] = (coord_prev[mu+1] + x + 1)%L[mu]
+      uwphases[coord] = wrap(uwphases[coord] - uwphases[coord_prev]) + uwphases[coord_prev]
+   end
+end
+function unwrap_2d_simple_paths(phases)
+   local uwphases = phases
+   local L = phases.lattice
+   assert(#L == 2)
+   assert(L[0] % 2 == 0 and L[1] % 2 == 0)
+   -- t = 0 slice bidirectional
+   unwrap_2d_single_path(uwphases, 0, {0,0})
+   -- bidirectional for each spatial slice
+   for x = 0, L[0]-1 do
+      unwrap_2d_single_path(uwphases, 1, {x,0})
+   end
+   return uwphases
+end

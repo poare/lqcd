@@ -1,0 +1,202 @@
+-- Single action object that is responsible for managing the individual
+-- action components, their forces, and their updates to U.
+
+require "lib/strict"
+
+action = {}
+
+local function log_force(name, d, Fd)
+   local term_name = tostring(name)
+   -- Jansens measure to match Chroma
+   local V = 1
+   for mu = 1, #(Fd.lattice) do V = V * Fd.lattice[mu-1] end
+   local term_norm = math.sqrt(2)*(qcd.dot(Fd,Fd):real():sqrt())
+   local term_avg = term_norm:sum() / V
+   printf("F[%d] %s = %.12g\n", d, term_name, term_avg)
+   local L = Fd.lattice
+   local gather_lat = qcd.lattice{1}
+   local gather_all = qcd.gather(gather_lat, L, {L:Int(0)})
+   local gather_max = gather_all:max(term_norm)[{0}]
+   printf("F_max[%d] %s = %.12g\n", d, term_name, gather_max)
+end
+local function log_action(name, Di)
+   local term_name = tostring(name)
+   local term = Di:sum()
+   printf("S %s = %1.8e\n", term_name, term)
+end
+
+-- Generic color-matrix Hamiltonian object, with E = Pi^2 - S[U] and discrete
+-- leaps `updateX` and `updateP` corresponding to
+--     d/dt X = exp(i dt dH/dPi) X = exp(2 i dt Pi) X
+--     d/dt Pi = dH/dX = - dS/dX.
+-- TODO(gkanwar): "Force" below is really dS/dX! True force is actually the
+-- negative of this. Should update naming.
+-- TODO(gkanwar): What does p stand for here? Naming is weird.
+function action.act(pxx, fnbxx, g, params)
+   local H = {}
+   assert(params.seqRnd ~= nil and params.latRnd ~= nil)
+   local seqRnd = params.seqRnd
+   local latRnd = params.latRnd
+   local log_f = function() end
+   local log_s = function() end
+   if params.verbose == true then
+      log_f = log_force
+      log_s = log_action
+   end
+   local rndGens = {}
+   local function forceElem(X, p, b, t)
+      local L = X[1].lattice
+      local Nc = X[1]:colors()
+      local dim = #X
+      local F = {}
+      for d = 1, dim do
+         F[d] = L:ColorMatrixN(Nc)
+      end
+      for i = 1, #p do
+         local Fi = p[i].force(X)
+         for d = 1, dim do
+            F[d] = F[d] + Fi[d] * b[i](t)
+            log_f(p[i].name, d, Fi[d] * b[i](t))
+         end
+      end
+      return F
+   end
+   local function actionDensityElem(X, p, b, t)
+      -- 1/Nc now explicitly in actionDensity
+      local L = X[1].lattice
+      local D = L:Real()
+      for i = 1, #p do
+         local Di = b[i](t) * p[i].actionDensity(X)
+         D = D + Di
+         log_s(p[i].name, Di)
+      end
+      return D
+   end
+   function H.actionDensity(X, t)
+      local L = X[1].lattice
+      local bnum = #pxx
+      local D = L:Real()
+      for i = 1, #pxx do
+         D = D + actionDensityElem(X, pxx[i], fnbxx[i], t)
+      end
+      return D
+   end
+   function H.momentumDensity(P, t)
+      local dim = #P
+      local D = P[1].lattice:Real(0.0)
+      for d = 1, dim do
+         D = D + qcd.dot(P[d],P[d]):real()
+      end
+      return D
+   end
+   local function getRndGen(L)
+      if rndGens[L] == nil then
+         rndGens[L] = random_generator(L, latRnd[1], latRnd[2])
+      end
+      return rndGens[L]
+   end
+   function H.b(i, j)
+      return fnbxx[i][j]
+   end
+   function H.seqRandom()
+      return seqRnd:random_Real()
+   end
+   function H.latRandom(L)
+      return getRndGen(L):random_Real()
+   end
+   function H.initTraj(X)
+      for i = 1, #pxx do
+         for j = 1, #pxx[i] do
+            pxx[i][j].initTraj(X, getRndGen(X[1].lattice))
+         end
+      end
+   end
+   -- NOTE: This is actually dS/dA = -F (note the sign!)
+   function H.getForce(X, t)
+      local L = X[1].lattice
+      local Nc = X[1]:colors()
+      local dim = #X
+      local F = {}
+      for d = 1, dim do
+         F[d] = L:ColorMatrixN(Nc)
+      end
+      for i = 1, #pxx do
+         local Fi = forceElem(X, pxx[i], fnbxx[i], t)
+         for d = 1, dim do
+            F[d] = F[d] + Fi[d]
+         end
+      end
+      for d = 1, dim do
+         F[d] = g.toAlgebra(F[d])
+      end
+      return F
+   end
+   -- Sample P ~ exp(P^2)
+   function H.newMomentum(X)
+      local dim = #X
+      local Nc = X[1]:colors()
+      local P = {}
+      for d = 1, dim do
+         local L = X[d].lattice
+         P[d] = g.randomAlgebra(getRndGen(L), Nc) / math.sqrt(2)
+      end
+      return P
+   end
+   function H.toGroup(X)
+      local dim = #X
+      local Y = {}
+      for d = 1, dim do
+         Y[d] = g.toGroup(X[d])
+      end
+      return Y
+   end
+   function H.updateX(P, X, t, dt)
+      local dim = #X
+      local Y = {}
+      for d = 1, dim do
+         Y[d] = g.exp(g.toAlgebra(P[d]) * complex(0,2*dt)) * X[d]
+      end
+      return Y
+   end
+   function H.updatePwithF(P, X, t, dt, F)
+      local dim = #P
+      local R = {}
+      for d = 1, dim do
+         R[d] = P[d] - dt * F[d]
+      end
+      return R
+   end
+   function H.updateP(P, X, t, dt)
+      local F = H.getForce(X, t)
+      return H.updatePwithF(P, X, t, dt, F)
+   end
+   function H.lattDelta(old, new)
+      local oldX = old.x
+      local oldP = old.p
+      local oldT = old.t
+      local newX = new.x
+      local newP = new.p
+      local newT = new.t
+      local oldHK = H.momentumDensity(oldP, oldT)
+      local oldHP = H.actionDensity(oldX, oldT)
+      local newHK = H.momentumDensity(newP, newT)
+      local newHP = H.actionDensity(newX, newT)
+      local dP = newHP - oldHP
+      local dK = newHK - oldHK
+      local oldH = oldHK + oldHP -- for debug
+      local newH = newHK + newHP
+      return dP, dK, oldH, newH
+   end
+   function H.delta(old, new)
+      local dP, dK, oldH, newH = H.lattDelta(old, new)
+      return dP:sum(), dK:sum(), oldH:sum(), newH:sum()
+   end
+   function H.reseed(new)
+      new = new or random_seeds_serial(seqRnd, 1)[0]
+      seqRnd, latRnd = make_seq_and_lat_rnds(new, #latRnd[2])
+      rndGens = {}
+      return new
+   end
+   return H
+end
+

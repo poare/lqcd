@@ -1,0 +1,31 @@
+#!/usr/bin/env qlua
+
+SUn = {}
+
+function SUn.toAlgebra(X)
+   local Nc = X:colors()
+   local L = X.lattice
+   return X - L:ColorMatrixN(Nc, 1/Nc) * X:trace()
+end
+
+function SUn.toGroup(X)
+   local Y = X:proj(1e-9, 1000)
+   return Y
+end
+
+function SUn.exp(X)
+   return X:exp()
+end
+
+function SUn.randomAlgebra(rnd, Nc)
+   local X = rnd:gaussian_ColorMatrixN(Nc)
+   return SUn.toAlgebra((X + X:adjoin()) / 2)
+end
+
+function SUn.name(Nc)
+   return string.format("SU(%d)", Nc)
+end
+
+function SUn.tag(Nc)
+   return string.format("su%d", Nc)
+end

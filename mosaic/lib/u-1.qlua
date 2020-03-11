@@ -1,0 +1,28 @@
+#!/usr/bin/env qlua
+
+U1 = {}
+
+function U1.toAlgebra(X)
+   return X
+end
+
+function U1.toGroup(X)
+   return X
+end
+
+function U1.exp(X)
+   return X:exp()
+end
+
+function U1.randomAlgebra(rnd)
+   local X = rnd:gaussian_ColorMatrixN(1)
+   return U1.toAlgebra((X + X:adjoin()) / 2)
+end
+
+function U1.name()
+   return "U(1)"
+end
+
+function U1.tag()
+   return "u1"
+end

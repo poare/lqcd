@@ -1,0 +1,51 @@
+#!/usr/bin/env qlua
+
+require "lib/toAdjoint2"
+require "lib/quda"
+
+-- code to construct a GPU (QUDA-based) solver for propagators
+
+ function GPU_prop(U, csw, kappa, adj)
+   if adj then U = toSO3(U) end
+   local solver = function(rhs)
+     local QS
+     if csw > 0 then
+       QS = qcd.quda.solver(U,
+                                  {t_boundary          = "ANTI_PERIODIC_T"},
+                                  {clover_coeff        = csw * kappa,
+                                   dslash_type         = "CLOVER_WILSON_DSLASH",
+                                   kappa               = kappa,
+                                   mass_normalization  = "MASS_NORMALIZATION",
+                                   inv_type            = "CG_INVERTER",
+                                   solve_type          = "NORMOP_PC_SOLVE",
+                                   tol                 = 1e-12,
+                                   maxiter             = 10000,
+                                   verbosity           = "SILENT",
+                                   cuda_prec_sloppy    = "SINGLE_PRECISION",
+                                   clover_cuda_prec_sloppy = "SINGLE_PRECISION"
+                              });
+     else
+       QS = qcd.quda.solver(U,
+                                  {t_boundary          = "ANTI_PERIODIC_T"},
+                                  {dslash_type         = "WILSON_DSLASH",
+                                   kappa               = kappa,
+                                   mass_normalization  = "MASS_NORMALIZATION",
+                                   inv_type            = "CG_INVERTER",
+                                   solve_type          = "NORMOP_PC_SOLVE",
+                                   tol                 = 1e-12,
+                                   maxiter             = 10000,
+                                   verbosity           = "SILENT",
+                                   cuda_prec_sloppy    = "SINGLE_PRECISION",
+                                   clover_cuda_prec_sloppy = "SINGLE_PRECISION"
+                                });
+     end
+     local solution,ipres = QS:solve(rhs);
+     printf("  QS solver iparams output:\n");
+     printf("     .iter      = %d\n", ipres.iter);
+     printf("     .true_res  = %g\n", ipres.true_res);
+     QS:close();
+     return(solution)
+    end
+    return solver
+  end
+

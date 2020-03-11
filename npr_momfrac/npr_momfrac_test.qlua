@@ -117,20 +117,20 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
 
-  -- local src = compute_point_source(U, origin)
+  local src = compute_point_source(U, origin)
   -- local src = compute_spacetime_wall_source_antiperiodicBC(U, {0, 0, 0, 0})
-  --print("Computing point source")
-  --local pt_prop = compute_propagator(U, ferm_prop, src)
-  --print("point source computed")
+  print("Computing point source")
+  local pt_prop = compute_propagator(U, ferm_prop, src)
+  print("Point source computed")
 
   -- Determine propagators to compute. Use some point sources, some momentum sources, etc.
   -- Will need to replace the "prop" term in get_sequential_source with an iteration over
   -- all propagators in S_list
   -- add in any propagators I want in S_list, then also add momentum sources.
-  --local S_list = {pt_prop}
-  local S_list = {}
+  local S_list = {pt_prop}
   -- Run with 3 different wall sources to see how it goes. TODO try point sources.
-  -- local S_p_list = {{0, 0, 0, 0}, {2, 2, 2, 2}, {4, 4, 4, 4}}
+  --[[
+  local S_list = {}
   local S_p_list = {{0, 0, 0, 0}, {1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}}
   for i = 1, #S_p_list do
     local p = S_p_list[i]
@@ -140,6 +140,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
     local prop = compute_propagator(U, ferm_prop, src)
     S_list[#S_list + 1] = prop
   end
+  ]]
 
   -- TODO test for O11, O22, etc. Later for just the operator, only need to compute for 33 - 44
   for i = 1, #S_list do
