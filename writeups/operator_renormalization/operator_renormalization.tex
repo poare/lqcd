@@ -1,0 +1,656 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage[margin = 1in]{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[shortlabels]{enumitem}
+\usepackage{float}
+\usepackage{tikz-cd}
+\usepackage[compat=1.0.0]{tikz-feynman}   %note you need to compile this in LuaLaTeX for diagrams to render correctly
+\usepackage{slashed}
+\usepackage{simpler-wick}
+\usepackage{subcaption}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+
+% make arrow superscripts
+\DeclareFontFamily{OMS}{oasy}{\skewchar\font48 }
+\DeclareFontShape{OMS}{oasy}{m}{n}{%
+         <-5.5> oasy5     <5.5-6.5> oasy6
+      <6.5-7.5> oasy7     <7.5-8.5> oasy8
+      <8.5-9.5> oasy9     <9.5->  oasy10
+      }{}
+\DeclareFontShape{OMS}{oasy}{b}{n}{%
+       <-6> oabsy5
+      <6-8> oabsy7
+      <8->  oabsy10
+      }{}
+\DeclareSymbolFont{oasy}{OMS}{oasy}{m}{n}
+\SetSymbolFont{oasy}{bold}{OMS}{oasy}{b}{n}
+
+\DeclareMathSymbol{\smallleftarrow}     {\mathrel}{oasy}{"20}
+\DeclareMathSymbol{\smallrightarrow}    {\mathrel}{oasy}{"21}
+\DeclareMathSymbol{\smallleftrightarrow}{\mathrel}{oasy}{"24}
+%\newcommand{\cev}[1]{\reflectbox{\ensuremath{\vec{\reflectbox{\ensuremath{#1}}}}}}
+\newcommand{\vecc}[1]{\overset{\scriptscriptstyle\smallrightarrow}{#1}}
+\newcommand{\cev}[1]{\overset{\scriptscriptstyle\smallleftarrow}{#1}}
+\newcommand{\cevvec}[1]{\overset{\scriptscriptstyle\smallleftrightarrow}{#1}}
+
+\newcommand{\dbar}{d\hspace*{-0.08em}\bar{}\hspace*{0.1em}}
+%SetFonts
+
+
+
+
+\title{Operator Renormalization}
+\author{Patrick Oare}
+\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+\section{Local Operator Renormalization}
+
+Renormalization of a theory is often seen as a program that replaces the bare couplings and fields in a Lagrangian by 
+renormalized quantities to make the observable quantities we can compute from a theory finite in the UV or the IR. 
+However, renormalization can be viewed from a much more general perspective in terms of local composite operators. 
+A \textbf{local composite operator} is an operator $\mathcal O(x)$ which is built up from the fields and derivatives in a theory 
+at a single spacetime point $x$. Schematically for a theory with fermion fields $\{\Psi_i(x)\}$ and a gauge field $A_\mu$, 
+such an operator looks like:
+\begin{equation}
+	\mathcal O_{\mu ...\nu \rho ... \sigma}(x) = \mathcal Z_{\mathcal O} D_{\mu}...D_{\nu} A_{\sigma} ... A_{\rho} 
+	\Gamma_{\ell_1} ... \Gamma_{\ell_k} \Psi_{i_1} ... \Psi_{i_k} \overline \Psi_{j_1} ... \overline\Psi_{j_k}
+\end{equation}
+where $\mathcal Z_{\mathcal O}$ is a normalization constant which we will use to renormalize the operator $\mathcal O$, 
+and $\Gamma$ is any matrix with a Dirac structure. The operator can have any number of spin indices that one wants, but 
+often we will consider a relatively small value for its spin because the operators which are dominant in the OPE 
+are those with the smallest twist\footnote{The twist of an operator is its spin $s$ (number of Lorentz indices) minus the mass 
+dimension $d$. Operators must have twist $\geq 2$, so we will often consider twist 2 operators.}. 
+
+Even after renormalizing all the fields and couplings in the Lagrangian, matrix elements of composite operators are often 
+divergent, which is why we need to renormalize them separately. Take for example the renormalization of the operator 
+$\mathcal O := \phi^2$ in the $\phi^4$ scalar field theory. When we renormalize the bare field $\phi_0 = \mathcal Z_\phi(\mu)
+\phi(\mu)$, this does not immediately renormalize $\mathcal O$. This is because as an operator, $\phi^2$ is implicitly the 
+normal ordering $:\phi^2:$ of the actual $\phi^2$ operator. Because of this normal ordering, renormalization constants 
+are not multiplicative\footnote{More on that here: https://www.physicsoverflow.org/27963/renormalization-determined-renormalization-elementary}, i.e. we cannot just take $\mathcal O = \mathcal Z(\mu)^2$. 
+
+To renormalize a composite operator, it suffices to compute a (divergent) Green's function and impose renormalization 
+conditions on that. Typically the renormalization condition on this Green's function will be setting it equal to its 
+tree level value. 
+
+When we study composite operator renormalization, we do not need to even insert the operator into the Lagrangian. Instead, 
+we will view the operator $\mathcal O$ we wish to renormalize as an \textbf{external operator} which is separate from the 
+theory's Lagrangian. The goal of renormalizing $\mathcal O$ is to make any Green's function of $\mathcal O$ with another 
+operator finite, and we can do this without introducing a coupling. Later we will see what happens when we renormalize 
+an external operator then add it to a Lagrangian; based on the operator renormalization, we will immediately be able 
+to read off how its Wilson coefficient flows. 
+
+For any of these computations, we will need to understand how to diagrammatically compute Green's functions. We can use 
+what Schwartz calls \textbf{off-shell Feynman rules} to diagrammatically compute this Green's function. Off-shell Feynman 
+rules are the same as the typical Feynman rules for a theory, with some extra caveats:
+\begin{itemize}
+	\item We replace external polarizations with propagators. Because of this, we will often want to consider amputated 
+	Green's functions without the propagators as the objects to renormalize. 
+	\item Current insertions have their own set of rules, and are taken at non-zero momenta. This means currents 
+	inject momentum into our diagrams, and this must be considered when labeling all the momenta. 
+	\item We do not always ``work backwards" from the tip of the arrow to its bottom when computing diagrams with 
+	fermion lines (as we will see in the example). 
+\end{itemize}
+
+The main tool we will use to expand these diagrams in perturbation theory is the following relation between operators  in 
+the interacting theory and operators in the free theory:
+\begin{equation}
+	\langle 0 | T\left\{\mathcal O_1(x_1) ...\mathcal O_n(x_n)\right\} | 0 \rangle = \frac{1}{\mathcal A}\langle 0 | 
+	T\left\{\exp\left[i\int d^4z\, \mathcal L_{int}^0(z)\right] \mathcal O_1^0(x_1) ... \mathcal O_n^0(x_n))\right\} | 0\rangle~
+	\label{eq:free_expansion}
+\end{equation}
+where $\mathcal O^0$ denotes an operator in the free theory, and $\mathcal L_{int}^0$ is the interaction Lagrangian 
+in the free theory. $\mathcal A$ is a normalization given by:
+\begin{equation}
+	\mathcal A = \langle 0 | T \left\{\exp\left(i\int d^4 z\,\mathcal L_{int}^0(z)\right)\right\} | 0\rangle
+\end{equation}
+With this expansion, we can draw Feynman diagrams. Intuitively it helps to compare this to a derivation of Feynman 
+diagrams in Schwartz, where he shows how to compute $n$-point functions diagrammatically using Equation 7.64 to 
+relate them to their free field values:
+\begin{equation}
+	\langle 0 | T\left\{\phi(x_1) ... \phi(x_n)\right\} | 0\rangle = \frac{1}{\mathcal A} \langle 0 | T\left\{\exp\left[i\int d^4z\, \mathcal 
+	L_{int}^0(z)\right]\phi^0(x_1) ... \phi^0(x_n)\right\} | 0\rangle
+\end{equation}
+The key point in this equation (as in Equation~\ref{eq:free_expansion}) is that we can Taylor expand the exponential and 
+contract the fields on the right hand side of the equation to give ourselves propagators and derive Feynman rules for the 
+theory. 
+
+Once we renormalize an operator, an important quantity to compute is the operator's \textbf{anomalous dimension} 
+$\gamma_\mathcal{O}$, which describes how the operator flows under renormalization:
+\begin{equation}
+	\gamma_\mathcal{O} := -\frac{\mu}{Z_\mathcal{O}}\frac{d \mathcal{Z_{\mathcal O}}}{d\mu} = -\mu\frac{d}{d\mu}\log
+	\mathcal Z_\mathcal{O}
+\end{equation}
+Once we have determined the counterterm for the operator $\mathcal{Z_\mathcal{O}}$, we can immediately get the anomalous 
+dimension. This quantity acts similarly to the $\beta$ function for a coupling, and also appears in the Callan-Symanzik 
+equation on equal terms. 
+
+TODO discuss Callan-Symanzik.
+
+\subsection{Example: QED current}
+
+We will do an example in QED, and compute the renormalization of $j^\mu(x) = \overline \psi(x)\gamma^\mu \psi(x)$. 
+The simplest non-vanishing Green's function involving $j^\mu(x)$ is the three point function, which we will expand 
+in momentum space:
+\begin{equation}
+	\langle j^\mu(x) \psi(x_1) \overline\psi(x_2)\rangle = \int \dbar^4 p\,\dbar^4 q_1\,\dbar^4 q_2\, e^{-ipx}e^{-ip_1 x_1}
+	e^{iq_2x_2} i\mathcal M^\mu(p, q_1, q_2) (2\pi)^4 \delta^4(p + q_1 - q_2)
+\end{equation}
+We have chosen the signs on the momenta to replicate a current insertion of momentum $p$; namely, if a particle is 
+propagating initially with momentum $q_1$, the current insertion knocks the momentum of the particle so that:
+\begin{equation}
+	q_2 = p + q_1
+\end{equation}
+
+We will compute this in perturbation theory to one loop and associate a diagram with each term. Using the expansion in 
+Equation~\ref{eq:free_expansion}, we can expand the exponential to one loop:
+\begin{equation}
+	\exp\left(i\int d^4z\,\mathcal L_{int}^0(z)\right) \sim 1 + i\int d^4 z\, \mathcal L_{int}^0 + \frac{i^2}{2} \int d^4 z\, d^4 z'\, 
+	\mathcal L_{int}^0(z) \mathcal L_{int}^0(z') + ...
+\end{equation}
+When inserted into the equation, the first piece gives the tree level vertex and the piece with two integrals gives the first 
+loop correction. Plugging in at first order, we can use Wick's theorem to evaluate the free field correlators (here $\alpha, 
+\beta, \rho, \sigma$ are Dirac indices):
+\begin{align}
+	\langle j^\mu(x) \psi(x_1) \overline\psi(x_2)\rangle_\textnormal{tree} &= \langle j^\mu_0(x) \psi_0(x_1) 
+	\overline\psi_0(x_2)\rangle \\
+	&= \langle \wick{
+		\c1{\overline\psi_0^\alpha}(x) \gamma^\mu_{\alpha\beta} \c2{\psi_0^\beta}(x) \c1{\psi_0^\rho}(x_1) 
+		\c2{\overline \psi_0^\sigma}(x_2) 
+	}\rangle \\ 
+	&= S(x_1, x) \gamma^\mu S(x, x_2)
+\end{align}
+as $\langle \psi(x) \overline \psi(y)\rangle = S(x, y) = i\int \dbar^4 k\,\frac{e^{-ik(x - y)}}{\slashed{k} - m}$. We can take this tree 
+level result to momentum space, where we see:
+\begin{align}
+	\mathcal M^\mu(p, q_1, q_2)_\textnormal{tree} &= \int d^4 x\,d^4 x_1\, d^4x_2\, e^{ipx}e^{iq_1 x_1} e^{-iq_2 x_2} \langle 
+	j^\mu(x) \psi(x_1)\overline\psi(x_2)\rangle_{tree} \nonumber \\
+	&= \int d^4 x\,d^4 x_1\, d^4x_2\, e^{ipx}e^{iq_1 x_1} e^{-iq_2 x_2} \int \dbar^4 k\, \int \dbar^4 k'\, 
+	\frac{ie^{-ik(x_1 - x)}}{\slashed{k} - m} \gamma^\mu \frac{ie^{-ik'(x - x_2)}}{\slashed{k'} - m} \nonumber \\
+	&= \int\dbar^4 k\,\dbar^4 k'\, d^4 x\, d^4 x_1\,d^4 x_2 e^{i(p + k - k')x}e^{i(q_1 - k)x_1}e^{i(k' - q_2)x_2} 
+	\frac{i}{\slashed k - m}\gamma^\mu\frac{i}{\slashed k' - m} \nonumber\\
+	&= \frac{i}{\slashed q_1 - m} \gamma^\mu\frac{i}{\slashed q_2 - m}\delta^4(p + q_1 - q_2)
+\end{align}
+where we leave the delta function in to emphasize that we \textbf{must enforce momentum conservation from current 
+insertion}. Diagrammatically, this corresponds to the diagram
+\begin{equation}
+\begin{gathered}
+\feynmandiagram [large, horizontal'=a to c] {
+%a [particle = \(q_1\)] -- [insertion = {[size = 6pt, style = red] .5}] c [particle = \(q_2\)]
+a [particle = \(q_1\)] -- [fermion] b [dot, style = red],
+b -- [fermion] c [particle = \(q_2\)]
+};
+\end{gathered}~
+\label{eq:current_insertion}
+\end{equation}
+where the red dot denotes a current insertion of momentum $p$. 
+
+Now we move towards the actual process of renormalization: we can expand Equation~\ref{eq:free_expansion} to 
+one loop and compute the one loop 1PI correction, then renormalize the operator. This is going to get very tiring very soon, 
+but I think it is instructive to get familiar with where the Feynman rules come from for operator insertions. At one 
+loop, we pick up the $(\mathcal L_{int}^0)^2$ piece in our free theory Green's function (recall $\mathcal L_{int}^0(z) = 
+-e\overline\psi_0(z) \slashed A^0(z) \psi_0(z)$). This gives us (also switching the Dirac indices to be Latin indices because 
+there are a lot of them and I don't know the entire Greek alphabet):
+\begin{align}
+	\langle j^\mu(x) \psi^a(x_1)\overline \psi^b(x_2)\rangle_\textnormal{1-loop} = -\frac{e^2}{2}\int d^4z\, d^4z'\,\langle 
+	\overline\psi_0^c(z) 
+	&\gamma^\nu_{cd} A_\nu^0(z) \psi_0^d(z)
+	\times\nonumber \\
+	\overline\psi_0^e(z')\gamma^\lambda_{ef} A_\lambda^0(z')\psi_0^f(z')
+	&\overline\psi_0^g(x) \gamma_{gh}^\mu \psi_0^h(x) \psi_0^a (x_1) \overline \psi_0^b(x_2)\rangle 
+\end{align}
+We now have to sum on all contractions of each of the fields. However, we can simplify this by remembering that we are only 
+dealing with connected, 1PI diagrams and throw away many of the contractions. Namely, the general structure of the correlator 
+will look like this:
+\begin{equation}
+	\langle j^\mu(x) \psi^a(x_1)\overline \psi^b(x_2)\rangle_\textnormal{1-loop}\sim \frac{(-ie)^2}{2}\int \langle A(z) A(z')\rangle 
+	\langle \overline\psi(z) \psi(z) \overline\psi(z') \psi(z') \overline\psi(x)\psi(x) \overline\psi(x_1)\psi(x_2)\rangle
+	\nonumber
+\end{equation}
+where we sum over contractions for the fermionic correlator. Because the photon propagator $S^{(\gamma)}_{\nu\lambda}(z, 
+z') = \langle A_\nu^0(z) A_\lambda^0(z')\rangle$ already connects the $z$ and $z'$ points, this limits the structure of this to 
+two specific contractions:
+\begin{equation}
+	\langle j^\mu(x) \psi^a(x_1)\overline \psi^b(x_2)\rangle_\textnormal{1-loop} \sim\frac{(-ie)^2}{2}\int S^{(\gamma)}_{z, z'}
+	\left[
+	\langle \wick{
+	\c1{\overline \psi_z} \c2{\psi_z} \c3{\overline\psi_{z'}}  \c4{\psi_{z'}} \c2{\overline\psi_x} \c3{\psi_x} \c1{\psi_{x_1}}
+	\c4{\overline\psi_{x_2} }
+	}\rangle + \langle \wick{
+	\c1{\overline \psi_z} \c2{\psi_z} \c3{\overline\psi_{z'}}  \c4{\psi_{z'}} \c4{\overline\psi_x} \c1{\psi_x} \c3{\psi_{x_1}} 
+	\c2{\overline\psi_{x_2}}
+	} \rangle \right]
+	\nonumber
+\end{equation}
+Diagrammatically, two diagrams which contribute look like this:
+\begin{equation}
+\begin{gathered}
+\feynmandiagram [small, horizontal'=a to b] {
+a [particle = \(z\)] -- [boson] b [particle = \(z'\)],
+c [particle = \(x\)] -- a,
+c -- b,
+d [particle = \(x_1\)] -- a,
+e [particle = \(x_2\)] -- b
+};
+\end{gathered}~
+\label{eq:1pi}
+\end{equation}
+where the second term has the $z$ and $z'$ vertices flipped. These will end up being the same and canceling the factor of 1/2. 
+
+We only get these two contractions for a few reasons. 
+First, because of the photon propagator connecting $z$ and $z'$, we cannot contract the fermion fields at $z$ and $z'$ 
+together. If we did, we would get a graph which is not 1P1, because we could cut the bubble out of the diagram. Second, 
+we cannot contract the $x_1$ and $x_2$ points together, or else we would have a disconnected diagram, hence we must 
+contract $x_1$ and $x_2$ to one of $z$ or $z'$ (therefore we have two diagrams). This is easiest to see pictorially-- in the 
+manner of the previous diagram. 
+
+So, we have reduced this computation to calculating (now restoring the Dirac structure):
+\begin{align}
+	\langle j^\mu(x) \psi^a(x_1)\overline \psi^b(x_2)\rangle_\textnormal{1-loop} &= (-ie)^2 \int d^4z\,d^4z' S^{(\gamma)}_{\nu 
+	\lambda}(z, z') \langle \wick{
+	\c1{\overline \psi_z^c} \gamma^\nu_{cd} \c2{\psi_z^d} \c3{\overline\psi^e_{z'}} \gamma^\lambda_{ef} \c4{\psi_{z'}^f} 
+	\c2{\overline\psi_x^g} \gamma^\mu_{gh} \c3{\psi_x^h} \c1{\psi_{x_1}^a}
+	\c4{\overline\psi_{x_2}^b}
+	}\rangle \nonumber \\
+	&= (-ie)^2 \int d^4 z\, d^4 z' S^{(\gamma)}_{\nu\lambda}(z, z') S^{ac}(x_1, z) \gamma^\nu_{cd} S^{dg}(z, x) 
+	\gamma^\lambda_{ef}S^{he}(x, z') \gamma_{gh}^\mu S_{fb}(z', x_2) \nonumber \\
+	&= (-ie)^2 \int d^4 z \int d^4 z' S_{\nu\lambda}^{(\gamma)}(z, z') S(x_1, z)\gamma^\nu S(z, x) \gamma^\mu S(x, z') 
+	\gamma^\lambda S(z', x_2)
+\end{align}
+where:
+\begin{equation}
+	S^{(\gamma)}_{\mu\nu}(x, y) = \int d^4k\frac{-ie^{ik(x - y)}g_{\mu\nu}}{k^2 + i\epsilon}
+\end{equation}
+is the photon propagator. We can now plug this into our expression for $\mathcal M^\mu(p, q_1, q_2)$ and associate a 
+one-loop diagram to this computation (where the measure $d^{20}x = d^4x\,d^4x_1\,d^4 x_2\,d^4z\,d^4z'$):
+\begin{align}
+	\mathcal M^\mu&(p, q_1, q_2)_\textnormal{1-loop} = (-ie)^2\int d^{20} x\,e^{i(px + q_1 x_1 - q_2 x_2)} 
+	S_{\nu\lambda}^{(\gamma)}(z, z') S(x_1, z)\gamma^\nu S(z, x) \gamma^\mu S(x, z') \gamma^\lambda S(z', x_2) 
+	\nonumber \\
+	&= (-ie)^2 \int d^{20}x \dbar^{20}k\, e^{i(px + q_1 x_1 - q_2 x_2)}\frac{-ie^{ik(z - z')}}{k^2}
+	\frac{ie^{-ik_1(x_1 - z)}}{\slashed k_1 - m}\gamma^\nu \frac{ie^{-ik_2(z - x)}}{\slashed k_2 - m} \gamma^\mu \frac{ie^{-ik_3 
+	(x - z')}}{\slashed k_3 - m} \gamma_\nu \frac{ie^{-ik_4 (z' - x_2)}}{\slashed k_4 - m} \nonumber \\
+	&= (-ie)^2 \int d^{20}x \dbar^{20} k\, e^{i(p + k_2 - k_3)x}e^{i(k + k_1 - k_2)z} e^{i(k_3 - k_4 - k)z'}e^{i(q_1 - k_1)x_1}
+	e^{-i(q_2 - k_4)x_2} \times \nonumber \\
+	&\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \left(\frac{-i}{k^2} \frac{i}{\slashed k_1 - m} \gamma^\nu \frac{i}{\slashed k_2 - m}
+	\gamma^\mu\frac{i}{\slashed k_3 - m} \gamma_\nu \frac{i}{\slashed k_4 - m}\right) \nonumber \\
+	&= (-ie)^2 \frac{i}{\slashed q_1 - m}\left[\int\dbar^4 k \frac{i}{k^2}\gamma^\nu \frac{i}{\slashed q_1 + \slashed k - m}
+	\gamma^\mu \frac{i}{\slashed q_2 + \slashed k - m}\gamma_\nu\right]\frac{i}{\slashed q_2 - m}
+\end{align}
+The delta functions enforce momentum conservation at each vertex in the following diagram, and we can thus 
+encode this amplitude using the off-shell Feynman rules on the following diagram, where the current insertion 
+injects momentum $p$ into the diagram, as well as a $\gamma^\mu$ factor. Our result is thus:
+\begin{align}
+	i\mathcal M^\mu(p, q_1, q_2)_\textnormal{1-loop} &= \begin{gathered}
+	\feynmandiagram[large, horizontal' = a to b] {
+	a -- [boson, reversed momentum' = \(k\)]b,
+	%a -- [fermion, half left, momentum = \(k + q_1\), insertion = {[size = 6pt, style = red] .5}] b,
+	a -- [fermion, momentum = \(q_1 + k\)] e [dot, style = red],
+	e -- [fermion, momentum = \(q_2 + k\)] b,
+	c -- [fermion, momentum = \(q_1\)] a,
+	b -- [fermion, momentum = \(q_2\)] d 
+	};
+	\end{gathered} \\
+	&= (-ie)^2 \frac{i}{\slashed q_1 - m}\left[\int\dbar^4 k \frac{i}{k^2}\gamma^\nu \frac{i}{\slashed q_1 + \slashed k - m}
+	\gamma^\mu \frac{i}{\slashed q_2 + \slashed k - m}\gamma_\nu\right]\frac{i}{\slashed q_2 - m}
+\end{align}
+where $q_2 = p + q_1$ is the result of current insertion at the red dot in the diagram. At this point, we can evaluate this loop 
+integral in dimensional regularization. Stripping off the mass dimensions of the electron coupling with 
+$e\mapsto \mu^{\epsilon}e$ in $d = 4 - \epsilon$ dimensions, we have:
+\begin{equation}
+	i\mathcal M^\mu(p, q_1, q_2) = i\mathcal M^\mu_\textnormal{tree}(p, q_1, q_2) \frac{e^2}{16\pi^2}\frac{2}{\epsilon}
+\end{equation}
+
+To finish our renormalization process, we must include the counterterm diagram as well by expanding $\mathcal Z_j = 1 + 
+\delta_j$ in the Green's function. We have:
+\begin{align}
+	\delta_j \mathcal M^\mu(p, q_1, q_2) &= 
+	\begin{gathered}
+        \feynmandiagram [large, horizontal'=a to c] {
+        a [particle = \(q_1\)] -- [fermion] b [crossed dot, style = red],
+b -- [fermion] c [particle = \(q_2\)]
+};
+\end{gathered} \\
+&= i\mathcal M^\mu_\textnormal{tree}(p, q_1, q_2) \delta_j
+\end{align}
+where the red $\otimes$ denotes a counterterm insertion. We can thus read off the counterterm:
+\begin{equation}
+	\delta_j = -\frac{e^2}{16\pi^2}\frac{2}{\epsilon}
+\end{equation}
+
+Now that we have read off the counterterm, the bulk of the work is done! Notice that this calculation is much easier to do 
+diagrammatically with Feynman rules than from first principles; however, I wanted to illustrate how to do build up and 
+motivate Feynman rules for operator insertions, i.e. the off-shell Feynman rules that Schwartz discusses. Note that in 
+this case, we read the fermion arrow from backwards to forwards because of the position of the propagators. In general, 
+I would suggest doing Wick contractions at tree level first to determine the order of the propagators in the diagram, and then 
+using this to move to the loop diagrams. 
+
+To compute the anomalous dimension, the bare current can be expressed as:
+\begin{equation}
+	J_{bare}^\mu = \overline\psi_0\gamma^\mu\psi_0 = \mathcal Z_J^{-1}\mathcal Z_\psi J_R^\mu
+\end{equation}
+where $\psi_0$ is the bare field. Since this is purely a function of the bare parameters, it cannot run with $\mu$. Using 
+$\mathcal Z_J = \mathcal Z_\psi$, we can differentiate this to find:
+\begin{equation}
+	\mu \frac{dJ^\mu}{d\mu} = 0
+\end{equation}
+where $J^\mu$ is the renormalized current. 
+
+% TODO study amputated Green's functions
+
+
+
+\section{Regularization-Independent Momentum Subtraction (RI-MOM)}
+
+The RI-MOM scheme (also known as Rome-Southampton) is a renormalization scheme well equipped to deal with 
+the lattice, namely because we can calculate the relevant quantities that define the scheme easily on the lattice. The 
+lattice spacing $a$ provides us a with a natural UV regulator, and RI-MOM will tell us how to go from such a regulated 
+result to a physical observable quantity. 
+
+The RI-MOM has a relatively simple renormalization condition. We will define it here for an arbitrary Green's function, 
+for example a three point function. For a renormalization scale $\mu$ and working in a fixed gauge, \textbf{we 
+define the amputated, renormalized Green's function at momentum $p^2 = -\mu^2$ to be equal to its tree level 
+value}. 
+
+We will denote bare quantities as $a^{(0)}$, and renormalized quantities with a $R$ subscript, when appropriate. 
+Note that any quantities computed directly on the lattice are bare, and the entire point of using RI-MOM is to extract 
+a sensible definition for these bare quantities. 
+
+In practice on the lattice, there are two things that we must compute. We will work with a specific example here for a 
+given quark field $q(x)$. Suppose the operator we are trying to compute is $\mathcal O(z)$. We will renormalize the 
+three point function:
+\begin{equation}
+	G(p) = \frac{1}{V}\sum_{x, y, z}e^{ip\cdot (x - y)}\langle q(x)\mathcal O(z) \overline{q}(y)\rangle~
+	\label{eq:green}
+\end{equation}
+i.e. we are projecting the source and sink to a definite momentum and projecting the operator $\mathcal O(z)$ to zero 
+momentum. 
+
+We also will need to compute the momentum projected propagator:
+\begin{equation}
+	S(p) = \frac{1}{V}\sum_{x, y}e^{ip\cdot(x - y)} S(x, y)
+\end{equation}
+where $S^{ab}_{ij}(x, y) = \langle q^a_i(x)\bar q^b_j(y)\rangle$ is the standard propagator. On the lattice, the two objects that 
+we must compute directly are $S(p)$ and $G(p)$, and everything else follows once we have these quantities. 
+
+To explain the method, our goal is to compute the operator renormalization:
+\begin{equation}
+	\mathcal O_R(\mu) = \mathcal Z(\mu) \,\mathcal O^{(0)}
+\end{equation}
+where $\mathcal O_R(\mu)$ is our renormalized operator, $\mathcal Z(\mu)$ is the renormalization coefficient of 
+interest, and $\mathcal O_{lat}$ is the lattice (bare) operator. We will also assume the quark fields have been 
+renormalized by some quark field renormalization $\mathcal Z_q$ (note this is the opposite convention studied in 
+many QFT classes):
+\begin{equation}
+	q_R(\mu) = \sqrt{\mathcal Z_q}\,q^{(0)}
+\end{equation}
+There is an analytical expression for $\mathcal{Z}_q$ on the lattice in the RI-MOM scheme, and it has been determined 
+to be:
+\begin{equation}
+	\mathcal Z_q(p)|_{p^2 = -\mu_R^2} = \left[\frac{tr\left\{-i\sum_{\nu = 1}^4 \gamma_\nu \sin(ap_\nu) a S(p)^{-1}\right\}}{12\sum_{\nu = 1}^4 \sin^2(ap_\nu)}\right]_{p^2 = -\mu^2}
+\end{equation}
+The twelve on the bottom is a normalization $12 = 3\times 4$ for the number of color and number of spin indices, which we will 
+see in many of the expressions. 
+
+Let $\Gamma(p)$ be the \textbf{amputated three point function}, bare or renormalized. We can relate $\Gamma$ to the other 
+quantities we have already computed by using the inverse propagator to manually cut the legs off the full three 
+point function:
+\begin{equation}
+	\Gamma(p) = S(p)^{-1} G(p) S(p)^{-1}
+\end{equation}
+We will denote the tree level version of this by $\Gamma_B$, where the $B$ subscript stands for ``Born". 
+
+Using our quantities already computed on the lattice, we can compute the bare $\Gamma^{(0)}(p)$ directly in terms 
+of the renormalized quantities. In the continuum limit, the renormalized Green's function will be:
+\begin{align}
+	G_R(p; \mu) &= \int d^4x \, d^4 y\, d^4 z\, e^{ip\cdot (x - y)} \langle q_R(x; \mu) \mathcal O_R(z; \mu) \overline 
+	q_R(y; \mu) 
+	\rangle \\
+	&= \mathcal Z_q(\mu) \mathcal Z(\mu) \int d^4x \, d^4 y\, d^4 z\, e^{ip\cdot (x - y)} \langle q^{(0)}(x) \mathcal O^{(0)}
+	(z) q^{(0)}(y) \rangle \\
+	&= \mathcal Z_q(\mu) \mathcal Z(\mu) G^{(0)}(p)
+\end{align}
+Similarly, the bare and renormalized propagators are related as:
+\begin{equation}
+	S_R(p; \mu) = \int d^4x d^4 y\, e^{ip\cdot(x - y)}\langle q_R(x; \mu)\overline q_R(y; \mu)\rangle = \mathcal Z_q(\mu) 
+	S^{(0)}(p)
+\end{equation}
+These relation translates immediately to the amputated Green's function $\Gamma(p)$, as $S^{-1}_R(p; \mu) = \mathcal 
+Z_q^{-1}(\mu) (S^{(0)})^{-1}$ we see that:
+\begin{equation}
+	\Gamma_R(p; \mu) = \mathcal Z_q(\mu)^{-1}\mathcal Z(\mu) \Gamma^{(0)}(p)
+\end{equation}
+
+We are now in a position to apply the renormalization condition. We must equate the renormalized, amputated Green's function 
+to the tree level Green's function $\Gamma_B(p)$. This gives us:
+\begin{equation}
+	\mathcal Z_q(\mu)^{-1}\mathcal Z(\mu) \Gamma(p) = \Gamma_B(p)
+\end{equation}
+Dividing by a conventional factor of 12 as a normalization and inverting, we can clean this expression up into a simple equation 
+for $\mathcal Z(\mu)$:
+\begin{equation}
+	\mathcal Z(p^2 = -\mu^2) = \left[\frac{12\mathcal Z_q(p)}{tr\left\{\Gamma(p)\Gamma_B(p)^{-1}\right\}}\right]_{p^2 
+	= -\mu^2}
+\end{equation}
+
+\section{Matching to a continuum scheme}
+
+\section{Example: Isospin}
+
+We are interested here in computing matrix elements of the operator:
+\begin{equation}
+	\mathcal O(z) = \mathcal O_u(z) - \mathcal O_d(z)~
+	\label{eq:operator_dfn}
+\end{equation}
+where the quark operators $\mathcal O_q$ are given by
+\begin{equation}
+	\mathcal O_q(z) = \frac{1}{\sqrt{2}}(\mathcal T^q_{33}(z) - \mathcal T^q_{44}(z))
+\end{equation}
+and the irreducible tensor operators $\mathcal T^q_{\mu\nu}$ are defined as
+\begin{equation}
+	\mathcal T^q_{\mu\nu} = \overline q(z)\, \gamma_{\{\mu} \cevvec{D}_{\nu\}}\, q(z)
+\end{equation}
+with $\cevvec D = \vec D - \cev D$ the symmetrized covariant derivative. Note we define the symmetric and traceless 
+component of a tensor to be:
+\begin{equation}
+	a_{\{\mu}b_{\nu\}} = \frac{1}{2}(a_\mu b_\nu + a_\nu b_\mu) - \frac{1}{4}a_\alpha b^\alpha g_{\mu\nu}
+\end{equation} 
+
+We are inserting the operator $\mathcal O_q$ with momentum $\vec p = 0$. We will focus our analysis on the tensor operator 
+$\mathcal T^q_{\mu\mu}$ (note there is no sum on $\mu$ here), and note that $\mathcal O(z)$ can be obtained through 
+linearity. We may write:
+\begin{equation}
+	\sum_z\mathcal T^q_{\mu\mu}(z) = \sum_{z, z'}\overline q(z)\, J_\mu(z, z')\,q(z')~
+	\label{eq:operator_mom_proj}
+\end{equation}
+Plugging in the definition of the derivatives:
+\begin{align}
+	\vec D\psi(z) &= \frac{1}{2}\left(U_\mu(z)\psi(z + \hat\mu) - U_\mu(n - \hat\mu)^\dagger \psi(z - \hat\mu)\right) \\
+	\overline\psi(z) \cev D &= \frac{1}{2}\left(\overline\psi(z + \hat\mu)U_\mu(z)^\dagger - 
+	\overline\psi(z - \hat\mu) U_\mu(z - \hat\mu)\right)
+\end{align}
+we find the current $J_\mu(z, z')$ is:
+\begin{equation}
+	J_\mu(z, z') = \left[U_\mu(z) \delta_{z + \hat\mu, z'} - U_\mu(z')^\dagger\delta_{z - \hat\mu, z'}\right]\gamma_\mu
+\end{equation}
+
+We may now use this expansion to compute the three point function for the operator $\mathcal T_\mu = 
+\mathcal T^u_{\mu\mu} - \mathcal T^d_{\mu\mu}$ (we can simply take $\mathcal T_3 - \mathcal T_4$ to get the operator of 
+interest in Equation~\ref{eq:operator_dfn}). Using Equation~\ref{eq:operator_mom_proj}, we write 
+\begin{equation}
+	\sum_z \mathcal T_\mu(z) = \sum_{z, z'}\left[\overline u(z)\, J_\mu(z, z')\, u(z') - \overline d(z)\, J_\mu(z, z')\, d(z')\right]
+\end{equation}
+Plugging this into Equation~\ref{eq:green}, we find that we can expand the total up quark Green's function (here $\alpha, 
+\beta$ are Dirac indices) as:
+\begin{equation}
+	G^{\alpha\beta}(p) = \frac{1}{\sqrt 2}\left(G_3^{\alpha\beta}(p) - G_4^{\alpha\beta} (p)\right)
+\end{equation}
+where:
+\begin{align}
+	G_\mu^{\alpha\beta}(p) &= \frac{1}{V}\sum_{x, y, z} e^{-ip(x - y)}\langle u^\alpha(x)\mathcal T_\mu(z) \overline u^\beta(y)
+	\rangle \\
+	&= \frac{1}{V}\sum_{x, y, z, z'} e^{-ip(x - y)}\left[\langle u^\alpha(x)\overline u^\sigma(z) J_\mu^{\sigma\rho}(z, z') 
+	u(z')^\rho\overline u^\beta(y)\rangle - \langle u^\alpha(x)\overline d^\sigma(z) J_\mu^{\sigma\rho}(z, z') d^\rho(z') 
+	\overline u^\beta(y)\rangle 
+	\right]
+\end{align}
+Now we perform all possible Wick contractions on the matrix elements to write them as propagators:
+\begin{align}
+	\langle u^\alpha(x)\overline u^\sigma(z) &J_\mu^{\sigma\rho}(z, z') u^\rho(z')\overline u^\beta(y)\rangle = 
+	\langle \wick{
+		\c1 u \c1{\overline u} J \c2 u \c2{\overline u}
+	} \rangle + \langle \wick{
+		\c1 u \c2{\overline u} J \c2 u \c1{\overline u} 
+	} \rangle \nonumber \\ 
+	&= S^{\alpha\sigma}(x, z) J^{\sigma\rho}_\mu(z, z') S^{\rho\beta}(z', y) + (-1)^3 S^{\alpha\beta}(x, y) 
+	J^{\sigma\rho}_\mu(z, z')S^{\rho\sigma}(z', z) \\
+	\nonumber\\
+	\langle u^\alpha(x)\overline d^\sigma(z) &J_\mu^{\sigma\rho}(z, z') d^\rho(z') \overline u^\beta(y)\rangle = 
+	\langle \wick{
+		\c1 u \c2{\overline d} J \c2 d \c1{\overline u}
+	}\rangle\nonumber \\ 
+	&= (-1)^3 S^{\alpha\beta}(x, y) J^{\sigma\rho}_\mu(z, z')S^{\rho\sigma}(z', z)
+\end{align}
+where the factors of $(-1)$ come from rearranging the contraction so that the contracted pieces are of the form 
+$\langle u\overline u\rangle$. The vacuum pieces cancel because the up and down quark propagators are degenerate, so the 
+final result is very clean:
+\begin{equation}
+	G_\mu(p) = \frac{1}{V}\sum_{x, y, z, z'}e^{ip(x - y)} S(x, z) J_\mu (z, z') S(z', y)~
+	\label{eq:greens_function}
+\end{equation}
+This is our central equation, but note that initially there is a difficulty with 
+
+There are two primary ways to compute this on the lattice.
+We can compute this directly using momentum sources, or 
+we can use the sequential source technique. Momentum sources work specifically for Equation~\ref{eq:greens_function}, 
+but produce a significantly better signal on a small number of configurations. On the other hand, sequential source 
+is much more general, but produces more noise. We will discuss each method below.
+%either compute this \textbf{through the operator} or 
+%\textbf{through the sink}, and below we will discuss each method and the pros and cons of each. 
+
+\subsection{Momentum sources}
+
+Observe that we can rewrite Equation~\ref{eq:greens_function} as:
+\begin{align}
+	G_\mu(p) &= \frac{1}{V}\sum_{x, y, z, z'} e^{ipx} S(x, z) J_\mu(z, z') e^{-ipy} S(z', y) \nonumber\\
+	&= \frac{1}{V}\sum_{z, z'}\gamma_5\left(\sum_x S(z, x) e^{ipx}\right)^\dagger\gamma_5 J_\mu(z, z') \left(\sum_y S(z', y) 
+	e^{ipy} \right) \nonumber\\
+	&= \frac{1}{V}\sum_{z, z'} \gamma_5 \tilde S_p(z)^\dagger \gamma_5 J_\mu(z, z') \tilde S_p(z')~
+	\label{eq:through_sink}
+\end{align}
+where we have defined $\tilde S_p(z)$ as:
+\begin{equation}
+	\tilde S_p(z) = \sum_x S(z, x) e^{ipx}
+\end{equation}
+
+The advantage of casting the equation in this form is that we can solve for $\tilde S_p(z)$ directly by inverting the Dirac 
+equation with a momentum source, i.e. we have:
+\begin{equation}
+	\sum_{z} D(x, z) \tilde S_p(z) = e^{ipx}
+\end{equation}
+where $D(x, z)$ is the Dirac operator. This means that upon solving for $\tilde S_p(z)$ and plugging this into 
+Equation~\ref{eq:through_sink}, we can solve directly for $G_\mu(p)$. 
+
+This is an exact equation and it does not rely on translational invariance in the infinite statistics limit. 
+Therefore, this method will give much better signal and can be run efficiently on a small number of configurations. The 
+downside to this is that we require a propagator inversion for each choice of sink momentum. 
+To compute $G(p)$ for a large number of sink momenta, as we need to do to extrapolate $\mathcal Z(\mu)$ in the 
+continuum limit, a propagator inversion at each sink momenta is not feasible. We must instead choose the sink momentum 
+wisely to be able to extract the discretization artifacts and extrapolate $\mathcal Z(\mu)$ to the continuum (we will describe 
+these discretization artifacts in Section~\ref{sec:artifacts}. 
+
+\subsection{Sequential source method}
+
+In practice we will use the sequential source method, which if implemented correctly does not force us to invert a propagator 
+at every sink momenta. This technique is also much more general than the one previously described, but it suffers from 
+more noise because it relies on the translational invariance of the lattice, which only exists in the infinite statistics 
+limit. The idea of the sequential source method is that if we have an equation involving the full propagator $S(x, y)$, we can 
+invert a source which depends on the propagator $S(x)$. For example, in this problem we wish to evaluate 
+Equation~\ref{eq:greens_function}, but we cannot simply evaluate $S(x, y)$ for every $x$ and $y$. To get around this, 
+consider using a source
+\begin{equation}
+	b(z) = \sum_{z'} J_\mu(z, z') S(z', 0)~
+	\label{eq:source}
+\end{equation}
+to invert the Dirac equation, which will solve for $M(x)$ in this equation:
+\begin{equation}
+	\sum_x D(z, x) M(x) = b(z)
+\end{equation} 
+where $D(x, z)$ is the Dirac operator. Upon inversion, using that $\sum_z S(y, z) D(z, x) = \delta(y - x)$, we can move the 
+Dirac operator to the other side as $D^{-1}(y, z) = S(y, z)$ and obtain:
+\begin{equation}
+	M(x) = \sum_z D^{-1}(x, z) b(z) = \sum_{z, z'} S(x, z) J_\mu(z, z') S(z', 0)~
+	\label{eq:inversion}
+\end{equation}
+Note that we have summed the full propagator $S(x, z)$ for the price of a single inversion of the source $b(z)$. We can then 
+reconstruct Equation~\ref{eq:greens_function} in the infinite statistics limit when translational invariance is restored:
+\begin{equation}
+	G_\mu(p) \rightarrow \frac{1}{V} \sum_x e^{ipx} M(x) = \frac{1}{V} \sum_{x, z, z'} e^{ipx} S(x, z) J_\mu(z, z') S(z', 0)
+\end{equation}
+
+In our case with a large amount of sink momenta, this method is much more robust than inverting a momentum source 
+because we one inversion can give us $G(p)$ at every value of the sink momentum. We will also call this construction going 
+\textbf{through the operator}, because the inversion in Equation~\ref{eq:inversion} projects the current insertion onto $q = 0$ 
+momentum. If we had been interested in projecting the operator onto different momentum values, then we would need to use a 
+new sequential source (modify Equation~\ref{eq:source}) for each value of the operator momentum. Pictorially, we are 
+inverting at the operator momentum, then tying up at the sink momentum. On the other hand, we reverse the direction of 
+inversion and invert our propagator at each sink momentum first, then tie up the line at the operator. This method is called 
+going \textbf{through the sink}. We can represent these different methods below, where in our case $q = 0$. 
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{.48\textwidth}
+	\centering
+		\feynmandiagram [large, horizontal'=a to c] {
+		a [particle = \(p\)] -- [fermion, bend left = 60] b [dot, style = red],
+		d -- [boson, momentum = \(q\)] b,
+		b -- [fermion, bend left = 60] c  [particle = \(p + q\)],
+		a -- [fermion, bend right = 20, opacity = 0] c
+                };
+            	\caption{Inversion through the operator}
+	\end{subfigure}
+	~
+	\begin{subfigure}[t]{.48\textwidth}
+	\centering
+		\feynmandiagram [large, horizontal'=a to c] {
+		%a [particle = \(p\)] -- [fermion, bend right] c [particle = \(p + q\)],
+		%c -- [fermion, bend right] b [empty dot, style = red],
+		%d -- [boson, momentum = \(q\)] b
+		a [particle = \(p\)] -- [fermion, bend left = 60, opacity = 0] b [dot, style = red],
+		d -- [boson, momentum = \(q\)] b,
+		b -- [anti fermion, bend left = 60] c  [particle = \(p + q\)],
+		a -- [fermion, bend right = 20] c
+                };
+            	\caption{Inversion through the sink}
+	\end{subfigure}
+\end{figure}
+
+In this problem inversion through the sink would require too many propagator inversions like in the previous momentum 
+source method, and it would also be noisy like inversion through the operator. As such, there is no reason to consider it, 
+and I included it here mainly for generality. 
+
+\section{Hypercubic Artifacts}
+\label{sec:artifacts}
+
+When we compute observables at a finite lattice spacing $a$, we suffer discretization artifacts which are relics of the explicit 
+symmetry breaking $SO(1, 3)\rightarrow H(4)$ suffered by putting the theory on a lattice. 
+
+\end{document}

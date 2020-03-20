@@ -3,6 +3,7 @@ from scipy.optimize import root
 import h5py
 import os
 from scipy.special import zeta
+import time
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
   # b is the boostrap index
@@ -182,7 +183,6 @@ def quark_renorm(props_inv):
         pstring = plist_to_string(p)
         Zq[pstring] = np.zeros((n_boot, num_cfgs), dtype = np.complex64)
         phase = [np.sin(2 * np.pi * (p[mu] + bvec[mu]) / LL[mu]) for mu in range(4)]
-        # phase is order 1, looks like. 707 and .3 and stuff like that
         for b in range(n_boot):
             for cfgidx in range(num_cfgs):
                 Sinv = props_inv[pstring][b, cfgidx]
@@ -199,7 +199,8 @@ def born_term():
     Gamma_B_inv = {}
     for p in mom_list:
         pstring = plist_to_string(p)
-        Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
+        # Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
+        Gamma_B[pstring] = (-1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
         Gamma_B_inv[pstring] = np.linalg.inv(Gamma_B[pstring])
     return Gamma_B, Gamma_B_inv
 
@@ -292,13 +293,14 @@ def save_mu_sigma(mu, sigma, directory, clear_path = False):
     np.save(sigma_file, sigma)
     return True
 
-# note this returns np structured arrays, so use mu.get('p2222') for example
-def load_mu_sigma(directory):
+# Returns the data which was saved after running "python3 perform_analysis.py"
+def load_data(directory):
     mu = np.load(directory + '/mu.npy')
     sigma = np.load(directory + '/sigma.npy')
     p_list = np.load(directory + '/mom_list.npy')
     prop_p_list = np.load(directory + '/prop_mom_list.npy')
-    return mu, sigma, p_list, prop_p_list
+    cfgnum = np.load(directory + '/cfgnum.npy')
+    return mu, sigma, p_list, prop_p_list, cfgnum
 
 # momenta is subset of mom_list
 def subsample(mu, sigma, momenta):
@@ -362,7 +364,9 @@ def test_analysis_propagators(directory, s = 0):
 
 # load in a single momentum at a time so that it doesn't overload python (for large data configs)
 def run_analysis_single_momenta(directory, s = 0):
+    start = time.time()
     mu, sigma = [{}] * len(prop_mom_list), [{}] * len(prop_mom_list)
+    # mu, sigma = [0] * len(prop_mom_list), [0] * len(prop_mom_list)
     Γ_B, Γ_B_inv = born_term()
     global mom_list
     global mom_str_list
@@ -387,7 +391,11 @@ def run_analysis_single_momenta(directory, s = 0):
             Zq = quark_renorm(props_inv)
             print('Computing operator renormalization.')
             Z = get_Z(Zq, Γ, Γ_B_inv)
+            # mu[idx], sigma[idx] = get_statistics_Z(Z)
             mu_p, sigma_p = get_statistics_Z(Z)
-            mu[idx][p] = mu_p
-            sigma[idx][p] = sigma_p
+            mu[idx][p] = mu_p[p]
+            sigma[idx][p] = sigma_p[p]
+
+            # Time per iteration
+            print('Elapsed time: ' + str(time.time() - start))
     return mu, sigma

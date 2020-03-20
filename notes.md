@@ -179,3 +179,8 @@ Meeting 2/21:
 - Compare with David-- run on configuration 200, at p = [2, 2, 2, 2]. Run with the momentum source I have,
   and also run with a point source.
 - David has the GPU build of QLUA running so it should invert things very very fast
+
+Meeting 3/9:
+- Figure out how discretization artifacts work. There should be around 7 to 10 coefficients to fit based on the model at the end of Phiala's paper. I can pick momentum and simulate what the plot should look like to get a feel for about what each coefficient is (do that in Mathematica).
+  - Phiala says that it should take about 50 momenta to get a good fit for the coefficients on the plot.
+- Run a point source on 15 configurations to see if we get anything.

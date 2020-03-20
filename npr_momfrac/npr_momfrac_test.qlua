@@ -376,20 +376,6 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 -- local p_list_NPR = {{2, 2, 2, 2}}
 local p_list_NPR = {}
 local nhat = {.5, .5, .5, .5}
--- for i = 1, 4 do
---   for j = 1, 8 do
---     if j % 2 == 0 then
---       p_list_NPR[#p_list_NPR + 1] = {i, i, i, j}
---       p_list_NPR[#p_list_NPR + 1] = {i, i, -i, j}
---       p_list_NPR[#p_list_NPR + 1] = {i, -i, i, j}
---       p_list_NPR[#p_list_NPR + 1] = {i, -i, -i, j}
---       p_list_NPR[#p_list_NPR + 1] = {-i, i, i, j}
---       p_list_NPR[#p_list_NPR + 1] = {-i, i, -i, j}
---       p_list_NPR[#p_list_NPR + 1] = {-i, -i, i, j}
---       p_list_NPR[#p_list_NPR + 1] = {-i, -i, -i, j}
---     end
---   end
--- end
 local r = 2
 for i = 1, 5 do
   for j = 1, 5 do

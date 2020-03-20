@@ -10,11 +10,13 @@ cfgbase = 'cl3_16_48_b6p1_m0p2450'
 # job_num = 16583
 # job_num = 16636
 # job_num = 16677
-job_num = 16872
+# job_num = 16872
+job_num = 16954
 
 # Momentum the propagators are run at.
 # prop_mom_list = [[0, 0, 0, 0], [2, 2, 2, 2], [-2, -2, -2, -2], [2, 2, -2, -2], [-2, -2, 2, 2]]
-prop_mom_list = [[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]
+# prop_mom_list = [[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]
+prop_mom_list = ['point source at origin']
 
 # Sink momentum that we tie up at.
 mom_tot = []
@@ -43,5 +45,6 @@ np.save(out_dir + '/mu.npy', mu)
 np.save(out_dir + '/sigma.npy', sigma)
 np.save(out_dir + '/mom_list.npy', mom_list)
 np.save(out_dir + '/prop_mom_list.npy', prop_mom_list)
+np.save(out_dir + '/cfgnum.npy', analysis.get_num_cfgs())
 
 print('Output saved in directory: ' + out_dir)

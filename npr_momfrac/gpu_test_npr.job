@@ -18,6 +18,7 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
+# TODO after move, will be located at /data/d10b/ensembles/isoClover/
 cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
 gf=true
@@ -34,7 +35,7 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 500 10 900`
+for cfg in `seq 500 10 1000`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac_test.qlua > ${logs}/cfg${cfg}.txt
 done
