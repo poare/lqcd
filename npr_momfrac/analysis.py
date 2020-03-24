@@ -246,9 +246,9 @@ def to_MSbar(Z):
     b2 = - 359 / 9 + 12 * z3 + (7 / 3) * nf
     b3 = - 439543 / 162 + (8009 / 6) * z3 + (79 / 4) * z4 - (1165 / 3) * z5 + (24722 / 81 - (440 / 9) * z3) * nf \
         - (1570 / 243) * (nf ** 2)
-    g = 1    # TODO g is g_{MS bar}(\mu) -- find in the literature
     for p in mom_list:
         pstring = plist_to_string(p)
+        g = 1    # TODO g is g_{MS bar}(\mu) -- find in the literature
         # Adjusted R in table X to fit the operator I'm using.
         R = ((p[2] ** 2 - p[3] ** 2) ** 2) / (2 * square(p) * (p[2] ** 2 + p[3] ** 2))
         c1 = c11 + c12 * R

@@ -184,3 +184,11 @@ Meeting 3/9:
 - Figure out how discretization artifacts work. There should be around 7 to 10 coefficients to fit based on the model at the end of Phiala's paper. I can pick momentum and simulate what the plot should look like to get a feel for about what each coefficient is (do that in Mathematica).
   - Phiala says that it should take about 50 momenta to get a good fit for the coefficients on the plot.
 - Run a point source on 15 configurations to see if we get anything.
+
+Meeting 3/23:
+- How to get the MS bar coupling? Do you have any references, because none of the results I found when I went digging on the internet stood out to me?
+  - Using RunDec. Where should I start running alpha from, and how many flavors? There's an example in the RunDec package that takes alpha(mu = 896) = .0889 and runs it from there with 6 flavors. Should I do the same?
+- Going to try to convert to MS bar first, then do the fit. It seems like the general method is to expand the lattice artifacts in the most general way that we can, then reduce the number of coefficients based on what we expect. I'll probably try to fit a few different models, then see how the subtraction looks.
+- Do people usually do fits like this in Python, or with something more tailored to this?
+- Do I need to deal with the RGI operator, or can I just go right to MS bar and do the fit in that scheme?
+  - It looks like Z_{RGI} is used to convert to an arbitrary scheme, but if we're for sure doing MS bar then I don't know if it's worth the hassle to compute it.
