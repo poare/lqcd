@@ -597,9 +597,9 @@ function clover_ferm.quda_4d_nc3(kappa, csw, bcs, flags)
              dslash_type = "CLOVER_WILSON_DSLASH",
              kappa = kappa,
              tol = eps,
-             maxiter = max_iter--,
-             --inv_type = "CG_INVERTER",       -- Use these args for point inversion
-             --solve_type = "NORMOP_SOLVE"     -- Use these args for point inversion
+             maxiter = max_iter,
+             inv_type = "CG_INVERTER",       -- Use these args for point inversion
+             solve_type = "NORMOP_SOLVE"     -- Use these args for point inversion
           })
          quda_solver_handle = quda_solver
          return quda_solver

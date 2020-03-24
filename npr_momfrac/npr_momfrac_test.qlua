@@ -92,6 +92,7 @@ function O(U, prop, antiprop, nu)
 end
 
 -- Satisfies O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum()
+-- Given a propagator S(x), returns \sum_z J_\nu(x, z) S(z)
 function get_sequential_source(U, prop, nu)
   return U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
           "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
@@ -163,24 +164,19 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local FTarg_neg = L:Real(0)
       for mu = 0, #L - 1 do
         FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-        FTarg_neg = FTarg_neg - L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       end
       local FT = FTarg:expi()
-      local FT_neg = FTarg_neg:expi()
 
       local mom4_prop = (FT * prop):sum()
 
       -- Write momentum projected propagator to file
       local prop_path
-      --local prop_path_neg
       if gauge then
         prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
       else
         prop_path = string.format("prop/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
-        --prop_path_neg = string.format("prop__operator_neg/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
       end
       h5_force_write(writer, prop_path, mom4_prop)
-      --h5_force_write(writer, prop_path_neg, mom4_prop_neg)
       printf("Propagator written at path: %s\n", prop_path)
 
       -- compute momentum projected Green's function G(p)
@@ -190,35 +186,25 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       -- local JSneg = {}
       for mu = 2, #L - 1 do
         local matrix_element = (FT * M[mu]):sum()
-        -- local matrix_element_neg = (FT_neg * M[mu]):sum()    -- really matrix_element with neg phase
         JS[mu] = matrix_element
-        -- JSneg[mu] = matrix_element_neg
         local op_path
-        -- local op_path_neg
         if gauge then
           op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
         else
           op_path = string.format("O_operator%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
-          -- op_path_neg = string.format("O_operator_neg%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
         end
         h5_force_write(writer, op_path, matrix_element)
-        -- h5_force_write(writer, op_path_neg, matrix_element_neg)
         printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
       end
-      -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
       local G = norm * (JS[2] - JS[3])
-      -- local Gneg = norm * (JSneg[2] - JSneg[3])
 
       local threept_path
-      -- local threept_neg_path
       if gauge then
         threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
       else
         threept_path = string.format("threept/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
-        -- threept_neg_path = string.format("threept_neg/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
       end
       h5_force_write(writer, threept_path, G)
-      -- h5_force_write(writer, threept_neg_path, Gneg)
       printf("Three point function written at: %s\n", threept_path)
     end
   end
@@ -234,46 +220,26 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     local p = p_list[pidx]
     printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
     local FTarg = L:Real(0)
-    local FTarg_neg = L:Real(0)
-    local FTarg_neg_bc = L:Real(0)
     for mu = 0, #L - 1 do
       FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      FTarg_neg = FTarg_neg - L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      FTarg_neg_bc = FTarg_neg_bc - L:Real(L:pcoord(mu)) * (p[mu + 1] - bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
     local FT = FTarg:expi()
-    local FT_neg = FTarg_neg:expi()
-    local FT_neg_bc = FTarg_neg_bc:expi()
 
+    -- This uses a source of e^{-ipx}
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    local prop = compute_propagator(U, ferm_prop, src)    -- S(x, y)
+    local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
     local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()
 
-    local minus_p = {}
-    for mu = 0, #L - 1 do
-      minus_p[mu + 1] = -p[mu + 1]
-    end
-    local src_neg = compute_spacetime_wall_source_antiperiodicBC(U, minus_p)
-    local prop_neg = compute_propagator(U, ferm_prop, src_neg)
-    local mom4prop_neg = (FT_neg * prop_neg):sum()
-
     -- Write momentum projected propagator to file (?)
     local prop_path
-    local prop_path_neg
     if gauge then
       prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
       prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      prop_path_neg = string.format("prop_neg/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, prop_path, mom4_prop)
-    h5_force_write(writer, prop_path_neg, mom4prop_neg)
     printf("Propagator written at path: %s\n", prop_path)
-
-    local antiprop_zero = antiprop[{0, 0, 0, 0}]
-    local antiprop_zero_path = string.format("antiprop_zero/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-    h5_force_write(writer, antiprop_zero_path, antiprop_zero)
 
     -- compute momentum projected Green's function G(p)
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
@@ -295,6 +261,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
         op_path = string.format("O%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
         op_path_sequential = string.format("O_sequential%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
       end
+      -- TODO If these two are the exact same, then the sequential source should be accurate.
       h5_force_write(writer, op_path, matrix_element)
       h5_force_write(writer, op_path_sequential, matrix_element_sequential)
       printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
@@ -306,10 +273,10 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     if gauge then
       threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
-      threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      threept_path = string.format("threept_sink/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, threept_path, G)
-    printf("Three point function written at: %s\n", threept_path)
+    printf("Three point function through sink written at: %s\n", threept_path)
   end
 end
 
@@ -373,7 +340,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
 -- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
--- local p_list_NPR = {{2, 2, 2, 2}}
+local p_list_NPR = {{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}, {5, 5, 5, 5}}
+--[[
 local p_list_NPR = {}
 local nhat = {.5, .5, .5, .5}
 local r = 2
@@ -396,6 +364,7 @@ for i = 1, 5 do
     end
   end
 end
+]]
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
@@ -417,7 +386,7 @@ if status then
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  -- compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
+  compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
 
   compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
 
