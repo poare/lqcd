@@ -9,7 +9,7 @@
 
 set -x
 
-cd /data/wombat/users/mlwagman/mosaic
+cd /home/poare/lqcd/mosaic
 
 bash
 module load openmpi
@@ -23,10 +23,11 @@ gf=true
 gpu=false
 
 home=/home/poare/lqcd/npr_momfrac
-tests=${home}/testing/logs
+logs=${home}/testing/logs/${cfgbase}_${SLURM_JOB_ID}
 output=${home}/output/${cfgbase}_${SLURM_JOB_ID}
 
-mkdir ${tests}
+mkdir ${logs}
+mkdir ${logs}/no_output
 mkdir ${output}
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
