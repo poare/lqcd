@@ -18,7 +18,6 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-# TODO after move, will be located at /data/d10b/ensembles/isoClover/
 cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
 gf=true

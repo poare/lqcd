@@ -5,7 +5,7 @@
 #SBATCH --job-name=npr_momfrac
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=devel
+#SBATCH --partition=prod
 
 set -x
 
@@ -31,5 +31,7 @@ mkdir ${output}
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
 
-cfg=200
-mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac_test.qlua > ${tests}/job${SLURM_JOB_ID}.txt
+for cfg in `seq 500 10 1000`
+do
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac_test.qlua > ${logs}/cfg${cfg}.txt
+done
