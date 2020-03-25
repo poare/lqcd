@@ -215,6 +215,9 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
+  local ptsrc = compute_point_source(U, {0, 0, 0, 0})
+  local ptprop = compute_propagator(U, ferm_prop, ptsrc)
+
   for pidx = 1, #p_list do
     printf("p index: %d\n", pidx)
     local p = p_list[pidx]
@@ -230,6 +233,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
     local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()
+    local mom4_ptprop = (FT * ptprop):sum()
 
     -- Write momentum projected propagator to file (?)
     local prop_path
@@ -237,22 +241,30 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
       prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
       prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      ptprop_path = string.format("ptprop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, prop_path, mom4_prop)
+    h5_force_write(writer, ptprop_path, mom4_ptprop)
     printf("Propagator written at path: %s\n", prop_path)
 
     -- compute momentum projected Green's function G(p)
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
     local JS = {}
-    for mu = 0, #L - 1 do
+    local JSpt = {}
+    for mu = 2, #L - 1 do
       local matrix_element = O(U, prop, antiprop, mu)
       -- make sure O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum() (this works)
       --local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, mu)):sum()
       -- TODO this should give me the same matrix element with sequential source
+
+      local ptsrc_seq = get_sequential_source(U, ptprop, mu)
       local src_seq = get_sequential_source(U, prop, mu)
+      local Mpt = compute_propagator(U, ferm_prop, ptsrc_seq)
       local M = compute_propagator(U, ferm_prop, src_seq)
       local matrix_element_sequential = (FT * M):sum()    -- TODO if this doesn't match, then try normal FT
+      local pt_matrix_element_seq = (FT * Mpt):sum()
       JS[mu] = matrix_element
+      JSpt[mu] = pt_matrix_element_seq
       local op_path
       local op_path_sequential
       if gauge then
@@ -268,14 +280,18 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     end
     -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
     local G = norm * (JS[2] - JS[3])
+    local Gpt = norm * (JSpt[2] - JSpt[3])
 
     local threept_path
+    local pt_threept_path
     if gauge then
       threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
-      threept_path = string.format("threept_sink/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+      pt_threept_path = string.format("threept_pt/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, threept_path, G)
+    h5_force_write(writer, pt_threept_path, Gpt)
     printf("Three point function through sink written at: %s\n", threept_path)
   end
 end
@@ -387,10 +403,9 @@ if status then
 
   print("Gauge file read. Computing NPR.")
   compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
+  -- compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
 
-  compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, false)
-
-  -- Gauge transform to test if this can be correct
+  -- Gauge transform test
   -- Uprime = gauge_transform(L, U, group)
   -- compute_npr(L, Uprime, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, true)
 
