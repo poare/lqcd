@@ -237,6 +237,7 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
 
     -- Write momentum projected propagator to file (?)
     local prop_path
+    local ptprop_path
     if gauge then
       prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
