@@ -185,7 +185,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local mom4_prop = (FT * prop):sum()
 
       -- Write momentum projected propagator to file
-      local prop_path = string.format("prop/y%d%d%d%d/p%d%d%d%d/cfg%d", y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
+      local prop_path = string.format("prop/x%dy%dz%dt%d/p%d%d%d%d/cfg%d", y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
       h5_force_write(writer, prop_path, mom4_prop)
       printf("Propagator written at path: %s\n", prop_path)
 
@@ -196,13 +196,13 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       for mu = 2, #L - 1 do
         local matrix_element = (FT * M[mu]):sum()
         JS[mu] = matrix_element
-        local op_path = string.format("O_operator%d%d/y%d%d%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
+        local op_path = string.format("O_operator%d%d/x%dy%dz%dt%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
         h5_force_write(writer, op_path, matrix_element)
         printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
       end
       local G = norm * (JS[2] - JS[3])
 
-      local threept_path = string.format("threept/y%d%d%d%d/p%d%d%d%d/cfg%d", y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
+      local threept_path = string.format("threept/x%dy%dz%dt%d/p%d%d%d%d/cfg%d", y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
       h5_force_write(writer, threept_path, G)
       printf("Three point function written at: %s\n", threept_path)
     end
