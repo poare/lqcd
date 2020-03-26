@@ -113,7 +113,7 @@ function run_gauge_transform_test(L, U, FT, ferm_prop, group, writer, p, Nc, cfg
 end
 
 -- Performs the computation through the operator, which should be faster for more sink / src momenta.
-function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum, gauge)
+function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum)
   print("Computing through the operator.")
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
@@ -143,12 +143,13 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   end
   ]]
 
-  -- TODO test for O11, O22, etc. Later for just the operator, only need to compute for 33 - 44
+  -- Enumerate propagators to run this on
   for i = 1, #S_list do
     printf("Computing for propagator %d.\n", i)
     local b = {}
     local M = {}
     local prop = S_list[i]
+    -- Operator of interest only uses mu = 2, 3
     for mu = 2, #L - 1 do
       printf("Computing sequential propagator for mu = %d.\n", mu)
       b[mu] = get_sequential_source(U, prop, mu)
@@ -161,7 +162,6 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local p = p_list[pidx]
       printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
       local FTarg = L:Real(0)
-      local FTarg_neg = L:Real(0)
       for mu = 0, #L - 1 do
         FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       end
@@ -170,12 +170,7 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local mom4_prop = (FT * prop):sum()
 
       -- Write momentum projected propagator to file
-      local prop_path
-      if gauge then
-        prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      else
-        prop_path = string.format("prop/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
-      end
+      local prop_path = string.format("prop/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
       h5_force_write(writer, prop_path, mom4_prop)
       printf("Propagator written at path: %s\n", prop_path)
 
@@ -183,27 +178,16 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
       local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
 
       local JS = {}
-      -- local JSneg = {}
       for mu = 2, #L - 1 do
         local matrix_element = (FT * M[mu]):sum()
         JS[mu] = matrix_element
-        local op_path
-        if gauge then
-          op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
-        else
-          op_path = string.format("O_operator%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
-        end
+        local op_path = string.format("O_operator%d%d/prop%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, i, p[1], p[2], p[3], p[4], cfgnum)
         h5_force_write(writer, op_path, matrix_element)
         printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
       end
       local G = norm * (JS[2] - JS[3])
 
-      local threept_path
-      if gauge then
-        threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      else
-        threept_path = string.format("threept/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
-      end
+      local threept_path = string.format("threept/prop%d/p%d%d%d%d/cfg%d", i, p[1], p[2], p[3], p[4], cfgnum)
       h5_force_write(writer, threept_path, G)
       printf("Three point function written at: %s\n", threept_path)
     end
@@ -215,9 +199,6 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
-  local ptsrc = compute_point_source(U, {0, 0, 0, 0})
-  local ptprop = compute_propagator(U, ferm_prop, ptsrc)
-
   for pidx = 1, #p_list do
     printf("p index: %d\n", pidx)
     local p = p_list[pidx]
@@ -228,48 +209,40 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
     end
     local FT = FTarg:expi()
 
-    -- This uses a source of e^{-ipx}
+    -- Compute a source of e^{-ipx}
     local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
     local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
     local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
     local mom4_prop = (FT * prop):sum()
-    local mom4_ptprop = (FT * ptprop):sum()
 
     -- Write momentum projected propagator to file (?)
     local prop_path
-    local ptprop_path
     if gauge then
       prop_path = string.format("propprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
       prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      ptprop_path = string.format("ptprop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, prop_path, mom4_prop)
-    h5_force_write(writer, ptprop_path, mom4_ptprop)
     printf("Propagator written at path: %s\n", prop_path)
 
     -- compute momentum projected Green's function G(p)
     local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
     local JS = {}
-    local JSpt = {}
     for mu = 2, #L - 1 do
       local matrix_element = O(U, prop, antiprop, mu)
-      -- make sure O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum() (this works)
+      -- Verify that O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum() (it does)
       --local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, mu)):sum()
-      -- TODO this should give me the same matrix element with sequential source
 
-      local ptsrc_seq = get_sequential_source(U, ptprop, mu)
+      -- This code should compute the same matrix element with a sequential momentum source.
       local src_seq = get_sequential_source(U, prop, mu)
-      local Mpt = compute_propagator(U, ferm_prop, ptsrc_seq)
       local M = compute_propagator(U, ferm_prop, src_seq)
-      local matrix_element_sequential = (FT * M):sum()    -- TODO if this doesn't match, then try normal FT
-      local pt_matrix_element_seq = (FT * Mpt):sum()
+      local matrix_element_sequential = (FT * M):sum()
       JS[mu] = matrix_element
-      JSpt[mu] = pt_matrix_element_seq
       local op_path
       local op_path_sequential
       if gauge then
         op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+        op_path_sequential = string.format("O_sequential%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
       else
         op_path = string.format("O%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
         op_path_sequential = string.format("O_sequential%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
@@ -279,20 +252,15 @@ function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover,
       h5_force_write(writer, op_path_sequential, matrix_element_sequential)
       printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
     end
-    -- local JS = JS33 - JS44        -- JS = \sum_z' J(z, z') S(z'), S is the propagator
     local G = norm * (JS[2] - JS[3])
-    local Gpt = norm * (JSpt[2] - JSpt[3])
 
     local threept_path
-    local pt_threept_path
     if gauge then
       threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     else
       threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
-      pt_threept_path = string.format("threept_pt/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     end
     h5_force_write(writer, threept_path, G)
-    h5_force_write(writer, pt_threept_path, Gpt)
     printf("Three point function through sink written at: %s\n", threept_path)
   end
 end
@@ -343,7 +311,7 @@ local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
 local csw = 1.2493
 -- local csw = 1    -- uncomment after testing is done
-local bcs = {1,1,1,-1}
+local bcs = {1, 1, 1, -1}
 
 local clover
 if gpu then

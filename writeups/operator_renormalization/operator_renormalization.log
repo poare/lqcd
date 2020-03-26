@@ -1,4 +1,4 @@
-This is LuaTeX, Version 0.95.0 (TeX Live 2016)  (format=lualatex 2016.5.22)  17 MAR 2020 17:10
+This is LuaTeX, Version 0.95.0 (TeX Live 2016)  (format=lualatex 2016.5.22)  25 MAR 2020 18:52
  restricted system commands enabled.
  file:line:error style messages enabled.
 **operator_renormalization.tex
@@ -627,18 +627,18 @@ LaTeX Font Info:    Overwriting symbol font `oasy' in version `bold'
 (./operator_renormalization.aux)
 \openout1 = operator_renormalization.aux
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 63.
-LaTeX Font Info:    ... okay on input line 63.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 63.
-LaTeX Font Info:    ... okay on input line 63.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 63.
-LaTeX Font Info:    ... okay on input line 63.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 63.
-LaTeX Font Info:    ... okay on input line 63.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 63.
-LaTeX Font Info:    ... okay on input line 63.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 63.
-LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 60.
+LaTeX Font Info:    ... okay on input line 60.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -719,80 +719,50 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ABD: EveryShipout initializing macros
 
 Package tikz-feynman Warning: The preamble requested version 1.0.0, but the syst
-em version is 1.1.0. This may change some diagrams. on input line 63.
+em version is 1.1.0. This may change some diagrams. on input line 60.
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    Try loading font information for U+msa on input line 64.
+LaTeX Font Info:    Try loading font information for U+msa on input line 61.
 (/usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 64.
+LaTeX Font Info:    Try loading font information for U+msb on input line 61.
 
 (/usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 4156) in paragraph at lines 89--89
-[][]\OT1/cmr/m/n/9 More on that here: https://www.physicsover-flow.org/27963/re
-normalization-determined-renormalization-
- []
-
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 106.
-(/usr/local/texlive/2016/texmf-dist/tex/latex/base/omscmr.fd
-File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
-)
-LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 106.
- [1
-
-{/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
-
-Overfull \hbox (6.2137pt too wide) detected at line 243
-\OMS/cmsy/m/n/10.95 h\OML/cmm/m/it/10.95 j[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/1
-0.95 x\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.95  []\OT1/cmr/m/n/10.95 (\OML/cmm/m
-/it/10.95 x[]\OT1/cmr/m/n/10.95 )[][](\OML/cmm/m/it/10.95 x[]\OT1/cmr/m/n/10.95
- )\OMS/cmsy/m/n/10.95 i[]  [] [] \OML/cmm/m/it/10.95 S[] []
- []
-
-
-Overfull \hbox (19.8869pt too wide) in paragraph at lines 278--278
-[] 
- []
-
-
-Overfull \hbox (32.77882pt too wide) in paragraph at lines 298--298
-[] 
- []
-
-[4] [5]
-Overfull \hbox (5.91112pt too wide) in paragraph at lines 362--362
+Overfull \hbox (5.91112pt too wide) in paragraph at lines 63--63
 []\OT1/cmr/bx/n/14.4 Regularization-Independent Mo-men-tum Sub-trac-tion (RI-MO
 M) 
  []
 
 
-Overfull \hbox (2.98013pt too wide) in paragraph at lines 364--368
+Overfull \hbox (2.98013pt too wide) in paragraph at lines 65--69
 \OT1/cmr/m/n/10.95 The RI-MOM scheme (also known as Rome-Southampton) is a reno
 r-mal-iza-tion scheme well equipped
  []
 
-[6] [7]
-Overfull \hbox (7.86823pt too wide) in paragraph at lines 515--515
+[1
+
+{/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+[2]
+Overfull \hbox (7.86823pt too wide) in paragraph at lines 215--215
 [] 
  []
 
-[8] [9] [10] [11] (./operator_renormalization.aux))
+[3] [4] [5] [6] [7] (./operator_renormalization.aux))
 
 Here is how much of LuaTeX's memory you used:
- 20145 strings out of 495119
+ 19928 strings out of 495119
  125014,552014 words of node,token memory allocated
- 6488 words of node memory still in use:
-   6 hlist, 2 vlist, 2 rule, 874 glue, 1 kern, 42 glue_spec, 1 write nodes
-   avail lists: 1:8,2:57,3:1012,4:29,5:441,6:3142,7:1731,8:183,9:1118,10:11,11:3
-15
- 22861 multiletter control sequences out of 65536+600000
- 64 fonts using 2657439 bytes
- 61i,24n,101p,584b,2005s stack positions out of 5000i,500n,10000p,200000b,100000s
+ 4066 words of node memory still in use:
+   6 hlist, 2 vlist, 2 rule, 528 glue, 1 kern, 42 glue_spec, 1 write nodes
+   avail lists: 1:8,2:45,3:780,4:27,5:367,6:2571,7:1269,8:103,9:702,10:14,11:195
+
+ 22666 multiletter control sequences out of 65536+600000
+ 49 fonts using 2037535 bytes
+ 61i,16n,98p,584b,2005s stack positions out of 5000i,500n,10000p,200000b,100000s
 {/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/old-arrows/oasy.enc}</usr/lo
 cal/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/loca
 l/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/
@@ -800,22 +770,21 @@ texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/te
 xlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texl
 ive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive
 /2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/20
-16/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2016/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2016/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2016/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2016/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2016/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2016/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2016/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/ol
-d-arrows/oasy6.pfb>
-Output written on operator_renormalization.pdf (11 pages, 261016 bytes).
+16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2016/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2016/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2016/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2016/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2016/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2016/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2016/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/p
+ublic/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type
+1/public/old-arrows/oasy6.pfb>
+Output written on operator_renormalization.pdf (7 pages, 203468 bytes).
 
-PDF statistics: 116 PDF objects out of 1000 (max. 8388607)
- 84 compressed objects within 1 object stream
+PDF statistics: 98 PDF objects out of 1000 (max. 8388607)
+ 71 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 131072)
  16 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -125,6 +125,8 @@ def readfile(directory, gauged = False, dpath = '', sink_momenta = None):
             else:
                 prop_path = 'prop/' + dpath + pstring
                 threept_path = 'threept/' + dpath + pstring
+                # prop_path = 'ptprop/' + dpath + pstring
+                # threept_path = 'threept_pt/' + dpath + pstring
 
             # delete this block once I push the new code
             config_id = str([x for x in f[prop_path].keys()][0])
@@ -246,9 +248,9 @@ def to_MSbar(Z):
     b2 = - 359 / 9 + 12 * z3 + (7 / 3) * nf
     b3 = - 439543 / 162 + (8009 / 6) * z3 + (79 / 4) * z4 - (1165 / 3) * z5 + (24722 / 81 - (440 / 9) * z3) * nf \
         - (1570 / 243) * (nf ** 2)
+    g = 1.964    # g_{MS bar}(mu = 2 GeV)
     for p in mom_list:
         pstring = plist_to_string(p)
-        g = 1    # TODO g is g_{MS bar}(\mu) -- find in the literature
         # Adjusted R in table X to fit the operator I'm using.
         R = ((p[2] ** 2 - p[3] ** 2) ** 2) / (2 * square(p) * (p[2] ** 2 + p[3] ** 2))
         c1 = c11 + c12 * R
