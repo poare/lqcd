@@ -192,3 +192,15 @@ Meeting 3/23:
 - Do people usually do fits like this in Python, or with something more tailored to this?
 - Do I need to deal with the RGI operator, or can I just go right to MS bar and do the fit in that scheme?
   - It looks like Z_{RGI} is used to convert to an arbitrary scheme, but if we're for sure doing MS bar then I don't know if it's worth the hassle to compute it.
+- Possible sources of error:
+  - Computation of point propagator with GPU
+  - I'm almost certain the sequential source is correct, because when I ran it with the propagator being a momentum wall source at that momenta it gave me the same value as the direct momentum inversion method.
+    - When I look at those points, there's a very small imaginary part from numerical error and the real part agrees with the direct momentum source inversion.
+    - The other points in these graphs look like noise though (which makes sense, we don't really expect anything out of them) and have imaginary parts that are on the same order as their real parts.
+
+Job 17860: Ran a test to see what was breaking in the code that runs through the operator (namely, because Z(p) is coming out highly imaginary). The through the operator and through the sink code matched very closely (within precision), so the sequential source is what it says it is. Have to figure out what is wrong, because at this point I have not really a clue.
+- Job 17809 is currently running and just replacing the momentum wall source propagators with a point source propagator-- we'll see what happens.
+
+3/26:
+- David's analysis code is at: /home/djmurphy/NPR/cl3_16_48_b6p1_m0p2450
+- Try to compute what I'm doing at different points and see if it averages away the imaginary component (treat that sum over x and y as a real sum). Right now the code looks correct, so we have to figure out why it isn't working.
