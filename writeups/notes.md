@@ -204,3 +204,4 @@ Job 17860: Ran a test to see what was breaking in the code that runs through the
 3/26:
 - David's analysis code is at: /home/djmurphy/NPR/cl3_16_48_b6p1_m0p2450
 - Try to compute what I'm doing at different points and see if it averages away the imaginary component (treat that sum over x and y as a real sum). Right now the code looks correct, so we have to figure out why it isn't working.
+- Job 17948: 
