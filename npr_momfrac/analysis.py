@@ -4,6 +4,7 @@ import h5py
 import os
 from scipy.special import zeta
 import time
+import re
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
   # b is the boostrap index
@@ -365,6 +366,7 @@ def test_analysis_propagators(directory, s = 0):
     return mu, sigma
 
 # load in a single momentum at a time so that it doesn't overload python (for large data configs)
+# prop_mom_list is the set of momenta wall sources the propagators are computed at.
 def run_analysis_single_momenta(directory, s = 0):
     start = time.time()
     mu, sigma = [{}] * len(prop_mom_list), [{}] * len(prop_mom_list)
@@ -401,3 +403,71 @@ def run_analysis_single_momenta(directory, s = 0):
             # Time per iteration
             print('Elapsed time: ' + str(time.time() - start))
     return mu, sigma
+
+def get_point_list(directory):
+    file0 = [file for (dirpath, dirnames, file) in os.walk(directory)][0][0]
+    f = h5py.File(directory + '/' + file0, 'r')
+    allpts = f['prop']
+    pts = []
+    for ptstr in allpts.keys():    # should be of the form x#y#z#t#
+        parts = re.split('x|y|z|t', ptstr)[1:]
+        pt = [int(x) for x in parts]
+        pts.append(pt)
+    f.close()
+    return pts
+
+def average_over_points(S_list, G_list, pt_list):
+    N = len(pt_list)
+    S_ave, G_ave = {}, {}
+    # global mom_str_list
+    for pstring in mom_str_list:
+        S_ave[pstring], G_ave[pstring] = np.zeros(S_list[0][pstring].shape, dtype = np.complex64), \
+                    np.zeros(G_list[0][pstring].shape, dtype = np.complex64)
+        for idx, pt in enumerate(pt_list):
+            S_ave[pstring] += S_list[idx][pstring]
+            G_ave[pstring] += G_list[idx][pstring]
+        S_ave[pstring] *= hypervolume / N
+        G_ave[pstring] *= hypervolume / N
+    return S_ave, G_ave
+
+# Run analysis on a set of point sources by averaging over the S and G's.
+def run_analysis_point_sources(directory, s = 0):
+    start = time.time()
+    # determine points which are run
+    pt_list = get_point_list(directory)
+    mu, sigma = {}, {}
+    Γ_B, Γ_B_inv = born_term()
+    global mom_list
+    global mom_str_list
+    mom_str_list_cp = mom_str_list
+
+    for p in mom_str_list_cp:
+        print('Computing for sink momentum ' + p)
+        mom_list = [pstring_to_list(p)]
+        mom_str_list = [p]
+        print('Averaging over propagators.')
+        S_list, G_list = [], []
+        for idx, pt in enumerate(pt_list):
+            # print('Computing for propagator at point ' + str(pt))
+            pt_prop_path = 'x' + str(pt[0]) + 'y' + str(pt[1]) + 'z' + str(pt[2]) + 't' + str(pt[3]) + '/'
+            props, threepts = readfile(directory, dpath = pt_prop_path, sink_momenta = [p])
+            S_list.append(props)
+            G_list.append(threepts)
+        S_ave, G_ave = average_over_points(S_list, G_list, pt_list)
+        print('Bootstrapping.')
+        props_boot = bootstrap(S_ave, seed = s)
+        threept_boot = bootstrap(G_ave, seed = s)
+        print('Inverting propagators.')
+        props_inv = invert_prop(props_boot)
+        print('Amputating legs.')
+        Γ = amputate(props_inv, threept_boot)
+        print('Computing quark field renormalization.')
+        Zq = quark_renorm(props_inv)
+        print('Computing operator renormalization.')
+        Z = get_Z(Zq, Γ, Γ_B_inv)
+        mu_p, sigma_p = get_statistics_Z(Z)    # mu_p is a dictionary with only one p value
+        mu[p], sigma[p] = mu_p[p], sigma_p[p]
+
+        # Time per iteration
+        print('Elapsed time: ' + str(time.time() - start))
+    return mu, sigma, pt_list
