@@ -120,6 +120,8 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
 
   -- Compute point propagators at N random points on the lattice.
   local N = 20    -- number of points to compute propagators at
+  local seed = 23
+  math.randomseed(seed)
   local S_list = {}
   local pts = {}
   printf("Computing %d random point sources.", N)
@@ -340,14 +342,14 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
 -- local p_list_NPR = {{2,2,2,2},{2,2,2,4},{2,2,2,6},{3,3,3,2},{3,3,3,4},{3,3,3,6},{3,3,3,8},{4,4,4,4},{4,4,4,6},{4,4,4,8}}
-local p_list_NPR = {{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}, {5, 5, 5, 5}}
---[[
+-- local p_list_NPR = {{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}, {5, 5, 5, 5}}
+--
 local p_list_NPR = {}
 local nhat = {.5, .5, .5, .5}
 local r = 2
-for i = 1, 5 do
-  for j = 1, 5 do
-    for k = 1, 5 do
+for i = -5, 5 do
+  for j = -5, 5 do
+    for k = -5, 5 do
       for l = 1, 5 do
         local x = {i, j, k, l}
         local proj = {}
@@ -364,7 +366,7 @@ for i = 1, 5 do
     end
   end
 end
-]]
+--]]
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
