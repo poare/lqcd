@@ -191,7 +191,7 @@ def quark_renorm(props_inv):
                 Sinv = props_inv[pstring][b, cfgidx]
                 num = sum([phase[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)])
                 denom = 12 * sum([np.sin(2 * np.pi * (p[mu] + bvec[mu]) / LL[mu]) ** 2 for mu in range(4)])
-                Zq[pstring][b, cfgidx] = (1j) * (num / denom) * hypervolume
+                Zq[pstring][b, cfgidx] = (-1j) * (num / denom) * hypervolume
     return Zq
 
 # Compute \Gamma_{Born}(p). Should be a function of p with Dirac indices. For the mom frac
@@ -202,8 +202,7 @@ def born_term():
     Gamma_B_inv = {}
     for p in mom_list:
         pstring = plist_to_string(p)
-        # Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
-        Gamma_B[pstring] = (-1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
+        Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
         Gamma_B_inv[pstring] = np.linalg.inv(Gamma_B[pstring])
     return Gamma_B, Gamma_B_inv
 
@@ -301,7 +300,10 @@ def load_data(directory):
     mu = np.load(directory + '/mu.npy')
     sigma = np.load(directory + '/sigma.npy')
     p_list = np.load(directory + '/mom_list.npy')
-    prop_p_list = np.load(directory + '/prop_mom_list.npy')
+    try:
+        prop_p_list = np.load(directory + '/prop_mom_list.npy')
+    except OSError:
+        prop_p_list = ['point source']
     cfgnum = np.load(directory + '/cfgnum.npy')
     return mu, sigma, p_list, prop_p_list, cfgnum
 

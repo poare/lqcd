@@ -19,14 +19,14 @@ job_num = 17951
 # prop_mom_list = [[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]
 # prop_mom_list = ['point source at origin']
 
-# Sink momentum that we tie up at.
-mom_tot = []
-for i in range(1, 6):
-    for j in range(1, 6):
-        for k in range(1, 6):
-            for l in range(1, 6):
-                mom_tot.append([i, j, k, l])
-mom_list = analysis.cylinder(mom_tot, 2)
+# Sink momentum that we tie up at. Uncomment when done testing
+# mom_tot = []
+# for i in range(1, 6):
+#     for j in range(1, 6):
+#         for k in range(1, 6):
+#             for l in range(1, 6):
+#                 mom_tot.append([i, j, k, l])
+# mom_list = analysis.cylinder(mom_tot, 2)
 
 # for job 17951, delete after testing is done
 mom_list = [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3], [4, 4, 4, 4], [5, 5, 5, 5]]
