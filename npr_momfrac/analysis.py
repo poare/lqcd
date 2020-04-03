@@ -72,7 +72,17 @@ def get_metric():
     return g
 
 def pstring_to_list(pstring):
-    return [int(pstring[1]), int(pstring[2]), int(pstring[3]), int(pstring[4])]
+    def get_momenta(x):
+        lst = []
+        mult = 1
+        for digit in x:
+            if digit == '-':
+                mult *= -1
+            else:
+                lst.append(mult * int(digit))
+                mult = 1
+        return lst
+    return get_momenta(pstring.split('p')[1])
 
 def plist_to_string(p):
     return 'p' + str(p[0]) + str(p[1]) + str(p[2]) + str(p[3])
@@ -137,7 +147,8 @@ def readfile(directory, gauged = False, dpath = '', sink_momenta = None):
             prop = f[prop_path][()]
             threept = f[threept_path][()]
             props[pstring][idx, :, :, :, :] = np.einsum('ijab->aibj', prop)
-            threepts[pstring][idx, :, :, :, :] = np.einsum('ijab->aibj', threept)
+            # threepts[pstring][idx, :, :, :, :] = np.einsum('ijab->aibj', threept)
+            threepts[pstring][idx, :, :, :, :] = np.einsum('ijab->aibj', threept) * 2
         idx += 1
     return props, threepts
 
@@ -203,6 +214,7 @@ def born_term():
     for p in mom_list:
         pstring = plist_to_string(p)
         Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
+        # Gamma_B[pstring] = (1j) * 2 * (p[2] * gamma[2] - p[3] * gamma[3])
         Gamma_B_inv[pstring] = np.linalg.inv(Gamma_B[pstring])
     return Gamma_B, Gamma_B_inv
 
@@ -443,8 +455,9 @@ def run_analysis_point_sources(directory, s = 0):
     global mom_str_list
     mom_str_list_cp = mom_str_list
 
-    for p in mom_str_list_cp:
-        print('Computing for sink momentum ' + p)
+    for idx, p in enumerate(mom_str_list_cp):
+        print('Computing for sink momentum ' + str(idx) + ' out of ' \
+                    + str(len(mom_str_list_cp)) + '. Value: ' + p)
         mom_list = [pstring_to_list(p)]
         mom_str_list = [p]
         print('Averaging over propagators.')
