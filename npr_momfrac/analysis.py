@@ -18,7 +18,7 @@ import re
 # analysis.
 
 # g = np.diag([1, -1, -1, -1])
-g = np.diag([1, 1, 1, 1])    # in Euclidean space?
+g = np.diag([1, 1, 1, 1])
 
 gamma = np.zeros((4,4,4),dtype=complex)
 gamma[0] = gamma[0] + np.array([[0,0,0,1j],[0,0,1j,0],[0,-1j,0,0],[-1j,0,0,0]])
@@ -50,26 +50,9 @@ L = 16
 T = 48
 LL = [L, L, L, T]
 hypervolume = (L ** 3) * T
-# LL = [24, 24, 24, 48]    # only for debugging purposes, since Phiala's code is on a 24^3 x 48 lattice.
-# hypervolume = (24 ** 3) * T
 
 n_boot = 200
 num_cfgs = 1
-
-def get_mom_list():
-    return mom_list
-
-def get_prop_mom_list():
-    return prop_mom_list
-
-def get_num_cfgs():
-    return num_cfgs
-
-def get_hypervolume():
-    return hypervolume
-
-def get_metric():
-    return g
 
 def pstring_to_list(pstring):
     def get_momenta(x):
@@ -212,9 +195,10 @@ def born_term():
     Gamma_B = {}
     Gamma_B_inv = {}
     for p in mom_list:
-        pstring = plist_to_string(p)
-        Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
-        # Gamma_B[pstring] = (1j) * 2 * (p[2] * gamma[2] - p[3] * gamma[3])
+        pstring = plist_to_string(p)    #THIS IS NOT MOMENTUM, IT IS THE WAVEVECTOR
+        # Gamma_B[pstring] = (1j) * np.sqrt(2) * (p[2] * gamma[2] - p[3] * gamma[3])
+        Gamma_B[pstring] = (1j) * np.sqrt(2) * ((2 * np.pi * p[2] / L) * gamma[2] - (2 * np.pi * p[3] / T) * gamma[3])
+        #TODO might need to add bvec
         Gamma_B_inv[pstring] = np.linalg.inv(Gamma_B[pstring])
     return Gamma_B, Gamma_B_inv
 
@@ -309,7 +293,7 @@ def save_mu_sigma(mu, sigma, directory, clear_path = False):
 
 # Returns the data which was saved after running "python3 perform_analysis.py"
 def load_data(directory):
-    mu = np.load(directory + '/mu.npy')
+    Z = np.load(directory + '/Z.npy')
     sigma = np.load(directory + '/sigma.npy')
     p_list = np.load(directory + '/mom_list.npy')
     try:
@@ -317,7 +301,7 @@ def load_data(directory):
     except OSError:
         prop_p_list = ['point source']
     cfgnum = np.load(directory + '/cfgnum.npy')
-    return mu, sigma, p_list, prop_p_list, cfgnum
+    return Z, sigma, p_list, prop_p_list, cfgnum
 
 # momenta is subset of mom_list
 def subsample(mu, sigma, momenta):
