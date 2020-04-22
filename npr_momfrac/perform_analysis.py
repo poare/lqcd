@@ -25,7 +25,6 @@ for i in range(0, 6):
             for l in range(0, 6):
                 mom_tot.append([i, j, k, l])
 mom_list = mom_tot
-
 print('Number of total sink momenta: ' + str(len(mom_list)))
 
 # for job 17951, delete after testing is done
@@ -45,10 +44,11 @@ for mu in range(0, 4):
     Z, Zq = analysis.run_analysis_point_sources(data_dir, mom_sub_list, mu = mu)
     # Z, Zq, pt_list = analysis.run_analysis_untied(data_dir, mu = mu)
     out_file = '/Users/theoares/lqcd/npr_momfrac/analysis_output/job' + str(job_num) + \
-            'born/O' + str(mu + 1) + str(mu + 1) + '.h5'
+            '/O' + str(mu + 1) + str(mu + 1) + '.h5'
                 # 'born/O' + str(mu + 1) + str(mu + 1) + '.h5'
     f = h5py.File(out_file, 'w')
     f['momenta'] = mom_sub_list
+    print(Z)
     f['Z'] = Z
     f['Zq'] = Zq
     # f['pts'] = pt_list

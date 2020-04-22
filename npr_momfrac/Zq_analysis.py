@@ -31,7 +31,6 @@ cfgbase = 'cl3_16_48_b6p1_m0p2450'
 #                 mom_list.append([i, j, k, l])
 
 # TODO use this one
-# job_num = 19910
 # job_num = 21664
 mom_list = []
 for i in range(5):
@@ -39,9 +38,6 @@ for i in range(5):
         for k in range(5):
             for l in range(5):
                 mom_list.append([i, j, k, l])
-
-
-mom_list = [[2, 3, 1, 4]]
 print('Number of total sink momenta: ' + str(len(mom_list)))
 #############################################################################
 
@@ -54,13 +50,12 @@ analysis.mom_list = mom_list
 analysis.mom_str_list = mom_str_list
 Zq = analysis.Zq_analysis(data_dir, mom_list) / V
 
-print(Zq)
+# print(Zq)
 
-# # out_file = '/Users/theoares/lqcd/npr_momfrac/analysis_output/jobZq' + str(job_num) + '/Zq_confirmation.h5'
-# out_file = '/Users/theoares/lqcd/npr_momfrac/phiala_code/analysis_output/my_Zq_analysis.h5'
-# f = h5py.File(out_file, 'w')
-# f['momenta'] = mom_list
-# f['Zq'] = Zq / V
-# print(Zq / V)
-# f.close()
-# print('Output saved at: ' + out_file)
+# out_file = '/Users/theoares/lqcd/npr_momfrac/analysis_output/jobZq' + str(job_num) + '/Zq.h5'
+out_file = '/Users/theoares/lqcd/npr_momfrac/phiala_code/analysis_output/my_Zq_analysis.h5'
+f = h5py.File(out_file, 'w')
+f['momenta'] = mom_list
+f['Zq'] = Zq
+f.close()
+print('Output saved at: ' + out_file)
