@@ -28,22 +28,42 @@
 %SetFonts
 
 
-\title{Symmetry on the Lattice}
+\title{Hypercubic Symmetry}
 \author{Patrick Oare}
 \date{}							% Activate to display a given date or no date
 
 \begin{document}
 \maketitle
-\section{The Hypercubic Group}
+
+These notes will briefly discuss the representation theory of the hypercubic group $H(4)$. We will begin by discussing 
+the cubic group $H(3)$, as it is easier to visualize and many of its properties are shared by its larger cousin $H(4)$. 
+We will then characterize $H(4)$ as a group, and classify its irreps via studying its characters. Finally, we will focus on 
+some of the more important representations and show how a rank 2 tensor decomposes into the irreps of $H(4)$. 
+
+\section{The Cubic Group}
+
+An easier case to begin studying this subject is by studying the cubic group, which is the group of symmetries of the cube. 
+
+
+\section{The Hypercubic Group $H(4)$}
+
+The generalization from $H(3)\rightarrow H(4)$ is not too difficult to make, but there are a few subtleties that make this 
+group's structure slightly harder to unravel. In 3 dimensions, reflection is not a rotation, and thus the structure of the 
+total group $H(3)$ is a direct product of the group of proper symmetries, $H(3)^+$, with the group of reflections, 
+$\mathbb Z / 2\mathbb Z$:
+\begin{equation}
+	H(3) = SH(3)\times (\mathbb Z / 2\mathbb Z)
+\end{equation}
+In 4 dimensions, reflection $R = diag(-1, -1, -1, -1)$ is a proper rotation, and thus there is no decomposition like this. There 
+are still improper symmetries in $H(4)$, and those are characterized to have negative determinant, for example spatial 
+inversion $diag(1, -1, -1, -1)$. So, $H(4)$ still has a strict subgroup of proper transformation $SH(4)$, but there is 
+no direct or semidirect product structure relating the two. In fact, $H(4)^+$ is not even a quotient of $H(4)$, as can 
+be seen directly by examining the orders of the two groups. 
+
+
+
+\section{Representations of $H(4)$}
 
 \subsection{Young Diagrams}
-
-\subsection{Representations of $H(4)$}
-
-\section{Implications}
-
-\subsection{Operator mixing}
-
-\subsection{Moments of GPDs}
 
 \end{document}

@@ -10,10 +10,8 @@
 \usepackage[shortlabels]{enumitem}
 \usepackage{float}
 \usepackage{tikz-cd}
-\usepackage[compat=1.0.0]{tikz-feynman}   %note you need to compile this in LuaLaTeX for diagrams to render correctly
-\usepackage{slashed}
-\usepackage{simpler-wick}
 \usepackage{subcaption}
+\usepackage{slashed}
 
 \usepackage{amsthm}
 \theoremstyle{definition}
@@ -26,6 +24,9 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\Q}{\mathbb{Q}}
+
+\usepackage{simpler-wick}
+\usepackage[compat=1.0.0]{tikz-feynman}   %note you need to compile this in LuaLaTeX for diagrams to render correctly
 
 % make arrow superscripts
 \DeclareFontFamily{OMS}{oasy}{\skewchar\font48 }
@@ -51,181 +52,130 @@
 \newcommand{\cevvec}[1]{\overset{\scriptscriptstyle\smallleftrightarrow}{#1}}
 
 \newcommand{\dbar}{d\hspace*{-0.08em}\bar{}\hspace*{0.1em}}
+
 %SetFonts
 
-\title{Renormalization on the Lattice}
+%SetFonts
+
+
+\title{Momentum Fraction NPR}
 \author{Patrick Oare}
 \date{}							% Activate to display a given date or no date
 
 \begin{document}
 \maketitle
 
-\section{Regularization-Independent Momentum Subtraction (RI-MOM)}
 
-The RI-MOM scheme (also known as Rome-Southampton) is a renormalization scheme well equipped to deal with 
-the lattice, namely because we can calculate the relevant quantities that define the scheme easily on the lattice. The 
-lattice spacing $a$ provides us a with a natural UV regulator, and RI-MOM will tell us how to go from such a regulated 
-result to a physical observable quantity. 
+\section{Renormalization in the RI'-MOM scheme}
 
-The RI-MOM has a relatively simple renormalization condition. We will define it here for an arbitrary Green's function, 
-for example a three point function. For a renormalization scale $\mu$ and working in a fixed gauge, \textbf{we 
-define the amputated, renormalized Green's function at momentum $p^2 = -\mu^2$ to be equal to its tree level 
-value}. 
+We will renormalize a local operator $\mathcal O(z)$ in the RI'-MOM scheme~\cite{ri_mom}. To renormalize 
+$\mathcal O$ at scale $\mu^2$ in this scheme, we impose that in a fixed gauge, the amputated three point 
+function $\Gamma$ at incoming quark momentum $p^2 = \mu^2$ and current momentum $q = 0$ equals 
+its tree level value at $p^2 = \mu^2$. 
 
-We will denote bare quantities as $a^{(0)}$, and renormalized quantities with a $R$ subscript, when appropriate. 
-Note that any quantities computed directly on the lattice are bare, and the entire point of using RI-MOM is to extract 
-a sensible definition for these bare quantities. 
-
-In practice on the lattice, there are two things that we must compute. We will work with a specific example here for a 
-given quark field $q(x)$. Suppose the operator we are trying to compute is $\mathcal O(z)$. We will renormalize the 
-three point function:
+Our notation will denote bare quantities as $A^{(0)}$, and renormalized quantities with a $R$ subscript, when appropriate. 
+The lattice parameter will be denoted $a$ and the size of the lattice in the $\mu$ direction is $L_\mu$. 
+We will work with momentum scales:
 \begin{equation}
-	G(p) = \frac{1}{V}\sum_{x, y, z}e^{ip\cdot (x - y)}\langle q(x)\mathcal O(z) \overline{q}(y)\rangle~
-	\label{eq:green}
+	\tilde p_\mu\equiv \frac{2}{a}\sin\left(\frac{\pi a}{L_\mu} k_\mu\right) \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+	p_\mu\equiv \frac{2\pi}{L_\mu} k_\mu
 \end{equation}
+where $\tilde p$ is the lattice momentum and $p$ is the linear momentum for mode $k\in\mathbb Z^4$. We will work in Landau gauge, 
+where the gauge parameter is set to $\tau = 0$. 
+
+On the lattice we must directly compute the propagator $S^{(0)}(p^2)$ and the bare three point function $G^{(0)}(p^2)$, defined as:
+\begin{align}
+	S^{(0)}(p^2) &\equiv \frac{1}{V}\sum_{x, y} e^{ip\cdot (x - y)}\langle q(x) \overline q(y)\rangle ~\label{eq:prop} \\
+	G^{(0)}(p^2) &\equiv \frac{1}{V}\sum_{x, y, z}e^{ip\cdot (x - y)}\langle q(x)\mathcal O(z) \overline{q}(y)\rangle~\label{eq:green}
+\end{align}
 i.e. we are projecting the source and sink to a definite momentum and projecting the operator $\mathcal O(z)$ to zero 
 momentum. 
 
-We also will need to compute the momentum projected propagator:
-\begin{equation}
-	S(p) = \frac{1}{V}\sum_{x, y}e^{ip\cdot(x - y)} S(x, y)~
-	\label{eq:mom_prop}
-\end{equation}
-where $S^{ab}_{ij}(x, y) = \langle q^a_i(x)\bar q^b_j(y)\rangle$ is the standard propagator. On the lattice, the two objects that 
-we must compute directly are $S(p)$ and $G(p)$, and everything else follows once we have these quantities. 
-
-To explain the method, our goal is to compute the operator renormalization:
-\begin{equation}
-	\mathcal O_R(\mu) = \mathcal Z(\mu) \,\mathcal O^{(0)}
-\end{equation}
+We define the renormalized operator and quark fields to be:
+\begin{align}
+	\mathcal O_R(\mu) &\equiv \mathcal Z(\mu) \,\mathcal O^{(0)} ~\label{eq:zo_def} \\
+	q_R(\mu) &\equiv \sqrt{\mathcal Z_q(\mu)} q^{(0)}~\label{eq:zq_def}
+\end{align}
 where $\mathcal O_R(\mu)$ is our renormalized operator, $\mathcal Z(\mu)$ is the renormalization coefficient of 
-interest, and $\mathcal O^{(0)}$ is the lattice (bare) operator. We will also assume the quark fields have been 
-renormalized by some quark field renormalization $\mathcal Z_q$ (note this is the opposite convention studied in 
-many QFT classes):
+interest, and $\mathcal O^{(0)}$ is the lattice (bare) operator.
+
+In the RI'-MOM scheme the quark field renormalization $\mathcal Z_q$ is defined to be:
 \begin{equation}
-	q_R(\mu) = \sqrt{\mathcal Z_q}\,q^{(0)}
-\end{equation}
-There is an analytical expression for $\mathcal{Z}_q$ on the lattice in the RI-MOM scheme, and it has been determined 
-to be:
-\begin{equation}
-	\mathcal Z_q(p)|_{p^2 = -\mu_R^2} = i\frac{1}{12\tilde p^2}tr\left\{S^{-1}(\tilde p)\slashed{\tilde p}\right\}\bigg|_{p^2 = \mu^2} = \left[\frac{tr\left\{i\sum_{\nu = 1}^4 \gamma_\nu \sin(ap_\nu) a S(p)^{-1}\right\}}{12\sum_{\nu = 1}^4 \sin^2(ap_\nu)}\right]_{p^2 = \mu^2}~
+	\mathcal Z_q(p^2)|_{\tilde p^2 = -\mu_R^2} = i\frac{1}{12\tilde p^2}tr\left\{S^{-1}(\tilde p^2)\slashed{\tilde p}\right\}\bigg|_{p^2 = \mu^2} = \left[\frac{tr\left\{i\sum_{\nu = 1}^4 \gamma_\nu \sin(ap_\nu) a S(p^2)^{-1}\right\}}{12\sum_{\nu = 1}^4 \sin^2(ap_\nu)}\right]_{p^2 = \mu^2}~
 	\label{eq:quark_renorm}
 \end{equation}
-The twelve on the bottom is a normalization $12 = 3\times 4$ for the number of color and number of spin indices, which we will 
-see in many of the expressions. Here we are using the discretized momentum $\tilde p_\mu = \frac{1}{a}\sin(a p_\mu)$ 
-which replaces the continuum momentum on the lattice. Note that many papers in the literature use the negative of this 
-expression. Because our phase convention is opposite the $e^{-ip(x - y)}$ convention, the sign of our momenta are opposite 
-to this other convention, and so we pull an extra negative sign into Equation~\ref{eq:quark_renorm}
+The twelve is a normalization for the number of color and number of spin indices, which we will see in many of the expressions. 
+Note that this may differ by a negative sign from other references, as we are using the phase convention $e^{ip\cdot(x - y)}$ 
+for our momentum projection in Equations~\ref{eq:prop} and~\ref{eq:green}.
 
-Let $\Gamma(p)$ be the \textbf{amputated three point function}, bare or renormalized. We can relate $\Gamma$ to the other 
-quantities we have already computed by using the inverse propagator to manually cut the legs off the full three 
-point function:
+Let $\Gamma$ be the \textbf{amputated three point function}, bare or renormalized. $\Gamma$ can be defined in 
+terms of the propagator $S(p^2)$ and three point function $G(p^2)$ as:
 \begin{equation}
-	\Gamma(p) = S(p)^{-1} G(p) S(p)^{-1}
+	\Gamma(p^2) = S(p^2)^{-1} G(p^2) S(p^2)^{-1}
 \end{equation}
-We will denote the tree level version of this by $\Gamma_B$, where the $B$ subscript stands for ``Born". 
-
-Using our quantities already computed on the lattice, we can compute the bare $\Gamma^{(0)}(p)$ directly in terms 
-of the renormalized quantities. In the continuum limit, the renormalized Green's function will be:
-\begin{align}
-	G_R(p; \mu) &= \int d^4x \, d^4 y\, d^4 z\, e^{ip\cdot (x - y)} \langle q_R(x; \mu) \mathcal O_R(z; \mu) \overline 
-	q_R(y; \mu) 
-	\rangle \\
-	&= \mathcal Z_q(\mu) \mathcal Z(\mu) \int d^4x \, d^4 y\, d^4 z\, e^{ip\cdot (x - y)} \langle q^{(0)}(x) \mathcal O^{(0)}
-	(z) q^{(0)}(y) \rangle \\
-	&= \mathcal Z_q(\mu) \mathcal Z(\mu) G^{(0)}(p)
-\end{align}
-Similarly, the bare and renormalized propagators are related as:
+By using the definitions~\ref{eq:zo_def} and~\ref{eq:zq_def} we can see that $G_R(p^2) = \mathcal{Z}_q\mathcal Z_\mathcal{O} G^{(0)}(p^2)$ 
+and $S_R(p^2) = \mathcal{Z}_q S^{(0)}(p^2)$, hence we can relate the renormalized $\Gamma_R$ to the bare 
+$\Gamma^{(0)}$ which is computed on the lattice:
 \begin{equation}
-	S_R(p; \mu) = \int d^4x d^4 y\, e^{ip\cdot(x - y)}\langle q_R(x; \mu)\overline q_R(y; \mu)\rangle = \mathcal Z_q(\mu) 
-	S^{(0)}(p)
-\end{equation}
-These relation translates immediately to the amputated Green's function $\Gamma(p)$, as $S^{-1}_R(p; \mu) = \mathcal 
-Z_q^{-1}(\mu) (S^{(0)})^{-1}$ we see that:
-\begin{equation}
-	\Gamma_R(p; \mu) = \mathcal Z_q(\mu)^{-1}\mathcal Z(\mu) \Gamma^{(0)}(p)
+	\Gamma_R(p^2) = \mathcal{Z}_q(\mu^2)^{-1} \mathcal Z_\mathcal{O}(\mu^2) \Gamma^{(0)}(p^2)
 \end{equation}
 
-We are now in a position to apply the renormalization condition. We must equate the renormalized, amputated Green's function 
-to the tree level Green's function $\Gamma_B(p)$. This gives us:
+We can now apply the renormalization condition and define that $\Gamma_R(\tilde p^2)$ equals its tree level value $\Gamma_B(\tilde p^2)$ 
+at the renormalization point $\tilde p^2 = \mu^2$:
 \begin{equation}
-	\mathcal Z_q(\mu)^{-1}\mathcal Z(\mu) \Gamma(p) = \Gamma_B(p)
-\end{equation}
-Dividing by a conventional factor of 12 as a normalization and inverting, we can clean this expression up into a simple equation 
-for $\mathcal Z(\mu)$:
-\begin{equation}
-	\mathcal Z(p^2 = -\mu^2) = \left[\frac{12\mathcal Z_q(p)}{tr\left\{\Gamma(p)\Gamma_B(p)^{-1}\right\}}\right]_{p^2 
-	= \mu^2}~
+	\bigg[\frac{\mathcal{Z}_\mathcal{O}(\tilde p^2)}{\mathcal{Z}_q(\tilde p^2)} \Gamma^{(0)}(\tilde p^2)\bigg]_{\tilde p^2 = \mu^2} = \Gamma_B(\tilde p^2 = \mu^2)~
 	\label{eq:rc}
 \end{equation}
 
-\section{Isospin}
+\section{Isospin operator}
 
-We are interested here in computing matrix elements of the operator:
+We will now specify the RI'-MOM method to our operator $\mathcal O^i(z) = \mathcal O^i_u(z) - \mathcal O^i_d(z)$, 
+where the quark operators $\{\mathcal O^i_q\}_{i = 1}^3$ are basis elements of the tensor operator
 \begin{equation}
-	\mathcal O(z) = \mathcal O_u(z) - \mathcal O_d(z)~
-	\label{eq:operator_dfn}
+	\mathcal T_{\mu\nu}^q(z)\equiv \overline q(z)\gamma_{\{\mu}\cevvec{D}_{\nu\}} q(z)
 \end{equation}
-where the quark operators $\mathcal O_q$ are given by
+in the irreducible representation $\tau_1^{(3)}$ of the hypercubic group $H(4)$. Here $\cevvec D = \vec D - \cev D$ is the 
+antisymmetrized covariant derivative and the symmetric and traceless component of a tensor is defined to be:
 \begin{equation}
-	\mathcal O_q(z) = \frac{1}{\sqrt{2}}(\mathcal T^q_{33}(z) - \mathcal T^q_{44}(z))
-\end{equation}
-and the irreducible tensor operators $\mathcal T^q_{\mu\nu}$ are defined as
-\begin{equation}
-	\mathcal T^q_{\mu\nu} = \overline q(z)\, \gamma_{\{\mu} \cevvec{D}_{\nu\}}\, q(z)
-\end{equation}
-with $\cevvec D = \vec D - \cev D$ the antisymmetrized covariant derivative. Note we define the symmetric and traceless 
-component of a tensor to be:
-\begin{equation}
-	a_{\{\mu}b_{\nu\}} = \frac{1}{2}(a_\mu b_\nu + a_\nu b_\mu) - \frac{1}{4}a_\alpha b^\alpha g_{\mu\nu}
+	a_{\{\mu}b_{\nu\}} \equiv \frac{1}{2}(a_\mu b_\nu + a_\nu b_\mu) - \frac{1}{4}a_\alpha b^\alpha g_{\mu\nu}
 \end{equation} 
 
-We are inserting the operator $\mathcal O_q$ with momentum $\vec p = 0$, i.e. dealing with $\sum_z \mathcal O_q(z) = 
-\mathcal O_q(\vec p = 0)$. For this current insertion, we can read off the Born term (the tree level matrix element) by 
-replacing the covariant derivative $\cevvec D$ with the sink momentum $p$\footnote{In a Gockeler's 
-analysis of a similar operator, the Born term for $\mathcal O_{\mu\nu} = \frac{1}{2}\overline u (\gamma_\mu \cevvec D_\nu + 
-\cevvec D_\mu\gamma_\nu) d$ is taken to be $\Gamma_B(p) = i(\gamma_\mu p_\nu + p_\mu\gamma_\nu)$}. This gives us:
-\begin{equation}
-	\Gamma_B(p) = i \sqrt{2}(\tilde p_3 \gamma_3 - \tilde p_4\gamma_4)~
-	\label{eq:naive_born}
-\end{equation}
-where $\tilde p$ is taken to be the lattice momentum $\tilde p_\mu = 2\sin(\pi k_\mu / L_\mu)$. 
+We now must determine the tree level structure of this operator, and then perform a lattice computation to determine 
+$\Gamma^{(0)}(\tilde p^2$ and $\mathcal Z_q(\tilde p^2)$. 
 
-However, this is not completely accurate. There is mixing from other tensor structures, and we must account for that as well. 
-There are two ways to deal with this. 
+\subsection{Tree level structure of $\mathcal T$}
 
-The first method we can check is to solve for the Born term directly on the lattice by solving the free theory (initialized 
-with $U_\mu^{ab}(x) = \delta^{ab}$) for $\Gamma$, the amputated Green's function, as the Born term is defined to be $\Gamma(p)$ 
-in the non-interacting theory. To implement this, we perform a color-averaged trace $\frac{1}{3} tr_C\{S\}$ of the propagator to 
-strip off the color indices and leave ourselves with a Dirac matrix, and then use the corresponding Dirac matrix as the Born term. 
-We note that this should match closely to our original construction of the Born term with additional $O(a)$ artifacts, since the 
-other tensor structure not accounted for in Equation~\ref{eq:naive_born} arises from the $O(4)\rightarrow H(4)$ symmetry breaking.
-
-The second method redefines the renormalization condition in Equation~\ref{eq:rc} to account for the mixing directly. We 
-expand the amputated Green's function $\Gamma(p)$ as a linear combination of the two tree level structures:
+We begin by determining the amputated three point function for this operator at tree level $\Gamma_B(p^2)$, closely following 
+the method in~\cite{sergey}. When $\mathcal T_{\mu\nu}$ is put on the lattice, its tree level value is proportional to two tensor 
+structures:
 \begin{align}
-	i\Lambda_{\mu\nu}^{1} &:= \frac{1}{2}(p_\mu \gamma_\nu + p_\nu \gamma_\mu) - \frac{1}{4} \slashed p \delta_{\mu\nu} \\
-	i\Lambda_{\mu\nu}^2 &:= \frac{p_\mu p_\nu}{p^2} \slashed p - \frac{1}{4} \slashed p \delta_{\mu\nu}
+	i\Lambda_{\mu\nu}^{1}(\tilde p) &\equiv \frac{1}{2}(\tilde p_\mu \gamma_\nu + p_\nu \gamma_\mu) - \frac{1}{4} \slashed{\tilde p} \delta_{\mu\nu} \\
+	i\Lambda_{\mu\nu}^2(\tilde p) &\equiv \frac{\tilde p_\mu \tilde p_\nu}{p^2} \slashed{\tilde p} - \frac{1}{4} \slashed{\tilde p} \delta_{\mu\nu}
 \end{align}
-where we use the lattice momentum for $p$. If we let $\Gamma^D(p) := \frac{1}{3} tr_C\{\Gamma(p)\}$ be the Dirac structure of 
-$\Gamma(p)$, then this expansion amounts to imposing the renormalization condition:
+In the continuum, $\mathcal T_{\mu\nu}$ is directly propotional to just $\Lambda^{(1)}_{\mu\nu}$, and we would not have 
+to consider any mixing between these tensor structures. On the lattice, $\Lambda_{\mu\nu}^{(2)}$ comes in as a $\mathcal O(a)$ 
+correction. To account for this mixing directly, we must redefine the renormalization condition in Equation~\ref{eq:rc}. We
+expand the amputated Green's function $\Gamma(p)$. If we let $\Gamma^D(p) := \frac{1}{3} tr_C\{\Gamma(p)\}$ be the 
+Dirac components of $\Gamma(p)$, then this expansion amounts to imposing the renormalization condition:
 \begin{equation}
-	\Gamma_{\mu\nu}^D(p)\bigg|_{p^2 = \mu^2} = \Pi^1(p^2) \Lambda^1_{\mu\nu} + \Pi^2(p^2) \Lambda^2_{\mu\nu}~
+	\bigg[\Gamma_{\mu\nu}^D(\tilde p^2)\bigg]_{\tilde p^2 = \mu^2} = \Pi^1(\tilde p^2) \Lambda^1_{\mu\nu}(\tilde p^2) + \Pi^2(\tilde p^2) \Lambda^2_{\mu\nu}(\tilde p^2)~
 	\label{eq:mix_rc}
 \end{equation}
-where $\Pi^1(p^2)$ and $\Pi^2(p^2)$ are coefficients which are related to the renormalization coefficients by:
+where $\Pi^1(\tilde p^2)$ and $\Pi^2(\tilde p^2)$ are coefficients which are related to the renormalization coefficients by:
 \begin{equation}
-	\Pi^i(p^2 = \mu^2) = \frac{Z_q}{Z_i(p^2 = \mu^2)}
+	\Pi^i(\tilde p^2 = \mu^2) = \frac{Z_q}{Z_i(\tilde p^2 = \mu^2)}
 \end{equation}
-and so knowledge of the $\Pi^i$ coefficients will allow us to extract the renormalization coefficient $Z_i(p^2 = \mu^2)$. To solve for 
-this, we construct a linear functional on the space of Dirac and Lorentz matrices by defining a form $\langle\cdot, \cdot\rangle$ 
-which is defined by
+We will extract the renormalization coefficient proportional to the continuum tree level piece, 
+$\mathcal Z_\mathcal{O}\equiv \mathcal Z_1$. 
+
+To solve Equation~\ref{eq:mix_rc} for the $\Pi^i$, we construct a linear functional on the space of Dirac and Lorentz matrices 
+by defining a form $\langle\cdot, \cdot\rangle$ whose action is:
 \begin{equation}
 	\langle \lambda^1, \lambda^2\rangle := \sum_{i\in\mathfrak R} tr_D\left\{\lambda^1_i \lambda^2_i\right\}
 \end{equation}
 where $\lambda^1, \lambda^2$ are objects with two Dirac and two Lorentz indices. Here, $\mathfrak R$ denotes the irrep 
-of $H(4)$ that we are working in. In our case, we are considering $\mathfrak R = \tau_1^{(3)}$, one of the 3 dimensional irreps 
-of $H(4)$, and so we sum over the normalized basis elements of the irrep:
+of $H(4)$ that we are working in, which in our case is $\mathfrak R = \tau_1^{(3)}$. 
+This form therefore sums over the normalized basis elements of the irrep:
 \begin{align}
 	\tau_1^{(3)} = span\bigg\{ &\frac{1}{\sqrt{2}} \left(\mathcal O_{\{33\}} - \mathcal O_{\{44\}}\right), \\ 
 	& \frac{1}{\sqrt{2}} \left(\mathcal O_{\{11\}} - \mathcal O_{\{22\}}\right), \\
@@ -240,35 +190,27 @@ coefficients $\Pi^1$ and $\Pi^2$:
 \end{equation}
 where $\mathcal A^{ab}$ is the matrix of inner products:
 \begin{equation}
-	\mathcal A^{ab} := \langle \Lambda^a, \Lambda^b\rangle
+	\mathcal A^{ab} \equiv \langle \Lambda^a, \Lambda^b\rangle
 \end{equation}
-where $a, b$ range over $1$ and $2$. Using the explicit form for $\Lambda^1$ and $\Lambda^2$, the matrix $\mathcal A^{ab}$ can be computed 
-directly. For example:
-\begin{align}
-	\mathcal A^{12} &= \langle\Lambda^1, \Lambda^2\rangle \\
-	&= \frac{1}{2}tr\bigg\{(\Lambda^1_{33} - \Lambda^1_{44}) (\Lambda^2_{33} - \Lambda^2_{44})\bigg\} + \frac{1}{2}tr\bigg\{(\Lambda^1_{11} - \Lambda^1_{22}) 
-	(\Lambda^2_{11} - \Lambda^2_{22})\bigg\} \\
-	&+  \frac{1}{4}tr\bigg\{(\Lambda^1_{11} + \Lambda^1_{22} - \Lambda^1_{33} - \Lambda^1_{44}) (\Lambda^2_{11} + \Lambda^2_{22} - \Lambda^2_{33} - 
-	\Lambda^2_{44})\bigg\}
-\end{align}
-and these traces can be evaluated using the identities $tr\{\gamma_\mu\gamma_\nu\} = 4\delta_{\mu\nu}$, $(\slashed k)^2 = k^2$, and $tr\{1\} = 4$. The 
-result is:
+where $a, b$ range over $1$ and $2$. Using the explicit form for $\Lambda^1$ and $\Lambda^2$, the matrix 
+$\mathcal A^{ab}$ can be computed directly using the identities $tr\{\gamma_\mu\gamma_\nu\} = 4\delta_{\mu\nu}$, 
+$(\slashed k)^2 = k^2$, and $tr\{1\} = 4$. The result is:
 \begin{equation}
-	\mathcal A^{ab}(p) = \begin{pmatrix} 3\tilde p^2 & \frac{1}{\tilde p^2} \left( -3 \tilde p^{[4]} + 2 \sum_{i < j} \tilde p_i^2 \tilde p_j^2\right) \\ \frac{1}{\tilde p^2} 
+	\mathcal A^{ab}(\tilde p) = \begin{pmatrix} 3\tilde p^2 & \frac{1}{\tilde p^2} \left( -3 \tilde p^{[4]} + 2 \sum_{i < j} \tilde p_i^2 \tilde p_j^2\right) \\ \frac{1}{\tilde p^2} 
 	\left( -3 \tilde p^{[4]} + 2 \sum_{i < j} \tilde p_i^2 \tilde p_j^2\right) & \frac{1}{\tilde p^2} \left( -3 \tilde p^{[4]} + 2 \sum_{i < j} \tilde p_i^2 \tilde p_j^2\right) \end{pmatrix}
 \end{equation}
-where $p^{[4]}$ is the hypercubic invariant $\sum_i p_i^4$. 
+where $p^{[4]}$ is the hypercubic invariant $\sum_i p_i^4$. We invert this matrix at each lattice momentum $\tilde p_\mu$ used in our 
+computation to solve for the $\Pi^i$ coefficients, and hence $\mathcal Z_{\mathcal O}$. 
 
-%When implementing this, I picked out the $(a, b) = (1, 1)$ color component of $\Gamma_{ab}^{\alpha\beta}(p)$ and equated this to $\Gamma_B^{\alpha\beta} = i(C_z(p^3) \gamma^3 + C_t(p^4) \gamma^4)$ to determine the functions $C_z(p^3)$ and $C_t(p^4)$. 
+\subsection{Lattice computation}
 
-We will focus our analysis on the tensor operator 
-$\mathcal T^q_{\mu\mu}$ (note there is no sum on $\mu$ here), and note that $\mathcal O(z)$ can be obtained through 
-linearity. We may write:
+We now turn our attention to computing the bare Green's functions $S^{(0)}(\tilde p^2)$ and $G^{(0)}(\tilde p^2)$. 
+As in~\cite{gockeler}, we expand the diagonal components of our operator as:
 \begin{equation}
 	\sum_z\mathcal T^q_{\mu\mu}(z) = \sum_{z, z'}\overline q(z)\, J_\mu(z, z')\,q(z')~
 	\label{eq:operator_mom_proj}
 \end{equation}
-Plugging in the definition of the derivatives:
+Using the definition of the derivatives:
 \begin{align}
 	\vec D\psi(z) &= \frac{1}{2}\left(U_\mu(z)\psi(z + \hat\mu) - U_\mu(n - \hat\mu)^\dagger \psi(z - \hat\mu)\right) \\
 	\overline\psi(z) \cev D &= \frac{1}{2}\left(\overline\psi(z + \hat\mu)U_\mu(z)^\dagger - 
@@ -279,9 +221,8 @@ we find the current $J_\mu(z, z')$ is:
 	J_\mu(z, z') = \left[U_\mu(z) \delta_{z + \hat\mu, z'} - U_\mu(z')^\dagger\delta_{z - \hat\mu, z'}\right]\gamma_\mu
 \end{equation}
 
-We may now use this expansion to compute the three point function for the operator $\mathcal T_\mu = 
-\mathcal T^u_{\mu\mu} - \mathcal T^d_{\mu\mu}$ (we can simply take $\mathcal T_3 - \mathcal T_4$ to get the operator of 
-interest in Equation~\ref{eq:operator_dfn}). Using Equation~\ref{eq:operator_mom_proj}, we write 
+For the up-down quark operator difference $\mathcal T_\mu\equiv\mathcal T_\mu^u - \mathcal T_{\mu\mu}^d$, we use 
+Equation~\ref{eq:operator_mom_proj} to expand:
 \begin{equation}
 	\sum_z \mathcal T_\mu(z) = \sum_{z, z'}\left[\overline u(z)\, J_\mu(z, z')\, u(z') - \overline d(z)\, J_\mu(z, z')\, d(z')\right]
 \end{equation}
@@ -445,59 +386,92 @@ use a new sequential source (modify Equation~\ref{eq:source}) for each value of 
 inverting at the operator momentum, then tying up at the sink momentum. On the other hand, we reverse the direction of 
 inversion and invert our propagator at each sink momentum first, then tie up the line at the operator. This method is called 
 going \textbf{through the sink}. We can represent these different methods below, where in our case $q = 0$. 
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[t]{.48\textwidth}
-	\centering
-		\feynmandiagram [large, horizontal'=a to c] {
-		a [particle = \(p\)] -- [fermion, bend left = 60] b [dot, style = red],
-		d -- [boson, momentum = \(q\)] b,
-		b -- [fermion, bend left = 60] c  [particle = \(p + q\)],
-		a -- [fermion, bend right = 20, opacity = 0] c
-                };
-            	\caption{Inversion through the operator}
-	\end{subfigure}
-	~
-	\begin{subfigure}[t]{.48\textwidth}
-	\centering
-		\feynmandiagram [large, horizontal'=a to c] {
-		%a [particle = \(p\)] -- [fermion, bend right] c [particle = \(p + q\)],
-		%c -- [fermion, bend right] b [empty dot, style = red],
-		%d -- [boson, momentum = \(q\)] b
-		a [particle = \(p\)] -- [fermion, bend left = 60, opacity = 0] b [dot, style = red],
-		d -- [boson, momentum = \(q\)] b,
-		b -- [anti fermion, bend left = 60] c  [particle = \(p + q\)],
-		a -- [fermion, bend right = 20] c
-                };
-            	\caption{Inversion through the sink}
-	\end{subfigure}
-\end{figure}
 
 In this problem inversion through the sink would require too many propagator inversions like in the previous momentum 
 source method, and it would also be noisy like inversion through the operator. As such, there is no reason to consider it, 
 and I included it here mainly for generality. 
 
-\section{Matching to a continuum scheme}
+Our result for the coefficient in the RI'-MOM scheme is plotted below.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = .6\textwidth]{ZRIMOM}
+	\caption{Renormalization coefficient for $\mathcal{Z}_{\mathcal{O}}$ in the RI'-MOM scheme.}
+\end{figure}
 
-We must now discuss how to convert between schemes, because typically we want our results to be in a common scheme 
-used by many other researchers. For our case, we will convert the renormalization constant $Z_{RI-MOM}(p)$ which we 
-have calculated in the previous sections to the $\overline{MS}$ scheme. 
+\newpage
+\section{Analysis}
 
-There are a few cases we must consider. Most papers explicitly compute a 
+\subsection{Matching to $\overline{MS}$}
 
-Recall that we can express the $\beta$ function of a theory in a scheme $\mathcal S$ using a perturbative expansion in the 
-coupling $g$ or in $\alpha = \frac{g^2}{4\pi}$ as follows:
+To convert our results from RI'-MOM to $\overline{MS}$, we will use J.A. Gracey's results for the renormalization coefficients 
+$\mathcal{Z}_\mathcal{O}$~\cite{gracey_zo} and $\mathcal{Z}_q$~\cite{gracey_zq}, computed using lattice perturbation theory both in the 
+RI'-MOM and the $\overline{MS}$ schemes.
+
+We will match our results to $\overline{MS}$ by converting them multiplicatively with the corresponding matching coefficient:
 \begin{equation}
-	\beta_\mathcal{S}(g) = -\beta_0\frac{g_\mathcal{S}^3}{16\pi^2} - \beta_1\frac{g_\mathcal{S}^5}{(16\pi^2)^2} 
-	- \beta_2^\mathcal{S} \frac{g_\mathcal{S}^7}{(16\pi^2)^3} - ... 
+	C(\mu_0) \equiv \frac{\mathcal{Z}^{\overline{MS}}(\mu_0)}{\mathcal{Z}^{RI'-MOM}(\mu_0)}
 \end{equation}
-where the $\beta_j$ are coefficients. Note that $\beta_0$ and $\beta_1$ are independent of scheme and given by:
-\begin{align}
-	\beta_0 &= \frac{11}{3} - N_f \\
-	\beta_1 &= 
-\end{align}
+evaluated at the scale $\mu_0\equiv 2\;GeV$. This is done in two steps:
+\begin{enumerate}
+	\item Use the RI'-MOM anomalous dimension $\gamma$ to run $Z(\mu)$ to the matching scale $\mu_0$. 
+	\item Convert to $\overline{MS}$ by multiplying with $C$.
+\end{enumerate}
 
-\section{Hypercubic Artifacts}
+We will work through these two steps in detail for the renormalization coefficient $\mathcal Z_\mathcal{O}$. We begin 
+by running the strong coupling $\alpha(\mu)$ to each renormalization point, as it needed to determine $\gamma$. 
+This running is performed using the RunDec package~\cite{run_dec} to integrate the 3 loop beta function. We initialize 
+the running at the scale of the $Z$ boson to be 
+\begin{equation}
+	\alpha(m_Z) = 0.119
+\end{equation}
+which has been determined by the Particle Data Group (PDG)~\cite{pdg}. We will also use the PDG for the mass of the 
+$Z$-boson and the quark masses:
+\begin{align}
+	m_z &= 91.187\pm 0.0021 \textnormal{ GeV} & m_b = 4.18^{+0.03}_{-0.02}\textnormal{ GeV} \\
+	m_c &= 1.27\pm 0.02\textnormal{ GeV} & m_s = 93^{+11}_{-5}\textnormal{ MeV}
+\end{align}
+We use the 5-flavor QCD beta function to flow $\alpha(m_Z)$ to $m_b$, then the 4-flavor beta function to flow $\alpha(m_b)$ to 
+$m_c$, and finally use the 3 flavor beta function to determine $\alpha(\mu_0)$. For any renormalization scales $\mu < m_s$, 
+we flow to $m_s$ using the 3 flavor beta function, then flow $\alpha(m_s)$ to the corresponding scale $\mu$ with 2 flavors. 
+Our result for $\mu_0 = 2$ GeV is:
+\begin{equation}
+	\alpha(\mu_0 = 2 \textnormal{ GeV}) = 0.3069
+\end{equation}
+
+We are now in position to run $\mathcal Z_\mathcal{O}^{RI'-MOM}(\mu)$ to $\mu_0$ for each renormalization point 
+$\mu$. We can integrate the running equation for $\mathcal Z(\mu)$ from $mu_0$ to $\mu$ to see that in lattice perturbation 
+theory:
+\begin{equation}
+	\frac{d\log\mathcal Z}{d\log\mu} = -\gamma\implies \left(\frac{\mathcal Z(\mu)}{\mathcal Z(\mu_0)}\right)_{P.T.} = \exp\left(-\int_{\mu_0}^{\mu_f}\frac{d\mu}{\mu}\gamma(\mu)\right)
+\end{equation}
+where $\mathcal Z$ and $\gamma$ are evaluated in RI'-MOM, and $\gamma(\mu)$ is explicitly given by 
+Equation 2.13 in~\cite{gracey_zo}. Note that in Gracey's notation, the strong coupling is 
+$a(\mu) = \frac{g^2}{16\pi^2} = \frac{\alpha(\mu)}{4\pi}$. We have plotted the solution for this ratio in the following figure.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = .6\textwidth]{ratio_op}
+	\caption{Ratio $\mathcal{Z}(\mu) / \mathcal{Z}(\mu_0)$ in the RI'-MOM scheme.} 
+\end{figure}
+
+To convert a R.C. given in RI'-MOM to $\overline{MS}$, we use Gracey's result for the matching coefficients, Equation 4.3 
+of~\cite{gracey_zo}. This explicitly gives us:
+\begin{equation}
+	C_\mathcal{O}(a, 0) = \frac{\mathcal Z_{RI'-MOM}(\mu_0)}{\mathcal Z_{\overline{MS}}(\mu_0)}
+\end{equation}
+and we take $C_\mathcal{O}^{-1}$ to pass from the RI'-MOM scheme to the $\overline{MS}$ scheme. 
+
+Using these pieces, we can explicitly convert the renormalization coefficients computed at scale $\mu$ to $\overline{MS}$:
+\begin{equation}
+	\mathcal{Z}_{\mathcal O}^{\overline{MS}}(\mu) = C_{\mathcal O}^{-1} \left(\frac{\mathcal Z(\mu_0)}{\mathcal Z(\mu)}\right)_{P.T.} \mathcal Z_\mathcal{O}^{RI'-MOM}(\mu)
+\end{equation}
+Our result for $\mathcal{Z}_{\mathcal O}^{\overline{MS}}$ is compiled in the following figure.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = .6\textwidth]{ZMSbar}
+	\caption{$\overline{MS}$ renormalization coefficient.}
+\end{figure}
+
+\subsection{Fitting discretization artifacts}
 \label{sec:artifacts}
 
 When we compute observables at a finite lattice spacing $a$, we suffer \textbf{discretization artifacts} which are relics of the 
@@ -547,5 +521,33 @@ for this and for our final result to be a function of $p_\mu$, so we must take t
 artifacts. 
 
 TODO finish this section
+
+\newpage
+\thispagestyle{empty}
+
+\begin{thebibliography}{99}
+
+\bibitem{ri_mom}
+Martinelli, G., Pittori, C., Sachrajda, C., Testa, M., Vladikas, A. (1994). A General Method for Non-Perturbative Renormalization of Lattice Operators arXiv https://dx.doi.org/10.1016/0550-3213(95)00126-d.
+
+\bibitem{sergey}
+Syritsyn, S. (2011). Exploration of Nucleon Structure in Lattice QCD with Chiral Quarks.
+
+\bibitem{gockeler}
+G\"{o}ckeler, M., Horsley, R., Nakamura, Y., Perlt, H., Pleiter, D., Rakow, P., Schäfer, A., Schierholz, G., Schiller, A., Stüben, H., Zanotti, J. (2010). Perturbative and Nonperturbative Renormalization in Lattice QCD arXiv https://dx.doi.org/10.1103/physrevd.82.114511
+
+\bibitem{gracey_zo}
+Gracey, J. (2003). Three loop anomalous dimension of the second moment of the transversity operator in the MSbar and RI' schemes arXiv  667(1-2), 242-260. https://dx.doi.org/10.1016/s0550-3213(03)00543-1.
+
+\bibitem{gracey_zq}
+Gracey, J. (2003). Three loop anomalous dimension of non-singlet quark currents in the RI? scheme Nuclear Physics B  662(1-2)https://dx.doi.org/10.1016/s0550-3213(03)00335-3.
+
+\bibitem{run_dec}
+Herren, F., Steinhauser, M. (2017). Version 3 of {\tt RunDec} and {\tt CRunDec} arXiv  224(), 333-345. https://dx.doi.org/10.1016/j.cpc.2017.11.014.
+
+\bibitem{pdg}
+Tanabashi, M. \textit{et al}. (2018). Review of Particle Physics* Physical Review D  98(3), 030001. https://dx.doi.org/10.1103/physrevd.98.030001.
+
+\end{thebibliography}
 
 \end{document}
