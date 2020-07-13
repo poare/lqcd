@@ -1,0 +1,220 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+if gpu then
+  require "lib/quda"
+end
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+function init_id_field(L)
+  local U = {}
+  for mu = 0, #L - 1 do
+    local A = L:ColorMatrixN(Nc, 0.0)
+    U[mu+1] = (A*complex(0,1)):exp()
+  end
+  return U
+end
+
+-- O with the trace subtraction at the end
+function O_full(U, prop, antiprop, nu)
+  -- When we go to the sequential source case, we'll have the sequential source equal Jprop
+  local Jprop = U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
+          "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
+  for lambda = 0, #L - 1 do
+    Jprop = Jprop - ( U[lambda + 1] * (gamma{mu = lambda} * prop:shift(lambda, "from_forward")) - U[lambda + 1]:shift(lambda,
+              "from_backward"):adjoin() * (gamma{mu = lambda} * prop:shift(lambda, "from_backward")) ) / 4
+  end
+  return (antiprop * Jprop) : sum()
+end
+
+function get_sequential_source_full(U, prop, nu)
+  local Jprop = U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
+          "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
+  for lambda = 0, #L - 1 do
+    Jprop = Jprop - ( U[lambda + 1] * (gamma{mu = lambda} * prop:shift(lambda, "from_forward")) - U[lambda + 1]:shift(lambda,
+              "from_backward"):adjoin() * (gamma{mu = lambda} * prop:shift(lambda, "from_backward")) ) / 4
+  end
+  return Jprop
+end
+
+-- Computes the operator O_{\nu\nu} for direction \nu. Note \nu = 0 is x, ..., \nu = 3 is t.
+function O(U, prop, antiprop, nu)
+  return ( antiprop * (U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
+            "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))) ) : sum()
+end
+
+-- Satisfies O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum()
+-- Given a propagator S(x), returns \sum_z J_\nu(x, z) S(z)
+function get_sequential_source(U, prop, nu)
+  return U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
+          "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
+end
+
+-- Set gauge=true to change the paths which we store the fields at.
+function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc)
+  local bvec = {0,0,0,0.5}
+  print("Computing through sink.")
+
+  for pidx = 1, #p_list do
+    printf("p index: %d\n", pidx)
+    local p = p_list[pidx]
+    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
+    local FTarg = L:Real(0)
+    for mu = 0, #L - 1 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+    end
+    local FT = FTarg:expi()
+
+    -- Compute a source of e^{-ipx}
+    local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
+    local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
+    local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+    local mom4_prop = (FT * prop):sum()
+
+    -- Write momentum projected propagator to file (?)
+    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    h5_force_write(writer, prop_path, mom4_prop)
+    printf("Propagator written at path: %s\n", prop_path)
+
+    -- compute momentum projected Green's function G(p)
+    for mu = 0, #L - 1 do
+      local matrix_element = O(U, prop, antiprop, mu)
+      local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4])
+      h5_force_write(writer, op_path, matrix_element)
+      printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
+    end
+  end
+end
+
+function compute_npr_irreps(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc)
+  local bvec = {0,0,0,0.5}
+  print("Computing through sink.")
+
+  for pidx = 1, #p_list do
+    printf("p index: %d\n", pidx)
+    local p = p_list[pidx]
+    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
+    local FTarg = L:Real(0)
+    for mu = 0, #L - 1 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+    end
+    local FT = FTarg:expi()
+
+    -- Compute a source of e^{-ipx}
+    local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
+    local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
+    local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
+    local mom4_prop = (FT * prop):sum()
+
+    -- Write momentum projected propagator to file (?)
+    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    h5_force_write(writer, prop_path, mom4_prop)
+    printf("Propagator written at path: %s\n", prop_path)
+
+    -- compute momentum projected Green's function G(p)
+    local matrix_element = {
+      (O(U, prop, antiprop, 2) - O(U, prop, antiprop, 3)) / math.sqrt(2),
+      (O(U, prop, antiprop, 0) - O(U, prop, antiprop, 1)) / math.sqrt(2),
+      (O(U, prop, antiprop, 0) + O(U, prop, antiprop, 1) - O(U, prop, antiprop, 2) - O(U, prop, antiprop, 3)) / 2
+    }
+    for i = 1, 3 do
+      local op_path = string.format("O%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
+      h5_force_write(writer, op_path, matrix_element[i])
+      printf("Matrix element O%d written at: %s\n", i, op_path)
+    end
+  end
+end
+
+-- TODO would doing this through the operator work? Otherwise will definitely need an analytic solution.
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Read in input from bash script.
+if jobid and cfgpath and cfgbase then
+    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
+else
+    print("No jobid, cfgpath, cfgbase entered.")
+end
+
+-- Set parameters
+Lx = 16
+Lt = 48
+beta = 6.1
+mq = -0.2450
+kappa = 1 / (2 * mq + 8)
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+L_mom = qcd.lattice{Lt}
+lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
+-- compare at cfg 200
+-- compare at point source and momentum smeared source, momentum [2 2 2 2]
+
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+-- Paths to output file.
+out_folder = string.format("/data/d10b/users/poare/npr_momfrac/output/%s_%d", cfgbase, jobid)
+filename = string.format("%s/free_field.h5", out_folder)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+local csw = 1.2493
+-- local csw = 1    -- uncomment after testing is done
+local bcs = {1, 1, 1, -1}
+
+local clover
+if gpu then
+    qcd.quda.init(L)
+    clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+else
+    clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+end
+
+local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+local p_list_NPR = {}
+for i = 0, 5 do
+ for j = 0, 5 do
+   for k = 0, 5 do
+     for l = 0, 5 do
+        p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
+      end
+    end
+  end
+end
+
+printf("Number of momenta to compute at: %d.", #p_list_NPR)
+
+print("Intializing identity gauge field.\n")
+
+U = init_id_field(L)
+-- project gauge configuration onto SU(3)
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+-- Open file writer
+local hdf5params = { method = "phdf5" }
+local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+print("Gauge file read. Computing NPR.")
+--compute_npr_irreps(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
+compute_npr(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
+
+writer:close()
+
+if gpu then
+    qcd.quda.fini()
+end

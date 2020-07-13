@@ -1,0 +1,31 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=npr_momfrac
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=prod4
+
+set -x
+
+cd /home/poare/lqcd/mosaic
+
+bash
+module load openmpi/3.1.5
+module load qlua/20200107-gpu1080
+
+EXE=qlua
+
+gpu=true
+home=/home/poare/lqcd/npr_momfrac/testing
+logs=${home}/logs/pt_wall_test_${SLURM_JOB_ID}
+output=${home}/output/pt_wall_test_${SLURM_JOB_ID}
+
+mkdir ${logs}
+mkdir ${output}
+
+parameters="jobid = ${SLURM_JOB_ID} gpu=${gpu}"
+export OMP_NUM_THREADS=6
+
+mpirun -np 4 $EXE -e "$parameters" ${home}/pt_wall_test.qlua > ${logs}/job${SLURM_JOB_ID}.txt

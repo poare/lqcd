@@ -5,34 +5,37 @@
 #SBATCH --job-name=npr_momfrac
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
+#SBATCH --partition=prod4
 
 set -x
 
-cd /data/wombat/users/mlwagman/mosaic
+# cd /data/wombat/users/mlwagman/mosaic
+cd /home/poare/lqcd/mosaic
 
 bash
-module load openmpi
-module load qlua
+module load openmpi/3.1.5
+# module load qlua
+module load qlua/20200107-gpu1080
 
 EXE=qlua
 
 cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
 gf=true
-gpu=false
+gpu=true
 
 home=/home/poare/lqcd/npr_momfrac
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
-output=${home}/output/${cfgbase}_${SLURM_JOB_ID}
+output=/data/d10b/users/poare/npr_momfrac/output/${cfgbase}_${SLURM_JOB_ID}
 
 mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
+export OMP_NUM_THREADS=6
 
-for cfg in `seq 100 10 3000`
+for cfg in `seq 1010 10 1400`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac.qlua > ${logs}/cfg${cfg}.txt
 done

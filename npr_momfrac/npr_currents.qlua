@@ -15,6 +15,16 @@ end
 ------------------------ UTILITY FUNCTIONS ------------------------
 -------------------------------------------------------------------
 
+function get_wilson_source(U, prop, nu)
+  local cur_plus1 = U[nu + 1]:shift(nu, "from_backward"):adjoin() * prop:shift(nu, "from_backward")
+  local cur_plus2 = U[nu + 1]:shift(nu, "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
+
+  local cur_neg1 = U[nu + 1] * prop:shift(nu, "from_forward")
+  local cur_neg2 = U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward"))
+
+  return (cur_plus1 + cur_plus2 - cur_neg1 + cur_neg2) / 2
+end
+
 -- Performs the computation through the operator, which should be faster for more sink / src momenta.
 function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum, jobid)
   print("Computing through the operator.")
@@ -30,16 +40,16 @@ function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, gro
   end
   local src = compute_point_source(U, y)
   local prop = compute_propagator(U, ferm_prop, src)
-  print("Point source computed. Point at: (%d, %d, %d, %d)", y[1], y[2], y[3], y[4])
+  printf("Point source computed. Point at: (%d, %d, %d, %d)", y[1], y[2], y[3], y[4])
 
   -- compute sequential propagators for currents
   local M = {}
   local M5 = {}
   for mu = 0, #L - 1 do
     printf("Computing sequential propagator for operator mu = %d.\n", mu)
-    -- J(z, z') = gamma_\mu, gamma_\mu gamma_5
     local b = gamma{mu = mu} * prop
     local b5 = gamma{mu = mu} * gamma{mu = 5} * prop
+    print("Computing sequential propagator")
     M[mu] = compute_propagator(U, ferm_prop, b)
     M5[mu] = compute_propagator(U, ferm_prop, b5)
   end
@@ -158,7 +168,10 @@ function npr_smom(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, wr
     printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
     local FTarg = L:Real(0)
     for mu = 0, #L - 1 do
-      FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      -- now p_1 = p_2 - q
+      --FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      FTarg = FTarg - L:Real(y[mu + 1]) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]        -- e^{-i p_2 y}
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] - q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]    -- e^{i p_1 x}
     end
     local FT = FTarg:expi()
     local mom4_prop = (FT * prop):sum()
@@ -235,19 +248,18 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
 local p_list_NPR = {}
-for i = 0, 5 do
-  for j = 0, 5 do
-    for k = 0, 5 do
-      for l = 0, 5 do
+for i = -6, 6 do
+  for j = -6, 6 do
+    for k = -6, 6 do
+      for l = -6, 6 do
         p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
       end
     end
   end
 end
 
-local q_list_NPR = {{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}, {5, 5, 5, 5}}
-
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
+
 
 local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
@@ -262,12 +274,7 @@ if status then
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  for qidx = 1, #q_list_NPR do
-    local q = q_list_NPR[qidx]
-    printf("Computing RI-sMOM for q = (%d, %d, %d, %d).", q[1], q[2], q[3], q[4])
-    npr_smom(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid, q)
-  end
-  -- compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
+  compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
 
   writer:close()
 else
