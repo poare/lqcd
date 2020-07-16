@@ -1,0 +1,14 @@
++ export I_MPI_SHM_LMT=shm
++ I_MPI_SHM_LMT=shm
++ export LD_LIBRARY_PATH=/data/d10b/wombat/users/djmurphy/Software/cps4/lib:/data/d10b/wombat/users/djmurphy/Software/grid4/lib::/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20
++ LD_LIBRARY_PATH=/data/d10b/wombat/users/djmurphy/Software/cps4/lib:/data/d10b/wombat/users/djmurphy/Software/grid4/lib::/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20
++ export OMP_NUM_THREADS=64
++ OMP_NUM_THREADS=64
++ base_dir=/home/poare/lqcd/gf
++ run_dir=/home/poare/lqcd/gf/scripts
+++ date +%Y%m%d%H%M%S
++ now=20200716165025
++ log_file=/home/poare/lqcd/gf/logs/log-20200716165025.out
++ cd /home/poare/lqcd/gf/scripts
++ /home/poare/lqcd/gf/scripts/smear.sh
++ tee /home/poare/lqcd/gf/logs/log-20200716165025.out

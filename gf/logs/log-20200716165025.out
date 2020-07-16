@@ -1,0 +1,96 @@
+--- Smearing cl3_16_48_b6p1_m0p2450_cfg_1000.lime
+[IO] Attempting to read a SCIDAC file 
+[IO] Using sequence number from input file :: 110 
+[UPDATE] Heatbath continuation run not performing thermalisation
+[PAR] CONDOR_MODE selected .... 
+[IO] reading file /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime
+[INIT] GLU is Compiled for SU(3)
+
+[DIMENSIONS] ( 16 x 16 x 16 x 48 )
+
+[INIT] using 64 thread(s) 
+[INIT] allocating su(2) subgroup indices
+[IO] Page size is :: 376.561733, Total malloc [More] 0.222656  [Less] 0.111329 
+[IO] Calculated Trace :: 0.000019611627518  || Plaq :: 0.514328753413513 
+[SMEAR] All directional SU(3) smearing
+[SMEAR] STOUT smearing
+[SMEAR] Smearing Alpha(s) used:
+             (alpha) 0.020833 
+[SMEAR] With a MAXIMUM of 1 iterations 
+
+[SMEAR] {Iteration} 2 {Link trace} 0.000007959811005 
+[SMEAR] {Plaquette} 0.575291910887198 {Spatial} 0.575427630751812 {Temporal} 0.575156191022584 
+
+
+[TIMER] elapsed :: 1.161579e+00 s 
+[IO] Writing 4D_SU3_GAUGE_3x3 binary data
+
+[TIMER] elapsed :: 3.062105e-02 s 
+[IO] Using the faster/memory expensive code 
+
+[TIMER] elapsed :: 5.942702e-02 s 
+[IO] Configuration written to /home/poare/lqcd/gf/testing/cl3_16_48_b6p1_m0p2450_smeared/cl3_16_48_b6p1_m0p2450_cfg_1000.lime 
+--- Smearing cl3_16_48_b6p1_m0p2450_cfg_1010.lime
+[IO] Attempting to read a SCIDAC file 
+[IO] Using sequence number from input file :: 110 
+[UPDATE] Heatbath continuation run not performing thermalisation
+[PAR] CONDOR_MODE selected .... 
+[IO] reading file /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1010.lime
+[INIT] GLU is Compiled for SU(3)
+
+[DIMENSIONS] ( 16 x 16 x 16 x 48 )
+
+[INIT] using 64 thread(s) 
+[INIT] allocating su(2) subgroup indices
+[IO] Page size is :: 376.561733, Total malloc [More] 0.222656  [Less] 0.111329 
+[IO] Calculated Trace :: 0.000194052249194  || Plaq :: 0.513325093011161 
+[SMEAR] All directional SU(3) smearing
+[SMEAR] STOUT smearing
+[SMEAR] Smearing Alpha(s) used:
+             (alpha) 0.020833 
+[SMEAR] With a MAXIMUM of 1 iterations 
+
+[SMEAR] {Iteration} 2 {Link trace} 0.000177083790375 
+[SMEAR] {Plaquette} 0.574251109249360 {Spatial} 0.574324269288626 {Temporal} 0.574177949210094 
+
+
+[TIMER] elapsed :: 1.150953e+00 s 
+[IO] Writing 4D_SU3_GAUGE_3x3 binary data
+
+[TIMER] elapsed :: 3.281283e-02 s 
+[IO] Using the faster/memory expensive code 
+
+[TIMER] elapsed :: 5.985808e-02 s 
+[IO] Configuration written to /home/poare/lqcd/gf/testing/cl3_16_48_b6p1_m0p2450_smeared/cl3_16_48_b6p1_m0p2450_cfg_1010.lime 
+--- Smearing cl3_16_48_b6p1_m0p2450_cfg_1020.lime
+[IO] Attempting to read a SCIDAC file 
+[IO] Using sequence number from input file :: 110 
+[UPDATE] Heatbath continuation run not performing thermalisation
+[PAR] CONDOR_MODE selected .... 
+[IO] reading file /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1020.lime
+[INIT] GLU is Compiled for SU(3)
+
+[DIMENSIONS] ( 16 x 16 x 16 x 48 )
+
+[INIT] using 64 thread(s) 
+[INIT] allocating su(2) subgroup indices
+[IO] Page size is :: 376.561733, Total malloc [More] 0.222656  [Less] 0.111329 
+[IO] Calculated Trace :: 0.000039878579284  || Plaq :: 0.513280567191388 
+[SMEAR] All directional SU(3) smearing
+[SMEAR] STOUT smearing
+[SMEAR] Smearing Alpha(s) used:
+             (alpha) 0.020833 
+[SMEAR] With a MAXIMUM of 1 iterations 
+
+[SMEAR] {Iteration} 2 {Link trace} 0.000020445008893 
+[SMEAR] {Plaquette} 0.574168195779700 {Spatial} 0.574393239769747 {Temporal} 0.573943151789652 
+
+
+[TIMER] elapsed :: 1.161041e+00 s 
+[IO] Writing 4D_SU3_GAUGE_3x3 binary data
+
+[TIMER] elapsed :: 3.151512e-02 s 
+[IO] Using the faster/memory expensive code 
+
+[TIMER] elapsed :: 5.895686e-02 s 
+[IO] Configuration written to /home/poare/lqcd/gf/testing/cl3_16_48_b6p1_m0p2450_smeared/cl3_16_48_b6p1_m0p2450_cfg_1020.lime 
