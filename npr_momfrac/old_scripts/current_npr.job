@@ -32,7 +32,7 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 200 10 490`
+for cfg in `seq 1400 10 1690`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_currents.qlua > ${logs}/cfg${cfg}.txt
 done
