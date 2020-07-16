@@ -52,10 +52,10 @@ export LD_LIBRARY_PATH=/data/d10b/wombat/users/djmurphy/Software/cps4/lib:/data/
 export OMP_NUM_THREADS=64
 
 # base_dir=/data/d10b/wombat/users/djmurphy/Software/GLU
-base_dir = /users/poare/lqcd/gf
+base_dir = /home/poare/lqcd/gf
 run_dir=${base_dir}/scripts
 now=$(date '+%Y%m%d%H%M%S')
 log_file=${base_dir}/logs/log-${now}.out
 
 cd ${run_dir}
-${run_dir}/gf.sh | tee ${log_file}
+${run_dir}/smear.sh | tee ${log_file}
