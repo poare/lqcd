@@ -53,7 +53,7 @@ function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
   -- else
   --   fileName = string.format(path..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", configNum)
   -- end
-  fileName = string.format(path.."/"..cfgbase.."_cfg_%d.lime", configNum)
+  fileName = string.format(path..cfgbase.."_cfg_%d.lime", configNum)
   print(fileName .. "\n")
   reader, rinfo = qcd.qdpc.Reader(L, fileName)
   U, uInfo = reader:ColorMatrix(#L)

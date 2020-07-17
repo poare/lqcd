@@ -22,7 +22,7 @@ cfgbase="cl3_16_48_b6p1_m0p2450"
 
 home=/home/poare/lqcd/pion_mass
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
-output=/data/d10b/users/poare/npr_momfrac/output/${cfgbase}_${SLURM_JOB_ID}
+output=/data/d10b/users/poare/pion_mass/output/${cfgbase}_${SLURM_JOB_ID}
 
 mkdir ${logs}
 mkdir ${logs}/no_output
