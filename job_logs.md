@@ -1,5 +1,9 @@
 JOBNUM ||| PURPOSE ||| DATE
 
+PION MASS JOBS:
+ ||| Testing pion 2 point on new smeared / gauge fixed configurations at /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/ ||| 7/17
+ ||| Testing pion 2 point on David's smeared / gauge fixed configurations at /data/d10b/users/poare/gf//data/d10b/users/poare/gf/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/ ||| 7/17
+
 NPR MOMFRAC JOBS:
 17860 ||| Running test of code through the operator by running code with momentum sources ||| 3/25
 17809 ||| Same as 17860 ||| 3/25

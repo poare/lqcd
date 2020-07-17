@@ -60,7 +60,8 @@ function initGaugeFieldLime(L, path, cfgbase, configNum, gf, ec)
 end
 
 function computePropagator(L, U, kappa)
-  c_sw = 1.0            -- SW coefficient for clover term
+  -- c_sw = 1.0            -- SW coefficient for clover term
+  c_sw = 1.2493
   bc = {1, 1, 1, -1}    -- periodic in space, antiperiodic in time
 
   CL = qcd.Clover(U, kappa, c_sw, bc)
@@ -166,7 +167,8 @@ end
 hypervolume = volume * L[3]
 
 -- Paths to output file.
-folder = string.format("%s/lqcd/pion_mass/output", lqcd_dir)
+-- folder = string.format("%s/lqcd/pion_mass/output", lqcd_dir)
+folder = "/data/d10b/users/poare/pion_mass/output"
 out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)

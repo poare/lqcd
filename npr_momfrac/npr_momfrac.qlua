@@ -397,7 +397,6 @@ printf("Number of momenta to compute at: %d.", #p_list_NPR)
 local gauge_file
 if gf then
     gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-    --gauge_file = string.format("/data/d10a/projects/pshanahan_CollinsSoper/ensembles/su3_24_48_b6p10050_flow1_gf/su3_24_48_b6p10050.lime%d_flow1_gf", cfgnum)
 else
     gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 end
