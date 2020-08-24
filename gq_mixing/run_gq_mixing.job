@@ -24,7 +24,7 @@ gpu=true
 
 home=/home/poare/lqcd/gq_mixing
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
-output=/data/d10b/users/poare/gq_mixing/output/${cfgbase}_${SLURM_JOB_ID}
+output=/data/d10b/users/poare/gq_mixing/meas/${cfgbase}_${SLURM_JOB_ID}
 
 mkdir ${logs}
 mkdir ${logs}/no_output

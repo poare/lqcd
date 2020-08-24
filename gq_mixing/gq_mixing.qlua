@@ -115,13 +115,13 @@ function plaq(U, i, j)
 end
 
 function getFmunu(U)
-  F = {}
+  local F = {}
   for mu = 0, #L - 1 do
     F[mu] = {}
     for nu = 0, #L - 1 do
       if mu < nu then
-        Qmunu = plaq(U, mu, nu) + plaq(U, nu, -mu) + plaq(U, -mu, -nu) + plaq(U, -nu, mu)
-        Qnumu = plaq(U, nu, mu) + plaq(U, mu, -nu) + plaq(U, -nu, -mu) + plaq(U, -mu, nu)
+        local Qmunu = plaq(U, mu, nu) + plaq(U, nu, -mu) + plaq(U, -mu, -nu) + plaq(U, -nu, mu)
+        local Qnumu = plaq(U, nu, mu) + plaq(U, mu, -nu) + plaq(U, -nu, -mu) + plaq(U, -mu, nu)
         F[mu][nu] = (complex(0, -1) / 8) * (Qmunu - Qnumu)
       elseif i == j then
         F[mu][nu] = 0
@@ -189,7 +189,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     local F = getFmunuComponents(Uflowed, Nc)
     for mu = 0, #L - 1 do
       for nu = 0, #L - 1 do
-        Omunu = 0
+        local Omunu = 0
         for alpha = 0, #L - 1 do
           for a = 1, Nc * Nc - 1 do
             Omunu = Omunu + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
@@ -239,7 +239,7 @@ function compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list, hypervolume,
     local F = getFmunuComponents(Uflowed, Nc)
     for mu = 0, #L - 1 do
       for nu = 0, #L - 1 do
-        Omunu = 0
+        local Omunu = 0
         for alpha = 0, #L - 1 do
           for a = 1, Nc * Nc - 1 do
             Omunu = Omunu + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
