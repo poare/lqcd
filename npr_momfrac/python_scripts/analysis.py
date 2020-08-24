@@ -48,8 +48,10 @@ for i in range(0, 6):
                 mom_list.append([i, j, k, l])
 mom_list = cylinder(mom_list, 2)
 
-L = 16
-T = 48
+# L = 16
+# T = 48
+L = 24
+T = 24
 LL = [L, L, L, T]
 hypervolume = (L ** 3) * T
 
@@ -166,9 +168,9 @@ def readfile(directory, dpath = '', pointsrc = False, op = 'O', sink_momenta = N
                 if mu == -1:
                     threepts = np.zeros(prop.shape, dtype = np.complex64)
                 elif mu != None:
-                    # threept_path = 'O_operator' + str(mu + 1) + str(mu + 1) + '/' + dpath + pstring + '/' + config_id
                     # op defaults to 'O'
-                    threept_path = op + str(mu + 1) + str(mu + 1) + '/' + dpath + pstring + '/' + config_id
+                    # threept_path = op + str(mu + 1) + str(mu + 1) + '/' + dpath + pstring + '/' + config_id
+                    threept_path = op + str(mu + 1) + str(mu + 1) + '/' + dpath + pstring
                     threept = f[threept_path][()]
                     threepts[pstring][idx, :, :, :, :] = np.einsum('ijab->aibj', threept)
                 else:
@@ -554,7 +556,7 @@ def run_analysis_mixing(directory, momenta, s = 0):
         p_lat = to_lattice_momentum(pstring_to_list(p))    # converts k to ptwiddle
         G = [0] * 4
         for mu in range(4):
-            S, G[mu], N = readfile(directory, pointsrc = True, mu = mu, sink_momenta = [p])
+            S, G[mu], N = readfile(directory, pointsrc = False, mu = mu, sink_momenta = [p])
 
         props_boot = bootstrap(S, seed = s)
         props_inv = invert_prop(props_boot)
@@ -592,8 +594,8 @@ def run_analysis_mixing(directory, momenta, s = 0):
         Pi_11_list.append(Pi_11)
         Pi_12_list.append(Pi_12)
         print('Z computed. Elapsed time: ' + str(time.time() - start))
-    # return np.array(Pi_11_list), np.array(Pi_12_list), np.array(Zq_list), np.array(Gamma_munu_list)
-    return np.array(Z11_list), np.array(Z12_list), np.array(Zq_list), np.array(Gamma_munu_list)
+    return np.array(Pi_11_list), np.array(Pi_12_list), np.array(Zq_list), np.array(Gamma_munu_list)
+    # return np.array(Z11_list), np.array(Z12_list), np.array(Zq_list), np.array(Gamma_munu_list)
 
 def Zq_analysis(directory, momenta, N = None, s = 0):
     start = time.time()
@@ -624,9 +626,9 @@ def current_analysis(directory, momenta, s = 5):
     ZV_list, ZA_list = [[], [], [], []], [[], [], [], []]    # NOTE [[]] * 4 MAKES THE SAME LIST 4 TIMES, NOT 4 SEPARATE ONES
     Zq_list = []
     GVB, GAB = gamma, np.array([np.dot(gamma[mu], gamma5) for mu in range(4)])
-    # GammaV_B_inv = np.array([np.linalg.inv(x) for x in GVB])
+    GammaV_B_inv = np.array([np.linalg.inv(x) for x in GVB])
     GammaA_B_inv = np.array([np.linalg.inv(x) for x in GAB])
-    # GVB_inv = [{p : GammaV_B_inv[mu] for p in momenta_str_list} for mu in range(4)]
+    GVB_inv = [{p : GammaV_B_inv[mu] for p in momenta_str_list} for mu in range(4)]
     GAB_inv = [{p : GammaA_B_inv[mu] for p in momenta_str_list} for mu in range(4)]
     global mom_list
     global mom_str_list
@@ -638,24 +640,24 @@ def current_analysis(directory, momenta, s = 5):
 
         GV, GA = [0] * 4, [0] * 4
         for mu in range(4):
-            # S, GV[mu], N = readfile(directory, j = mu, sink_momenta = [p])
+            S, GV[mu], N = readfile(directory, j = mu, sink_momenta = [p])
             S, GA[mu], N = readfile(directory, j = 50 + mu, sink_momenta = [p])
         props_boot = bootstrap(S, seed = s)
         props_inv = invert_prop(props_boot)
         Zq = quark_renorm(props_inv)     # quark_renorm returns a dictionary
 
         for mu in range(4):
-            # threeptV_boot = bootstrap(GV[mu], seed = s)
+            threeptV_boot = bootstrap(GV[mu], seed = s)
             threeptA_boot = bootstrap(GA[mu], seed = s)
-            # GammaV = amputate(props_inv, threeptV_boot)
+            GammaV = amputate(props_inv, threeptV_boot)
             GammaA = amputate(props_inv, threeptA_boot)
-            # ZV_list[mu].append(get_Z(Zq, GammaV, GVB_inv[mu])[p])
+            ZV_list[mu].append(get_Z(Zq, GammaV, GVB_inv[mu])[p])
             ZA_list[mu].append(get_Z(Zq, GammaA, GAB_inv[mu])[p])
         Zq_list.append(Zq[p])
         # Time per iteration
         print('Elapsed time: ' + str(time.time() - start))
-    # return np.array(ZV_list), np.array(ZA_list), np.array(Zq_list)
-    return np.array(ZA_list), np.array(Zq_list)
+    return np.array(ZV_list), np.array(ZA_list), np.array(Zq_list)
+    # return np.array(ZA_list), np.array(Zq_list)
 
 def get_props_threepts(directory, dpath = ''):
     files = []

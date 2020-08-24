@@ -4,11 +4,13 @@ import h5py
 import os
 import analysis
 
-cfgbase = 'cl3_16_48_b6p1_m0p2450'
+# cfgbase = 'cl3_16_48_b6p1_m0p2450'
+cfgbase = 'cl3_24_24_b6p1_m0p2450'
 
 ################################# PARAMETERS ################################
 # job_num = 20401
-job_num = 22454    # only run a subset of momentum right now
+# job_num = 22454    # only run a subset of momentum right now
+job_num = 25291
 mom_tot = []
 eps = 1e-10    # tolerance for being close to 0
 removed = []
@@ -40,17 +42,18 @@ mom_str_list = [analysis.plist_to_string(p) for p in mom_list]
 analysis.mom_list = mom_list
 analysis.mom_str_list = mom_str_list
 
-Z11, Z12, Zq, Gamma = analysis.run_analysis_mixing(data_dir, mom_list)
-# Pi_11, Pi_12, Zq, Gamma = analysis.run_analysis_mixing(data_dir, mom_list)
+# Z11, Z12, Zq, Gamma = analysis.run_analysis_mixing(data_dir, mom_list)
+Pi_11, Pi_12, Zq, Gamma = analysis.run_analysis_mixing(data_dir, mom_list)
+Z11, Z12 = Zq / Pi_11, Zq / Pi_12
 
 # out_file = '/Users/theoares/lqcd/npr_momfrac/analysis_output/mixing_job' + str(job_num) + '/Pi.h5'
-# out_file = '/Users/theoares/Dropbox (MIT)/research/npr_momfrac/analysis_output/mixing_job' + str(job_num) + '/Pi.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/npr_momfrac/analysis_output/mixing_job' + str(job_num) + '/Pi.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = mom_list
 f['Z11'] = Z11
 f['Z12'] = Z12
-# f['Pi11'] = Pi_11
-# f['Pi12'] = Pi_12
+f['Pi11'] = Pi_11
+f['Pi12'] = Pi_12
 f['Gamma'] = Gamma
 f['Zq'] = Zq
 f['cfgnum'] = analysis.num_cfgs
