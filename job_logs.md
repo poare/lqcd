@@ -1,8 +1,10 @@
 JOBNUM ||| PURPOSE ||| DATE
 
 PION MASS JOBS:
- ||| Testing pion 2 point on new smeared / gauge fixed configurations at /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/ ||| 7/17
- ||| Testing pion 2 point on David's smeared / gauge fixed configurations at /data/d10b/users/poare/gf//data/d10b/users/poare/gf/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/ ||| 7/17
+25262 ||| Testing pion 2 point on new smeared / gauge fixed configurations at /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/ ||| 7/17
+25263 ||| Testing pion 2 point on David's smeared / gauge fixed configurations at /data/d10b/users/poare/gf//data/d10b/users/poare/gf/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/ ||| 7/17
+EFFECTIVE MASS ON EACH JOB OUTPUTS THE SAME, SO THE CONFIGURATIONS SHOULD BE ABOUT THE SAME.
+25278 ||| Testing pion 2 point on coulomb gauge fixed configurations: want to see how the pion two point changes ||| 7/19
 
 NPR MOMFRAC JOBS:
 17860 ||| Running test of code through the operator by running code with momentum sources ||| 3/25
@@ -44,6 +46,9 @@ NPR MOMFRAC JOBS:
 23621 - 23624 ||| Running to get ZA from -6 to 6 (THIS IS BUGGY, I WAS RUNNING ON FREE FIELD CONFIGURATIONS) ||| 5/20
 23660 ||| Same as above, but hopefully with accurate code ||| 6/1
 
+25291 - 25293 ||| Running npr_momfrac on 24^3 x 24 lattice at 10 configurations and all momenta to get out another estimate of ZO ||| 7/20
+25350 - 25352, 25362, 25363 ||| Running same as previous, trying to get more configurations run ||| 7/22
+
 Storing all the npr_momfrac output from -6 to 6 in 22454 (/data/d10b/users/poare/lqcd/npr_momfrac/output/cl3_16_48_b6p1_m0p2450_22454).
 Useful data sets:
 - 20401 has quark renormalization and (vector) operator renormalization for momenta from 0 to 5
@@ -52,3 +57,7 @@ Useful data sets:
 - 23014 has vector and axial currents for momenta from 0 to 5
 - 23476 has vector and axial currents run at nonzero q insertion (CODE IS BAD).
 - 23660 should have ZA
+
+GAUGE FIXING JOBS
+25277 ||| Smearing cl3_24_24_b6p1_m0p2450 for configs 1000 to 4400 ||| 7/19
+25284 ||| Gauge fixing cl3_24_24_b6p1_m0p2450 for configs 1000 to 4400 ||| 7/19
