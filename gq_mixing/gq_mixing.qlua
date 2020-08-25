@@ -104,27 +104,54 @@ function gauge_transform(L, U, group)
 end
 
 --[[
-  Pij = trace(U_\mu\nu), U_\mu\nu = U_\mu(n) U_\nu(n + \mu) U_\mu(n + \nu)^\dagger U_\nu(n)^\dagger
-  Always index at i + 1 or j + 1 because i, j are from 0 to #L - 1
+  Pij = trace(U_\mu\nu), U_\mu\nu = U_\mu(n) U_\nu(n + \mu) U_\mu(n + \nu)^\dagger U_\nu(n)^\dagger.
+  If i or j is negative, then use U_{-\mu} =U__\mu(n - \mu)^\dagger. NOTE THIS IS 1-INDEXED, SO 
+  i = 1 is x, i = 2 is y, i = 3 is z, and i = 4 is t. This is to allow for negative values of the 
+  direction. This works with U[i], since it is 1-indexed, but shift is 0-indexed, so subtract 1
 ]]
 function plaq(U, i, j)
-  local Ui = U[j + 1]:shift(i, "from_forward")
-  local Uj = U[i + 1]:shift(j, "from_forward")
-  local Pij = (U[i + 1] * Ui * Uj:adjoin() * U[j + 1]:adjoin()):trace():real()
-  return Pij:sum()
+  local Pij
+  if i > 0 and j > 0 then
+    local U1 = U[j]:shift(i - 1, "from_forward")    -- shift is 0-indexed
+    local U2 = U[i]:shift(j - 1, "from_forward")
+    Pij = U[i] * U1 * U2:adjoin() * U[j]:adjoin()
+  elseif i < 0 and j > 0 then
+    local ii = -i
+    local U1 = U[ii]:shift(ii - 1, "from_backward")
+    local U2 = U[j]:shift(ii - 1, "from_backward")
+    local U3 = U[ii]:shift(ii - 1, "from_backward"):shift(j - 1, "from_forward")
+    Pij = U1:adjoin() *  U2 * U3 * U[j]:adjoin()
+  elseif i > 0 and j < 0 then
+    local jj = -j
+    local U1 = U[jj]:shift(i - 1, "from_forward"):shift(jj - 1, "from_backward")
+    local U2 = U[i]:shift(jj - 1, "from_backward")
+    local U3 = U[jj]:shift(jj - 1, "from_backward")
+    Pij = U[i] * U1:adjoin() * U2:adjoin() * U3
+  else  -- then i and j are both negative
+    local ii = -i
+    local jj = -j
+    local U1 = U[ii]:shift(ii - 1, "from_backward")
+    local U2 = U[jj]:shift(ii - 1, "from_backward"):shift(jj - 1, "from_backward")
+    local U3 = U[ii]:shift(ii - 1, "from_backward"):shift(jj - 1, "from_backward")
+    local U4 = U[jj]:shift(jj - 1, "from_backward")
+    Pij = U1:adjoin() * U2:adjoin() * U3 * U4
+  end
+  return Pij
 end
 
-function getFmunu(U)
+function getFmunu(L, U, Nc)
   local F = {}
-  for mu = 0, #L - 1 do
+  for mu = 1, #L do
     F[mu] = {}
-    for nu = 0, #L - 1 do
+    for nu = 1, #L do
       if mu < nu then
         local Qmunu = plaq(U, mu, nu) + plaq(U, nu, -mu) + plaq(U, -mu, -nu) + plaq(U, -nu, mu)
         local Qnumu = plaq(U, nu, mu) + plaq(U, mu, -nu) + plaq(U, -nu, -mu) + plaq(U, -mu, nu)
-        F[mu][nu] = (complex(0, -1) / 8) * (Qmunu - Qnumu)
-      elseif i == j then
-        F[mu][nu] = 0
+        F[mu][nu] = (complex(0, -1) / 8) * (Qmunu - Qnumu)    -- mu, nu = 1, 2, 3, 4. Let's 1 index F_munu
+      elseif mu == nu then
+        --local tmp = qcd.ColorMatrixN(Nc)
+        --F[mu][nu] = L:ColorMatrix(tmp)
+        F[mu][nu] = L:ColorMatrix(complex(0, 0))
       else
         F[mu][nu] = - F[nu][mu]
       end
@@ -133,16 +160,16 @@ function getFmunu(U)
   return F
 end
 
-function getFmunuComponents(U, Nc)
-  local F = getFmunu(U)
-  local tSU3 = (1/2) * fundMatrices(L, Nc)
+function getFmunuComponents(L, U, Nc)
+  local F = getFmunu(L, U, Nc)
+  local lambdaSU3 = fundMatrices(L, Nc)    -- Gell-mann matrices, t^a = (1/2) * lambda^a
   local Fcomps = {}
-  for mu = 0, #L - 1 do
+  for mu = 1, #L do
     Fcomps[mu] = {}
-    for nu = 0, #L - 1 do
+    for nu = 1, #L do
       Fcomps[mu][nu] = {}
       for a = 1, Nc * Nc - 1 do
-        Fcomps[mu][nu][a] = 2 * (Fcomps[mu][nu] * tSU3[a]):trace()
+        Fcomps[mu][nu][a] = (F[mu][nu] * lambdaSU3[a]):trace()    -- F_{mu nu}^a = 2 * tr{F_{mu nu} t^a} = tr{F_{mu nu} lambda^a}
       end
     end
   end
@@ -186,19 +213,19 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     printf("Propagator written at path: %s\n", prop_path)
 
     -- Construct operator and get three point functions
-    local F = getFmunuComponents(Uflowed, Nc)
-    for mu = 0, #L - 1 do
-      for nu = 0, #L - 1 do
+    local F = getFmunuComponents(L, Uflowed, Nc)
+    for mu = 1, #L do
+      for nu = 1, #L do
         local Omunu = 0
-        for alpha = 0, #L - 1 do
+        for alpha = 1, #L do
           for a = 1, Nc * Nc - 1 do
             Omunu = Omunu + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
           end
         end
         local Gmunu = Omunu * mom4_prop
-        local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, nu + 1, p[1], p[2], p[3], p[4])
+        local op_path = string.format("O%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
         h5_force_write(writer, op_path, Gmunu)
-        printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
+        printf("Matrix element O%d%d written at: %s\n", mu, mu, op_path)
       end
     end
 
@@ -236,19 +263,19 @@ function compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list, hypervolume,
 
     -- compute momentum projected Green's function G(p)
     -- Construct operator and get three point functions
-    local F = getFmunuComponents(Uflowed, Nc)
-    for mu = 0, #L - 1 do
-      for nu = 0, #L - 1 do
+    local F = getFmunuComponents(L, Uflowed, Nc)
+    for mu = 1, #L do
+      for nu = 1, #L do
         local Omunu = 0
-        for alpha = 0, #L - 1 do
+        for alpha = 1, #L do
           for a = 1, Nc * Nc - 1 do
             Omunu = Omunu + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
           end
         end
         local Gmunu = Omunu * mom4_prop
-        local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, nu + 1, p[1], p[2], p[3], p[4])
+        local op_path = string.format("O%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
         h5_force_write(writer, op_path, Gmunu)
-        printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
+        printf("Matrix element O%d%d written at: %s\n", mu, mu, op_path)
       end
     end
   end
@@ -308,11 +335,12 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
 local p_list_NPR = {}
-local a = 3
-for i = -a, a do
- for j = -a, a do
-   for k = -a, a do
-     for l = -a, a do
+local a = 0
+local b = 3
+for i = a, b do
+ for j = a, b do
+   for k = a, b do
+     for l = a, b do
         p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
       end
     end

@@ -1,0 +1,4693 @@
+Job ID: 27838.
+Evaluating configurations at: /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450.
+OUTPUT FILE WILL WRITE TO: /data/d10b/users/poare/gq_mixing/meas/cl3_16_48_b6p1_m0p2450_27838/cfg1010.h5
+[1]:Reading gauge file at: %s
+	/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1010.lime
+[2]:Reading gauge file at: %s
+	/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1010.lime
+[3]:Reading gauge file at: %s
+	/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1010.lime
+Number of momenta to compute at: 256.[0]:Reading gauge file at: %s
+	/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1010.lime
+DML_partition_in times: read 0.00  send 0.00  total 0.09
+DML_partition_in times: read 0.00  send 0.00  total 0.09
+[3]:Gauge file read. Computing NPR.
+[3]:Computing through the operator.
+[1]:Gauge file read. Computing NPR.
+[1]:Computing through the operator.
+[0]:Gauge file read. Computing NPR.
+[0]:Computing through the operator.
+[2]:Gauge file read. Computing NPR.
+[2]:Computing through the operator.
+TIME propagator computation: 1.004 sec
+TIME propagator computation: 1.023 sec
+TIME propagator computation: 1.723 sec
+Inverting s = 0, c = 0
+TIME s = 0, c = 0: 7.333 sec
+|D*prop - src|^2: 3.93e-31
+|D*prop - src|^2/|src|^2: 3.09e-30
+TIME s = 0, c = 0: 7.486 sec
+Inverting s = 0, c = 1
+TIME s = 0, c = 1: 0.376 sec
+|D*prop - src|^2: 8.73e-32
+|D*prop - src|^2/|src|^2: 7.31e-31
+TIME s = 0, c = 1: 0.524 sec
+Inverting s = 0, c = 2
+TIME s = 0, c = 2: 0.370 sec
+|D*prop - src|^2: 8.57e-32
+|D*prop - src|^2/|src|^2: 6.04e-31
+TIME s = 0, c = 2: 0.518 sec
+Inverting s = 1, c = 0
+TIME s = 1, c = 0: 0.383 sec
+|D*prop - src|^2: 6.95e-31
+|D*prop - src|^2/|src|^2: 5.83e-30
+TIME s = 1, c = 0: 0.537 sec
+Inverting s = 1, c = 1
+TIME s = 1, c = 1: 0.393 sec
+|D*prop - src|^2: 8.77e-32
+|D*prop - src|^2/|src|^2: 6.67e-31
+TIME s = 1, c = 1: 0.541 sec
+Inverting s = 1, c = 2
+TIME s = 1, c = 2: 0.386 sec
+|D*prop - src|^2: 7.71e-32
+|D*prop - src|^2/|src|^2: 6.76e-31
+TIME s = 1, c = 2: 0.534 sec
+Inverting s = 2, c = 0
+TIME s = 2, c = 0: 0.358 sec
+|D*prop - src|^2: 8.03e-32
+|D*prop - src|^2/|src|^2: 8.18e-31
+TIME s = 2, c = 0: 0.506 sec
+Inverting s = 2, c = 1
+TIME s = 2, c = 1: 0.383 sec
+|D*prop - src|^2: 1.06e-31
+|D*prop - src|^2/|src|^2: 7.77e-31
+TIME s = 2, c = 1: 0.535 sec
+Inverting s = 2, c = 2
+TIME s = 2, c = 2: 0.348 sec
+|D*prop - src|^2: 5.03e-32
+|D*prop - src|^2/|src|^2: 4.41e-31
+TIME s = 2, c = 2: 0.504 sec
+Inverting s = 3, c = 0
+TIME s = 3, c = 0: 0.516 sec
+|D*prop - src|^2: 2.67e-31
+|D*prop - src|^2/|src|^2: 1.92e-30
+TIME s = 3, c = 0: 0.663 sec
+Inverting s = 3, c = 1
+TIME s = 3, c = 1: 0.370 sec
+|D*prop - src|^2: 2.67e-31
+|D*prop - src|^2/|src|^2: 2.50e-30
+TIME s = 3, c = 1: 0.517 sec
+Inverting s = 3, c = 2
+TIME s = 3, c = 2: 0.385 sec
+|D*prop - src|^2: 9.25e-32
+|D*prop - src|^2/|src|^2: 7.88e-31
+TIME s = 3, c = 2: 0.533 sec
+TIME propagator computation: 15.122 sec
+Point source computed at (8, 14, 12, 22).p index: 1
+Momentum is (0, 0, 0, 0).Propagator written at path: prop/p0000
+Matrix element O11 written at: O11/p0000
+Matrix element O11 written at: O12/p0000
+Matrix element O11 written at: O13/p0000
+Matrix element O11 written at: O14/p0000
+Matrix element O22 written at: O21/p0000
+Matrix element O22 written at: O22/p0000
+Matrix element O22 written at: O23/p0000
+Matrix element O22 written at: O24/p0000
+Matrix element O33 written at: O31/p0000
+Matrix element O33 written at: O32/p0000
+Matrix element O33 written at: O33/p0000
+Matrix element O33 written at: O34/p0000
+Matrix element O44 written at: O41/p0000
+Matrix element O44 written at: O42/p0000
+Matrix element O44 written at: O43/p0000
+Matrix element O44 written at: O44/p0000
+p index: 2
+Momentum is (0, 0, 0, 1).Propagator written at path: prop/p0001
+Matrix element O11 written at: O11/p0001
+Matrix element O11 written at: O12/p0001
+Matrix element O11 written at: O13/p0001
+Matrix element O11 written at: O14/p0001
+Matrix element O22 written at: O21/p0001
+Matrix element O22 written at: O22/p0001
+Matrix element O22 written at: O23/p0001
+Matrix element O22 written at: O24/p0001
+Matrix element O33 written at: O31/p0001
+Matrix element O33 written at: O32/p0001
+Matrix element O33 written at: O33/p0001
+Matrix element O33 written at: O34/p0001
+Matrix element O44 written at: O41/p0001
+Matrix element O44 written at: O42/p0001
+Matrix element O44 written at: O43/p0001
+Matrix element O44 written at: O44/p0001
+p index: 3
+Momentum is (0, 0, 0, 2).Propagator written at path: prop/p0002
+Matrix element O11 written at: O11/p0002
+Matrix element O11 written at: O12/p0002
+Matrix element O11 written at: O13/p0002
+Matrix element O11 written at: O14/p0002
+Matrix element O22 written at: O21/p0002
+Matrix element O22 written at: O22/p0002
+Matrix element O22 written at: O23/p0002
+Matrix element O22 written at: O24/p0002
+Matrix element O33 written at: O31/p0002
+Matrix element O33 written at: O32/p0002
+Matrix element O33 written at: O33/p0002
+Matrix element O33 written at: O34/p0002
+Matrix element O44 written at: O41/p0002
+Matrix element O44 written at: O42/p0002
+Matrix element O44 written at: O43/p0002
+Matrix element O44 written at: O44/p0002
+p index: 4
+Momentum is (0, 0, 0, 3).Propagator written at path: prop/p0003
+Matrix element O11 written at: O11/p0003
+Matrix element O11 written at: O12/p0003
+Matrix element O11 written at: O13/p0003
+Matrix element O11 written at: O14/p0003
+Matrix element O22 written at: O21/p0003
+Matrix element O22 written at: O22/p0003
+Matrix element O22 written at: O23/p0003
+Matrix element O22 written at: O24/p0003
+Matrix element O33 written at: O31/p0003
+Matrix element O33 written at: O32/p0003
+Matrix element O33 written at: O33/p0003
+Matrix element O33 written at: O34/p0003
+Matrix element O44 written at: O41/p0003
+Matrix element O44 written at: O42/p0003
+Matrix element O44 written at: O43/p0003
+Matrix element O44 written at: O44/p0003
+p index: 5
+Momentum is (0, 0, 1, 0).Propagator written at path: prop/p0010
+Matrix element O11 written at: O11/p0010
+Matrix element O11 written at: O12/p0010
+Matrix element O11 written at: O13/p0010
+Matrix element O11 written at: O14/p0010
+Matrix element O22 written at: O21/p0010
+Matrix element O22 written at: O22/p0010
+Matrix element O22 written at: O23/p0010
+Matrix element O22 written at: O24/p0010
+Matrix element O33 written at: O31/p0010
+Matrix element O33 written at: O32/p0010
+Matrix element O33 written at: O33/p0010
+Matrix element O33 written at: O34/p0010
+Matrix element O44 written at: O41/p0010
+Matrix element O44 written at: O42/p0010
+Matrix element O44 written at: O43/p0010
+Matrix element O44 written at: O44/p0010
+p index: 6
+Momentum is (0, 0, 1, 1).Propagator written at path: prop/p0011
+Matrix element O11 written at: O11/p0011
+Matrix element O11 written at: O12/p0011
+Matrix element O11 written at: O13/p0011
+Matrix element O11 written at: O14/p0011
+Matrix element O22 written at: O21/p0011
+Matrix element O22 written at: O22/p0011
+Matrix element O22 written at: O23/p0011
+Matrix element O22 written at: O24/p0011
+Matrix element O33 written at: O31/p0011
+Matrix element O33 written at: O32/p0011
+Matrix element O33 written at: O33/p0011
+Matrix element O33 written at: O34/p0011
+Matrix element O44 written at: O41/p0011
+Matrix element O44 written at: O42/p0011
+Matrix element O44 written at: O43/p0011
+Matrix element O44 written at: O44/p0011
+p index: 7
+Momentum is (0, 0, 1, 2).Propagator written at path: prop/p0012
+Matrix element O11 written at: O11/p0012
+Matrix element O11 written at: O12/p0012
+Matrix element O11 written at: O13/p0012
+Matrix element O11 written at: O14/p0012
+Matrix element O22 written at: O21/p0012
+Matrix element O22 written at: O22/p0012
+Matrix element O22 written at: O23/p0012
+Matrix element O22 written at: O24/p0012
+Matrix element O33 written at: O31/p0012
+Matrix element O33 written at: O32/p0012
+Matrix element O33 written at: O33/p0012
+Matrix element O33 written at: O34/p0012
+Matrix element O44 written at: O41/p0012
+Matrix element O44 written at: O42/p0012
+Matrix element O44 written at: O43/p0012
+Matrix element O44 written at: O44/p0012
+p index: 8
+Momentum is (0, 0, 1, 3).Propagator written at path: prop/p0013
+Matrix element O11 written at: O11/p0013
+Matrix element O11 written at: O12/p0013
+Matrix element O11 written at: O13/p0013
+Matrix element O11 written at: O14/p0013
+Matrix element O22 written at: O21/p0013
+Matrix element O22 written at: O22/p0013
+Matrix element O22 written at: O23/p0013
+Matrix element O22 written at: O24/p0013
+Matrix element O33 written at: O31/p0013
+Matrix element O33 written at: O32/p0013
+Matrix element O33 written at: O33/p0013
+Matrix element O33 written at: O34/p0013
+Matrix element O44 written at: O41/p0013
+Matrix element O44 written at: O42/p0013
+Matrix element O44 written at: O43/p0013
+Matrix element O44 written at: O44/p0013
+p index: 9
+Momentum is (0, 0, 2, 0).Propagator written at path: prop/p0020
+Matrix element O11 written at: O11/p0020
+Matrix element O11 written at: O12/p0020
+Matrix element O11 written at: O13/p0020
+Matrix element O11 written at: O14/p0020
+Matrix element O22 written at: O21/p0020
+Matrix element O22 written at: O22/p0020
+Matrix element O22 written at: O23/p0020
+Matrix element O22 written at: O24/p0020
+Matrix element O33 written at: O31/p0020
+Matrix element O33 written at: O32/p0020
+Matrix element O33 written at: O33/p0020
+Matrix element O33 written at: O34/p0020
+Matrix element O44 written at: O41/p0020
+Matrix element O44 written at: O42/p0020
+Matrix element O44 written at: O43/p0020
+Matrix element O44 written at: O44/p0020
+p index: 10
+Momentum is (0, 0, 2, 1).Propagator written at path: prop/p0021
+Matrix element O11 written at: O11/p0021
+Matrix element O11 written at: O12/p0021
+Matrix element O11 written at: O13/p0021
+Matrix element O11 written at: O14/p0021
+Matrix element O22 written at: O21/p0021
+Matrix element O22 written at: O22/p0021
+Matrix element O22 written at: O23/p0021
+Matrix element O22 written at: O24/p0021
+Matrix element O33 written at: O31/p0021
+Matrix element O33 written at: O32/p0021
+Matrix element O33 written at: O33/p0021
+Matrix element O33 written at: O34/p0021
+Matrix element O44 written at: O41/p0021
+Matrix element O44 written at: O42/p0021
+Matrix element O44 written at: O43/p0021
+Matrix element O44 written at: O44/p0021
+p index: 11
+Momentum is (0, 0, 2, 2).Propagator written at path: prop/p0022
+Matrix element O11 written at: O11/p0022
+Matrix element O11 written at: O12/p0022
+Matrix element O11 written at: O13/p0022
+Matrix element O11 written at: O14/p0022
+Matrix element O22 written at: O21/p0022
+Matrix element O22 written at: O22/p0022
+Matrix element O22 written at: O23/p0022
+Matrix element O22 written at: O24/p0022
+Matrix element O33 written at: O31/p0022
+Matrix element O33 written at: O32/p0022
+Matrix element O33 written at: O33/p0022
+Matrix element O33 written at: O34/p0022
+Matrix element O44 written at: O41/p0022
+Matrix element O44 written at: O42/p0022
+Matrix element O44 written at: O43/p0022
+Matrix element O44 written at: O44/p0022
+p index: 12
+Momentum is (0, 0, 2, 3).Propagator written at path: prop/p0023
+Matrix element O11 written at: O11/p0023
+Matrix element O11 written at: O12/p0023
+Matrix element O11 written at: O13/p0023
+Matrix element O11 written at: O14/p0023
+Matrix element O22 written at: O21/p0023
+Matrix element O22 written at: O22/p0023
+Matrix element O22 written at: O23/p0023
+Matrix element O22 written at: O24/p0023
+Matrix element O33 written at: O31/p0023
+Matrix element O33 written at: O32/p0023
+Matrix element O33 written at: O33/p0023
+Matrix element O33 written at: O34/p0023
+Matrix element O44 written at: O41/p0023
+Matrix element O44 written at: O42/p0023
+Matrix element O44 written at: O43/p0023
+Matrix element O44 written at: O44/p0023
+p index: 13
+Momentum is (0, 0, 3, 0).Propagator written at path: prop/p0030
+Matrix element O11 written at: O11/p0030
+Matrix element O11 written at: O12/p0030
+Matrix element O11 written at: O13/p0030
+Matrix element O11 written at: O14/p0030
+Matrix element O22 written at: O21/p0030
+Matrix element O22 written at: O22/p0030
+Matrix element O22 written at: O23/p0030
+Matrix element O22 written at: O24/p0030
+Matrix element O33 written at: O31/p0030
+Matrix element O33 written at: O32/p0030
+Matrix element O33 written at: O33/p0030
+Matrix element O33 written at: O34/p0030
+Matrix element O44 written at: O41/p0030
+Matrix element O44 written at: O42/p0030
+Matrix element O44 written at: O43/p0030
+Matrix element O44 written at: O44/p0030
+p index: 14
+Momentum is (0, 0, 3, 1).Propagator written at path: prop/p0031
+Matrix element O11 written at: O11/p0031
+Matrix element O11 written at: O12/p0031
+Matrix element O11 written at: O13/p0031
+Matrix element O11 written at: O14/p0031
+Matrix element O22 written at: O21/p0031
+Matrix element O22 written at: O22/p0031
+Matrix element O22 written at: O23/p0031
+Matrix element O22 written at: O24/p0031
+Matrix element O33 written at: O31/p0031
+Matrix element O33 written at: O32/p0031
+Matrix element O33 written at: O33/p0031
+Matrix element O33 written at: O34/p0031
+Matrix element O44 written at: O41/p0031
+Matrix element O44 written at: O42/p0031
+Matrix element O44 written at: O43/p0031
+Matrix element O44 written at: O44/p0031
+p index: 15
+Momentum is (0, 0, 3, 2).Propagator written at path: prop/p0032
+Matrix element O11 written at: O11/p0032
+Matrix element O11 written at: O12/p0032
+Matrix element O11 written at: O13/p0032
+Matrix element O11 written at: O14/p0032
+Matrix element O22 written at: O21/p0032
+Matrix element O22 written at: O22/p0032
+Matrix element O22 written at: O23/p0032
+Matrix element O22 written at: O24/p0032
+Matrix element O33 written at: O31/p0032
+Matrix element O33 written at: O32/p0032
+Matrix element O33 written at: O33/p0032
+Matrix element O33 written at: O34/p0032
+Matrix element O44 written at: O41/p0032
+Matrix element O44 written at: O42/p0032
+Matrix element O44 written at: O43/p0032
+Matrix element O44 written at: O44/p0032
+p index: 16
+Momentum is (0, 0, 3, 3).Propagator written at path: prop/p0033
+Matrix element O11 written at: O11/p0033
+Matrix element O11 written at: O12/p0033
+Matrix element O11 written at: O13/p0033
+Matrix element O11 written at: O14/p0033
+Matrix element O22 written at: O21/p0033
+Matrix element O22 written at: O22/p0033
+Matrix element O22 written at: O23/p0033
+Matrix element O22 written at: O24/p0033
+Matrix element O33 written at: O31/p0033
+Matrix element O33 written at: O32/p0033
+Matrix element O33 written at: O33/p0033
+Matrix element O33 written at: O34/p0033
+Matrix element O44 written at: O41/p0033
+Matrix element O44 written at: O42/p0033
+Matrix element O44 written at: O43/p0033
+Matrix element O44 written at: O44/p0033
+p index: 17
+Momentum is (0, 1, 0, 0).Propagator written at path: prop/p0100
+Matrix element O11 written at: O11/p0100
+Matrix element O11 written at: O12/p0100
+Matrix element O11 written at: O13/p0100
+Matrix element O11 written at: O14/p0100
+Matrix element O22 written at: O21/p0100
+Matrix element O22 written at: O22/p0100
+Matrix element O22 written at: O23/p0100
+Matrix element O22 written at: O24/p0100
+Matrix element O33 written at: O31/p0100
+Matrix element O33 written at: O32/p0100
+Matrix element O33 written at: O33/p0100
+Matrix element O33 written at: O34/p0100
+Matrix element O44 written at: O41/p0100
+Matrix element O44 written at: O42/p0100
+Matrix element O44 written at: O43/p0100
+Matrix element O44 written at: O44/p0100
+p index: 18
+Momentum is (0, 1, 0, 1).Propagator written at path: prop/p0101
+Matrix element O11 written at: O11/p0101
+Matrix element O11 written at: O12/p0101
+Matrix element O11 written at: O13/p0101
+Matrix element O11 written at: O14/p0101
+Matrix element O22 written at: O21/p0101
+Matrix element O22 written at: O22/p0101
+Matrix element O22 written at: O23/p0101
+Matrix element O22 written at: O24/p0101
+Matrix element O33 written at: O31/p0101
+Matrix element O33 written at: O32/p0101
+Matrix element O33 written at: O33/p0101
+Matrix element O33 written at: O34/p0101
+Matrix element O44 written at: O41/p0101
+Matrix element O44 written at: O42/p0101
+Matrix element O44 written at: O43/p0101
+Matrix element O44 written at: O44/p0101
+p index: 19
+Momentum is (0, 1, 0, 2).Propagator written at path: prop/p0102
+Matrix element O11 written at: O11/p0102
+Matrix element O11 written at: O12/p0102
+Matrix element O11 written at: O13/p0102
+Matrix element O11 written at: O14/p0102
+Matrix element O22 written at: O21/p0102
+Matrix element O22 written at: O22/p0102
+Matrix element O22 written at: O23/p0102
+Matrix element O22 written at: O24/p0102
+Matrix element O33 written at: O31/p0102
+Matrix element O33 written at: O32/p0102
+Matrix element O33 written at: O33/p0102
+Matrix element O33 written at: O34/p0102
+Matrix element O44 written at: O41/p0102
+Matrix element O44 written at: O42/p0102
+Matrix element O44 written at: O43/p0102
+Matrix element O44 written at: O44/p0102
+p index: 20
+Momentum is (0, 1, 0, 3).Propagator written at path: prop/p0103
+Matrix element O11 written at: O11/p0103
+Matrix element O11 written at: O12/p0103
+Matrix element O11 written at: O13/p0103
+Matrix element O11 written at: O14/p0103
+Matrix element O22 written at: O21/p0103
+Matrix element O22 written at: O22/p0103
+Matrix element O22 written at: O23/p0103
+Matrix element O22 written at: O24/p0103
+Matrix element O33 written at: O31/p0103
+Matrix element O33 written at: O32/p0103
+Matrix element O33 written at: O33/p0103
+Matrix element O33 written at: O34/p0103
+Matrix element O44 written at: O41/p0103
+Matrix element O44 written at: O42/p0103
+Matrix element O44 written at: O43/p0103
+Matrix element O44 written at: O44/p0103
+p index: 21
+Momentum is (0, 1, 1, 0).Propagator written at path: prop/p0110
+Matrix element O11 written at: O11/p0110
+Matrix element O11 written at: O12/p0110
+Matrix element O11 written at: O13/p0110
+Matrix element O11 written at: O14/p0110
+Matrix element O22 written at: O21/p0110
+Matrix element O22 written at: O22/p0110
+Matrix element O22 written at: O23/p0110
+Matrix element O22 written at: O24/p0110
+Matrix element O33 written at: O31/p0110
+Matrix element O33 written at: O32/p0110
+Matrix element O33 written at: O33/p0110
+Matrix element O33 written at: O34/p0110
+Matrix element O44 written at: O41/p0110
+Matrix element O44 written at: O42/p0110
+Matrix element O44 written at: O43/p0110
+Matrix element O44 written at: O44/p0110
+p index: 22
+Momentum is (0, 1, 1, 1).Propagator written at path: prop/p0111
+Matrix element O11 written at: O11/p0111
+Matrix element O11 written at: O12/p0111
+Matrix element O11 written at: O13/p0111
+Matrix element O11 written at: O14/p0111
+Matrix element O22 written at: O21/p0111
+Matrix element O22 written at: O22/p0111
+Matrix element O22 written at: O23/p0111
+Matrix element O22 written at: O24/p0111
+Matrix element O33 written at: O31/p0111
+Matrix element O33 written at: O32/p0111
+Matrix element O33 written at: O33/p0111
+Matrix element O33 written at: O34/p0111
+Matrix element O44 written at: O41/p0111
+Matrix element O44 written at: O42/p0111
+Matrix element O44 written at: O43/p0111
+Matrix element O44 written at: O44/p0111
+p index: 23
+Momentum is (0, 1, 1, 2).Propagator written at path: prop/p0112
+Matrix element O11 written at: O11/p0112
+Matrix element O11 written at: O12/p0112
+Matrix element O11 written at: O13/p0112
+Matrix element O11 written at: O14/p0112
+Matrix element O22 written at: O21/p0112
+Matrix element O22 written at: O22/p0112
+Matrix element O22 written at: O23/p0112
+Matrix element O22 written at: O24/p0112
+Matrix element O33 written at: O31/p0112
+Matrix element O33 written at: O32/p0112
+Matrix element O33 written at: O33/p0112
+Matrix element O33 written at: O34/p0112
+Matrix element O44 written at: O41/p0112
+Matrix element O44 written at: O42/p0112
+Matrix element O44 written at: O43/p0112
+Matrix element O44 written at: O44/p0112
+p index: 24
+Momentum is (0, 1, 1, 3).Propagator written at path: prop/p0113
+Matrix element O11 written at: O11/p0113
+Matrix element O11 written at: O12/p0113
+Matrix element O11 written at: O13/p0113
+Matrix element O11 written at: O14/p0113
+Matrix element O22 written at: O21/p0113
+Matrix element O22 written at: O22/p0113
+Matrix element O22 written at: O23/p0113
+Matrix element O22 written at: O24/p0113
+Matrix element O33 written at: O31/p0113
+Matrix element O33 written at: O32/p0113
+Matrix element O33 written at: O33/p0113
+Matrix element O33 written at: O34/p0113
+Matrix element O44 written at: O41/p0113
+Matrix element O44 written at: O42/p0113
+Matrix element O44 written at: O43/p0113
+Matrix element O44 written at: O44/p0113
+p index: 25
+Momentum is (0, 1, 2, 0).Propagator written at path: prop/p0120
+Matrix element O11 written at: O11/p0120
+Matrix element O11 written at: O12/p0120
+Matrix element O11 written at: O13/p0120
+Matrix element O11 written at: O14/p0120
+Matrix element O22 written at: O21/p0120
+Matrix element O22 written at: O22/p0120
+Matrix element O22 written at: O23/p0120
+Matrix element O22 written at: O24/p0120
+Matrix element O33 written at: O31/p0120
+Matrix element O33 written at: O32/p0120
+Matrix element O33 written at: O33/p0120
+Matrix element O33 written at: O34/p0120
+Matrix element O44 written at: O41/p0120
+Matrix element O44 written at: O42/p0120
+Matrix element O44 written at: O43/p0120
+Matrix element O44 written at: O44/p0120
+p index: 26
+Momentum is (0, 1, 2, 1).Propagator written at path: prop/p0121
+Matrix element O11 written at: O11/p0121
+Matrix element O11 written at: O12/p0121
+Matrix element O11 written at: O13/p0121
+Matrix element O11 written at: O14/p0121
+Matrix element O22 written at: O21/p0121
+Matrix element O22 written at: O22/p0121
+Matrix element O22 written at: O23/p0121
+Matrix element O22 written at: O24/p0121
+Matrix element O33 written at: O31/p0121
+Matrix element O33 written at: O32/p0121
+Matrix element O33 written at: O33/p0121
+Matrix element O33 written at: O34/p0121
+Matrix element O44 written at: O41/p0121
+Matrix element O44 written at: O42/p0121
+Matrix element O44 written at: O43/p0121
+Matrix element O44 written at: O44/p0121
+p index: 27
+Momentum is (0, 1, 2, 2).Propagator written at path: prop/p0122
+Matrix element O11 written at: O11/p0122
+Matrix element O11 written at: O12/p0122
+Matrix element O11 written at: O13/p0122
+Matrix element O11 written at: O14/p0122
+Matrix element O22 written at: O21/p0122
+Matrix element O22 written at: O22/p0122
+Matrix element O22 written at: O23/p0122
+Matrix element O22 written at: O24/p0122
+Matrix element O33 written at: O31/p0122
+Matrix element O33 written at: O32/p0122
+Matrix element O33 written at: O33/p0122
+Matrix element O33 written at: O34/p0122
+Matrix element O44 written at: O41/p0122
+Matrix element O44 written at: O42/p0122
+Matrix element O44 written at: O43/p0122
+Matrix element O44 written at: O44/p0122
+p index: 28
+Momentum is (0, 1, 2, 3).Propagator written at path: prop/p0123
+Matrix element O11 written at: O11/p0123
+Matrix element O11 written at: O12/p0123
+Matrix element O11 written at: O13/p0123
+Matrix element O11 written at: O14/p0123
+Matrix element O22 written at: O21/p0123
+Matrix element O22 written at: O22/p0123
+Matrix element O22 written at: O23/p0123
+Matrix element O22 written at: O24/p0123
+Matrix element O33 written at: O31/p0123
+Matrix element O33 written at: O32/p0123
+Matrix element O33 written at: O33/p0123
+Matrix element O33 written at: O34/p0123
+Matrix element O44 written at: O41/p0123
+Matrix element O44 written at: O42/p0123
+Matrix element O44 written at: O43/p0123
+Matrix element O44 written at: O44/p0123
+p index: 29
+Momentum is (0, 1, 3, 0).Propagator written at path: prop/p0130
+Matrix element O11 written at: O11/p0130
+Matrix element O11 written at: O12/p0130
+Matrix element O11 written at: O13/p0130
+Matrix element O11 written at: O14/p0130
+Matrix element O22 written at: O21/p0130
+Matrix element O22 written at: O22/p0130
+Matrix element O22 written at: O23/p0130
+Matrix element O22 written at: O24/p0130
+Matrix element O33 written at: O31/p0130
+Matrix element O33 written at: O32/p0130
+Matrix element O33 written at: O33/p0130
+Matrix element O33 written at: O34/p0130
+Matrix element O44 written at: O41/p0130
+Matrix element O44 written at: O42/p0130
+Matrix element O44 written at: O43/p0130
+Matrix element O44 written at: O44/p0130
+p index: 30
+Momentum is (0, 1, 3, 1).Propagator written at path: prop/p0131
+Matrix element O11 written at: O11/p0131
+Matrix element O11 written at: O12/p0131
+Matrix element O11 written at: O13/p0131
+Matrix element O11 written at: O14/p0131
+Matrix element O22 written at: O21/p0131
+Matrix element O22 written at: O22/p0131
+Matrix element O22 written at: O23/p0131
+Matrix element O22 written at: O24/p0131
+Matrix element O33 written at: O31/p0131
+Matrix element O33 written at: O32/p0131
+Matrix element O33 written at: O33/p0131
+Matrix element O33 written at: O34/p0131
+Matrix element O44 written at: O41/p0131
+Matrix element O44 written at: O42/p0131
+Matrix element O44 written at: O43/p0131
+Matrix element O44 written at: O44/p0131
+p index: 31
+Momentum is (0, 1, 3, 2).Propagator written at path: prop/p0132
+Matrix element O11 written at: O11/p0132
+Matrix element O11 written at: O12/p0132
+Matrix element O11 written at: O13/p0132
+Matrix element O11 written at: O14/p0132
+Matrix element O22 written at: O21/p0132
+Matrix element O22 written at: O22/p0132
+Matrix element O22 written at: O23/p0132
+Matrix element O22 written at: O24/p0132
+Matrix element O33 written at: O31/p0132
+Matrix element O33 written at: O32/p0132
+Matrix element O33 written at: O33/p0132
+Matrix element O33 written at: O34/p0132
+Matrix element O44 written at: O41/p0132
+Matrix element O44 written at: O42/p0132
+Matrix element O44 written at: O43/p0132
+Matrix element O44 written at: O44/p0132
+p index: 32
+Momentum is (0, 1, 3, 3).Propagator written at path: prop/p0133
+Matrix element O11 written at: O11/p0133
+Matrix element O11 written at: O12/p0133
+Matrix element O11 written at: O13/p0133
+Matrix element O11 written at: O14/p0133
+Matrix element O22 written at: O21/p0133
+Matrix element O22 written at: O22/p0133
+Matrix element O22 written at: O23/p0133
+Matrix element O22 written at: O24/p0133
+Matrix element O33 written at: O31/p0133
+Matrix element O33 written at: O32/p0133
+Matrix element O33 written at: O33/p0133
+Matrix element O33 written at: O34/p0133
+Matrix element O44 written at: O41/p0133
+Matrix element O44 written at: O42/p0133
+Matrix element O44 written at: O43/p0133
+Matrix element O44 written at: O44/p0133
+p index: 33
+Momentum is (0, 2, 0, 0).Propagator written at path: prop/p0200
+Matrix element O11 written at: O11/p0200
+Matrix element O11 written at: O12/p0200
+Matrix element O11 written at: O13/p0200
+Matrix element O11 written at: O14/p0200
+Matrix element O22 written at: O21/p0200
+Matrix element O22 written at: O22/p0200
+Matrix element O22 written at: O23/p0200
+Matrix element O22 written at: O24/p0200
+Matrix element O33 written at: O31/p0200
+Matrix element O33 written at: O32/p0200
+Matrix element O33 written at: O33/p0200
+Matrix element O33 written at: O34/p0200
+Matrix element O44 written at: O41/p0200
+Matrix element O44 written at: O42/p0200
+Matrix element O44 written at: O43/p0200
+Matrix element O44 written at: O44/p0200
+p index: 34
+Momentum is (0, 2, 0, 1).Propagator written at path: prop/p0201
+Matrix element O11 written at: O11/p0201
+Matrix element O11 written at: O12/p0201
+Matrix element O11 written at: O13/p0201
+Matrix element O11 written at: O14/p0201
+Matrix element O22 written at: O21/p0201
+Matrix element O22 written at: O22/p0201
+Matrix element O22 written at: O23/p0201
+Matrix element O22 written at: O24/p0201
+Matrix element O33 written at: O31/p0201
+Matrix element O33 written at: O32/p0201
+Matrix element O33 written at: O33/p0201
+Matrix element O33 written at: O34/p0201
+Matrix element O44 written at: O41/p0201
+Matrix element O44 written at: O42/p0201
+Matrix element O44 written at: O43/p0201
+Matrix element O44 written at: O44/p0201
+p index: 35
+Momentum is (0, 2, 0, 2).Propagator written at path: prop/p0202
+Matrix element O11 written at: O11/p0202
+Matrix element O11 written at: O12/p0202
+Matrix element O11 written at: O13/p0202
+Matrix element O11 written at: O14/p0202
+Matrix element O22 written at: O21/p0202
+Matrix element O22 written at: O22/p0202
+Matrix element O22 written at: O23/p0202
+Matrix element O22 written at: O24/p0202
+Matrix element O33 written at: O31/p0202
+Matrix element O33 written at: O32/p0202
+Matrix element O33 written at: O33/p0202
+Matrix element O33 written at: O34/p0202
+Matrix element O44 written at: O41/p0202
+Matrix element O44 written at: O42/p0202
+Matrix element O44 written at: O43/p0202
+Matrix element O44 written at: O44/p0202
+p index: 36
+Momentum is (0, 2, 0, 3).Propagator written at path: prop/p0203
+Matrix element O11 written at: O11/p0203
+Matrix element O11 written at: O12/p0203
+Matrix element O11 written at: O13/p0203
+Matrix element O11 written at: O14/p0203
+Matrix element O22 written at: O21/p0203
+Matrix element O22 written at: O22/p0203
+Matrix element O22 written at: O23/p0203
+Matrix element O22 written at: O24/p0203
+Matrix element O33 written at: O31/p0203
+Matrix element O33 written at: O32/p0203
+Matrix element O33 written at: O33/p0203
+Matrix element O33 written at: O34/p0203
+Matrix element O44 written at: O41/p0203
+Matrix element O44 written at: O42/p0203
+Matrix element O44 written at: O43/p0203
+Matrix element O44 written at: O44/p0203
+p index: 37
+Momentum is (0, 2, 1, 0).Propagator written at path: prop/p0210
+Matrix element O11 written at: O11/p0210
+Matrix element O11 written at: O12/p0210
+Matrix element O11 written at: O13/p0210
+Matrix element O11 written at: O14/p0210
+Matrix element O22 written at: O21/p0210
+Matrix element O22 written at: O22/p0210
+Matrix element O22 written at: O23/p0210
+Matrix element O22 written at: O24/p0210
+Matrix element O33 written at: O31/p0210
+Matrix element O33 written at: O32/p0210
+Matrix element O33 written at: O33/p0210
+Matrix element O33 written at: O34/p0210
+Matrix element O44 written at: O41/p0210
+Matrix element O44 written at: O42/p0210
+Matrix element O44 written at: O43/p0210
+Matrix element O44 written at: O44/p0210
+p index: 38
+Momentum is (0, 2, 1, 1).Propagator written at path: prop/p0211
+Matrix element O11 written at: O11/p0211
+Matrix element O11 written at: O12/p0211
+Matrix element O11 written at: O13/p0211
+Matrix element O11 written at: O14/p0211
+Matrix element O22 written at: O21/p0211
+Matrix element O22 written at: O22/p0211
+Matrix element O22 written at: O23/p0211
+Matrix element O22 written at: O24/p0211
+Matrix element O33 written at: O31/p0211
+Matrix element O33 written at: O32/p0211
+Matrix element O33 written at: O33/p0211
+Matrix element O33 written at: O34/p0211
+Matrix element O44 written at: O41/p0211
+Matrix element O44 written at: O42/p0211
+Matrix element O44 written at: O43/p0211
+Matrix element O44 written at: O44/p0211
+p index: 39
+Momentum is (0, 2, 1, 2).Propagator written at path: prop/p0212
+Matrix element O11 written at: O11/p0212
+Matrix element O11 written at: O12/p0212
+Matrix element O11 written at: O13/p0212
+Matrix element O11 written at: O14/p0212
+Matrix element O22 written at: O21/p0212
+Matrix element O22 written at: O22/p0212
+Matrix element O22 written at: O23/p0212
+Matrix element O22 written at: O24/p0212
+Matrix element O33 written at: O31/p0212
+Matrix element O33 written at: O32/p0212
+Matrix element O33 written at: O33/p0212
+Matrix element O33 written at: O34/p0212
+Matrix element O44 written at: O41/p0212
+Matrix element O44 written at: O42/p0212
+Matrix element O44 written at: O43/p0212
+Matrix element O44 written at: O44/p0212
+p index: 40
+Momentum is (0, 2, 1, 3).Propagator written at path: prop/p0213
+Matrix element O11 written at: O11/p0213
+Matrix element O11 written at: O12/p0213
+Matrix element O11 written at: O13/p0213
+Matrix element O11 written at: O14/p0213
+Matrix element O22 written at: O21/p0213
+Matrix element O22 written at: O22/p0213
+Matrix element O22 written at: O23/p0213
+Matrix element O22 written at: O24/p0213
+Matrix element O33 written at: O31/p0213
+Matrix element O33 written at: O32/p0213
+Matrix element O33 written at: O33/p0213
+Matrix element O33 written at: O34/p0213
+Matrix element O44 written at: O41/p0213
+Matrix element O44 written at: O42/p0213
+Matrix element O44 written at: O43/p0213
+Matrix element O44 written at: O44/p0213
+p index: 41
+Momentum is (0, 2, 2, 0).Propagator written at path: prop/p0220
+Matrix element O11 written at: O11/p0220
+Matrix element O11 written at: O12/p0220
+Matrix element O11 written at: O13/p0220
+Matrix element O11 written at: O14/p0220
+Matrix element O22 written at: O21/p0220
+Matrix element O22 written at: O22/p0220
+Matrix element O22 written at: O23/p0220
+Matrix element O22 written at: O24/p0220
+Matrix element O33 written at: O31/p0220
+Matrix element O33 written at: O32/p0220
+Matrix element O33 written at: O33/p0220
+Matrix element O33 written at: O34/p0220
+Matrix element O44 written at: O41/p0220
+Matrix element O44 written at: O42/p0220
+Matrix element O44 written at: O43/p0220
+Matrix element O44 written at: O44/p0220
+p index: 42
+Momentum is (0, 2, 2, 1).Propagator written at path: prop/p0221
+Matrix element O11 written at: O11/p0221
+Matrix element O11 written at: O12/p0221
+Matrix element O11 written at: O13/p0221
+Matrix element O11 written at: O14/p0221
+Matrix element O22 written at: O21/p0221
+Matrix element O22 written at: O22/p0221
+Matrix element O22 written at: O23/p0221
+Matrix element O22 written at: O24/p0221
+Matrix element O33 written at: O31/p0221
+Matrix element O33 written at: O32/p0221
+Matrix element O33 written at: O33/p0221
+Matrix element O33 written at: O34/p0221
+Matrix element O44 written at: O41/p0221
+Matrix element O44 written at: O42/p0221
+Matrix element O44 written at: O43/p0221
+Matrix element O44 written at: O44/p0221
+p index: 43
+Momentum is (0, 2, 2, 2).Propagator written at path: prop/p0222
+Matrix element O11 written at: O11/p0222
+Matrix element O11 written at: O12/p0222
+Matrix element O11 written at: O13/p0222
+Matrix element O11 written at: O14/p0222
+Matrix element O22 written at: O21/p0222
+Matrix element O22 written at: O22/p0222
+Matrix element O22 written at: O23/p0222
+Matrix element O22 written at: O24/p0222
+Matrix element O33 written at: O31/p0222
+Matrix element O33 written at: O32/p0222
+Matrix element O33 written at: O33/p0222
+Matrix element O33 written at: O34/p0222
+Matrix element O44 written at: O41/p0222
+Matrix element O44 written at: O42/p0222
+Matrix element O44 written at: O43/p0222
+Matrix element O44 written at: O44/p0222
+p index: 44
+Momentum is (0, 2, 2, 3).Propagator written at path: prop/p0223
+Matrix element O11 written at: O11/p0223
+Matrix element O11 written at: O12/p0223
+Matrix element O11 written at: O13/p0223
+Matrix element O11 written at: O14/p0223
+Matrix element O22 written at: O21/p0223
+Matrix element O22 written at: O22/p0223
+Matrix element O22 written at: O23/p0223
+Matrix element O22 written at: O24/p0223
+Matrix element O33 written at: O31/p0223
+Matrix element O33 written at: O32/p0223
+Matrix element O33 written at: O33/p0223
+Matrix element O33 written at: O34/p0223
+Matrix element O44 written at: O41/p0223
+Matrix element O44 written at: O42/p0223
+Matrix element O44 written at: O43/p0223
+Matrix element O44 written at: O44/p0223
+p index: 45
+Momentum is (0, 2, 3, 0).Propagator written at path: prop/p0230
+Matrix element O11 written at: O11/p0230
+Matrix element O11 written at: O12/p0230
+Matrix element O11 written at: O13/p0230
+Matrix element O11 written at: O14/p0230
+Matrix element O22 written at: O21/p0230
+Matrix element O22 written at: O22/p0230
+Matrix element O22 written at: O23/p0230
+Matrix element O22 written at: O24/p0230
+Matrix element O33 written at: O31/p0230
+Matrix element O33 written at: O32/p0230
+Matrix element O33 written at: O33/p0230
+Matrix element O33 written at: O34/p0230
+Matrix element O44 written at: O41/p0230
+Matrix element O44 written at: O42/p0230
+Matrix element O44 written at: O43/p0230
+Matrix element O44 written at: O44/p0230
+p index: 46
+Momentum is (0, 2, 3, 1).Propagator written at path: prop/p0231
+Matrix element O11 written at: O11/p0231
+Matrix element O11 written at: O12/p0231
+Matrix element O11 written at: O13/p0231
+Matrix element O11 written at: O14/p0231
+Matrix element O22 written at: O21/p0231
+Matrix element O22 written at: O22/p0231
+Matrix element O22 written at: O23/p0231
+Matrix element O22 written at: O24/p0231
+Matrix element O33 written at: O31/p0231
+Matrix element O33 written at: O32/p0231
+Matrix element O33 written at: O33/p0231
+Matrix element O33 written at: O34/p0231
+Matrix element O44 written at: O41/p0231
+Matrix element O44 written at: O42/p0231
+Matrix element O44 written at: O43/p0231
+Matrix element O44 written at: O44/p0231
+p index: 47
+Momentum is (0, 2, 3, 2).Propagator written at path: prop/p0232
+Matrix element O11 written at: O11/p0232
+Matrix element O11 written at: O12/p0232
+Matrix element O11 written at: O13/p0232
+Matrix element O11 written at: O14/p0232
+Matrix element O22 written at: O21/p0232
+Matrix element O22 written at: O22/p0232
+Matrix element O22 written at: O23/p0232
+Matrix element O22 written at: O24/p0232
+Matrix element O33 written at: O31/p0232
+Matrix element O33 written at: O32/p0232
+Matrix element O33 written at: O33/p0232
+Matrix element O33 written at: O34/p0232
+Matrix element O44 written at: O41/p0232
+Matrix element O44 written at: O42/p0232
+Matrix element O44 written at: O43/p0232
+Matrix element O44 written at: O44/p0232
+p index: 48
+Momentum is (0, 2, 3, 3).Propagator written at path: prop/p0233
+Matrix element O11 written at: O11/p0233
+Matrix element O11 written at: O12/p0233
+Matrix element O11 written at: O13/p0233
+Matrix element O11 written at: O14/p0233
+Matrix element O22 written at: O21/p0233
+Matrix element O22 written at: O22/p0233
+Matrix element O22 written at: O23/p0233
+Matrix element O22 written at: O24/p0233
+Matrix element O33 written at: O31/p0233
+Matrix element O33 written at: O32/p0233
+Matrix element O33 written at: O33/p0233
+Matrix element O33 written at: O34/p0233
+Matrix element O44 written at: O41/p0233
+Matrix element O44 written at: O42/p0233
+Matrix element O44 written at: O43/p0233
+Matrix element O44 written at: O44/p0233
+p index: 49
+Momentum is (0, 3, 0, 0).Propagator written at path: prop/p0300
+Matrix element O11 written at: O11/p0300
+Matrix element O11 written at: O12/p0300
+Matrix element O11 written at: O13/p0300
+Matrix element O11 written at: O14/p0300
+Matrix element O22 written at: O21/p0300
+Matrix element O22 written at: O22/p0300
+Matrix element O22 written at: O23/p0300
+Matrix element O22 written at: O24/p0300
+Matrix element O33 written at: O31/p0300
+Matrix element O33 written at: O32/p0300
+Matrix element O33 written at: O33/p0300
+Matrix element O33 written at: O34/p0300
+Matrix element O44 written at: O41/p0300
+Matrix element O44 written at: O42/p0300
+Matrix element O44 written at: O43/p0300
+Matrix element O44 written at: O44/p0300
+p index: 50
+Momentum is (0, 3, 0, 1).Propagator written at path: prop/p0301
+Matrix element O11 written at: O11/p0301
+Matrix element O11 written at: O12/p0301
+Matrix element O11 written at: O13/p0301
+Matrix element O11 written at: O14/p0301
+Matrix element O22 written at: O21/p0301
+Matrix element O22 written at: O22/p0301
+Matrix element O22 written at: O23/p0301
+Matrix element O22 written at: O24/p0301
+Matrix element O33 written at: O31/p0301
+Matrix element O33 written at: O32/p0301
+Matrix element O33 written at: O33/p0301
+Matrix element O33 written at: O34/p0301
+Matrix element O44 written at: O41/p0301
+Matrix element O44 written at: O42/p0301
+Matrix element O44 written at: O43/p0301
+Matrix element O44 written at: O44/p0301
+p index: 51
+Momentum is (0, 3, 0, 2).Propagator written at path: prop/p0302
+Matrix element O11 written at: O11/p0302
+Matrix element O11 written at: O12/p0302
+Matrix element O11 written at: O13/p0302
+Matrix element O11 written at: O14/p0302
+Matrix element O22 written at: O21/p0302
+Matrix element O22 written at: O22/p0302
+Matrix element O22 written at: O23/p0302
+Matrix element O22 written at: O24/p0302
+Matrix element O33 written at: O31/p0302
+Matrix element O33 written at: O32/p0302
+Matrix element O33 written at: O33/p0302
+Matrix element O33 written at: O34/p0302
+Matrix element O44 written at: O41/p0302
+Matrix element O44 written at: O42/p0302
+Matrix element O44 written at: O43/p0302
+Matrix element O44 written at: O44/p0302
+p index: 52
+Momentum is (0, 3, 0, 3).Propagator written at path: prop/p0303
+Matrix element O11 written at: O11/p0303
+Matrix element O11 written at: O12/p0303
+Matrix element O11 written at: O13/p0303
+Matrix element O11 written at: O14/p0303
+Matrix element O22 written at: O21/p0303
+Matrix element O22 written at: O22/p0303
+Matrix element O22 written at: O23/p0303
+Matrix element O22 written at: O24/p0303
+Matrix element O33 written at: O31/p0303
+Matrix element O33 written at: O32/p0303
+Matrix element O33 written at: O33/p0303
+Matrix element O33 written at: O34/p0303
+Matrix element O44 written at: O41/p0303
+Matrix element O44 written at: O42/p0303
+Matrix element O44 written at: O43/p0303
+Matrix element O44 written at: O44/p0303
+p index: 53
+Momentum is (0, 3, 1, 0).Propagator written at path: prop/p0310
+Matrix element O11 written at: O11/p0310
+Matrix element O11 written at: O12/p0310
+Matrix element O11 written at: O13/p0310
+Matrix element O11 written at: O14/p0310
+Matrix element O22 written at: O21/p0310
+Matrix element O22 written at: O22/p0310
+Matrix element O22 written at: O23/p0310
+Matrix element O22 written at: O24/p0310
+Matrix element O33 written at: O31/p0310
+Matrix element O33 written at: O32/p0310
+Matrix element O33 written at: O33/p0310
+Matrix element O33 written at: O34/p0310
+Matrix element O44 written at: O41/p0310
+Matrix element O44 written at: O42/p0310
+Matrix element O44 written at: O43/p0310
+Matrix element O44 written at: O44/p0310
+p index: 54
+Momentum is (0, 3, 1, 1).Propagator written at path: prop/p0311
+Matrix element O11 written at: O11/p0311
+Matrix element O11 written at: O12/p0311
+Matrix element O11 written at: O13/p0311
+Matrix element O11 written at: O14/p0311
+Matrix element O22 written at: O21/p0311
+Matrix element O22 written at: O22/p0311
+Matrix element O22 written at: O23/p0311
+Matrix element O22 written at: O24/p0311
+Matrix element O33 written at: O31/p0311
+Matrix element O33 written at: O32/p0311
+Matrix element O33 written at: O33/p0311
+Matrix element O33 written at: O34/p0311
+Matrix element O44 written at: O41/p0311
+Matrix element O44 written at: O42/p0311
+Matrix element O44 written at: O43/p0311
+Matrix element O44 written at: O44/p0311
+p index: 55
+Momentum is (0, 3, 1, 2).Propagator written at path: prop/p0312
+Matrix element O11 written at: O11/p0312
+Matrix element O11 written at: O12/p0312
+Matrix element O11 written at: O13/p0312
+Matrix element O11 written at: O14/p0312
+Matrix element O22 written at: O21/p0312
+Matrix element O22 written at: O22/p0312
+Matrix element O22 written at: O23/p0312
+Matrix element O22 written at: O24/p0312
+Matrix element O33 written at: O31/p0312
+Matrix element O33 written at: O32/p0312
+Matrix element O33 written at: O33/p0312
+Matrix element O33 written at: O34/p0312
+Matrix element O44 written at: O41/p0312
+Matrix element O44 written at: O42/p0312
+Matrix element O44 written at: O43/p0312
+Matrix element O44 written at: O44/p0312
+p index: 56
+Momentum is (0, 3, 1, 3).Propagator written at path: prop/p0313
+Matrix element O11 written at: O11/p0313
+Matrix element O11 written at: O12/p0313
+Matrix element O11 written at: O13/p0313
+Matrix element O11 written at: O14/p0313
+Matrix element O22 written at: O21/p0313
+Matrix element O22 written at: O22/p0313
+Matrix element O22 written at: O23/p0313
+Matrix element O22 written at: O24/p0313
+Matrix element O33 written at: O31/p0313
+Matrix element O33 written at: O32/p0313
+Matrix element O33 written at: O33/p0313
+Matrix element O33 written at: O34/p0313
+Matrix element O44 written at: O41/p0313
+Matrix element O44 written at: O42/p0313
+Matrix element O44 written at: O43/p0313
+Matrix element O44 written at: O44/p0313
+p index: 57
+Momentum is (0, 3, 2, 0).Propagator written at path: prop/p0320
+Matrix element O11 written at: O11/p0320
+Matrix element O11 written at: O12/p0320
+Matrix element O11 written at: O13/p0320
+Matrix element O11 written at: O14/p0320
+Matrix element O22 written at: O21/p0320
+Matrix element O22 written at: O22/p0320
+Matrix element O22 written at: O23/p0320
+Matrix element O22 written at: O24/p0320
+Matrix element O33 written at: O31/p0320
+Matrix element O33 written at: O32/p0320
+Matrix element O33 written at: O33/p0320
+Matrix element O33 written at: O34/p0320
+Matrix element O44 written at: O41/p0320
+Matrix element O44 written at: O42/p0320
+Matrix element O44 written at: O43/p0320
+Matrix element O44 written at: O44/p0320
+p index: 58
+Momentum is (0, 3, 2, 1).Propagator written at path: prop/p0321
+Matrix element O11 written at: O11/p0321
+Matrix element O11 written at: O12/p0321
+Matrix element O11 written at: O13/p0321
+Matrix element O11 written at: O14/p0321
+Matrix element O22 written at: O21/p0321
+Matrix element O22 written at: O22/p0321
+Matrix element O22 written at: O23/p0321
+Matrix element O22 written at: O24/p0321
+Matrix element O33 written at: O31/p0321
+Matrix element O33 written at: O32/p0321
+Matrix element O33 written at: O33/p0321
+Matrix element O33 written at: O34/p0321
+Matrix element O44 written at: O41/p0321
+Matrix element O44 written at: O42/p0321
+Matrix element O44 written at: O43/p0321
+Matrix element O44 written at: O44/p0321
+p index: 59
+Momentum is (0, 3, 2, 2).Propagator written at path: prop/p0322
+Matrix element O11 written at: O11/p0322
+Matrix element O11 written at: O12/p0322
+Matrix element O11 written at: O13/p0322
+Matrix element O11 written at: O14/p0322
+Matrix element O22 written at: O21/p0322
+Matrix element O22 written at: O22/p0322
+Matrix element O22 written at: O23/p0322
+Matrix element O22 written at: O24/p0322
+Matrix element O33 written at: O31/p0322
+Matrix element O33 written at: O32/p0322
+Matrix element O33 written at: O33/p0322
+Matrix element O33 written at: O34/p0322
+Matrix element O44 written at: O41/p0322
+Matrix element O44 written at: O42/p0322
+Matrix element O44 written at: O43/p0322
+Matrix element O44 written at: O44/p0322
+p index: 60
+Momentum is (0, 3, 2, 3).Propagator written at path: prop/p0323
+Matrix element O11 written at: O11/p0323
+Matrix element O11 written at: O12/p0323
+Matrix element O11 written at: O13/p0323
+Matrix element O11 written at: O14/p0323
+Matrix element O22 written at: O21/p0323
+Matrix element O22 written at: O22/p0323
+Matrix element O22 written at: O23/p0323
+Matrix element O22 written at: O24/p0323
+Matrix element O33 written at: O31/p0323
+Matrix element O33 written at: O32/p0323
+Matrix element O33 written at: O33/p0323
+Matrix element O33 written at: O34/p0323
+Matrix element O44 written at: O41/p0323
+Matrix element O44 written at: O42/p0323
+Matrix element O44 written at: O43/p0323
+Matrix element O44 written at: O44/p0323
+p index: 61
+Momentum is (0, 3, 3, 0).Propagator written at path: prop/p0330
+Matrix element O11 written at: O11/p0330
+Matrix element O11 written at: O12/p0330
+Matrix element O11 written at: O13/p0330
+Matrix element O11 written at: O14/p0330
+Matrix element O22 written at: O21/p0330
+Matrix element O22 written at: O22/p0330
+Matrix element O22 written at: O23/p0330
+Matrix element O22 written at: O24/p0330
+Matrix element O33 written at: O31/p0330
+Matrix element O33 written at: O32/p0330
+Matrix element O33 written at: O33/p0330
+Matrix element O33 written at: O34/p0330
+Matrix element O44 written at: O41/p0330
+Matrix element O44 written at: O42/p0330
+Matrix element O44 written at: O43/p0330
+Matrix element O44 written at: O44/p0330
+p index: 62
+Momentum is (0, 3, 3, 1).Propagator written at path: prop/p0331
+Matrix element O11 written at: O11/p0331
+Matrix element O11 written at: O12/p0331
+Matrix element O11 written at: O13/p0331
+Matrix element O11 written at: O14/p0331
+Matrix element O22 written at: O21/p0331
+Matrix element O22 written at: O22/p0331
+Matrix element O22 written at: O23/p0331
+Matrix element O22 written at: O24/p0331
+Matrix element O33 written at: O31/p0331
+Matrix element O33 written at: O32/p0331
+Matrix element O33 written at: O33/p0331
+Matrix element O33 written at: O34/p0331
+Matrix element O44 written at: O41/p0331
+Matrix element O44 written at: O42/p0331
+Matrix element O44 written at: O43/p0331
+Matrix element O44 written at: O44/p0331
+p index: 63
+Momentum is (0, 3, 3, 2).Propagator written at path: prop/p0332
+Matrix element O11 written at: O11/p0332
+Matrix element O11 written at: O12/p0332
+Matrix element O11 written at: O13/p0332
+Matrix element O11 written at: O14/p0332
+Matrix element O22 written at: O21/p0332
+Matrix element O22 written at: O22/p0332
+Matrix element O22 written at: O23/p0332
+Matrix element O22 written at: O24/p0332
+Matrix element O33 written at: O31/p0332
+Matrix element O33 written at: O32/p0332
+Matrix element O33 written at: O33/p0332
+Matrix element O33 written at: O34/p0332
+Matrix element O44 written at: O41/p0332
+Matrix element O44 written at: O42/p0332
+Matrix element O44 written at: O43/p0332
+Matrix element O44 written at: O44/p0332
+p index: 64
+Momentum is (0, 3, 3, 3).Propagator written at path: prop/p0333
+Matrix element O11 written at: O11/p0333
+Matrix element O11 written at: O12/p0333
+Matrix element O11 written at: O13/p0333
+Matrix element O11 written at: O14/p0333
+Matrix element O22 written at: O21/p0333
+Matrix element O22 written at: O22/p0333
+Matrix element O22 written at: O23/p0333
+Matrix element O22 written at: O24/p0333
+Matrix element O33 written at: O31/p0333
+Matrix element O33 written at: O32/p0333
+Matrix element O33 written at: O33/p0333
+Matrix element O33 written at: O34/p0333
+Matrix element O44 written at: O41/p0333
+Matrix element O44 written at: O42/p0333
+Matrix element O44 written at: O43/p0333
+Matrix element O44 written at: O44/p0333
+p index: 65
+Momentum is (1, 0, 0, 0).Propagator written at path: prop/p1000
+Matrix element O11 written at: O11/p1000
+Matrix element O11 written at: O12/p1000
+Matrix element O11 written at: O13/p1000
+Matrix element O11 written at: O14/p1000
+Matrix element O22 written at: O21/p1000
+Matrix element O22 written at: O22/p1000
+Matrix element O22 written at: O23/p1000
+Matrix element O22 written at: O24/p1000
+Matrix element O33 written at: O31/p1000
+Matrix element O33 written at: O32/p1000
+Matrix element O33 written at: O33/p1000
+Matrix element O33 written at: O34/p1000
+Matrix element O44 written at: O41/p1000
+Matrix element O44 written at: O42/p1000
+Matrix element O44 written at: O43/p1000
+Matrix element O44 written at: O44/p1000
+p index: 66
+Momentum is (1, 0, 0, 1).Propagator written at path: prop/p1001
+Matrix element O11 written at: O11/p1001
+Matrix element O11 written at: O12/p1001
+Matrix element O11 written at: O13/p1001
+Matrix element O11 written at: O14/p1001
+Matrix element O22 written at: O21/p1001
+Matrix element O22 written at: O22/p1001
+Matrix element O22 written at: O23/p1001
+Matrix element O22 written at: O24/p1001
+Matrix element O33 written at: O31/p1001
+Matrix element O33 written at: O32/p1001
+Matrix element O33 written at: O33/p1001
+Matrix element O33 written at: O34/p1001
+Matrix element O44 written at: O41/p1001
+Matrix element O44 written at: O42/p1001
+Matrix element O44 written at: O43/p1001
+Matrix element O44 written at: O44/p1001
+p index: 67
+Momentum is (1, 0, 0, 2).Propagator written at path: prop/p1002
+Matrix element O11 written at: O11/p1002
+Matrix element O11 written at: O12/p1002
+Matrix element O11 written at: O13/p1002
+Matrix element O11 written at: O14/p1002
+Matrix element O22 written at: O21/p1002
+Matrix element O22 written at: O22/p1002
+Matrix element O22 written at: O23/p1002
+Matrix element O22 written at: O24/p1002
+Matrix element O33 written at: O31/p1002
+Matrix element O33 written at: O32/p1002
+Matrix element O33 written at: O33/p1002
+Matrix element O33 written at: O34/p1002
+Matrix element O44 written at: O41/p1002
+Matrix element O44 written at: O42/p1002
+Matrix element O44 written at: O43/p1002
+Matrix element O44 written at: O44/p1002
+p index: 68
+Momentum is (1, 0, 0, 3).Propagator written at path: prop/p1003
+Matrix element O11 written at: O11/p1003
+Matrix element O11 written at: O12/p1003
+Matrix element O11 written at: O13/p1003
+Matrix element O11 written at: O14/p1003
+Matrix element O22 written at: O21/p1003
+Matrix element O22 written at: O22/p1003
+Matrix element O22 written at: O23/p1003
+Matrix element O22 written at: O24/p1003
+Matrix element O33 written at: O31/p1003
+Matrix element O33 written at: O32/p1003
+Matrix element O33 written at: O33/p1003
+Matrix element O33 written at: O34/p1003
+Matrix element O44 written at: O41/p1003
+Matrix element O44 written at: O42/p1003
+Matrix element O44 written at: O43/p1003
+Matrix element O44 written at: O44/p1003
+p index: 69
+Momentum is (1, 0, 1, 0).Propagator written at path: prop/p1010
+Matrix element O11 written at: O11/p1010
+Matrix element O11 written at: O12/p1010
+Matrix element O11 written at: O13/p1010
+Matrix element O11 written at: O14/p1010
+Matrix element O22 written at: O21/p1010
+Matrix element O22 written at: O22/p1010
+Matrix element O22 written at: O23/p1010
+Matrix element O22 written at: O24/p1010
+Matrix element O33 written at: O31/p1010
+Matrix element O33 written at: O32/p1010
+Matrix element O33 written at: O33/p1010
+Matrix element O33 written at: O34/p1010
+Matrix element O44 written at: O41/p1010
+Matrix element O44 written at: O42/p1010
+Matrix element O44 written at: O43/p1010
+Matrix element O44 written at: O44/p1010
+p index: 70
+Momentum is (1, 0, 1, 1).Propagator written at path: prop/p1011
+Matrix element O11 written at: O11/p1011
+Matrix element O11 written at: O12/p1011
+Matrix element O11 written at: O13/p1011
+Matrix element O11 written at: O14/p1011
+Matrix element O22 written at: O21/p1011
+Matrix element O22 written at: O22/p1011
+Matrix element O22 written at: O23/p1011
+Matrix element O22 written at: O24/p1011
+Matrix element O33 written at: O31/p1011
+Matrix element O33 written at: O32/p1011
+Matrix element O33 written at: O33/p1011
+Matrix element O33 written at: O34/p1011
+Matrix element O44 written at: O41/p1011
+Matrix element O44 written at: O42/p1011
+Matrix element O44 written at: O43/p1011
+Matrix element O44 written at: O44/p1011
+p index: 71
+Momentum is (1, 0, 1, 2).Propagator written at path: prop/p1012
+Matrix element O11 written at: O11/p1012
+Matrix element O11 written at: O12/p1012
+Matrix element O11 written at: O13/p1012
+Matrix element O11 written at: O14/p1012
+Matrix element O22 written at: O21/p1012
+Matrix element O22 written at: O22/p1012
+Matrix element O22 written at: O23/p1012
+Matrix element O22 written at: O24/p1012
+Matrix element O33 written at: O31/p1012
+Matrix element O33 written at: O32/p1012
+Matrix element O33 written at: O33/p1012
+Matrix element O33 written at: O34/p1012
+Matrix element O44 written at: O41/p1012
+Matrix element O44 written at: O42/p1012
+Matrix element O44 written at: O43/p1012
+Matrix element O44 written at: O44/p1012
+p index: 72
+Momentum is (1, 0, 1, 3).Propagator written at path: prop/p1013
+Matrix element O11 written at: O11/p1013
+Matrix element O11 written at: O12/p1013
+Matrix element O11 written at: O13/p1013
+Matrix element O11 written at: O14/p1013
+Matrix element O22 written at: O21/p1013
+Matrix element O22 written at: O22/p1013
+Matrix element O22 written at: O23/p1013
+Matrix element O22 written at: O24/p1013
+Matrix element O33 written at: O31/p1013
+Matrix element O33 written at: O32/p1013
+Matrix element O33 written at: O33/p1013
+Matrix element O33 written at: O34/p1013
+Matrix element O44 written at: O41/p1013
+Matrix element O44 written at: O42/p1013
+Matrix element O44 written at: O43/p1013
+Matrix element O44 written at: O44/p1013
+p index: 73
+Momentum is (1, 0, 2, 0).Propagator written at path: prop/p1020
+Matrix element O11 written at: O11/p1020
+Matrix element O11 written at: O12/p1020
+Matrix element O11 written at: O13/p1020
+Matrix element O11 written at: O14/p1020
+Matrix element O22 written at: O21/p1020
+Matrix element O22 written at: O22/p1020
+Matrix element O22 written at: O23/p1020
+Matrix element O22 written at: O24/p1020
+Matrix element O33 written at: O31/p1020
+Matrix element O33 written at: O32/p1020
+Matrix element O33 written at: O33/p1020
+Matrix element O33 written at: O34/p1020
+Matrix element O44 written at: O41/p1020
+Matrix element O44 written at: O42/p1020
+Matrix element O44 written at: O43/p1020
+Matrix element O44 written at: O44/p1020
+p index: 74
+Momentum is (1, 0, 2, 1).Propagator written at path: prop/p1021
+Matrix element O11 written at: O11/p1021
+Matrix element O11 written at: O12/p1021
+Matrix element O11 written at: O13/p1021
+Matrix element O11 written at: O14/p1021
+Matrix element O22 written at: O21/p1021
+Matrix element O22 written at: O22/p1021
+Matrix element O22 written at: O23/p1021
+Matrix element O22 written at: O24/p1021
+Matrix element O33 written at: O31/p1021
+Matrix element O33 written at: O32/p1021
+Matrix element O33 written at: O33/p1021
+Matrix element O33 written at: O34/p1021
+Matrix element O44 written at: O41/p1021
+Matrix element O44 written at: O42/p1021
+Matrix element O44 written at: O43/p1021
+Matrix element O44 written at: O44/p1021
+p index: 75
+Momentum is (1, 0, 2, 2).Propagator written at path: prop/p1022
+Matrix element O11 written at: O11/p1022
+Matrix element O11 written at: O12/p1022
+Matrix element O11 written at: O13/p1022
+Matrix element O11 written at: O14/p1022
+Matrix element O22 written at: O21/p1022
+Matrix element O22 written at: O22/p1022
+Matrix element O22 written at: O23/p1022
+Matrix element O22 written at: O24/p1022
+Matrix element O33 written at: O31/p1022
+Matrix element O33 written at: O32/p1022
+Matrix element O33 written at: O33/p1022
+Matrix element O33 written at: O34/p1022
+Matrix element O44 written at: O41/p1022
+Matrix element O44 written at: O42/p1022
+Matrix element O44 written at: O43/p1022
+Matrix element O44 written at: O44/p1022
+p index: 76
+Momentum is (1, 0, 2, 3).Propagator written at path: prop/p1023
+Matrix element O11 written at: O11/p1023
+Matrix element O11 written at: O12/p1023
+Matrix element O11 written at: O13/p1023
+Matrix element O11 written at: O14/p1023
+Matrix element O22 written at: O21/p1023
+Matrix element O22 written at: O22/p1023
+Matrix element O22 written at: O23/p1023
+Matrix element O22 written at: O24/p1023
+Matrix element O33 written at: O31/p1023
+Matrix element O33 written at: O32/p1023
+Matrix element O33 written at: O33/p1023
+Matrix element O33 written at: O34/p1023
+Matrix element O44 written at: O41/p1023
+Matrix element O44 written at: O42/p1023
+Matrix element O44 written at: O43/p1023
+Matrix element O44 written at: O44/p1023
+p index: 77
+Momentum is (1, 0, 3, 0).Propagator written at path: prop/p1030
+Matrix element O11 written at: O11/p1030
+Matrix element O11 written at: O12/p1030
+Matrix element O11 written at: O13/p1030
+Matrix element O11 written at: O14/p1030
+Matrix element O22 written at: O21/p1030
+Matrix element O22 written at: O22/p1030
+Matrix element O22 written at: O23/p1030
+Matrix element O22 written at: O24/p1030
+Matrix element O33 written at: O31/p1030
+Matrix element O33 written at: O32/p1030
+Matrix element O33 written at: O33/p1030
+Matrix element O33 written at: O34/p1030
+Matrix element O44 written at: O41/p1030
+Matrix element O44 written at: O42/p1030
+Matrix element O44 written at: O43/p1030
+Matrix element O44 written at: O44/p1030
+p index: 78
+Momentum is (1, 0, 3, 1).Propagator written at path: prop/p1031
+Matrix element O11 written at: O11/p1031
+Matrix element O11 written at: O12/p1031
+Matrix element O11 written at: O13/p1031
+Matrix element O11 written at: O14/p1031
+Matrix element O22 written at: O21/p1031
+Matrix element O22 written at: O22/p1031
+Matrix element O22 written at: O23/p1031
+Matrix element O22 written at: O24/p1031
+Matrix element O33 written at: O31/p1031
+Matrix element O33 written at: O32/p1031
+Matrix element O33 written at: O33/p1031
+Matrix element O33 written at: O34/p1031
+Matrix element O44 written at: O41/p1031
+Matrix element O44 written at: O42/p1031
+Matrix element O44 written at: O43/p1031
+Matrix element O44 written at: O44/p1031
+p index: 79
+Momentum is (1, 0, 3, 2).Propagator written at path: prop/p1032
+Matrix element O11 written at: O11/p1032
+Matrix element O11 written at: O12/p1032
+Matrix element O11 written at: O13/p1032
+Matrix element O11 written at: O14/p1032
+Matrix element O22 written at: O21/p1032
+Matrix element O22 written at: O22/p1032
+Matrix element O22 written at: O23/p1032
+Matrix element O22 written at: O24/p1032
+Matrix element O33 written at: O31/p1032
+Matrix element O33 written at: O32/p1032
+Matrix element O33 written at: O33/p1032
+Matrix element O33 written at: O34/p1032
+Matrix element O44 written at: O41/p1032
+Matrix element O44 written at: O42/p1032
+Matrix element O44 written at: O43/p1032
+Matrix element O44 written at: O44/p1032
+p index: 80
+Momentum is (1, 0, 3, 3).Propagator written at path: prop/p1033
+Matrix element O11 written at: O11/p1033
+Matrix element O11 written at: O12/p1033
+Matrix element O11 written at: O13/p1033
+Matrix element O11 written at: O14/p1033
+Matrix element O22 written at: O21/p1033
+Matrix element O22 written at: O22/p1033
+Matrix element O22 written at: O23/p1033
+Matrix element O22 written at: O24/p1033
+Matrix element O33 written at: O31/p1033
+Matrix element O33 written at: O32/p1033
+Matrix element O33 written at: O33/p1033
+Matrix element O33 written at: O34/p1033
+Matrix element O44 written at: O41/p1033
+Matrix element O44 written at: O42/p1033
+Matrix element O44 written at: O43/p1033
+Matrix element O44 written at: O44/p1033
+p index: 81
+Momentum is (1, 1, 0, 0).Propagator written at path: prop/p1100
+Matrix element O11 written at: O11/p1100
+Matrix element O11 written at: O12/p1100
+Matrix element O11 written at: O13/p1100
+Matrix element O11 written at: O14/p1100
+Matrix element O22 written at: O21/p1100
+Matrix element O22 written at: O22/p1100
+Matrix element O22 written at: O23/p1100
+Matrix element O22 written at: O24/p1100
+Matrix element O33 written at: O31/p1100
+Matrix element O33 written at: O32/p1100
+Matrix element O33 written at: O33/p1100
+Matrix element O33 written at: O34/p1100
+Matrix element O44 written at: O41/p1100
+Matrix element O44 written at: O42/p1100
+Matrix element O44 written at: O43/p1100
+Matrix element O44 written at: O44/p1100
+p index: 82
+Momentum is (1, 1, 0, 1).Propagator written at path: prop/p1101
+Matrix element O11 written at: O11/p1101
+Matrix element O11 written at: O12/p1101
+Matrix element O11 written at: O13/p1101
+Matrix element O11 written at: O14/p1101
+Matrix element O22 written at: O21/p1101
+Matrix element O22 written at: O22/p1101
+Matrix element O22 written at: O23/p1101
+Matrix element O22 written at: O24/p1101
+Matrix element O33 written at: O31/p1101
+Matrix element O33 written at: O32/p1101
+Matrix element O33 written at: O33/p1101
+Matrix element O33 written at: O34/p1101
+Matrix element O44 written at: O41/p1101
+Matrix element O44 written at: O42/p1101
+Matrix element O44 written at: O43/p1101
+Matrix element O44 written at: O44/p1101
+p index: 83
+Momentum is (1, 1, 0, 2).Propagator written at path: prop/p1102
+Matrix element O11 written at: O11/p1102
+Matrix element O11 written at: O12/p1102
+Matrix element O11 written at: O13/p1102
+Matrix element O11 written at: O14/p1102
+Matrix element O22 written at: O21/p1102
+Matrix element O22 written at: O22/p1102
+Matrix element O22 written at: O23/p1102
+Matrix element O22 written at: O24/p1102
+Matrix element O33 written at: O31/p1102
+Matrix element O33 written at: O32/p1102
+Matrix element O33 written at: O33/p1102
+Matrix element O33 written at: O34/p1102
+Matrix element O44 written at: O41/p1102
+Matrix element O44 written at: O42/p1102
+Matrix element O44 written at: O43/p1102
+Matrix element O44 written at: O44/p1102
+p index: 84
+Momentum is (1, 1, 0, 3).Propagator written at path: prop/p1103
+Matrix element O11 written at: O11/p1103
+Matrix element O11 written at: O12/p1103
+Matrix element O11 written at: O13/p1103
+Matrix element O11 written at: O14/p1103
+Matrix element O22 written at: O21/p1103
+Matrix element O22 written at: O22/p1103
+Matrix element O22 written at: O23/p1103
+Matrix element O22 written at: O24/p1103
+Matrix element O33 written at: O31/p1103
+Matrix element O33 written at: O32/p1103
+Matrix element O33 written at: O33/p1103
+Matrix element O33 written at: O34/p1103
+Matrix element O44 written at: O41/p1103
+Matrix element O44 written at: O42/p1103
+Matrix element O44 written at: O43/p1103
+Matrix element O44 written at: O44/p1103
+p index: 85
+Momentum is (1, 1, 1, 0).Propagator written at path: prop/p1110
+Matrix element O11 written at: O11/p1110
+Matrix element O11 written at: O12/p1110
+Matrix element O11 written at: O13/p1110
+Matrix element O11 written at: O14/p1110
+Matrix element O22 written at: O21/p1110
+Matrix element O22 written at: O22/p1110
+Matrix element O22 written at: O23/p1110
+Matrix element O22 written at: O24/p1110
+Matrix element O33 written at: O31/p1110
+Matrix element O33 written at: O32/p1110
+Matrix element O33 written at: O33/p1110
+Matrix element O33 written at: O34/p1110
+Matrix element O44 written at: O41/p1110
+Matrix element O44 written at: O42/p1110
+Matrix element O44 written at: O43/p1110
+Matrix element O44 written at: O44/p1110
+p index: 86
+Momentum is (1, 1, 1, 1).Propagator written at path: prop/p1111
+Matrix element O11 written at: O11/p1111
+Matrix element O11 written at: O12/p1111
+Matrix element O11 written at: O13/p1111
+Matrix element O11 written at: O14/p1111
+Matrix element O22 written at: O21/p1111
+Matrix element O22 written at: O22/p1111
+Matrix element O22 written at: O23/p1111
+Matrix element O22 written at: O24/p1111
+Matrix element O33 written at: O31/p1111
+Matrix element O33 written at: O32/p1111
+Matrix element O33 written at: O33/p1111
+Matrix element O33 written at: O34/p1111
+Matrix element O44 written at: O41/p1111
+Matrix element O44 written at: O42/p1111
+Matrix element O44 written at: O43/p1111
+Matrix element O44 written at: O44/p1111
+p index: 87
+Momentum is (1, 1, 1, 2).Propagator written at path: prop/p1112
+Matrix element O11 written at: O11/p1112
+Matrix element O11 written at: O12/p1112
+Matrix element O11 written at: O13/p1112
+Matrix element O11 written at: O14/p1112
+Matrix element O22 written at: O21/p1112
+Matrix element O22 written at: O22/p1112
+Matrix element O22 written at: O23/p1112
+Matrix element O22 written at: O24/p1112
+Matrix element O33 written at: O31/p1112
+Matrix element O33 written at: O32/p1112
+Matrix element O33 written at: O33/p1112
+Matrix element O33 written at: O34/p1112
+Matrix element O44 written at: O41/p1112
+Matrix element O44 written at: O42/p1112
+Matrix element O44 written at: O43/p1112
+Matrix element O44 written at: O44/p1112
+p index: 88
+Momentum is (1, 1, 1, 3).Propagator written at path: prop/p1113
+Matrix element O11 written at: O11/p1113
+Matrix element O11 written at: O12/p1113
+Matrix element O11 written at: O13/p1113
+Matrix element O11 written at: O14/p1113
+Matrix element O22 written at: O21/p1113
+Matrix element O22 written at: O22/p1113
+Matrix element O22 written at: O23/p1113
+Matrix element O22 written at: O24/p1113
+Matrix element O33 written at: O31/p1113
+Matrix element O33 written at: O32/p1113
+Matrix element O33 written at: O33/p1113
+Matrix element O33 written at: O34/p1113
+Matrix element O44 written at: O41/p1113
+Matrix element O44 written at: O42/p1113
+Matrix element O44 written at: O43/p1113
+Matrix element O44 written at: O44/p1113
+p index: 89
+Momentum is (1, 1, 2, 0).Propagator written at path: prop/p1120
+Matrix element O11 written at: O11/p1120
+Matrix element O11 written at: O12/p1120
+Matrix element O11 written at: O13/p1120
+Matrix element O11 written at: O14/p1120
+Matrix element O22 written at: O21/p1120
+Matrix element O22 written at: O22/p1120
+Matrix element O22 written at: O23/p1120
+Matrix element O22 written at: O24/p1120
+Matrix element O33 written at: O31/p1120
+Matrix element O33 written at: O32/p1120
+Matrix element O33 written at: O33/p1120
+Matrix element O33 written at: O34/p1120
+Matrix element O44 written at: O41/p1120
+Matrix element O44 written at: O42/p1120
+Matrix element O44 written at: O43/p1120
+Matrix element O44 written at: O44/p1120
+p index: 90
+Momentum is (1, 1, 2, 1).Propagator written at path: prop/p1121
+Matrix element O11 written at: O11/p1121
+Matrix element O11 written at: O12/p1121
+Matrix element O11 written at: O13/p1121
+Matrix element O11 written at: O14/p1121
+Matrix element O22 written at: O21/p1121
+Matrix element O22 written at: O22/p1121
+Matrix element O22 written at: O23/p1121
+Matrix element O22 written at: O24/p1121
+Matrix element O33 written at: O31/p1121
+Matrix element O33 written at: O32/p1121
+Matrix element O33 written at: O33/p1121
+Matrix element O33 written at: O34/p1121
+Matrix element O44 written at: O41/p1121
+Matrix element O44 written at: O42/p1121
+Matrix element O44 written at: O43/p1121
+Matrix element O44 written at: O44/p1121
+p index: 91
+Momentum is (1, 1, 2, 2).Propagator written at path: prop/p1122
+Matrix element O11 written at: O11/p1122
+Matrix element O11 written at: O12/p1122
+Matrix element O11 written at: O13/p1122
+Matrix element O11 written at: O14/p1122
+Matrix element O22 written at: O21/p1122
+Matrix element O22 written at: O22/p1122
+Matrix element O22 written at: O23/p1122
+Matrix element O22 written at: O24/p1122
+Matrix element O33 written at: O31/p1122
+Matrix element O33 written at: O32/p1122
+Matrix element O33 written at: O33/p1122
+Matrix element O33 written at: O34/p1122
+Matrix element O44 written at: O41/p1122
+Matrix element O44 written at: O42/p1122
+Matrix element O44 written at: O43/p1122
+Matrix element O44 written at: O44/p1122
+p index: 92
+Momentum is (1, 1, 2, 3).Propagator written at path: prop/p1123
+Matrix element O11 written at: O11/p1123
+Matrix element O11 written at: O12/p1123
+Matrix element O11 written at: O13/p1123
+Matrix element O11 written at: O14/p1123
+Matrix element O22 written at: O21/p1123
+Matrix element O22 written at: O22/p1123
+Matrix element O22 written at: O23/p1123
+Matrix element O22 written at: O24/p1123
+Matrix element O33 written at: O31/p1123
+Matrix element O33 written at: O32/p1123
+Matrix element O33 written at: O33/p1123
+Matrix element O33 written at: O34/p1123
+Matrix element O44 written at: O41/p1123
+Matrix element O44 written at: O42/p1123
+Matrix element O44 written at: O43/p1123
+Matrix element O44 written at: O44/p1123
+p index: 93
+Momentum is (1, 1, 3, 0).Propagator written at path: prop/p1130
+Matrix element O11 written at: O11/p1130
+Matrix element O11 written at: O12/p1130
+Matrix element O11 written at: O13/p1130
+Matrix element O11 written at: O14/p1130
+Matrix element O22 written at: O21/p1130
+Matrix element O22 written at: O22/p1130
+Matrix element O22 written at: O23/p1130
+Matrix element O22 written at: O24/p1130
+Matrix element O33 written at: O31/p1130
+Matrix element O33 written at: O32/p1130
+Matrix element O33 written at: O33/p1130
+Matrix element O33 written at: O34/p1130
+Matrix element O44 written at: O41/p1130
+Matrix element O44 written at: O42/p1130
+Matrix element O44 written at: O43/p1130
+Matrix element O44 written at: O44/p1130
+p index: 94
+Momentum is (1, 1, 3, 1).Propagator written at path: prop/p1131
+Matrix element O11 written at: O11/p1131
+Matrix element O11 written at: O12/p1131
+Matrix element O11 written at: O13/p1131
+Matrix element O11 written at: O14/p1131
+Matrix element O22 written at: O21/p1131
+Matrix element O22 written at: O22/p1131
+Matrix element O22 written at: O23/p1131
+Matrix element O22 written at: O24/p1131
+Matrix element O33 written at: O31/p1131
+Matrix element O33 written at: O32/p1131
+Matrix element O33 written at: O33/p1131
+Matrix element O33 written at: O34/p1131
+Matrix element O44 written at: O41/p1131
+Matrix element O44 written at: O42/p1131
+Matrix element O44 written at: O43/p1131
+Matrix element O44 written at: O44/p1131
+p index: 95
+Momentum is (1, 1, 3, 2).Propagator written at path: prop/p1132
+Matrix element O11 written at: O11/p1132
+Matrix element O11 written at: O12/p1132
+Matrix element O11 written at: O13/p1132
+Matrix element O11 written at: O14/p1132
+Matrix element O22 written at: O21/p1132
+Matrix element O22 written at: O22/p1132
+Matrix element O22 written at: O23/p1132
+Matrix element O22 written at: O24/p1132
+Matrix element O33 written at: O31/p1132
+Matrix element O33 written at: O32/p1132
+Matrix element O33 written at: O33/p1132
+Matrix element O33 written at: O34/p1132
+Matrix element O44 written at: O41/p1132
+Matrix element O44 written at: O42/p1132
+Matrix element O44 written at: O43/p1132
+Matrix element O44 written at: O44/p1132
+p index: 96
+Momentum is (1, 1, 3, 3).Propagator written at path: prop/p1133
+Matrix element O11 written at: O11/p1133
+Matrix element O11 written at: O12/p1133
+Matrix element O11 written at: O13/p1133
+Matrix element O11 written at: O14/p1133
+Matrix element O22 written at: O21/p1133
+Matrix element O22 written at: O22/p1133
+Matrix element O22 written at: O23/p1133
+Matrix element O22 written at: O24/p1133
+Matrix element O33 written at: O31/p1133
+Matrix element O33 written at: O32/p1133
+Matrix element O33 written at: O33/p1133
+Matrix element O33 written at: O34/p1133
+Matrix element O44 written at: O41/p1133
+Matrix element O44 written at: O42/p1133
+Matrix element O44 written at: O43/p1133
+Matrix element O44 written at: O44/p1133
+p index: 97
+Momentum is (1, 2, 0, 0).Propagator written at path: prop/p1200
+Matrix element O11 written at: O11/p1200
+Matrix element O11 written at: O12/p1200
+Matrix element O11 written at: O13/p1200
+Matrix element O11 written at: O14/p1200
+Matrix element O22 written at: O21/p1200
+Matrix element O22 written at: O22/p1200
+Matrix element O22 written at: O23/p1200
+Matrix element O22 written at: O24/p1200
+Matrix element O33 written at: O31/p1200
+Matrix element O33 written at: O32/p1200
+Matrix element O33 written at: O33/p1200
+Matrix element O33 written at: O34/p1200
+Matrix element O44 written at: O41/p1200
+Matrix element O44 written at: O42/p1200
+Matrix element O44 written at: O43/p1200
+Matrix element O44 written at: O44/p1200
+p index: 98
+Momentum is (1, 2, 0, 1).Propagator written at path: prop/p1201
+Matrix element O11 written at: O11/p1201
+Matrix element O11 written at: O12/p1201
+Matrix element O11 written at: O13/p1201
+Matrix element O11 written at: O14/p1201
+Matrix element O22 written at: O21/p1201
+Matrix element O22 written at: O22/p1201
+Matrix element O22 written at: O23/p1201
+Matrix element O22 written at: O24/p1201
+Matrix element O33 written at: O31/p1201
+Matrix element O33 written at: O32/p1201
+Matrix element O33 written at: O33/p1201
+Matrix element O33 written at: O34/p1201
+Matrix element O44 written at: O41/p1201
+Matrix element O44 written at: O42/p1201
+Matrix element O44 written at: O43/p1201
+Matrix element O44 written at: O44/p1201
+p index: 99
+Momentum is (1, 2, 0, 2).Propagator written at path: prop/p1202
+Matrix element O11 written at: O11/p1202
+Matrix element O11 written at: O12/p1202
+Matrix element O11 written at: O13/p1202
+Matrix element O11 written at: O14/p1202
+Matrix element O22 written at: O21/p1202
+Matrix element O22 written at: O22/p1202
+Matrix element O22 written at: O23/p1202
+Matrix element O22 written at: O24/p1202
+Matrix element O33 written at: O31/p1202
+Matrix element O33 written at: O32/p1202
+Matrix element O33 written at: O33/p1202
+Matrix element O33 written at: O34/p1202
+Matrix element O44 written at: O41/p1202
+Matrix element O44 written at: O42/p1202
+Matrix element O44 written at: O43/p1202
+Matrix element O44 written at: O44/p1202
+p index: 100
+Momentum is (1, 2, 0, 3).Propagator written at path: prop/p1203
+Matrix element O11 written at: O11/p1203
+Matrix element O11 written at: O12/p1203
+Matrix element O11 written at: O13/p1203
+Matrix element O11 written at: O14/p1203
+Matrix element O22 written at: O21/p1203
+Matrix element O22 written at: O22/p1203
+Matrix element O22 written at: O23/p1203
+Matrix element O22 written at: O24/p1203
+Matrix element O33 written at: O31/p1203
+Matrix element O33 written at: O32/p1203
+Matrix element O33 written at: O33/p1203
+Matrix element O33 written at: O34/p1203
+Matrix element O44 written at: O41/p1203
+Matrix element O44 written at: O42/p1203
+Matrix element O44 written at: O43/p1203
+Matrix element O44 written at: O44/p1203
+p index: 101
+Momentum is (1, 2, 1, 0).Propagator written at path: prop/p1210
+Matrix element O11 written at: O11/p1210
+Matrix element O11 written at: O12/p1210
+Matrix element O11 written at: O13/p1210
+Matrix element O11 written at: O14/p1210
+Matrix element O22 written at: O21/p1210
+Matrix element O22 written at: O22/p1210
+Matrix element O22 written at: O23/p1210
+Matrix element O22 written at: O24/p1210
+Matrix element O33 written at: O31/p1210
+Matrix element O33 written at: O32/p1210
+Matrix element O33 written at: O33/p1210
+Matrix element O33 written at: O34/p1210
+Matrix element O44 written at: O41/p1210
+Matrix element O44 written at: O42/p1210
+Matrix element O44 written at: O43/p1210
+Matrix element O44 written at: O44/p1210
+p index: 102
+Momentum is (1, 2, 1, 1).Propagator written at path: prop/p1211
+Matrix element O11 written at: O11/p1211
+Matrix element O11 written at: O12/p1211
+Matrix element O11 written at: O13/p1211
+Matrix element O11 written at: O14/p1211
+Matrix element O22 written at: O21/p1211
+Matrix element O22 written at: O22/p1211
+Matrix element O22 written at: O23/p1211
+Matrix element O22 written at: O24/p1211
+Matrix element O33 written at: O31/p1211
+Matrix element O33 written at: O32/p1211
+Matrix element O33 written at: O33/p1211
+Matrix element O33 written at: O34/p1211
+Matrix element O44 written at: O41/p1211
+Matrix element O44 written at: O42/p1211
+Matrix element O44 written at: O43/p1211
+Matrix element O44 written at: O44/p1211
+p index: 103
+Momentum is (1, 2, 1, 2).Propagator written at path: prop/p1212
+Matrix element O11 written at: O11/p1212
+Matrix element O11 written at: O12/p1212
+Matrix element O11 written at: O13/p1212
+Matrix element O11 written at: O14/p1212
+Matrix element O22 written at: O21/p1212
+Matrix element O22 written at: O22/p1212
+Matrix element O22 written at: O23/p1212
+Matrix element O22 written at: O24/p1212
+Matrix element O33 written at: O31/p1212
+Matrix element O33 written at: O32/p1212
+Matrix element O33 written at: O33/p1212
+Matrix element O33 written at: O34/p1212
+Matrix element O44 written at: O41/p1212
+Matrix element O44 written at: O42/p1212
+Matrix element O44 written at: O43/p1212
+Matrix element O44 written at: O44/p1212
+p index: 104
+Momentum is (1, 2, 1, 3).Propagator written at path: prop/p1213
+Matrix element O11 written at: O11/p1213
+Matrix element O11 written at: O12/p1213
+Matrix element O11 written at: O13/p1213
+Matrix element O11 written at: O14/p1213
+Matrix element O22 written at: O21/p1213
+Matrix element O22 written at: O22/p1213
+Matrix element O22 written at: O23/p1213
+Matrix element O22 written at: O24/p1213
+Matrix element O33 written at: O31/p1213
+Matrix element O33 written at: O32/p1213
+Matrix element O33 written at: O33/p1213
+Matrix element O33 written at: O34/p1213
+Matrix element O44 written at: O41/p1213
+Matrix element O44 written at: O42/p1213
+Matrix element O44 written at: O43/p1213
+Matrix element O44 written at: O44/p1213
+p index: 105
+Momentum is (1, 2, 2, 0).Propagator written at path: prop/p1220
+Matrix element O11 written at: O11/p1220
+Matrix element O11 written at: O12/p1220
+Matrix element O11 written at: O13/p1220
+Matrix element O11 written at: O14/p1220
+Matrix element O22 written at: O21/p1220
+Matrix element O22 written at: O22/p1220
+Matrix element O22 written at: O23/p1220
+Matrix element O22 written at: O24/p1220
+Matrix element O33 written at: O31/p1220
+Matrix element O33 written at: O32/p1220
+Matrix element O33 written at: O33/p1220
+Matrix element O33 written at: O34/p1220
+Matrix element O44 written at: O41/p1220
+Matrix element O44 written at: O42/p1220
+Matrix element O44 written at: O43/p1220
+Matrix element O44 written at: O44/p1220
+p index: 106
+Momentum is (1, 2, 2, 1).Propagator written at path: prop/p1221
+Matrix element O11 written at: O11/p1221
+Matrix element O11 written at: O12/p1221
+Matrix element O11 written at: O13/p1221
+Matrix element O11 written at: O14/p1221
+Matrix element O22 written at: O21/p1221
+Matrix element O22 written at: O22/p1221
+Matrix element O22 written at: O23/p1221
+Matrix element O22 written at: O24/p1221
+Matrix element O33 written at: O31/p1221
+Matrix element O33 written at: O32/p1221
+Matrix element O33 written at: O33/p1221
+Matrix element O33 written at: O34/p1221
+Matrix element O44 written at: O41/p1221
+Matrix element O44 written at: O42/p1221
+Matrix element O44 written at: O43/p1221
+Matrix element O44 written at: O44/p1221
+p index: 107
+Momentum is (1, 2, 2, 2).Propagator written at path: prop/p1222
+Matrix element O11 written at: O11/p1222
+Matrix element O11 written at: O12/p1222
+Matrix element O11 written at: O13/p1222
+Matrix element O11 written at: O14/p1222
+Matrix element O22 written at: O21/p1222
+Matrix element O22 written at: O22/p1222
+Matrix element O22 written at: O23/p1222
+Matrix element O22 written at: O24/p1222
+Matrix element O33 written at: O31/p1222
+Matrix element O33 written at: O32/p1222
+Matrix element O33 written at: O33/p1222
+Matrix element O33 written at: O34/p1222
+Matrix element O44 written at: O41/p1222
+Matrix element O44 written at: O42/p1222
+Matrix element O44 written at: O43/p1222
+Matrix element O44 written at: O44/p1222
+p index: 108
+Momentum is (1, 2, 2, 3).Propagator written at path: prop/p1223
+Matrix element O11 written at: O11/p1223
+Matrix element O11 written at: O12/p1223
+Matrix element O11 written at: O13/p1223
+Matrix element O11 written at: O14/p1223
+Matrix element O22 written at: O21/p1223
+Matrix element O22 written at: O22/p1223
+Matrix element O22 written at: O23/p1223
+Matrix element O22 written at: O24/p1223
+Matrix element O33 written at: O31/p1223
+Matrix element O33 written at: O32/p1223
+Matrix element O33 written at: O33/p1223
+Matrix element O33 written at: O34/p1223
+Matrix element O44 written at: O41/p1223
+Matrix element O44 written at: O42/p1223
+Matrix element O44 written at: O43/p1223
+Matrix element O44 written at: O44/p1223
+p index: 109
+Momentum is (1, 2, 3, 0).Propagator written at path: prop/p1230
+Matrix element O11 written at: O11/p1230
+Matrix element O11 written at: O12/p1230
+Matrix element O11 written at: O13/p1230
+Matrix element O11 written at: O14/p1230
+Matrix element O22 written at: O21/p1230
+Matrix element O22 written at: O22/p1230
+Matrix element O22 written at: O23/p1230
+Matrix element O22 written at: O24/p1230
+Matrix element O33 written at: O31/p1230
+Matrix element O33 written at: O32/p1230
+Matrix element O33 written at: O33/p1230
+Matrix element O33 written at: O34/p1230
+Matrix element O44 written at: O41/p1230
+Matrix element O44 written at: O42/p1230
+Matrix element O44 written at: O43/p1230
+Matrix element O44 written at: O44/p1230
+p index: 110
+Momentum is (1, 2, 3, 1).Propagator written at path: prop/p1231
+Matrix element O11 written at: O11/p1231
+Matrix element O11 written at: O12/p1231
+Matrix element O11 written at: O13/p1231
+Matrix element O11 written at: O14/p1231
+Matrix element O22 written at: O21/p1231
+Matrix element O22 written at: O22/p1231
+Matrix element O22 written at: O23/p1231
+Matrix element O22 written at: O24/p1231
+Matrix element O33 written at: O31/p1231
+Matrix element O33 written at: O32/p1231
+Matrix element O33 written at: O33/p1231
+Matrix element O33 written at: O34/p1231
+Matrix element O44 written at: O41/p1231
+Matrix element O44 written at: O42/p1231
+Matrix element O44 written at: O43/p1231
+Matrix element O44 written at: O44/p1231
+p index: 111
+Momentum is (1, 2, 3, 2).Propagator written at path: prop/p1232
+Matrix element O11 written at: O11/p1232
+Matrix element O11 written at: O12/p1232
+Matrix element O11 written at: O13/p1232
+Matrix element O11 written at: O14/p1232
+Matrix element O22 written at: O21/p1232
+Matrix element O22 written at: O22/p1232
+Matrix element O22 written at: O23/p1232
+Matrix element O22 written at: O24/p1232
+Matrix element O33 written at: O31/p1232
+Matrix element O33 written at: O32/p1232
+Matrix element O33 written at: O33/p1232
+Matrix element O33 written at: O34/p1232
+Matrix element O44 written at: O41/p1232
+Matrix element O44 written at: O42/p1232
+Matrix element O44 written at: O43/p1232
+Matrix element O44 written at: O44/p1232
+p index: 112
+Momentum is (1, 2, 3, 3).Propagator written at path: prop/p1233
+Matrix element O11 written at: O11/p1233
+Matrix element O11 written at: O12/p1233
+Matrix element O11 written at: O13/p1233
+Matrix element O11 written at: O14/p1233
+Matrix element O22 written at: O21/p1233
+Matrix element O22 written at: O22/p1233
+Matrix element O22 written at: O23/p1233
+Matrix element O22 written at: O24/p1233
+Matrix element O33 written at: O31/p1233
+Matrix element O33 written at: O32/p1233
+Matrix element O33 written at: O33/p1233
+Matrix element O33 written at: O34/p1233
+Matrix element O44 written at: O41/p1233
+Matrix element O44 written at: O42/p1233
+Matrix element O44 written at: O43/p1233
+Matrix element O44 written at: O44/p1233
+p index: 113
+Momentum is (1, 3, 0, 0).Propagator written at path: prop/p1300
+Matrix element O11 written at: O11/p1300
+Matrix element O11 written at: O12/p1300
+Matrix element O11 written at: O13/p1300
+Matrix element O11 written at: O14/p1300
+Matrix element O22 written at: O21/p1300
+Matrix element O22 written at: O22/p1300
+Matrix element O22 written at: O23/p1300
+Matrix element O22 written at: O24/p1300
+Matrix element O33 written at: O31/p1300
+Matrix element O33 written at: O32/p1300
+Matrix element O33 written at: O33/p1300
+Matrix element O33 written at: O34/p1300
+Matrix element O44 written at: O41/p1300
+Matrix element O44 written at: O42/p1300
+Matrix element O44 written at: O43/p1300
+Matrix element O44 written at: O44/p1300
+p index: 114
+Momentum is (1, 3, 0, 1).Propagator written at path: prop/p1301
+Matrix element O11 written at: O11/p1301
+Matrix element O11 written at: O12/p1301
+Matrix element O11 written at: O13/p1301
+Matrix element O11 written at: O14/p1301
+Matrix element O22 written at: O21/p1301
+Matrix element O22 written at: O22/p1301
+Matrix element O22 written at: O23/p1301
+Matrix element O22 written at: O24/p1301
+Matrix element O33 written at: O31/p1301
+Matrix element O33 written at: O32/p1301
+Matrix element O33 written at: O33/p1301
+Matrix element O33 written at: O34/p1301
+Matrix element O44 written at: O41/p1301
+Matrix element O44 written at: O42/p1301
+Matrix element O44 written at: O43/p1301
+Matrix element O44 written at: O44/p1301
+p index: 115
+Momentum is (1, 3, 0, 2).Propagator written at path: prop/p1302
+Matrix element O11 written at: O11/p1302
+Matrix element O11 written at: O12/p1302
+Matrix element O11 written at: O13/p1302
+Matrix element O11 written at: O14/p1302
+Matrix element O22 written at: O21/p1302
+Matrix element O22 written at: O22/p1302
+Matrix element O22 written at: O23/p1302
+Matrix element O22 written at: O24/p1302
+Matrix element O33 written at: O31/p1302
+Matrix element O33 written at: O32/p1302
+Matrix element O33 written at: O33/p1302
+Matrix element O33 written at: O34/p1302
+Matrix element O44 written at: O41/p1302
+Matrix element O44 written at: O42/p1302
+Matrix element O44 written at: O43/p1302
+Matrix element O44 written at: O44/p1302
+p index: 116
+Momentum is (1, 3, 0, 3).Propagator written at path: prop/p1303
+Matrix element O11 written at: O11/p1303
+Matrix element O11 written at: O12/p1303
+Matrix element O11 written at: O13/p1303
+Matrix element O11 written at: O14/p1303
+Matrix element O22 written at: O21/p1303
+Matrix element O22 written at: O22/p1303
+Matrix element O22 written at: O23/p1303
+Matrix element O22 written at: O24/p1303
+Matrix element O33 written at: O31/p1303
+Matrix element O33 written at: O32/p1303
+Matrix element O33 written at: O33/p1303
+Matrix element O33 written at: O34/p1303
+Matrix element O44 written at: O41/p1303
+Matrix element O44 written at: O42/p1303
+Matrix element O44 written at: O43/p1303
+Matrix element O44 written at: O44/p1303
+p index: 117
+Momentum is (1, 3, 1, 0).Propagator written at path: prop/p1310
+Matrix element O11 written at: O11/p1310
+Matrix element O11 written at: O12/p1310
+Matrix element O11 written at: O13/p1310
+Matrix element O11 written at: O14/p1310
+Matrix element O22 written at: O21/p1310
+Matrix element O22 written at: O22/p1310
+Matrix element O22 written at: O23/p1310
+Matrix element O22 written at: O24/p1310
+Matrix element O33 written at: O31/p1310
+Matrix element O33 written at: O32/p1310
+Matrix element O33 written at: O33/p1310
+Matrix element O33 written at: O34/p1310
+Matrix element O44 written at: O41/p1310
+Matrix element O44 written at: O42/p1310
+Matrix element O44 written at: O43/p1310
+Matrix element O44 written at: O44/p1310
+p index: 118
+Momentum is (1, 3, 1, 1).Propagator written at path: prop/p1311
+Matrix element O11 written at: O11/p1311
+Matrix element O11 written at: O12/p1311
+Matrix element O11 written at: O13/p1311
+Matrix element O11 written at: O14/p1311
+Matrix element O22 written at: O21/p1311
+Matrix element O22 written at: O22/p1311
+Matrix element O22 written at: O23/p1311
+Matrix element O22 written at: O24/p1311
+Matrix element O33 written at: O31/p1311
+Matrix element O33 written at: O32/p1311
+Matrix element O33 written at: O33/p1311
+Matrix element O33 written at: O34/p1311
+Matrix element O44 written at: O41/p1311
+Matrix element O44 written at: O42/p1311
+Matrix element O44 written at: O43/p1311
+Matrix element O44 written at: O44/p1311
+p index: 119
+Momentum is (1, 3, 1, 2).Propagator written at path: prop/p1312
+Matrix element O11 written at: O11/p1312
+Matrix element O11 written at: O12/p1312
+Matrix element O11 written at: O13/p1312
+Matrix element O11 written at: O14/p1312
+Matrix element O22 written at: O21/p1312
+Matrix element O22 written at: O22/p1312
+Matrix element O22 written at: O23/p1312
+Matrix element O22 written at: O24/p1312
+Matrix element O33 written at: O31/p1312
+Matrix element O33 written at: O32/p1312
+Matrix element O33 written at: O33/p1312
+Matrix element O33 written at: O34/p1312
+Matrix element O44 written at: O41/p1312
+Matrix element O44 written at: O42/p1312
+Matrix element O44 written at: O43/p1312
+Matrix element O44 written at: O44/p1312
+p index: 120
+Momentum is (1, 3, 1, 3).Propagator written at path: prop/p1313
+Matrix element O11 written at: O11/p1313
+Matrix element O11 written at: O12/p1313
+Matrix element O11 written at: O13/p1313
+Matrix element O11 written at: O14/p1313
+Matrix element O22 written at: O21/p1313
+Matrix element O22 written at: O22/p1313
+Matrix element O22 written at: O23/p1313
+Matrix element O22 written at: O24/p1313
+Matrix element O33 written at: O31/p1313
+Matrix element O33 written at: O32/p1313
+Matrix element O33 written at: O33/p1313
+Matrix element O33 written at: O34/p1313
+Matrix element O44 written at: O41/p1313
+Matrix element O44 written at: O42/p1313
+Matrix element O44 written at: O43/p1313
+Matrix element O44 written at: O44/p1313
+p index: 121
+Momentum is (1, 3, 2, 0).Propagator written at path: prop/p1320
+Matrix element O11 written at: O11/p1320
+Matrix element O11 written at: O12/p1320
+Matrix element O11 written at: O13/p1320
+Matrix element O11 written at: O14/p1320
+Matrix element O22 written at: O21/p1320
+Matrix element O22 written at: O22/p1320
+Matrix element O22 written at: O23/p1320
+Matrix element O22 written at: O24/p1320
+Matrix element O33 written at: O31/p1320
+Matrix element O33 written at: O32/p1320
+Matrix element O33 written at: O33/p1320
+Matrix element O33 written at: O34/p1320
+Matrix element O44 written at: O41/p1320
+Matrix element O44 written at: O42/p1320
+Matrix element O44 written at: O43/p1320
+Matrix element O44 written at: O44/p1320
+p index: 122
+Momentum is (1, 3, 2, 1).Propagator written at path: prop/p1321
+Matrix element O11 written at: O11/p1321
+Matrix element O11 written at: O12/p1321
+Matrix element O11 written at: O13/p1321
+Matrix element O11 written at: O14/p1321
+Matrix element O22 written at: O21/p1321
+Matrix element O22 written at: O22/p1321
+Matrix element O22 written at: O23/p1321
+Matrix element O22 written at: O24/p1321
+Matrix element O33 written at: O31/p1321
+Matrix element O33 written at: O32/p1321
+Matrix element O33 written at: O33/p1321
+Matrix element O33 written at: O34/p1321
+Matrix element O44 written at: O41/p1321
+Matrix element O44 written at: O42/p1321
+Matrix element O44 written at: O43/p1321
+Matrix element O44 written at: O44/p1321
+p index: 123
+Momentum is (1, 3, 2, 2).Propagator written at path: prop/p1322
+Matrix element O11 written at: O11/p1322
+Matrix element O11 written at: O12/p1322
+Matrix element O11 written at: O13/p1322
+Matrix element O11 written at: O14/p1322
+Matrix element O22 written at: O21/p1322
+Matrix element O22 written at: O22/p1322
+Matrix element O22 written at: O23/p1322
+Matrix element O22 written at: O24/p1322
+Matrix element O33 written at: O31/p1322
+Matrix element O33 written at: O32/p1322
+Matrix element O33 written at: O33/p1322
+Matrix element O33 written at: O34/p1322
+Matrix element O44 written at: O41/p1322
+Matrix element O44 written at: O42/p1322
+Matrix element O44 written at: O43/p1322
+Matrix element O44 written at: O44/p1322
+p index: 124
+Momentum is (1, 3, 2, 3).Propagator written at path: prop/p1323
+Matrix element O11 written at: O11/p1323
+Matrix element O11 written at: O12/p1323
+Matrix element O11 written at: O13/p1323
+Matrix element O11 written at: O14/p1323
+Matrix element O22 written at: O21/p1323
+Matrix element O22 written at: O22/p1323
+Matrix element O22 written at: O23/p1323
+Matrix element O22 written at: O24/p1323
+Matrix element O33 written at: O31/p1323
+Matrix element O33 written at: O32/p1323
+Matrix element O33 written at: O33/p1323
+Matrix element O33 written at: O34/p1323
+Matrix element O44 written at: O41/p1323
+Matrix element O44 written at: O42/p1323
+Matrix element O44 written at: O43/p1323
+Matrix element O44 written at: O44/p1323
+p index: 125
+Momentum is (1, 3, 3, 0).Propagator written at path: prop/p1330
+Matrix element O11 written at: O11/p1330
+Matrix element O11 written at: O12/p1330
+Matrix element O11 written at: O13/p1330
+Matrix element O11 written at: O14/p1330
+Matrix element O22 written at: O21/p1330
+Matrix element O22 written at: O22/p1330
+Matrix element O22 written at: O23/p1330
+Matrix element O22 written at: O24/p1330
+Matrix element O33 written at: O31/p1330
+Matrix element O33 written at: O32/p1330
+Matrix element O33 written at: O33/p1330
+Matrix element O33 written at: O34/p1330
+Matrix element O44 written at: O41/p1330
+Matrix element O44 written at: O42/p1330
+Matrix element O44 written at: O43/p1330
+Matrix element O44 written at: O44/p1330
+p index: 126
+Momentum is (1, 3, 3, 1).Propagator written at path: prop/p1331
+Matrix element O11 written at: O11/p1331
+Matrix element O11 written at: O12/p1331
+Matrix element O11 written at: O13/p1331
+Matrix element O11 written at: O14/p1331
+Matrix element O22 written at: O21/p1331
+Matrix element O22 written at: O22/p1331
+Matrix element O22 written at: O23/p1331
+Matrix element O22 written at: O24/p1331
+Matrix element O33 written at: O31/p1331
+Matrix element O33 written at: O32/p1331
+Matrix element O33 written at: O33/p1331
+Matrix element O33 written at: O34/p1331
+Matrix element O44 written at: O41/p1331
+Matrix element O44 written at: O42/p1331
+Matrix element O44 written at: O43/p1331
+Matrix element O44 written at: O44/p1331
+p index: 127
+Momentum is (1, 3, 3, 2).Propagator written at path: prop/p1332
+Matrix element O11 written at: O11/p1332
+Matrix element O11 written at: O12/p1332
+Matrix element O11 written at: O13/p1332
+Matrix element O11 written at: O14/p1332
+Matrix element O22 written at: O21/p1332
+Matrix element O22 written at: O22/p1332
+Matrix element O22 written at: O23/p1332
+Matrix element O22 written at: O24/p1332
+Matrix element O33 written at: O31/p1332
+Matrix element O33 written at: O32/p1332
+Matrix element O33 written at: O33/p1332
+Matrix element O33 written at: O34/p1332
+Matrix element O44 written at: O41/p1332
+Matrix element O44 written at: O42/p1332
+Matrix element O44 written at: O43/p1332
+Matrix element O44 written at: O44/p1332
+p index: 128
+Momentum is (1, 3, 3, 3).Propagator written at path: prop/p1333
+Matrix element O11 written at: O11/p1333
+Matrix element O11 written at: O12/p1333
+Matrix element O11 written at: O13/p1333
+Matrix element O11 written at: O14/p1333
+Matrix element O22 written at: O21/p1333
+Matrix element O22 written at: O22/p1333
+Matrix element O22 written at: O23/p1333
+Matrix element O22 written at: O24/p1333
+Matrix element O33 written at: O31/p1333
+Matrix element O33 written at: O32/p1333
+Matrix element O33 written at: O33/p1333
+Matrix element O33 written at: O34/p1333
+Matrix element O44 written at: O41/p1333
+Matrix element O44 written at: O42/p1333
+Matrix element O44 written at: O43/p1333
+Matrix element O44 written at: O44/p1333
+p index: 129
+Momentum is (2, 0, 0, 0).Propagator written at path: prop/p2000
+Matrix element O11 written at: O11/p2000
+Matrix element O11 written at: O12/p2000
+Matrix element O11 written at: O13/p2000
+Matrix element O11 written at: O14/p2000
+Matrix element O22 written at: O21/p2000
+Matrix element O22 written at: O22/p2000
+Matrix element O22 written at: O23/p2000
+Matrix element O22 written at: O24/p2000
+Matrix element O33 written at: O31/p2000
+Matrix element O33 written at: O32/p2000
+Matrix element O33 written at: O33/p2000
+Matrix element O33 written at: O34/p2000
+Matrix element O44 written at: O41/p2000
+Matrix element O44 written at: O42/p2000
+Matrix element O44 written at: O43/p2000
+Matrix element O44 written at: O44/p2000
+p index: 130
+Momentum is (2, 0, 0, 1).Propagator written at path: prop/p2001
+Matrix element O11 written at: O11/p2001
+Matrix element O11 written at: O12/p2001
+Matrix element O11 written at: O13/p2001
+Matrix element O11 written at: O14/p2001
+Matrix element O22 written at: O21/p2001
+Matrix element O22 written at: O22/p2001
+Matrix element O22 written at: O23/p2001
+Matrix element O22 written at: O24/p2001
+Matrix element O33 written at: O31/p2001
+Matrix element O33 written at: O32/p2001
+Matrix element O33 written at: O33/p2001
+Matrix element O33 written at: O34/p2001
+Matrix element O44 written at: O41/p2001
+Matrix element O44 written at: O42/p2001
+Matrix element O44 written at: O43/p2001
+Matrix element O44 written at: O44/p2001
+p index: 131
+Momentum is (2, 0, 0, 2).Propagator written at path: prop/p2002
+Matrix element O11 written at: O11/p2002
+Matrix element O11 written at: O12/p2002
+Matrix element O11 written at: O13/p2002
+Matrix element O11 written at: O14/p2002
+Matrix element O22 written at: O21/p2002
+Matrix element O22 written at: O22/p2002
+Matrix element O22 written at: O23/p2002
+Matrix element O22 written at: O24/p2002
+Matrix element O33 written at: O31/p2002
+Matrix element O33 written at: O32/p2002
+Matrix element O33 written at: O33/p2002
+Matrix element O33 written at: O34/p2002
+Matrix element O44 written at: O41/p2002
+Matrix element O44 written at: O42/p2002
+Matrix element O44 written at: O43/p2002
+Matrix element O44 written at: O44/p2002
+p index: 132
+Momentum is (2, 0, 0, 3).Propagator written at path: prop/p2003
+Matrix element O11 written at: O11/p2003
+Matrix element O11 written at: O12/p2003
+Matrix element O11 written at: O13/p2003
+Matrix element O11 written at: O14/p2003
+Matrix element O22 written at: O21/p2003
+Matrix element O22 written at: O22/p2003
+Matrix element O22 written at: O23/p2003
+Matrix element O22 written at: O24/p2003
+Matrix element O33 written at: O31/p2003
+Matrix element O33 written at: O32/p2003
+Matrix element O33 written at: O33/p2003
+Matrix element O33 written at: O34/p2003
+Matrix element O44 written at: O41/p2003
+Matrix element O44 written at: O42/p2003
+Matrix element O44 written at: O43/p2003
+Matrix element O44 written at: O44/p2003
+p index: 133
+Momentum is (2, 0, 1, 0).Propagator written at path: prop/p2010
+Matrix element O11 written at: O11/p2010
+Matrix element O11 written at: O12/p2010
+Matrix element O11 written at: O13/p2010
+Matrix element O11 written at: O14/p2010
+Matrix element O22 written at: O21/p2010
+Matrix element O22 written at: O22/p2010
+Matrix element O22 written at: O23/p2010
+Matrix element O22 written at: O24/p2010
+Matrix element O33 written at: O31/p2010
+Matrix element O33 written at: O32/p2010
+Matrix element O33 written at: O33/p2010
+Matrix element O33 written at: O34/p2010
+Matrix element O44 written at: O41/p2010
+Matrix element O44 written at: O42/p2010
+Matrix element O44 written at: O43/p2010
+Matrix element O44 written at: O44/p2010
+p index: 134
+Momentum is (2, 0, 1, 1).Propagator written at path: prop/p2011
+Matrix element O11 written at: O11/p2011
+Matrix element O11 written at: O12/p2011
+Matrix element O11 written at: O13/p2011
+Matrix element O11 written at: O14/p2011
+Matrix element O22 written at: O21/p2011
+Matrix element O22 written at: O22/p2011
+Matrix element O22 written at: O23/p2011
+Matrix element O22 written at: O24/p2011
+Matrix element O33 written at: O31/p2011
+Matrix element O33 written at: O32/p2011
+Matrix element O33 written at: O33/p2011
+Matrix element O33 written at: O34/p2011
+Matrix element O44 written at: O41/p2011
+Matrix element O44 written at: O42/p2011
+Matrix element O44 written at: O43/p2011
+Matrix element O44 written at: O44/p2011
+p index: 135
+Momentum is (2, 0, 1, 2).Propagator written at path: prop/p2012
+Matrix element O11 written at: O11/p2012
+Matrix element O11 written at: O12/p2012
+Matrix element O11 written at: O13/p2012
+Matrix element O11 written at: O14/p2012
+Matrix element O22 written at: O21/p2012
+Matrix element O22 written at: O22/p2012
+Matrix element O22 written at: O23/p2012
+Matrix element O22 written at: O24/p2012
+Matrix element O33 written at: O31/p2012
+Matrix element O33 written at: O32/p2012
+Matrix element O33 written at: O33/p2012
+Matrix element O33 written at: O34/p2012
+Matrix element O44 written at: O41/p2012
+Matrix element O44 written at: O42/p2012
+Matrix element O44 written at: O43/p2012
+Matrix element O44 written at: O44/p2012
+p index: 136
+Momentum is (2, 0, 1, 3).Propagator written at path: prop/p2013
+Matrix element O11 written at: O11/p2013
+Matrix element O11 written at: O12/p2013
+Matrix element O11 written at: O13/p2013
+Matrix element O11 written at: O14/p2013
+Matrix element O22 written at: O21/p2013
+Matrix element O22 written at: O22/p2013
+Matrix element O22 written at: O23/p2013
+Matrix element O22 written at: O24/p2013
+Matrix element O33 written at: O31/p2013
+Matrix element O33 written at: O32/p2013
+Matrix element O33 written at: O33/p2013
+Matrix element O33 written at: O34/p2013
+Matrix element O44 written at: O41/p2013
+Matrix element O44 written at: O42/p2013
+Matrix element O44 written at: O43/p2013
+Matrix element O44 written at: O44/p2013
+p index: 137
+Momentum is (2, 0, 2, 0).Propagator written at path: prop/p2020
+Matrix element O11 written at: O11/p2020
+Matrix element O11 written at: O12/p2020
+Matrix element O11 written at: O13/p2020
+Matrix element O11 written at: O14/p2020
+Matrix element O22 written at: O21/p2020
+Matrix element O22 written at: O22/p2020
+Matrix element O22 written at: O23/p2020
+Matrix element O22 written at: O24/p2020
+Matrix element O33 written at: O31/p2020
+Matrix element O33 written at: O32/p2020
+Matrix element O33 written at: O33/p2020
+Matrix element O33 written at: O34/p2020
+Matrix element O44 written at: O41/p2020
+Matrix element O44 written at: O42/p2020
+Matrix element O44 written at: O43/p2020
+Matrix element O44 written at: O44/p2020
+p index: 138
+Momentum is (2, 0, 2, 1).Propagator written at path: prop/p2021
+Matrix element O11 written at: O11/p2021
+Matrix element O11 written at: O12/p2021
+Matrix element O11 written at: O13/p2021
+Matrix element O11 written at: O14/p2021
+Matrix element O22 written at: O21/p2021
+Matrix element O22 written at: O22/p2021
+Matrix element O22 written at: O23/p2021
+Matrix element O22 written at: O24/p2021
+Matrix element O33 written at: O31/p2021
+Matrix element O33 written at: O32/p2021
+Matrix element O33 written at: O33/p2021
+Matrix element O33 written at: O34/p2021
+Matrix element O44 written at: O41/p2021
+Matrix element O44 written at: O42/p2021
+Matrix element O44 written at: O43/p2021
+Matrix element O44 written at: O44/p2021
+p index: 139
+Momentum is (2, 0, 2, 2).Propagator written at path: prop/p2022
+Matrix element O11 written at: O11/p2022
+Matrix element O11 written at: O12/p2022
+Matrix element O11 written at: O13/p2022
+Matrix element O11 written at: O14/p2022
+Matrix element O22 written at: O21/p2022
+Matrix element O22 written at: O22/p2022
+Matrix element O22 written at: O23/p2022
+Matrix element O22 written at: O24/p2022
+Matrix element O33 written at: O31/p2022
+Matrix element O33 written at: O32/p2022
+Matrix element O33 written at: O33/p2022
+Matrix element O33 written at: O34/p2022
+Matrix element O44 written at: O41/p2022
+Matrix element O44 written at: O42/p2022
+Matrix element O44 written at: O43/p2022
+Matrix element O44 written at: O44/p2022
+p index: 140
+Momentum is (2, 0, 2, 3).Propagator written at path: prop/p2023
+Matrix element O11 written at: O11/p2023
+Matrix element O11 written at: O12/p2023
+Matrix element O11 written at: O13/p2023
+Matrix element O11 written at: O14/p2023
+Matrix element O22 written at: O21/p2023
+Matrix element O22 written at: O22/p2023
+Matrix element O22 written at: O23/p2023
+Matrix element O22 written at: O24/p2023
+Matrix element O33 written at: O31/p2023
+Matrix element O33 written at: O32/p2023
+Matrix element O33 written at: O33/p2023
+Matrix element O33 written at: O34/p2023
+Matrix element O44 written at: O41/p2023
+Matrix element O44 written at: O42/p2023
+Matrix element O44 written at: O43/p2023
+Matrix element O44 written at: O44/p2023
+p index: 141
+Momentum is (2, 0, 3, 0).Propagator written at path: prop/p2030
+Matrix element O11 written at: O11/p2030
+Matrix element O11 written at: O12/p2030
+Matrix element O11 written at: O13/p2030
+Matrix element O11 written at: O14/p2030
+Matrix element O22 written at: O21/p2030
+Matrix element O22 written at: O22/p2030
+Matrix element O22 written at: O23/p2030
+Matrix element O22 written at: O24/p2030
+Matrix element O33 written at: O31/p2030
+Matrix element O33 written at: O32/p2030
+Matrix element O33 written at: O33/p2030
+Matrix element O33 written at: O34/p2030
+Matrix element O44 written at: O41/p2030
+Matrix element O44 written at: O42/p2030
+Matrix element O44 written at: O43/p2030
+Matrix element O44 written at: O44/p2030
+p index: 142
+Momentum is (2, 0, 3, 1).Propagator written at path: prop/p2031
+Matrix element O11 written at: O11/p2031
+Matrix element O11 written at: O12/p2031
+Matrix element O11 written at: O13/p2031
+Matrix element O11 written at: O14/p2031
+Matrix element O22 written at: O21/p2031
+Matrix element O22 written at: O22/p2031
+Matrix element O22 written at: O23/p2031
+Matrix element O22 written at: O24/p2031
+Matrix element O33 written at: O31/p2031
+Matrix element O33 written at: O32/p2031
+Matrix element O33 written at: O33/p2031
+Matrix element O33 written at: O34/p2031
+Matrix element O44 written at: O41/p2031
+Matrix element O44 written at: O42/p2031
+Matrix element O44 written at: O43/p2031
+Matrix element O44 written at: O44/p2031
+p index: 143
+Momentum is (2, 0, 3, 2).Propagator written at path: prop/p2032
+Matrix element O11 written at: O11/p2032
+Matrix element O11 written at: O12/p2032
+Matrix element O11 written at: O13/p2032
+Matrix element O11 written at: O14/p2032
+Matrix element O22 written at: O21/p2032
+Matrix element O22 written at: O22/p2032
+Matrix element O22 written at: O23/p2032
+Matrix element O22 written at: O24/p2032
+Matrix element O33 written at: O31/p2032
+Matrix element O33 written at: O32/p2032
+Matrix element O33 written at: O33/p2032
+Matrix element O33 written at: O34/p2032
+Matrix element O44 written at: O41/p2032
+Matrix element O44 written at: O42/p2032
+Matrix element O44 written at: O43/p2032
+Matrix element O44 written at: O44/p2032
+p index: 144
+Momentum is (2, 0, 3, 3).Propagator written at path: prop/p2033
+Matrix element O11 written at: O11/p2033
+Matrix element O11 written at: O12/p2033
+Matrix element O11 written at: O13/p2033
+Matrix element O11 written at: O14/p2033
+Matrix element O22 written at: O21/p2033
+Matrix element O22 written at: O22/p2033
+Matrix element O22 written at: O23/p2033
+Matrix element O22 written at: O24/p2033
+Matrix element O33 written at: O31/p2033
+Matrix element O33 written at: O32/p2033
+Matrix element O33 written at: O33/p2033
+Matrix element O33 written at: O34/p2033
+Matrix element O44 written at: O41/p2033
+Matrix element O44 written at: O42/p2033
+Matrix element O44 written at: O43/p2033
+Matrix element O44 written at: O44/p2033
+p index: 145
+Momentum is (2, 1, 0, 0).Propagator written at path: prop/p2100
+Matrix element O11 written at: O11/p2100
+Matrix element O11 written at: O12/p2100
+Matrix element O11 written at: O13/p2100
+Matrix element O11 written at: O14/p2100
+Matrix element O22 written at: O21/p2100
+Matrix element O22 written at: O22/p2100
+Matrix element O22 written at: O23/p2100
+Matrix element O22 written at: O24/p2100
+Matrix element O33 written at: O31/p2100
+Matrix element O33 written at: O32/p2100
+Matrix element O33 written at: O33/p2100
+Matrix element O33 written at: O34/p2100
+Matrix element O44 written at: O41/p2100
+Matrix element O44 written at: O42/p2100
+Matrix element O44 written at: O43/p2100
+Matrix element O44 written at: O44/p2100
+p index: 146
+Momentum is (2, 1, 0, 1).Propagator written at path: prop/p2101
+Matrix element O11 written at: O11/p2101
+Matrix element O11 written at: O12/p2101
+Matrix element O11 written at: O13/p2101
+Matrix element O11 written at: O14/p2101
+Matrix element O22 written at: O21/p2101
+Matrix element O22 written at: O22/p2101
+Matrix element O22 written at: O23/p2101
+Matrix element O22 written at: O24/p2101
+Matrix element O33 written at: O31/p2101
+Matrix element O33 written at: O32/p2101
+Matrix element O33 written at: O33/p2101
+Matrix element O33 written at: O34/p2101
+Matrix element O44 written at: O41/p2101
+Matrix element O44 written at: O42/p2101
+Matrix element O44 written at: O43/p2101
+Matrix element O44 written at: O44/p2101
+p index: 147
+Momentum is (2, 1, 0, 2).Propagator written at path: prop/p2102
+Matrix element O11 written at: O11/p2102
+Matrix element O11 written at: O12/p2102
+Matrix element O11 written at: O13/p2102
+Matrix element O11 written at: O14/p2102
+Matrix element O22 written at: O21/p2102
+Matrix element O22 written at: O22/p2102
+Matrix element O22 written at: O23/p2102
+Matrix element O22 written at: O24/p2102
+Matrix element O33 written at: O31/p2102
+Matrix element O33 written at: O32/p2102
+Matrix element O33 written at: O33/p2102
+Matrix element O33 written at: O34/p2102
+Matrix element O44 written at: O41/p2102
+Matrix element O44 written at: O42/p2102
+Matrix element O44 written at: O43/p2102
+Matrix element O44 written at: O44/p2102
+p index: 148
+Momentum is (2, 1, 0, 3).Propagator written at path: prop/p2103
+Matrix element O11 written at: O11/p2103
+Matrix element O11 written at: O12/p2103
+Matrix element O11 written at: O13/p2103
+Matrix element O11 written at: O14/p2103
+Matrix element O22 written at: O21/p2103
+Matrix element O22 written at: O22/p2103
+Matrix element O22 written at: O23/p2103
+Matrix element O22 written at: O24/p2103
+Matrix element O33 written at: O31/p2103
+Matrix element O33 written at: O32/p2103
+Matrix element O33 written at: O33/p2103
+Matrix element O33 written at: O34/p2103
+Matrix element O44 written at: O41/p2103
+Matrix element O44 written at: O42/p2103
+Matrix element O44 written at: O43/p2103
+Matrix element O44 written at: O44/p2103
+p index: 149
+Momentum is (2, 1, 1, 0).Propagator written at path: prop/p2110
+Matrix element O11 written at: O11/p2110
+Matrix element O11 written at: O12/p2110
+Matrix element O11 written at: O13/p2110
+Matrix element O11 written at: O14/p2110
+Matrix element O22 written at: O21/p2110
+Matrix element O22 written at: O22/p2110
+Matrix element O22 written at: O23/p2110
+Matrix element O22 written at: O24/p2110
+Matrix element O33 written at: O31/p2110
+Matrix element O33 written at: O32/p2110
+Matrix element O33 written at: O33/p2110
+Matrix element O33 written at: O34/p2110
+Matrix element O44 written at: O41/p2110
+Matrix element O44 written at: O42/p2110
+Matrix element O44 written at: O43/p2110
+Matrix element O44 written at: O44/p2110
+p index: 150
+Momentum is (2, 1, 1, 1).Propagator written at path: prop/p2111
+Matrix element O11 written at: O11/p2111
+Matrix element O11 written at: O12/p2111
+Matrix element O11 written at: O13/p2111
+Matrix element O11 written at: O14/p2111
+Matrix element O22 written at: O21/p2111
+Matrix element O22 written at: O22/p2111
+Matrix element O22 written at: O23/p2111
+Matrix element O22 written at: O24/p2111
+Matrix element O33 written at: O31/p2111
+Matrix element O33 written at: O32/p2111
+Matrix element O33 written at: O33/p2111
+Matrix element O33 written at: O34/p2111
+Matrix element O44 written at: O41/p2111
+Matrix element O44 written at: O42/p2111
+Matrix element O44 written at: O43/p2111
+Matrix element O44 written at: O44/p2111
+p index: 151
+Momentum is (2, 1, 1, 2).Propagator written at path: prop/p2112
+Matrix element O11 written at: O11/p2112
+Matrix element O11 written at: O12/p2112
+Matrix element O11 written at: O13/p2112
+Matrix element O11 written at: O14/p2112
+Matrix element O22 written at: O21/p2112
+Matrix element O22 written at: O22/p2112
+Matrix element O22 written at: O23/p2112
+Matrix element O22 written at: O24/p2112
+Matrix element O33 written at: O31/p2112
+Matrix element O33 written at: O32/p2112
+Matrix element O33 written at: O33/p2112
+Matrix element O33 written at: O34/p2112
+Matrix element O44 written at: O41/p2112
+Matrix element O44 written at: O42/p2112
+Matrix element O44 written at: O43/p2112
+Matrix element O44 written at: O44/p2112
+p index: 152
+Momentum is (2, 1, 1, 3).Propagator written at path: prop/p2113
+Matrix element O11 written at: O11/p2113
+Matrix element O11 written at: O12/p2113
+Matrix element O11 written at: O13/p2113
+Matrix element O11 written at: O14/p2113
+Matrix element O22 written at: O21/p2113
+Matrix element O22 written at: O22/p2113
+Matrix element O22 written at: O23/p2113
+Matrix element O22 written at: O24/p2113
+Matrix element O33 written at: O31/p2113
+Matrix element O33 written at: O32/p2113
+Matrix element O33 written at: O33/p2113
+Matrix element O33 written at: O34/p2113
+Matrix element O44 written at: O41/p2113
+Matrix element O44 written at: O42/p2113
+Matrix element O44 written at: O43/p2113
+Matrix element O44 written at: O44/p2113
+p index: 153
+Momentum is (2, 1, 2, 0).Propagator written at path: prop/p2120
+Matrix element O11 written at: O11/p2120
+Matrix element O11 written at: O12/p2120
+Matrix element O11 written at: O13/p2120
+Matrix element O11 written at: O14/p2120
+Matrix element O22 written at: O21/p2120
+Matrix element O22 written at: O22/p2120
+Matrix element O22 written at: O23/p2120
+Matrix element O22 written at: O24/p2120
+Matrix element O33 written at: O31/p2120
+Matrix element O33 written at: O32/p2120
+Matrix element O33 written at: O33/p2120
+Matrix element O33 written at: O34/p2120
+Matrix element O44 written at: O41/p2120
+Matrix element O44 written at: O42/p2120
+Matrix element O44 written at: O43/p2120
+Matrix element O44 written at: O44/p2120
+p index: 154
+Momentum is (2, 1, 2, 1).Propagator written at path: prop/p2121
+Matrix element O11 written at: O11/p2121
+Matrix element O11 written at: O12/p2121
+Matrix element O11 written at: O13/p2121
+Matrix element O11 written at: O14/p2121
+Matrix element O22 written at: O21/p2121
+Matrix element O22 written at: O22/p2121
+Matrix element O22 written at: O23/p2121
+Matrix element O22 written at: O24/p2121
+Matrix element O33 written at: O31/p2121
+Matrix element O33 written at: O32/p2121
+Matrix element O33 written at: O33/p2121
+Matrix element O33 written at: O34/p2121
+Matrix element O44 written at: O41/p2121
+Matrix element O44 written at: O42/p2121
+Matrix element O44 written at: O43/p2121
+Matrix element O44 written at: O44/p2121
+p index: 155
+Momentum is (2, 1, 2, 2).Propagator written at path: prop/p2122
+Matrix element O11 written at: O11/p2122
+Matrix element O11 written at: O12/p2122
+Matrix element O11 written at: O13/p2122
+Matrix element O11 written at: O14/p2122
+Matrix element O22 written at: O21/p2122
+Matrix element O22 written at: O22/p2122
+Matrix element O22 written at: O23/p2122
+Matrix element O22 written at: O24/p2122
+Matrix element O33 written at: O31/p2122
+Matrix element O33 written at: O32/p2122
+Matrix element O33 written at: O33/p2122
+Matrix element O33 written at: O34/p2122
+Matrix element O44 written at: O41/p2122
+Matrix element O44 written at: O42/p2122
+Matrix element O44 written at: O43/p2122
+Matrix element O44 written at: O44/p2122
+p index: 156
+Momentum is (2, 1, 2, 3).Propagator written at path: prop/p2123
+Matrix element O11 written at: O11/p2123
+Matrix element O11 written at: O12/p2123
+Matrix element O11 written at: O13/p2123
+Matrix element O11 written at: O14/p2123
+Matrix element O22 written at: O21/p2123
+Matrix element O22 written at: O22/p2123
+Matrix element O22 written at: O23/p2123
+Matrix element O22 written at: O24/p2123
+Matrix element O33 written at: O31/p2123
+Matrix element O33 written at: O32/p2123
+Matrix element O33 written at: O33/p2123
+Matrix element O33 written at: O34/p2123
+Matrix element O44 written at: O41/p2123
+Matrix element O44 written at: O42/p2123
+Matrix element O44 written at: O43/p2123
+Matrix element O44 written at: O44/p2123
+p index: 157
+Momentum is (2, 1, 3, 0).Propagator written at path: prop/p2130
+Matrix element O11 written at: O11/p2130
+Matrix element O11 written at: O12/p2130
+Matrix element O11 written at: O13/p2130
+Matrix element O11 written at: O14/p2130
+Matrix element O22 written at: O21/p2130
+Matrix element O22 written at: O22/p2130
+Matrix element O22 written at: O23/p2130
+Matrix element O22 written at: O24/p2130
+Matrix element O33 written at: O31/p2130
+Matrix element O33 written at: O32/p2130
+Matrix element O33 written at: O33/p2130
+Matrix element O33 written at: O34/p2130
+Matrix element O44 written at: O41/p2130
+Matrix element O44 written at: O42/p2130
+Matrix element O44 written at: O43/p2130
+Matrix element O44 written at: O44/p2130
+p index: 158
+Momentum is (2, 1, 3, 1).Propagator written at path: prop/p2131
+Matrix element O11 written at: O11/p2131
+Matrix element O11 written at: O12/p2131
+Matrix element O11 written at: O13/p2131
+Matrix element O11 written at: O14/p2131
+Matrix element O22 written at: O21/p2131
+Matrix element O22 written at: O22/p2131
+Matrix element O22 written at: O23/p2131
+Matrix element O22 written at: O24/p2131
+Matrix element O33 written at: O31/p2131
+Matrix element O33 written at: O32/p2131
+Matrix element O33 written at: O33/p2131
+Matrix element O33 written at: O34/p2131
+Matrix element O44 written at: O41/p2131
+Matrix element O44 written at: O42/p2131
+Matrix element O44 written at: O43/p2131
+Matrix element O44 written at: O44/p2131
+p index: 159
+Momentum is (2, 1, 3, 2).Propagator written at path: prop/p2132
+Matrix element O11 written at: O11/p2132
+Matrix element O11 written at: O12/p2132
+Matrix element O11 written at: O13/p2132
+Matrix element O11 written at: O14/p2132
+Matrix element O22 written at: O21/p2132
+Matrix element O22 written at: O22/p2132
+Matrix element O22 written at: O23/p2132
+Matrix element O22 written at: O24/p2132
+Matrix element O33 written at: O31/p2132
+Matrix element O33 written at: O32/p2132
+Matrix element O33 written at: O33/p2132
+Matrix element O33 written at: O34/p2132
+Matrix element O44 written at: O41/p2132
+Matrix element O44 written at: O42/p2132
+Matrix element O44 written at: O43/p2132
+Matrix element O44 written at: O44/p2132
+p index: 160
+Momentum is (2, 1, 3, 3).Propagator written at path: prop/p2133
+Matrix element O11 written at: O11/p2133
+Matrix element O11 written at: O12/p2133
+Matrix element O11 written at: O13/p2133
+Matrix element O11 written at: O14/p2133
+Matrix element O22 written at: O21/p2133
+Matrix element O22 written at: O22/p2133
+Matrix element O22 written at: O23/p2133
+Matrix element O22 written at: O24/p2133
+Matrix element O33 written at: O31/p2133
+Matrix element O33 written at: O32/p2133
+Matrix element O33 written at: O33/p2133
+Matrix element O33 written at: O34/p2133
+Matrix element O44 written at: O41/p2133
+Matrix element O44 written at: O42/p2133
+Matrix element O44 written at: O43/p2133
+Matrix element O44 written at: O44/p2133
+p index: 161
+Momentum is (2, 2, 0, 0).Propagator written at path: prop/p2200
+Matrix element O11 written at: O11/p2200
+Matrix element O11 written at: O12/p2200
+Matrix element O11 written at: O13/p2200
+Matrix element O11 written at: O14/p2200
+Matrix element O22 written at: O21/p2200
+Matrix element O22 written at: O22/p2200
+Matrix element O22 written at: O23/p2200
+Matrix element O22 written at: O24/p2200
+Matrix element O33 written at: O31/p2200
+Matrix element O33 written at: O32/p2200
+Matrix element O33 written at: O33/p2200
+Matrix element O33 written at: O34/p2200
+Matrix element O44 written at: O41/p2200
+Matrix element O44 written at: O42/p2200
+Matrix element O44 written at: O43/p2200
+Matrix element O44 written at: O44/p2200
+p index: 162
+Momentum is (2, 2, 0, 1).Propagator written at path: prop/p2201
+Matrix element O11 written at: O11/p2201
+Matrix element O11 written at: O12/p2201
+Matrix element O11 written at: O13/p2201
+Matrix element O11 written at: O14/p2201
+Matrix element O22 written at: O21/p2201
+Matrix element O22 written at: O22/p2201
+Matrix element O22 written at: O23/p2201
+Matrix element O22 written at: O24/p2201
+Matrix element O33 written at: O31/p2201
+Matrix element O33 written at: O32/p2201
+Matrix element O33 written at: O33/p2201
+Matrix element O33 written at: O34/p2201
+Matrix element O44 written at: O41/p2201
+Matrix element O44 written at: O42/p2201
+Matrix element O44 written at: O43/p2201
+Matrix element O44 written at: O44/p2201
+p index: 163
+Momentum is (2, 2, 0, 2).Propagator written at path: prop/p2202
+Matrix element O11 written at: O11/p2202
+Matrix element O11 written at: O12/p2202
+Matrix element O11 written at: O13/p2202
+Matrix element O11 written at: O14/p2202
+Matrix element O22 written at: O21/p2202
+Matrix element O22 written at: O22/p2202
+Matrix element O22 written at: O23/p2202
+Matrix element O22 written at: O24/p2202
+Matrix element O33 written at: O31/p2202
+Matrix element O33 written at: O32/p2202
+Matrix element O33 written at: O33/p2202
+Matrix element O33 written at: O34/p2202
+Matrix element O44 written at: O41/p2202
+Matrix element O44 written at: O42/p2202
+Matrix element O44 written at: O43/p2202
+Matrix element O44 written at: O44/p2202
+p index: 164
+Momentum is (2, 2, 0, 3).Propagator written at path: prop/p2203
+Matrix element O11 written at: O11/p2203
+Matrix element O11 written at: O12/p2203
+Matrix element O11 written at: O13/p2203
+Matrix element O11 written at: O14/p2203
+Matrix element O22 written at: O21/p2203
+Matrix element O22 written at: O22/p2203
+Matrix element O22 written at: O23/p2203
+Matrix element O22 written at: O24/p2203
+Matrix element O33 written at: O31/p2203
+Matrix element O33 written at: O32/p2203
+Matrix element O33 written at: O33/p2203
+Matrix element O33 written at: O34/p2203
+Matrix element O44 written at: O41/p2203
+Matrix element O44 written at: O42/p2203
+Matrix element O44 written at: O43/p2203
+Matrix element O44 written at: O44/p2203
+p index: 165
+Momentum is (2, 2, 1, 0).Propagator written at path: prop/p2210
+Matrix element O11 written at: O11/p2210
+Matrix element O11 written at: O12/p2210
+Matrix element O11 written at: O13/p2210
+Matrix element O11 written at: O14/p2210
+Matrix element O22 written at: O21/p2210
+Matrix element O22 written at: O22/p2210
+Matrix element O22 written at: O23/p2210
+Matrix element O22 written at: O24/p2210
+Matrix element O33 written at: O31/p2210
+Matrix element O33 written at: O32/p2210
+Matrix element O33 written at: O33/p2210
+Matrix element O33 written at: O34/p2210
+Matrix element O44 written at: O41/p2210
+Matrix element O44 written at: O42/p2210
+Matrix element O44 written at: O43/p2210
+Matrix element O44 written at: O44/p2210
+p index: 166
+Momentum is (2, 2, 1, 1).Propagator written at path: prop/p2211
+Matrix element O11 written at: O11/p2211
+Matrix element O11 written at: O12/p2211
+Matrix element O11 written at: O13/p2211
+Matrix element O11 written at: O14/p2211
+Matrix element O22 written at: O21/p2211
+Matrix element O22 written at: O22/p2211
+Matrix element O22 written at: O23/p2211
+Matrix element O22 written at: O24/p2211
+Matrix element O33 written at: O31/p2211
+Matrix element O33 written at: O32/p2211
+Matrix element O33 written at: O33/p2211
+Matrix element O33 written at: O34/p2211
+Matrix element O44 written at: O41/p2211
+Matrix element O44 written at: O42/p2211
+Matrix element O44 written at: O43/p2211
+Matrix element O44 written at: O44/p2211
+p index: 167
+Momentum is (2, 2, 1, 2).Propagator written at path: prop/p2212
+Matrix element O11 written at: O11/p2212
+Matrix element O11 written at: O12/p2212
+Matrix element O11 written at: O13/p2212
+Matrix element O11 written at: O14/p2212
+Matrix element O22 written at: O21/p2212
+Matrix element O22 written at: O22/p2212
+Matrix element O22 written at: O23/p2212
+Matrix element O22 written at: O24/p2212
+Matrix element O33 written at: O31/p2212
+Matrix element O33 written at: O32/p2212
+Matrix element O33 written at: O33/p2212
+Matrix element O33 written at: O34/p2212
+Matrix element O44 written at: O41/p2212
+Matrix element O44 written at: O42/p2212
+Matrix element O44 written at: O43/p2212
+Matrix element O44 written at: O44/p2212
+p index: 168
+Momentum is (2, 2, 1, 3).Propagator written at path: prop/p2213
+Matrix element O11 written at: O11/p2213
+Matrix element O11 written at: O12/p2213
+Matrix element O11 written at: O13/p2213
+Matrix element O11 written at: O14/p2213
+Matrix element O22 written at: O21/p2213
+Matrix element O22 written at: O22/p2213
+Matrix element O22 written at: O23/p2213
+Matrix element O22 written at: O24/p2213
+Matrix element O33 written at: O31/p2213
+Matrix element O33 written at: O32/p2213
+Matrix element O33 written at: O33/p2213
+Matrix element O33 written at: O34/p2213
+Matrix element O44 written at: O41/p2213
+Matrix element O44 written at: O42/p2213
+Matrix element O44 written at: O43/p2213
+Matrix element O44 written at: O44/p2213
+p index: 169
+Momentum is (2, 2, 2, 0).Propagator written at path: prop/p2220
+Matrix element O11 written at: O11/p2220
+Matrix element O11 written at: O12/p2220
+Matrix element O11 written at: O13/p2220
+Matrix element O11 written at: O14/p2220
+Matrix element O22 written at: O21/p2220
+Matrix element O22 written at: O22/p2220
+Matrix element O22 written at: O23/p2220
+Matrix element O22 written at: O24/p2220
+Matrix element O33 written at: O31/p2220
+Matrix element O33 written at: O32/p2220
+Matrix element O33 written at: O33/p2220
+Matrix element O33 written at: O34/p2220
+Matrix element O44 written at: O41/p2220
+Matrix element O44 written at: O42/p2220
+Matrix element O44 written at: O43/p2220
+Matrix element O44 written at: O44/p2220
+p index: 170
+Momentum is (2, 2, 2, 1).Propagator written at path: prop/p2221
+Matrix element O11 written at: O11/p2221
+Matrix element O11 written at: O12/p2221
+Matrix element O11 written at: O13/p2221
+Matrix element O11 written at: O14/p2221
+Matrix element O22 written at: O21/p2221
+Matrix element O22 written at: O22/p2221
+Matrix element O22 written at: O23/p2221
+Matrix element O22 written at: O24/p2221
+Matrix element O33 written at: O31/p2221
+Matrix element O33 written at: O32/p2221
+Matrix element O33 written at: O33/p2221
+Matrix element O33 written at: O34/p2221
+Matrix element O44 written at: O41/p2221
+Matrix element O44 written at: O42/p2221
+Matrix element O44 written at: O43/p2221
+Matrix element O44 written at: O44/p2221
+p index: 171
+Momentum is (2, 2, 2, 2).Propagator written at path: prop/p2222
+Matrix element O11 written at: O11/p2222
+Matrix element O11 written at: O12/p2222
+Matrix element O11 written at: O13/p2222
+Matrix element O11 written at: O14/p2222
+Matrix element O22 written at: O21/p2222
+Matrix element O22 written at: O22/p2222
+Matrix element O22 written at: O23/p2222
+Matrix element O22 written at: O24/p2222
+Matrix element O33 written at: O31/p2222
+Matrix element O33 written at: O32/p2222
+Matrix element O33 written at: O33/p2222
+Matrix element O33 written at: O34/p2222
+Matrix element O44 written at: O41/p2222
+Matrix element O44 written at: O42/p2222
+Matrix element O44 written at: O43/p2222
+Matrix element O44 written at: O44/p2222
+p index: 172
+Momentum is (2, 2, 2, 3).Propagator written at path: prop/p2223
+Matrix element O11 written at: O11/p2223
+Matrix element O11 written at: O12/p2223
+Matrix element O11 written at: O13/p2223
+Matrix element O11 written at: O14/p2223
+Matrix element O22 written at: O21/p2223
+Matrix element O22 written at: O22/p2223
+Matrix element O22 written at: O23/p2223
+Matrix element O22 written at: O24/p2223
+Matrix element O33 written at: O31/p2223
+Matrix element O33 written at: O32/p2223
+Matrix element O33 written at: O33/p2223
+Matrix element O33 written at: O34/p2223
+Matrix element O44 written at: O41/p2223
+Matrix element O44 written at: O42/p2223
+Matrix element O44 written at: O43/p2223
+Matrix element O44 written at: O44/p2223
+p index: 173
+Momentum is (2, 2, 3, 0).Propagator written at path: prop/p2230
+Matrix element O11 written at: O11/p2230
+Matrix element O11 written at: O12/p2230
+Matrix element O11 written at: O13/p2230
+Matrix element O11 written at: O14/p2230
+Matrix element O22 written at: O21/p2230
+Matrix element O22 written at: O22/p2230
+Matrix element O22 written at: O23/p2230
+Matrix element O22 written at: O24/p2230
+Matrix element O33 written at: O31/p2230
+Matrix element O33 written at: O32/p2230
+Matrix element O33 written at: O33/p2230
+Matrix element O33 written at: O34/p2230
+Matrix element O44 written at: O41/p2230
+Matrix element O44 written at: O42/p2230
+Matrix element O44 written at: O43/p2230
+Matrix element O44 written at: O44/p2230
+p index: 174
+Momentum is (2, 2, 3, 1).Propagator written at path: prop/p2231
+Matrix element O11 written at: O11/p2231
+Matrix element O11 written at: O12/p2231
+Matrix element O11 written at: O13/p2231
+Matrix element O11 written at: O14/p2231
+Matrix element O22 written at: O21/p2231
+Matrix element O22 written at: O22/p2231
+Matrix element O22 written at: O23/p2231
+Matrix element O22 written at: O24/p2231
+Matrix element O33 written at: O31/p2231
+Matrix element O33 written at: O32/p2231
+Matrix element O33 written at: O33/p2231
+Matrix element O33 written at: O34/p2231
+Matrix element O44 written at: O41/p2231
+Matrix element O44 written at: O42/p2231
+Matrix element O44 written at: O43/p2231
+Matrix element O44 written at: O44/p2231
+p index: 175
+Momentum is (2, 2, 3, 2).Propagator written at path: prop/p2232
+Matrix element O11 written at: O11/p2232
+Matrix element O11 written at: O12/p2232
+Matrix element O11 written at: O13/p2232
+Matrix element O11 written at: O14/p2232
+Matrix element O22 written at: O21/p2232
+Matrix element O22 written at: O22/p2232
+Matrix element O22 written at: O23/p2232
+Matrix element O22 written at: O24/p2232
+Matrix element O33 written at: O31/p2232
+Matrix element O33 written at: O32/p2232
+Matrix element O33 written at: O33/p2232
+Matrix element O33 written at: O34/p2232
+Matrix element O44 written at: O41/p2232
+Matrix element O44 written at: O42/p2232
+Matrix element O44 written at: O43/p2232
+Matrix element O44 written at: O44/p2232
+p index: 176
+Momentum is (2, 2, 3, 3).Propagator written at path: prop/p2233
+Matrix element O11 written at: O11/p2233
+Matrix element O11 written at: O12/p2233
+Matrix element O11 written at: O13/p2233
+Matrix element O11 written at: O14/p2233
+Matrix element O22 written at: O21/p2233
+Matrix element O22 written at: O22/p2233
+Matrix element O22 written at: O23/p2233
+Matrix element O22 written at: O24/p2233
+Matrix element O33 written at: O31/p2233
+Matrix element O33 written at: O32/p2233
+Matrix element O33 written at: O33/p2233
+Matrix element O33 written at: O34/p2233
+Matrix element O44 written at: O41/p2233
+Matrix element O44 written at: O42/p2233
+Matrix element O44 written at: O43/p2233
+Matrix element O44 written at: O44/p2233
+p index: 177
+Momentum is (2, 3, 0, 0).Propagator written at path: prop/p2300
+Matrix element O11 written at: O11/p2300
+Matrix element O11 written at: O12/p2300
+Matrix element O11 written at: O13/p2300
+Matrix element O11 written at: O14/p2300
+Matrix element O22 written at: O21/p2300
+Matrix element O22 written at: O22/p2300
+Matrix element O22 written at: O23/p2300
+Matrix element O22 written at: O24/p2300
+Matrix element O33 written at: O31/p2300
+Matrix element O33 written at: O32/p2300
+Matrix element O33 written at: O33/p2300
+Matrix element O33 written at: O34/p2300
+Matrix element O44 written at: O41/p2300
+Matrix element O44 written at: O42/p2300
+Matrix element O44 written at: O43/p2300
+Matrix element O44 written at: O44/p2300
+p index: 178
+Momentum is (2, 3, 0, 1).Propagator written at path: prop/p2301
+Matrix element O11 written at: O11/p2301
+Matrix element O11 written at: O12/p2301
+Matrix element O11 written at: O13/p2301
+Matrix element O11 written at: O14/p2301
+Matrix element O22 written at: O21/p2301
+Matrix element O22 written at: O22/p2301
+Matrix element O22 written at: O23/p2301
+Matrix element O22 written at: O24/p2301
+Matrix element O33 written at: O31/p2301
+Matrix element O33 written at: O32/p2301
+Matrix element O33 written at: O33/p2301
+Matrix element O33 written at: O34/p2301
+Matrix element O44 written at: O41/p2301
+Matrix element O44 written at: O42/p2301
+Matrix element O44 written at: O43/p2301
+Matrix element O44 written at: O44/p2301
+p index: 179
+Momentum is (2, 3, 0, 2).Propagator written at path: prop/p2302
+Matrix element O11 written at: O11/p2302
+Matrix element O11 written at: O12/p2302
+Matrix element O11 written at: O13/p2302
+Matrix element O11 written at: O14/p2302
+Matrix element O22 written at: O21/p2302
+Matrix element O22 written at: O22/p2302
+Matrix element O22 written at: O23/p2302
+Matrix element O22 written at: O24/p2302
+Matrix element O33 written at: O31/p2302
+Matrix element O33 written at: O32/p2302
+Matrix element O33 written at: O33/p2302
+Matrix element O33 written at: O34/p2302
+Matrix element O44 written at: O41/p2302
+Matrix element O44 written at: O42/p2302
+Matrix element O44 written at: O43/p2302
+Matrix element O44 written at: O44/p2302
+p index: 180
+Momentum is (2, 3, 0, 3).Propagator written at path: prop/p2303
+Matrix element O11 written at: O11/p2303
+Matrix element O11 written at: O12/p2303
+Matrix element O11 written at: O13/p2303
+Matrix element O11 written at: O14/p2303
+Matrix element O22 written at: O21/p2303
+Matrix element O22 written at: O22/p2303
+Matrix element O22 written at: O23/p2303
+Matrix element O22 written at: O24/p2303
+Matrix element O33 written at: O31/p2303
+Matrix element O33 written at: O32/p2303
+Matrix element O33 written at: O33/p2303
+Matrix element O33 written at: O34/p2303
+Matrix element O44 written at: O41/p2303
+Matrix element O44 written at: O42/p2303
+Matrix element O44 written at: O43/p2303
+Matrix element O44 written at: O44/p2303
+p index: 181
+Momentum is (2, 3, 1, 0).Propagator written at path: prop/p2310
+Matrix element O11 written at: O11/p2310
+Matrix element O11 written at: O12/p2310
+Matrix element O11 written at: O13/p2310
+Matrix element O11 written at: O14/p2310
+Matrix element O22 written at: O21/p2310
+Matrix element O22 written at: O22/p2310
+Matrix element O22 written at: O23/p2310
+Matrix element O22 written at: O24/p2310
+Matrix element O33 written at: O31/p2310
+Matrix element O33 written at: O32/p2310
+Matrix element O33 written at: O33/p2310
+Matrix element O33 written at: O34/p2310
+Matrix element O44 written at: O41/p2310
+Matrix element O44 written at: O42/p2310
+Matrix element O44 written at: O43/p2310
+Matrix element O44 written at: O44/p2310
+p index: 182
+Momentum is (2, 3, 1, 1).Propagator written at path: prop/p2311
+Matrix element O11 written at: O11/p2311
+Matrix element O11 written at: O12/p2311
+Matrix element O11 written at: O13/p2311
+Matrix element O11 written at: O14/p2311
+Matrix element O22 written at: O21/p2311
+Matrix element O22 written at: O22/p2311
+Matrix element O22 written at: O23/p2311
+Matrix element O22 written at: O24/p2311
+Matrix element O33 written at: O31/p2311
+Matrix element O33 written at: O32/p2311
+Matrix element O33 written at: O33/p2311
+Matrix element O33 written at: O34/p2311
+Matrix element O44 written at: O41/p2311
+Matrix element O44 written at: O42/p2311
+Matrix element O44 written at: O43/p2311
+Matrix element O44 written at: O44/p2311
+p index: 183
+Momentum is (2, 3, 1, 2).Propagator written at path: prop/p2312
+Matrix element O11 written at: O11/p2312
+Matrix element O11 written at: O12/p2312
+Matrix element O11 written at: O13/p2312
+Matrix element O11 written at: O14/p2312
+Matrix element O22 written at: O21/p2312
+Matrix element O22 written at: O22/p2312
+Matrix element O22 written at: O23/p2312
+Matrix element O22 written at: O24/p2312
+Matrix element O33 written at: O31/p2312
+Matrix element O33 written at: O32/p2312
+Matrix element O33 written at: O33/p2312
+Matrix element O33 written at: O34/p2312
+Matrix element O44 written at: O41/p2312
+Matrix element O44 written at: O42/p2312
+Matrix element O44 written at: O43/p2312
+Matrix element O44 written at: O44/p2312
+p index: 184
+Momentum is (2, 3, 1, 3).Propagator written at path: prop/p2313
+Matrix element O11 written at: O11/p2313
+Matrix element O11 written at: O12/p2313
+Matrix element O11 written at: O13/p2313
+Matrix element O11 written at: O14/p2313
+Matrix element O22 written at: O21/p2313
+Matrix element O22 written at: O22/p2313
+Matrix element O22 written at: O23/p2313
+Matrix element O22 written at: O24/p2313
+Matrix element O33 written at: O31/p2313
+Matrix element O33 written at: O32/p2313
+Matrix element O33 written at: O33/p2313
+Matrix element O33 written at: O34/p2313
+Matrix element O44 written at: O41/p2313
+Matrix element O44 written at: O42/p2313
+Matrix element O44 written at: O43/p2313
+Matrix element O44 written at: O44/p2313
+p index: 185
+Momentum is (2, 3, 2, 0).Propagator written at path: prop/p2320
+Matrix element O11 written at: O11/p2320
+Matrix element O11 written at: O12/p2320
+Matrix element O11 written at: O13/p2320
+Matrix element O11 written at: O14/p2320
+Matrix element O22 written at: O21/p2320
+Matrix element O22 written at: O22/p2320
+Matrix element O22 written at: O23/p2320
+Matrix element O22 written at: O24/p2320
+Matrix element O33 written at: O31/p2320
+Matrix element O33 written at: O32/p2320
+Matrix element O33 written at: O33/p2320
+Matrix element O33 written at: O34/p2320
+Matrix element O44 written at: O41/p2320
+Matrix element O44 written at: O42/p2320
+Matrix element O44 written at: O43/p2320
+Matrix element O44 written at: O44/p2320
+p index: 186
+Momentum is (2, 3, 2, 1).Propagator written at path: prop/p2321
+Matrix element O11 written at: O11/p2321
+Matrix element O11 written at: O12/p2321
+Matrix element O11 written at: O13/p2321
+Matrix element O11 written at: O14/p2321
+Matrix element O22 written at: O21/p2321
+Matrix element O22 written at: O22/p2321
+Matrix element O22 written at: O23/p2321
+Matrix element O22 written at: O24/p2321
+Matrix element O33 written at: O31/p2321
+Matrix element O33 written at: O32/p2321
+Matrix element O33 written at: O33/p2321
+Matrix element O33 written at: O34/p2321
+Matrix element O44 written at: O41/p2321
+Matrix element O44 written at: O42/p2321
+Matrix element O44 written at: O43/p2321
+Matrix element O44 written at: O44/p2321
+p index: 187
+Momentum is (2, 3, 2, 2).Propagator written at path: prop/p2322
+Matrix element O11 written at: O11/p2322
+Matrix element O11 written at: O12/p2322
+Matrix element O11 written at: O13/p2322
+Matrix element O11 written at: O14/p2322
+Matrix element O22 written at: O21/p2322
+Matrix element O22 written at: O22/p2322
+Matrix element O22 written at: O23/p2322
+Matrix element O22 written at: O24/p2322
+Matrix element O33 written at: O31/p2322
+Matrix element O33 written at: O32/p2322
+Matrix element O33 written at: O33/p2322
+Matrix element O33 written at: O34/p2322
+Matrix element O44 written at: O41/p2322
+Matrix element O44 written at: O42/p2322
+Matrix element O44 written at: O43/p2322
+Matrix element O44 written at: O44/p2322
+p index: 188
+Momentum is (2, 3, 2, 3).Propagator written at path: prop/p2323
+Matrix element O11 written at: O11/p2323
+Matrix element O11 written at: O12/p2323
+Matrix element O11 written at: O13/p2323
+Matrix element O11 written at: O14/p2323
+Matrix element O22 written at: O21/p2323
+Matrix element O22 written at: O22/p2323
+Matrix element O22 written at: O23/p2323
+Matrix element O22 written at: O24/p2323
+Matrix element O33 written at: O31/p2323
+Matrix element O33 written at: O32/p2323
+Matrix element O33 written at: O33/p2323
+Matrix element O33 written at: O34/p2323
+Matrix element O44 written at: O41/p2323
+Matrix element O44 written at: O42/p2323
+Matrix element O44 written at: O43/p2323
+Matrix element O44 written at: O44/p2323
+p index: 189
+Momentum is (2, 3, 3, 0).Propagator written at path: prop/p2330
+Matrix element O11 written at: O11/p2330
+Matrix element O11 written at: O12/p2330
+Matrix element O11 written at: O13/p2330
+Matrix element O11 written at: O14/p2330
+Matrix element O22 written at: O21/p2330
+Matrix element O22 written at: O22/p2330
+Matrix element O22 written at: O23/p2330
+Matrix element O22 written at: O24/p2330
+Matrix element O33 written at: O31/p2330
+Matrix element O33 written at: O32/p2330
+Matrix element O33 written at: O33/p2330
+Matrix element O33 written at: O34/p2330
+Matrix element O44 written at: O41/p2330
+Matrix element O44 written at: O42/p2330
+Matrix element O44 written at: O43/p2330
+Matrix element O44 written at: O44/p2330
+p index: 190
+Momentum is (2, 3, 3, 1).Propagator written at path: prop/p2331
+Matrix element O11 written at: O11/p2331
+Matrix element O11 written at: O12/p2331
+Matrix element O11 written at: O13/p2331
+Matrix element O11 written at: O14/p2331
+Matrix element O22 written at: O21/p2331
+Matrix element O22 written at: O22/p2331
+Matrix element O22 written at: O23/p2331
+Matrix element O22 written at: O24/p2331
+Matrix element O33 written at: O31/p2331
+Matrix element O33 written at: O32/p2331
+Matrix element O33 written at: O33/p2331
+Matrix element O33 written at: O34/p2331
+Matrix element O44 written at: O41/p2331
+Matrix element O44 written at: O42/p2331
+Matrix element O44 written at: O43/p2331
+Matrix element O44 written at: O44/p2331
+p index: 191
+Momentum is (2, 3, 3, 2).Propagator written at path: prop/p2332
+Matrix element O11 written at: O11/p2332
+Matrix element O11 written at: O12/p2332
+Matrix element O11 written at: O13/p2332
+Matrix element O11 written at: O14/p2332
+Matrix element O22 written at: O21/p2332
+Matrix element O22 written at: O22/p2332
+Matrix element O22 written at: O23/p2332
+Matrix element O22 written at: O24/p2332
+Matrix element O33 written at: O31/p2332
+Matrix element O33 written at: O32/p2332
+Matrix element O33 written at: O33/p2332
+Matrix element O33 written at: O34/p2332
+Matrix element O44 written at: O41/p2332
+Matrix element O44 written at: O42/p2332
+Matrix element O44 written at: O43/p2332
+Matrix element O44 written at: O44/p2332
+p index: 192
+Momentum is (2, 3, 3, 3).Propagator written at path: prop/p2333
+Matrix element O11 written at: O11/p2333
+Matrix element O11 written at: O12/p2333
+Matrix element O11 written at: O13/p2333
+Matrix element O11 written at: O14/p2333
+Matrix element O22 written at: O21/p2333
+Matrix element O22 written at: O22/p2333
+Matrix element O22 written at: O23/p2333
+Matrix element O22 written at: O24/p2333
+Matrix element O33 written at: O31/p2333
+Matrix element O33 written at: O32/p2333
+Matrix element O33 written at: O33/p2333
+Matrix element O33 written at: O34/p2333
+Matrix element O44 written at: O41/p2333
+Matrix element O44 written at: O42/p2333
+Matrix element O44 written at: O43/p2333
+Matrix element O44 written at: O44/p2333
+p index: 193
+Momentum is (3, 0, 0, 0).Propagator written at path: prop/p3000
+Matrix element O11 written at: O11/p3000
+Matrix element O11 written at: O12/p3000
+Matrix element O11 written at: O13/p3000
+Matrix element O11 written at: O14/p3000
+Matrix element O22 written at: O21/p3000
+Matrix element O22 written at: O22/p3000
+Matrix element O22 written at: O23/p3000
+Matrix element O22 written at: O24/p3000
+Matrix element O33 written at: O31/p3000
+Matrix element O33 written at: O32/p3000
+Matrix element O33 written at: O33/p3000
+Matrix element O33 written at: O34/p3000
+Matrix element O44 written at: O41/p3000
+Matrix element O44 written at: O42/p3000
+Matrix element O44 written at: O43/p3000
+Matrix element O44 written at: O44/p3000
+p index: 194
+Momentum is (3, 0, 0, 1).Propagator written at path: prop/p3001
+Matrix element O11 written at: O11/p3001
+Matrix element O11 written at: O12/p3001
+Matrix element O11 written at: O13/p3001
+Matrix element O11 written at: O14/p3001
+Matrix element O22 written at: O21/p3001
+Matrix element O22 written at: O22/p3001
+Matrix element O22 written at: O23/p3001
+Matrix element O22 written at: O24/p3001
+Matrix element O33 written at: O31/p3001
+Matrix element O33 written at: O32/p3001
+Matrix element O33 written at: O33/p3001
+Matrix element O33 written at: O34/p3001
+Matrix element O44 written at: O41/p3001
+Matrix element O44 written at: O42/p3001
+Matrix element O44 written at: O43/p3001
+Matrix element O44 written at: O44/p3001
+p index: 195
+Momentum is (3, 0, 0, 2).Propagator written at path: prop/p3002
+Matrix element O11 written at: O11/p3002
+Matrix element O11 written at: O12/p3002
+Matrix element O11 written at: O13/p3002
+Matrix element O11 written at: O14/p3002
+Matrix element O22 written at: O21/p3002
+Matrix element O22 written at: O22/p3002
+Matrix element O22 written at: O23/p3002
+Matrix element O22 written at: O24/p3002
+Matrix element O33 written at: O31/p3002
+Matrix element O33 written at: O32/p3002
+Matrix element O33 written at: O33/p3002
+Matrix element O33 written at: O34/p3002
+Matrix element O44 written at: O41/p3002
+Matrix element O44 written at: O42/p3002
+Matrix element O44 written at: O43/p3002
+Matrix element O44 written at: O44/p3002
+p index: 196
+Momentum is (3, 0, 0, 3).Propagator written at path: prop/p3003
+Matrix element O11 written at: O11/p3003
+Matrix element O11 written at: O12/p3003
+Matrix element O11 written at: O13/p3003
+Matrix element O11 written at: O14/p3003
+Matrix element O22 written at: O21/p3003
+Matrix element O22 written at: O22/p3003
+Matrix element O22 written at: O23/p3003
+Matrix element O22 written at: O24/p3003
+Matrix element O33 written at: O31/p3003
+Matrix element O33 written at: O32/p3003
+Matrix element O33 written at: O33/p3003
+Matrix element O33 written at: O34/p3003
+Matrix element O44 written at: O41/p3003
+Matrix element O44 written at: O42/p3003
+Matrix element O44 written at: O43/p3003
+Matrix element O44 written at: O44/p3003
+p index: 197
+Momentum is (3, 0, 1, 0).Propagator written at path: prop/p3010
+Matrix element O11 written at: O11/p3010
+Matrix element O11 written at: O12/p3010
+Matrix element O11 written at: O13/p3010
+Matrix element O11 written at: O14/p3010
+Matrix element O22 written at: O21/p3010
+Matrix element O22 written at: O22/p3010
+Matrix element O22 written at: O23/p3010
+Matrix element O22 written at: O24/p3010
+Matrix element O33 written at: O31/p3010
+Matrix element O33 written at: O32/p3010
+Matrix element O33 written at: O33/p3010
+Matrix element O33 written at: O34/p3010
+Matrix element O44 written at: O41/p3010
+Matrix element O44 written at: O42/p3010
+Matrix element O44 written at: O43/p3010
+Matrix element O44 written at: O44/p3010
+p index: 198
+Momentum is (3, 0, 1, 1).Propagator written at path: prop/p3011
+Matrix element O11 written at: O11/p3011
+Matrix element O11 written at: O12/p3011
+Matrix element O11 written at: O13/p3011
+Matrix element O11 written at: O14/p3011
+Matrix element O22 written at: O21/p3011
+Matrix element O22 written at: O22/p3011
+Matrix element O22 written at: O23/p3011
+Matrix element O22 written at: O24/p3011
+Matrix element O33 written at: O31/p3011
+Matrix element O33 written at: O32/p3011
+Matrix element O33 written at: O33/p3011
+Matrix element O33 written at: O34/p3011
+Matrix element O44 written at: O41/p3011
+Matrix element O44 written at: O42/p3011
+Matrix element O44 written at: O43/p3011
+Matrix element O44 written at: O44/p3011
+p index: 199
+Momentum is (3, 0, 1, 2).Propagator written at path: prop/p3012
+Matrix element O11 written at: O11/p3012
+Matrix element O11 written at: O12/p3012
+Matrix element O11 written at: O13/p3012
+Matrix element O11 written at: O14/p3012
+Matrix element O22 written at: O21/p3012
+Matrix element O22 written at: O22/p3012
+Matrix element O22 written at: O23/p3012
+Matrix element O22 written at: O24/p3012
+Matrix element O33 written at: O31/p3012
+Matrix element O33 written at: O32/p3012
+Matrix element O33 written at: O33/p3012
+Matrix element O33 written at: O34/p3012
+Matrix element O44 written at: O41/p3012
+Matrix element O44 written at: O42/p3012
+Matrix element O44 written at: O43/p3012
+Matrix element O44 written at: O44/p3012
+p index: 200
+Momentum is (3, 0, 1, 3).Propagator written at path: prop/p3013
+Matrix element O11 written at: O11/p3013
+Matrix element O11 written at: O12/p3013
+Matrix element O11 written at: O13/p3013
+Matrix element O11 written at: O14/p3013
+Matrix element O22 written at: O21/p3013
+Matrix element O22 written at: O22/p3013
+Matrix element O22 written at: O23/p3013
+Matrix element O22 written at: O24/p3013
+Matrix element O33 written at: O31/p3013
+Matrix element O33 written at: O32/p3013
+Matrix element O33 written at: O33/p3013
+Matrix element O33 written at: O34/p3013
+Matrix element O44 written at: O41/p3013
+Matrix element O44 written at: O42/p3013
+Matrix element O44 written at: O43/p3013
+Matrix element O44 written at: O44/p3013
+p index: 201
+Momentum is (3, 0, 2, 0).Propagator written at path: prop/p3020
+Matrix element O11 written at: O11/p3020
+Matrix element O11 written at: O12/p3020
+Matrix element O11 written at: O13/p3020
+Matrix element O11 written at: O14/p3020
+Matrix element O22 written at: O21/p3020
+Matrix element O22 written at: O22/p3020
+Matrix element O22 written at: O23/p3020
+Matrix element O22 written at: O24/p3020
+Matrix element O33 written at: O31/p3020
+Matrix element O33 written at: O32/p3020
+Matrix element O33 written at: O33/p3020
+Matrix element O33 written at: O34/p3020
+Matrix element O44 written at: O41/p3020
+Matrix element O44 written at: O42/p3020
+Matrix element O44 written at: O43/p3020
+Matrix element O44 written at: O44/p3020
+p index: 202
+Momentum is (3, 0, 2, 1).Propagator written at path: prop/p3021
+Matrix element O11 written at: O11/p3021
+Matrix element O11 written at: O12/p3021
+Matrix element O11 written at: O13/p3021
+Matrix element O11 written at: O14/p3021
+Matrix element O22 written at: O21/p3021
+Matrix element O22 written at: O22/p3021
+Matrix element O22 written at: O23/p3021
+Matrix element O22 written at: O24/p3021
+Matrix element O33 written at: O31/p3021
+Matrix element O33 written at: O32/p3021
+Matrix element O33 written at: O33/p3021
+Matrix element O33 written at: O34/p3021
+Matrix element O44 written at: O41/p3021
+Matrix element O44 written at: O42/p3021
+Matrix element O44 written at: O43/p3021
+Matrix element O44 written at: O44/p3021
+p index: 203
+Momentum is (3, 0, 2, 2).Propagator written at path: prop/p3022
+Matrix element O11 written at: O11/p3022
+Matrix element O11 written at: O12/p3022
+Matrix element O11 written at: O13/p3022
+Matrix element O11 written at: O14/p3022
+Matrix element O22 written at: O21/p3022
+Matrix element O22 written at: O22/p3022
+Matrix element O22 written at: O23/p3022
+Matrix element O22 written at: O24/p3022
+Matrix element O33 written at: O31/p3022
+Matrix element O33 written at: O32/p3022
+Matrix element O33 written at: O33/p3022
+Matrix element O33 written at: O34/p3022
+Matrix element O44 written at: O41/p3022
+Matrix element O44 written at: O42/p3022
+Matrix element O44 written at: O43/p3022
+Matrix element O44 written at: O44/p3022
+p index: 204
+Momentum is (3, 0, 2, 3).Propagator written at path: prop/p3023
+Matrix element O11 written at: O11/p3023
+Matrix element O11 written at: O12/p3023
+Matrix element O11 written at: O13/p3023
+Matrix element O11 written at: O14/p3023
+Matrix element O22 written at: O21/p3023
+Matrix element O22 written at: O22/p3023
+Matrix element O22 written at: O23/p3023
+Matrix element O22 written at: O24/p3023
+Matrix element O33 written at: O31/p3023
+Matrix element O33 written at: O32/p3023
+Matrix element O33 written at: O33/p3023
+Matrix element O33 written at: O34/p3023
+Matrix element O44 written at: O41/p3023
+Matrix element O44 written at: O42/p3023
+Matrix element O44 written at: O43/p3023
+Matrix element O44 written at: O44/p3023
+p index: 205
+Momentum is (3, 0, 3, 0).Propagator written at path: prop/p3030
+Matrix element O11 written at: O11/p3030
+Matrix element O11 written at: O12/p3030
+Matrix element O11 written at: O13/p3030
+Matrix element O11 written at: O14/p3030
+Matrix element O22 written at: O21/p3030
+Matrix element O22 written at: O22/p3030
+Matrix element O22 written at: O23/p3030
+Matrix element O22 written at: O24/p3030
+Matrix element O33 written at: O31/p3030
+Matrix element O33 written at: O32/p3030
+Matrix element O33 written at: O33/p3030
+Matrix element O33 written at: O34/p3030
+Matrix element O44 written at: O41/p3030
+Matrix element O44 written at: O42/p3030
+Matrix element O44 written at: O43/p3030
+Matrix element O44 written at: O44/p3030
+p index: 206
+Momentum is (3, 0, 3, 1).Propagator written at path: prop/p3031
+Matrix element O11 written at: O11/p3031
+Matrix element O11 written at: O12/p3031
+Matrix element O11 written at: O13/p3031
+Matrix element O11 written at: O14/p3031
+Matrix element O22 written at: O21/p3031
+Matrix element O22 written at: O22/p3031
+Matrix element O22 written at: O23/p3031
+Matrix element O22 written at: O24/p3031
+Matrix element O33 written at: O31/p3031
+Matrix element O33 written at: O32/p3031
+Matrix element O33 written at: O33/p3031
+Matrix element O33 written at: O34/p3031
+Matrix element O44 written at: O41/p3031
+Matrix element O44 written at: O42/p3031
+Matrix element O44 written at: O43/p3031
+Matrix element O44 written at: O44/p3031
+p index: 207
+Momentum is (3, 0, 3, 2).Propagator written at path: prop/p3032
+Matrix element O11 written at: O11/p3032
+Matrix element O11 written at: O12/p3032
+Matrix element O11 written at: O13/p3032
+Matrix element O11 written at: O14/p3032
+Matrix element O22 written at: O21/p3032
+Matrix element O22 written at: O22/p3032
+Matrix element O22 written at: O23/p3032
+Matrix element O22 written at: O24/p3032
+Matrix element O33 written at: O31/p3032
+Matrix element O33 written at: O32/p3032
+Matrix element O33 written at: O33/p3032
+Matrix element O33 written at: O34/p3032
+Matrix element O44 written at: O41/p3032
+Matrix element O44 written at: O42/p3032
+Matrix element O44 written at: O43/p3032
+Matrix element O44 written at: O44/p3032
+p index: 208
+Momentum is (3, 0, 3, 3).Propagator written at path: prop/p3033
+Matrix element O11 written at: O11/p3033
+Matrix element O11 written at: O12/p3033
+Matrix element O11 written at: O13/p3033
+Matrix element O11 written at: O14/p3033
+Matrix element O22 written at: O21/p3033
+Matrix element O22 written at: O22/p3033
+Matrix element O22 written at: O23/p3033
+Matrix element O22 written at: O24/p3033
+Matrix element O33 written at: O31/p3033
+Matrix element O33 written at: O32/p3033
+Matrix element O33 written at: O33/p3033
+Matrix element O33 written at: O34/p3033
+Matrix element O44 written at: O41/p3033
+Matrix element O44 written at: O42/p3033
+Matrix element O44 written at: O43/p3033
+Matrix element O44 written at: O44/p3033
+p index: 209
+Momentum is (3, 1, 0, 0).Propagator written at path: prop/p3100
+Matrix element O11 written at: O11/p3100
+Matrix element O11 written at: O12/p3100
+Matrix element O11 written at: O13/p3100
+Matrix element O11 written at: O14/p3100
+Matrix element O22 written at: O21/p3100
+Matrix element O22 written at: O22/p3100
+Matrix element O22 written at: O23/p3100
+Matrix element O22 written at: O24/p3100
+Matrix element O33 written at: O31/p3100
+Matrix element O33 written at: O32/p3100
+Matrix element O33 written at: O33/p3100
+Matrix element O33 written at: O34/p3100
+Matrix element O44 written at: O41/p3100
+Matrix element O44 written at: O42/p3100
+Matrix element O44 written at: O43/p3100
+Matrix element O44 written at: O44/p3100
+p index: 210
+Momentum is (3, 1, 0, 1).Propagator written at path: prop/p3101
+Matrix element O11 written at: O11/p3101
+Matrix element O11 written at: O12/p3101
+Matrix element O11 written at: O13/p3101
+Matrix element O11 written at: O14/p3101
+Matrix element O22 written at: O21/p3101
+Matrix element O22 written at: O22/p3101
+Matrix element O22 written at: O23/p3101
+Matrix element O22 written at: O24/p3101
+Matrix element O33 written at: O31/p3101
+Matrix element O33 written at: O32/p3101
+Matrix element O33 written at: O33/p3101
+Matrix element O33 written at: O34/p3101
+Matrix element O44 written at: O41/p3101
+Matrix element O44 written at: O42/p3101
+Matrix element O44 written at: O43/p3101
+Matrix element O44 written at: O44/p3101
+p index: 211
+Momentum is (3, 1, 0, 2).Propagator written at path: prop/p3102
+Matrix element O11 written at: O11/p3102
+Matrix element O11 written at: O12/p3102
+Matrix element O11 written at: O13/p3102
+Matrix element O11 written at: O14/p3102
+Matrix element O22 written at: O21/p3102
+Matrix element O22 written at: O22/p3102
+Matrix element O22 written at: O23/p3102
+Matrix element O22 written at: O24/p3102
+Matrix element O33 written at: O31/p3102
+Matrix element O33 written at: O32/p3102
+Matrix element O33 written at: O33/p3102
+Matrix element O33 written at: O34/p3102
+Matrix element O44 written at: O41/p3102
+Matrix element O44 written at: O42/p3102
+Matrix element O44 written at: O43/p3102
+Matrix element O44 written at: O44/p3102
+p index: 212
+Momentum is (3, 1, 0, 3).Propagator written at path: prop/p3103
+Matrix element O11 written at: O11/p3103
+Matrix element O11 written at: O12/p3103
+Matrix element O11 written at: O13/p3103
+Matrix element O11 written at: O14/p3103
+Matrix element O22 written at: O21/p3103
+Matrix element O22 written at: O22/p3103
+Matrix element O22 written at: O23/p3103
+Matrix element O22 written at: O24/p3103
+Matrix element O33 written at: O31/p3103
+Matrix element O33 written at: O32/p3103
+Matrix element O33 written at: O33/p3103
+Matrix element O33 written at: O34/p3103
+Matrix element O44 written at: O41/p3103
+Matrix element O44 written at: O42/p3103
+Matrix element O44 written at: O43/p3103
+Matrix element O44 written at: O44/p3103
+p index: 213
+Momentum is (3, 1, 1, 0).Propagator written at path: prop/p3110
+Matrix element O11 written at: O11/p3110
+Matrix element O11 written at: O12/p3110
+Matrix element O11 written at: O13/p3110
+Matrix element O11 written at: O14/p3110
+Matrix element O22 written at: O21/p3110
+Matrix element O22 written at: O22/p3110
+Matrix element O22 written at: O23/p3110
+Matrix element O22 written at: O24/p3110
+Matrix element O33 written at: O31/p3110
+Matrix element O33 written at: O32/p3110
+Matrix element O33 written at: O33/p3110
+Matrix element O33 written at: O34/p3110
+Matrix element O44 written at: O41/p3110
+Matrix element O44 written at: O42/p3110
+Matrix element O44 written at: O43/p3110
+Matrix element O44 written at: O44/p3110
+p index: 214
+Momentum is (3, 1, 1, 1).Propagator written at path: prop/p3111
+Matrix element O11 written at: O11/p3111
+Matrix element O11 written at: O12/p3111
+Matrix element O11 written at: O13/p3111
+Matrix element O11 written at: O14/p3111
+Matrix element O22 written at: O21/p3111
+Matrix element O22 written at: O22/p3111
+Matrix element O22 written at: O23/p3111
+Matrix element O22 written at: O24/p3111
+Matrix element O33 written at: O31/p3111
+Matrix element O33 written at: O32/p3111
+Matrix element O33 written at: O33/p3111
+Matrix element O33 written at: O34/p3111
+Matrix element O44 written at: O41/p3111
+Matrix element O44 written at: O42/p3111
+Matrix element O44 written at: O43/p3111
+Matrix element O44 written at: O44/p3111
+p index: 215
+Momentum is (3, 1, 1, 2).Propagator written at path: prop/p3112
+Matrix element O11 written at: O11/p3112
+Matrix element O11 written at: O12/p3112
+Matrix element O11 written at: O13/p3112
+Matrix element O11 written at: O14/p3112
+Matrix element O22 written at: O21/p3112
+Matrix element O22 written at: O22/p3112
+Matrix element O22 written at: O23/p3112
+Matrix element O22 written at: O24/p3112
+Matrix element O33 written at: O31/p3112
+Matrix element O33 written at: O32/p3112
+Matrix element O33 written at: O33/p3112
+Matrix element O33 written at: O34/p3112
+Matrix element O44 written at: O41/p3112
+Matrix element O44 written at: O42/p3112
+Matrix element O44 written at: O43/p3112
+Matrix element O44 written at: O44/p3112
+p index: 216
+Momentum is (3, 1, 1, 3).Propagator written at path: prop/p3113
+Matrix element O11 written at: O11/p3113
+Matrix element O11 written at: O12/p3113
+Matrix element O11 written at: O13/p3113
+Matrix element O11 written at: O14/p3113
+Matrix element O22 written at: O21/p3113
+Matrix element O22 written at: O22/p3113
+Matrix element O22 written at: O23/p3113
+Matrix element O22 written at: O24/p3113
+Matrix element O33 written at: O31/p3113
+Matrix element O33 written at: O32/p3113
+Matrix element O33 written at: O33/p3113
+Matrix element O33 written at: O34/p3113
+Matrix element O44 written at: O41/p3113
+Matrix element O44 written at: O42/p3113
+Matrix element O44 written at: O43/p3113
+Matrix element O44 written at: O44/p3113
+p index: 217
+Momentum is (3, 1, 2, 0).Propagator written at path: prop/p3120
+Matrix element O11 written at: O11/p3120
+Matrix element O11 written at: O12/p3120
+Matrix element O11 written at: O13/p3120
+Matrix element O11 written at: O14/p3120
+Matrix element O22 written at: O21/p3120
+Matrix element O22 written at: O22/p3120
+Matrix element O22 written at: O23/p3120
+Matrix element O22 written at: O24/p3120
+Matrix element O33 written at: O31/p3120
+Matrix element O33 written at: O32/p3120
+Matrix element O33 written at: O33/p3120
+Matrix element O33 written at: O34/p3120
+Matrix element O44 written at: O41/p3120
+Matrix element O44 written at: O42/p3120
+Matrix element O44 written at: O43/p3120
+Matrix element O44 written at: O44/p3120
+p index: 218
+Momentum is (3, 1, 2, 1).Propagator written at path: prop/p3121
+Matrix element O11 written at: O11/p3121
+Matrix element O11 written at: O12/p3121
+Matrix element O11 written at: O13/p3121
+Matrix element O11 written at: O14/p3121
+Matrix element O22 written at: O21/p3121
+Matrix element O22 written at: O22/p3121
+Matrix element O22 written at: O23/p3121
+Matrix element O22 written at: O24/p3121
+Matrix element O33 written at: O31/p3121
+Matrix element O33 written at: O32/p3121
+Matrix element O33 written at: O33/p3121
+Matrix element O33 written at: O34/p3121
+Matrix element O44 written at: O41/p3121
+Matrix element O44 written at: O42/p3121
+Matrix element O44 written at: O43/p3121
+Matrix element O44 written at: O44/p3121
+p index: 219
+Momentum is (3, 1, 2, 2).Propagator written at path: prop/p3122
+Matrix element O11 written at: O11/p3122
+Matrix element O11 written at: O12/p3122
+Matrix element O11 written at: O13/p3122
+Matrix element O11 written at: O14/p3122
+Matrix element O22 written at: O21/p3122
+Matrix element O22 written at: O22/p3122
+Matrix element O22 written at: O23/p3122
+Matrix element O22 written at: O24/p3122
+Matrix element O33 written at: O31/p3122
+Matrix element O33 written at: O32/p3122
+Matrix element O33 written at: O33/p3122
+Matrix element O33 written at: O34/p3122
+Matrix element O44 written at: O41/p3122
+Matrix element O44 written at: O42/p3122
+Matrix element O44 written at: O43/p3122
+Matrix element O44 written at: O44/p3122
+p index: 220
+Momentum is (3, 1, 2, 3).Propagator written at path: prop/p3123
+Matrix element O11 written at: O11/p3123
+Matrix element O11 written at: O12/p3123
+Matrix element O11 written at: O13/p3123
+Matrix element O11 written at: O14/p3123
+Matrix element O22 written at: O21/p3123
+Matrix element O22 written at: O22/p3123
+Matrix element O22 written at: O23/p3123
+Matrix element O22 written at: O24/p3123
+Matrix element O33 written at: O31/p3123
+Matrix element O33 written at: O32/p3123
+Matrix element O33 written at: O33/p3123
+Matrix element O33 written at: O34/p3123
+Matrix element O44 written at: O41/p3123
+Matrix element O44 written at: O42/p3123
+Matrix element O44 written at: O43/p3123
+Matrix element O44 written at: O44/p3123
+p index: 221
+Momentum is (3, 1, 3, 0).Propagator written at path: prop/p3130
+Matrix element O11 written at: O11/p3130
+Matrix element O11 written at: O12/p3130
+Matrix element O11 written at: O13/p3130
+Matrix element O11 written at: O14/p3130
+Matrix element O22 written at: O21/p3130
+Matrix element O22 written at: O22/p3130
+Matrix element O22 written at: O23/p3130
+Matrix element O22 written at: O24/p3130
+Matrix element O33 written at: O31/p3130
+Matrix element O33 written at: O32/p3130
+Matrix element O33 written at: O33/p3130
+Matrix element O33 written at: O34/p3130
+Matrix element O44 written at: O41/p3130
+Matrix element O44 written at: O42/p3130
+Matrix element O44 written at: O43/p3130
+Matrix element O44 written at: O44/p3130
+p index: 222
+Momentum is (3, 1, 3, 1).Propagator written at path: prop/p3131
+Matrix element O11 written at: O11/p3131
+Matrix element O11 written at: O12/p3131
+Matrix element O11 written at: O13/p3131
+Matrix element O11 written at: O14/p3131
+Matrix element O22 written at: O21/p3131
+Matrix element O22 written at: O22/p3131
+Matrix element O22 written at: O23/p3131
+Matrix element O22 written at: O24/p3131
+Matrix element O33 written at: O31/p3131
+Matrix element O33 written at: O32/p3131
+Matrix element O33 written at: O33/p3131
+Matrix element O33 written at: O34/p3131
+Matrix element O44 written at: O41/p3131
+Matrix element O44 written at: O42/p3131
+Matrix element O44 written at: O43/p3131
+Matrix element O44 written at: O44/p3131
+p index: 223
+Momentum is (3, 1, 3, 2).Propagator written at path: prop/p3132
+Matrix element O11 written at: O11/p3132
+Matrix element O11 written at: O12/p3132
+Matrix element O11 written at: O13/p3132
+Matrix element O11 written at: O14/p3132
+Matrix element O22 written at: O21/p3132
+Matrix element O22 written at: O22/p3132
+Matrix element O22 written at: O23/p3132
+Matrix element O22 written at: O24/p3132
+Matrix element O33 written at: O31/p3132
+Matrix element O33 written at: O32/p3132
+Matrix element O33 written at: O33/p3132
+Matrix element O33 written at: O34/p3132
+Matrix element O44 written at: O41/p3132
+Matrix element O44 written at: O42/p3132
+Matrix element O44 written at: O43/p3132
+Matrix element O44 written at: O44/p3132
+p index: 224
+Momentum is (3, 1, 3, 3).Propagator written at path: prop/p3133
+Matrix element O11 written at: O11/p3133
+Matrix element O11 written at: O12/p3133
+Matrix element O11 written at: O13/p3133
+Matrix element O11 written at: O14/p3133
+Matrix element O22 written at: O21/p3133
+Matrix element O22 written at: O22/p3133
+Matrix element O22 written at: O23/p3133
+Matrix element O22 written at: O24/p3133
+Matrix element O33 written at: O31/p3133
+Matrix element O33 written at: O32/p3133
+Matrix element O33 written at: O33/p3133
+Matrix element O33 written at: O34/p3133
+Matrix element O44 written at: O41/p3133
+Matrix element O44 written at: O42/p3133
+Matrix element O44 written at: O43/p3133
+Matrix element O44 written at: O44/p3133
+p index: 225
+Momentum is (3, 2, 0, 0).Propagator written at path: prop/p3200
+Matrix element O11 written at: O11/p3200
+Matrix element O11 written at: O12/p3200
+Matrix element O11 written at: O13/p3200
+Matrix element O11 written at: O14/p3200
+Matrix element O22 written at: O21/p3200
+Matrix element O22 written at: O22/p3200
+Matrix element O22 written at: O23/p3200
+Matrix element O22 written at: O24/p3200
+Matrix element O33 written at: O31/p3200
+Matrix element O33 written at: O32/p3200
+Matrix element O33 written at: O33/p3200
+Matrix element O33 written at: O34/p3200
+Matrix element O44 written at: O41/p3200
+Matrix element O44 written at: O42/p3200
+Matrix element O44 written at: O43/p3200
+Matrix element O44 written at: O44/p3200
+p index: 226
+Momentum is (3, 2, 0, 1).Propagator written at path: prop/p3201
+Matrix element O11 written at: O11/p3201
+Matrix element O11 written at: O12/p3201
+Matrix element O11 written at: O13/p3201
+Matrix element O11 written at: O14/p3201
+Matrix element O22 written at: O21/p3201
+Matrix element O22 written at: O22/p3201
+Matrix element O22 written at: O23/p3201
+Matrix element O22 written at: O24/p3201
+Matrix element O33 written at: O31/p3201
+Matrix element O33 written at: O32/p3201
+Matrix element O33 written at: O33/p3201
+Matrix element O33 written at: O34/p3201
+Matrix element O44 written at: O41/p3201
+Matrix element O44 written at: O42/p3201
+Matrix element O44 written at: O43/p3201
+Matrix element O44 written at: O44/p3201
+p index: 227
+Momentum is (3, 2, 0, 2).Propagator written at path: prop/p3202
+Matrix element O11 written at: O11/p3202
+Matrix element O11 written at: O12/p3202
+Matrix element O11 written at: O13/p3202
+Matrix element O11 written at: O14/p3202
+Matrix element O22 written at: O21/p3202
+Matrix element O22 written at: O22/p3202
+Matrix element O22 written at: O23/p3202
+Matrix element O22 written at: O24/p3202
+Matrix element O33 written at: O31/p3202
+Matrix element O33 written at: O32/p3202
+Matrix element O33 written at: O33/p3202
+Matrix element O33 written at: O34/p3202
+Matrix element O44 written at: O41/p3202
+Matrix element O44 written at: O42/p3202
+Matrix element O44 written at: O43/p3202
+Matrix element O44 written at: O44/p3202
+p index: 228
+Momentum is (3, 2, 0, 3).Propagator written at path: prop/p3203
+Matrix element O11 written at: O11/p3203
+Matrix element O11 written at: O12/p3203
+Matrix element O11 written at: O13/p3203
+Matrix element O11 written at: O14/p3203
+Matrix element O22 written at: O21/p3203
+Matrix element O22 written at: O22/p3203
+Matrix element O22 written at: O23/p3203
+Matrix element O22 written at: O24/p3203
+Matrix element O33 written at: O31/p3203
+Matrix element O33 written at: O32/p3203
+Matrix element O33 written at: O33/p3203
+Matrix element O33 written at: O34/p3203
+Matrix element O44 written at: O41/p3203
+Matrix element O44 written at: O42/p3203
+Matrix element O44 written at: O43/p3203
+Matrix element O44 written at: O44/p3203
+p index: 229
+Momentum is (3, 2, 1, 0).Propagator written at path: prop/p3210
+Matrix element O11 written at: O11/p3210
+Matrix element O11 written at: O12/p3210
+Matrix element O11 written at: O13/p3210
+Matrix element O11 written at: O14/p3210
+Matrix element O22 written at: O21/p3210
+Matrix element O22 written at: O22/p3210
+Matrix element O22 written at: O23/p3210
+Matrix element O22 written at: O24/p3210
+Matrix element O33 written at: O31/p3210
+Matrix element O33 written at: O32/p3210
+Matrix element O33 written at: O33/p3210
+Matrix element O33 written at: O34/p3210
+Matrix element O44 written at: O41/p3210
+Matrix element O44 written at: O42/p3210
+Matrix element O44 written at: O43/p3210
+Matrix element O44 written at: O44/p3210
+p index: 230
+Momentum is (3, 2, 1, 1).Propagator written at path: prop/p3211
+Matrix element O11 written at: O11/p3211
+Matrix element O11 written at: O12/p3211
+Matrix element O11 written at: O13/p3211
+Matrix element O11 written at: O14/p3211
+Matrix element O22 written at: O21/p3211
+Matrix element O22 written at: O22/p3211
+Matrix element O22 written at: O23/p3211
+Matrix element O22 written at: O24/p3211
+Matrix element O33 written at: O31/p3211
+Matrix element O33 written at: O32/p3211
+Matrix element O33 written at: O33/p3211
+Matrix element O33 written at: O34/p3211
+Matrix element O44 written at: O41/p3211
+Matrix element O44 written at: O42/p3211
+Matrix element O44 written at: O43/p3211
+Matrix element O44 written at: O44/p3211
+p index: 231
+Momentum is (3, 2, 1, 2).Propagator written at path: prop/p3212
+Matrix element O11 written at: O11/p3212
+Matrix element O11 written at: O12/p3212
+Matrix element O11 written at: O13/p3212
+Matrix element O11 written at: O14/p3212
+Matrix element O22 written at: O21/p3212
+Matrix element O22 written at: O22/p3212
+Matrix element O22 written at: O23/p3212
+Matrix element O22 written at: O24/p3212
+Matrix element O33 written at: O31/p3212
+Matrix element O33 written at: O32/p3212
+Matrix element O33 written at: O33/p3212
+Matrix element O33 written at: O34/p3212
+Matrix element O44 written at: O41/p3212
+Matrix element O44 written at: O42/p3212
+Matrix element O44 written at: O43/p3212
+Matrix element O44 written at: O44/p3212
+p index: 232
+Momentum is (3, 2, 1, 3).Propagator written at path: prop/p3213
+Matrix element O11 written at: O11/p3213
+Matrix element O11 written at: O12/p3213
+Matrix element O11 written at: O13/p3213
+Matrix element O11 written at: O14/p3213
+Matrix element O22 written at: O21/p3213
+Matrix element O22 written at: O22/p3213
+Matrix element O22 written at: O23/p3213
+Matrix element O22 written at: O24/p3213
+Matrix element O33 written at: O31/p3213
+Matrix element O33 written at: O32/p3213
+Matrix element O33 written at: O33/p3213
+Matrix element O33 written at: O34/p3213
+Matrix element O44 written at: O41/p3213
+Matrix element O44 written at: O42/p3213
+Matrix element O44 written at: O43/p3213
+Matrix element O44 written at: O44/p3213
+p index: 233
+Momentum is (3, 2, 2, 0).Propagator written at path: prop/p3220
+Matrix element O11 written at: O11/p3220
+Matrix element O11 written at: O12/p3220
+Matrix element O11 written at: O13/p3220
+Matrix element O11 written at: O14/p3220
+Matrix element O22 written at: O21/p3220
+Matrix element O22 written at: O22/p3220
+Matrix element O22 written at: O23/p3220
+Matrix element O22 written at: O24/p3220
+Matrix element O33 written at: O31/p3220
+Matrix element O33 written at: O32/p3220
+Matrix element O33 written at: O33/p3220
+Matrix element O33 written at: O34/p3220
+Matrix element O44 written at: O41/p3220
+Matrix element O44 written at: O42/p3220
+Matrix element O44 written at: O43/p3220
+Matrix element O44 written at: O44/p3220
+p index: 234
+Momentum is (3, 2, 2, 1).Propagator written at path: prop/p3221
+Matrix element O11 written at: O11/p3221
+Matrix element O11 written at: O12/p3221
+Matrix element O11 written at: O13/p3221
+Matrix element O11 written at: O14/p3221
+Matrix element O22 written at: O21/p3221
+Matrix element O22 written at: O22/p3221
+Matrix element O22 written at: O23/p3221
+Matrix element O22 written at: O24/p3221
+Matrix element O33 written at: O31/p3221
+Matrix element O33 written at: O32/p3221
+Matrix element O33 written at: O33/p3221
+Matrix element O33 written at: O34/p3221
+Matrix element O44 written at: O41/p3221
+Matrix element O44 written at: O42/p3221
+Matrix element O44 written at: O43/p3221
+Matrix element O44 written at: O44/p3221
+p index: 235
+Momentum is (3, 2, 2, 2).Propagator written at path: prop/p3222
+Matrix element O11 written at: O11/p3222
+Matrix element O11 written at: O12/p3222
+Matrix element O11 written at: O13/p3222
+Matrix element O11 written at: O14/p3222
+Matrix element O22 written at: O21/p3222
+Matrix element O22 written at: O22/p3222
+Matrix element O22 written at: O23/p3222
+Matrix element O22 written at: O24/p3222
+Matrix element O33 written at: O31/p3222
+Matrix element O33 written at: O32/p3222
+Matrix element O33 written at: O33/p3222
+Matrix element O33 written at: O34/p3222
+Matrix element O44 written at: O41/p3222
+Matrix element O44 written at: O42/p3222
+Matrix element O44 written at: O43/p3222
+Matrix element O44 written at: O44/p3222
+p index: 236
+Momentum is (3, 2, 2, 3).Propagator written at path: prop/p3223
+Matrix element O11 written at: O11/p3223
+Matrix element O11 written at: O12/p3223
+Matrix element O11 written at: O13/p3223
+Matrix element O11 written at: O14/p3223
+Matrix element O22 written at: O21/p3223
+Matrix element O22 written at: O22/p3223
+Matrix element O22 written at: O23/p3223
+Matrix element O22 written at: O24/p3223
+Matrix element O33 written at: O31/p3223
+Matrix element O33 written at: O32/p3223
+Matrix element O33 written at: O33/p3223
+Matrix element O33 written at: O34/p3223
+Matrix element O44 written at: O41/p3223
+Matrix element O44 written at: O42/p3223
+Matrix element O44 written at: O43/p3223
+Matrix element O44 written at: O44/p3223
+p index: 237
+Momentum is (3, 2, 3, 0).Propagator written at path: prop/p3230
+Matrix element O11 written at: O11/p3230
+Matrix element O11 written at: O12/p3230
+Matrix element O11 written at: O13/p3230
+Matrix element O11 written at: O14/p3230
+Matrix element O22 written at: O21/p3230
+Matrix element O22 written at: O22/p3230
+Matrix element O22 written at: O23/p3230
+Matrix element O22 written at: O24/p3230
+Matrix element O33 written at: O31/p3230
+Matrix element O33 written at: O32/p3230
+Matrix element O33 written at: O33/p3230
+Matrix element O33 written at: O34/p3230
+Matrix element O44 written at: O41/p3230
+Matrix element O44 written at: O42/p3230
+Matrix element O44 written at: O43/p3230
+Matrix element O44 written at: O44/p3230
+p index: 238
+Momentum is (3, 2, 3, 1).Propagator written at path: prop/p3231
+Matrix element O11 written at: O11/p3231
+Matrix element O11 written at: O12/p3231
+Matrix element O11 written at: O13/p3231
+Matrix element O11 written at: O14/p3231
+Matrix element O22 written at: O21/p3231
+Matrix element O22 written at: O22/p3231
+Matrix element O22 written at: O23/p3231
+Matrix element O22 written at: O24/p3231
+Matrix element O33 written at: O31/p3231
+Matrix element O33 written at: O32/p3231
+Matrix element O33 written at: O33/p3231
+Matrix element O33 written at: O34/p3231
+Matrix element O44 written at: O41/p3231
+Matrix element O44 written at: O42/p3231
+Matrix element O44 written at: O43/p3231
+Matrix element O44 written at: O44/p3231
+p index: 239
+Momentum is (3, 2, 3, 2).Propagator written at path: prop/p3232
+Matrix element O11 written at: O11/p3232
+Matrix element O11 written at: O12/p3232
+Matrix element O11 written at: O13/p3232
+Matrix element O11 written at: O14/p3232
+Matrix element O22 written at: O21/p3232
+Matrix element O22 written at: O22/p3232
+Matrix element O22 written at: O23/p3232
+Matrix element O22 written at: O24/p3232
+Matrix element O33 written at: O31/p3232
+Matrix element O33 written at: O32/p3232
+Matrix element O33 written at: O33/p3232
+Matrix element O33 written at: O34/p3232
+Matrix element O44 written at: O41/p3232
+Matrix element O44 written at: O42/p3232
+Matrix element O44 written at: O43/p3232
+Matrix element O44 written at: O44/p3232
+p index: 240
+Momentum is (3, 2, 3, 3).Propagator written at path: prop/p3233
+Matrix element O11 written at: O11/p3233
+Matrix element O11 written at: O12/p3233
+Matrix element O11 written at: O13/p3233
+Matrix element O11 written at: O14/p3233
+Matrix element O22 written at: O21/p3233
+Matrix element O22 written at: O22/p3233
+Matrix element O22 written at: O23/p3233
+Matrix element O22 written at: O24/p3233
+Matrix element O33 written at: O31/p3233
+Matrix element O33 written at: O32/p3233
+Matrix element O33 written at: O33/p3233
+Matrix element O33 written at: O34/p3233
+Matrix element O44 written at: O41/p3233
+Matrix element O44 written at: O42/p3233
+Matrix element O44 written at: O43/p3233
+Matrix element O44 written at: O44/p3233
+p index: 241
+Momentum is (3, 3, 0, 0).Propagator written at path: prop/p3300
+Matrix element O11 written at: O11/p3300
+Matrix element O11 written at: O12/p3300
+Matrix element O11 written at: O13/p3300
+Matrix element O11 written at: O14/p3300
+Matrix element O22 written at: O21/p3300
+Matrix element O22 written at: O22/p3300
+Matrix element O22 written at: O23/p3300
+Matrix element O22 written at: O24/p3300
+Matrix element O33 written at: O31/p3300
+Matrix element O33 written at: O32/p3300
+Matrix element O33 written at: O33/p3300
+Matrix element O33 written at: O34/p3300
+Matrix element O44 written at: O41/p3300
+Matrix element O44 written at: O42/p3300
+Matrix element O44 written at: O43/p3300
+Matrix element O44 written at: O44/p3300
+p index: 242
+Momentum is (3, 3, 0, 1).Propagator written at path: prop/p3301
+Matrix element O11 written at: O11/p3301
+Matrix element O11 written at: O12/p3301
+Matrix element O11 written at: O13/p3301
+Matrix element O11 written at: O14/p3301
+Matrix element O22 written at: O21/p3301
+Matrix element O22 written at: O22/p3301
+Matrix element O22 written at: O23/p3301
+Matrix element O22 written at: O24/p3301
+Matrix element O33 written at: O31/p3301
+Matrix element O33 written at: O32/p3301
+Matrix element O33 written at: O33/p3301
+Matrix element O33 written at: O34/p3301
+Matrix element O44 written at: O41/p3301
+Matrix element O44 written at: O42/p3301
+Matrix element O44 written at: O43/p3301
+Matrix element O44 written at: O44/p3301
+p index: 243
+Momentum is (3, 3, 0, 2).Propagator written at path: prop/p3302
+Matrix element O11 written at: O11/p3302
+Matrix element O11 written at: O12/p3302
+Matrix element O11 written at: O13/p3302
+Matrix element O11 written at: O14/p3302
+Matrix element O22 written at: O21/p3302
+Matrix element O22 written at: O22/p3302
+Matrix element O22 written at: O23/p3302
+Matrix element O22 written at: O24/p3302
+Matrix element O33 written at: O31/p3302
+Matrix element O33 written at: O32/p3302
+Matrix element O33 written at: O33/p3302
+Matrix element O33 written at: O34/p3302
+Matrix element O44 written at: O41/p3302
+Matrix element O44 written at: O42/p3302
+Matrix element O44 written at: O43/p3302
+Matrix element O44 written at: O44/p3302
+p index: 244
+Momentum is (3, 3, 0, 3).Propagator written at path: prop/p3303
+Matrix element O11 written at: O11/p3303
+Matrix element O11 written at: O12/p3303
+Matrix element O11 written at: O13/p3303
+Matrix element O11 written at: O14/p3303
+Matrix element O22 written at: O21/p3303
+Matrix element O22 written at: O22/p3303
+Matrix element O22 written at: O23/p3303
+Matrix element O22 written at: O24/p3303
+Matrix element O33 written at: O31/p3303
+Matrix element O33 written at: O32/p3303
+Matrix element O33 written at: O33/p3303
+Matrix element O33 written at: O34/p3303
+Matrix element O44 written at: O41/p3303
+Matrix element O44 written at: O42/p3303
+Matrix element O44 written at: O43/p3303
+Matrix element O44 written at: O44/p3303
+p index: 245
+Momentum is (3, 3, 1, 0).Propagator written at path: prop/p3310
+Matrix element O11 written at: O11/p3310
+Matrix element O11 written at: O12/p3310
+Matrix element O11 written at: O13/p3310
+Matrix element O11 written at: O14/p3310
+Matrix element O22 written at: O21/p3310
+Matrix element O22 written at: O22/p3310
+Matrix element O22 written at: O23/p3310
+Matrix element O22 written at: O24/p3310
+Matrix element O33 written at: O31/p3310
+Matrix element O33 written at: O32/p3310
+Matrix element O33 written at: O33/p3310
+Matrix element O33 written at: O34/p3310
+Matrix element O44 written at: O41/p3310
+Matrix element O44 written at: O42/p3310
+Matrix element O44 written at: O43/p3310
+Matrix element O44 written at: O44/p3310
+p index: 246
+Momentum is (3, 3, 1, 1).Propagator written at path: prop/p3311
+Matrix element O11 written at: O11/p3311
+Matrix element O11 written at: O12/p3311
+Matrix element O11 written at: O13/p3311
+Matrix element O11 written at: O14/p3311
+Matrix element O22 written at: O21/p3311
+Matrix element O22 written at: O22/p3311
+Matrix element O22 written at: O23/p3311
+Matrix element O22 written at: O24/p3311
+Matrix element O33 written at: O31/p3311
+Matrix element O33 written at: O32/p3311
+Matrix element O33 written at: O33/p3311
+Matrix element O33 written at: O34/p3311
+Matrix element O44 written at: O41/p3311
+Matrix element O44 written at: O42/p3311
+Matrix element O44 written at: O43/p3311
+Matrix element O44 written at: O44/p3311
+p index: 247
+Momentum is (3, 3, 1, 2).Propagator written at path: prop/p3312
+Matrix element O11 written at: O11/p3312
+Matrix element O11 written at: O12/p3312
+Matrix element O11 written at: O13/p3312
+Matrix element O11 written at: O14/p3312
+Matrix element O22 written at: O21/p3312
+Matrix element O22 written at: O22/p3312
+Matrix element O22 written at: O23/p3312
+Matrix element O22 written at: O24/p3312
+Matrix element O33 written at: O31/p3312
+Matrix element O33 written at: O32/p3312
+Matrix element O33 written at: O33/p3312
+Matrix element O33 written at: O34/p3312
+Matrix element O44 written at: O41/p3312
+Matrix element O44 written at: O42/p3312
+Matrix element O44 written at: O43/p3312
+Matrix element O44 written at: O44/p3312
+p index: 248
+Momentum is (3, 3, 1, 3).Propagator written at path: prop/p3313
+Matrix element O11 written at: O11/p3313
+Matrix element O11 written at: O12/p3313
+Matrix element O11 written at: O13/p3313
+Matrix element O11 written at: O14/p3313
+Matrix element O22 written at: O21/p3313
+Matrix element O22 written at: O22/p3313
+Matrix element O22 written at: O23/p3313
+Matrix element O22 written at: O24/p3313
+Matrix element O33 written at: O31/p3313
+Matrix element O33 written at: O32/p3313
+Matrix element O33 written at: O33/p3313
+Matrix element O33 written at: O34/p3313
+Matrix element O44 written at: O41/p3313
+Matrix element O44 written at: O42/p3313
+Matrix element O44 written at: O43/p3313
+Matrix element O44 written at: O44/p3313
+p index: 249
+Momentum is (3, 3, 2, 0).Propagator written at path: prop/p3320
+Matrix element O11 written at: O11/p3320
+Matrix element O11 written at: O12/p3320
+Matrix element O11 written at: O13/p3320
+Matrix element O11 written at: O14/p3320
+Matrix element O22 written at: O21/p3320
+Matrix element O22 written at: O22/p3320
+Matrix element O22 written at: O23/p3320
+Matrix element O22 written at: O24/p3320
+Matrix element O33 written at: O31/p3320
+Matrix element O33 written at: O32/p3320
+Matrix element O33 written at: O33/p3320
+Matrix element O33 written at: O34/p3320
+Matrix element O44 written at: O41/p3320
+Matrix element O44 written at: O42/p3320
+Matrix element O44 written at: O43/p3320
+Matrix element O44 written at: O44/p3320
+p index: 250
+Momentum is (3, 3, 2, 1).Propagator written at path: prop/p3321
+Matrix element O11 written at: O11/p3321
+Matrix element O11 written at: O12/p3321
+Matrix element O11 written at: O13/p3321
+Matrix element O11 written at: O14/p3321
+Matrix element O22 written at: O21/p3321
+Matrix element O22 written at: O22/p3321
+Matrix element O22 written at: O23/p3321
+Matrix element O22 written at: O24/p3321
+Matrix element O33 written at: O31/p3321
+Matrix element O33 written at: O32/p3321
+Matrix element O33 written at: O33/p3321
+Matrix element O33 written at: O34/p3321
+Matrix element O44 written at: O41/p3321
+Matrix element O44 written at: O42/p3321
+Matrix element O44 written at: O43/p3321
+Matrix element O44 written at: O44/p3321
+p index: 251
+Momentum is (3, 3, 2, 2).Propagator written at path: prop/p3322
+Matrix element O11 written at: O11/p3322
+Matrix element O11 written at: O12/p3322
+Matrix element O11 written at: O13/p3322
+Matrix element O11 written at: O14/p3322
+Matrix element O22 written at: O21/p3322
+Matrix element O22 written at: O22/p3322
+Matrix element O22 written at: O23/p3322
+Matrix element O22 written at: O24/p3322
+Matrix element O33 written at: O31/p3322
+Matrix element O33 written at: O32/p3322
+Matrix element O33 written at: O33/p3322
+Matrix element O33 written at: O34/p3322
+Matrix element O44 written at: O41/p3322
+Matrix element O44 written at: O42/p3322
+Matrix element O44 written at: O43/p3322
+Matrix element O44 written at: O44/p3322
+p index: 252
+Momentum is (3, 3, 2, 3).Propagator written at path: prop/p3323
+Matrix element O11 written at: O11/p3323
+Matrix element O11 written at: O12/p3323
+Matrix element O11 written at: O13/p3323
+Matrix element O11 written at: O14/p3323
+Matrix element O22 written at: O21/p3323
+Matrix element O22 written at: O22/p3323
+Matrix element O22 written at: O23/p3323
+Matrix element O22 written at: O24/p3323
+Matrix element O33 written at: O31/p3323
+Matrix element O33 written at: O32/p3323
+Matrix element O33 written at: O33/p3323
+Matrix element O33 written at: O34/p3323
+Matrix element O44 written at: O41/p3323
+Matrix element O44 written at: O42/p3323
+Matrix element O44 written at: O43/p3323
+Matrix element O44 written at: O44/p3323
+p index: 253
+Momentum is (3, 3, 3, 0).Propagator written at path: prop/p3330
+Matrix element O11 written at: O11/p3330
+Matrix element O11 written at: O12/p3330
+Matrix element O11 written at: O13/p3330
+Matrix element O11 written at: O14/p3330
+Matrix element O22 written at: O21/p3330
+Matrix element O22 written at: O22/p3330
+Matrix element O22 written at: O23/p3330
+Matrix element O22 written at: O24/p3330
+Matrix element O33 written at: O31/p3330
+Matrix element O33 written at: O32/p3330
+Matrix element O33 written at: O33/p3330
+Matrix element O33 written at: O34/p3330
+Matrix element O44 written at: O41/p3330
+Matrix element O44 written at: O42/p3330
+Matrix element O44 written at: O43/p3330
+Matrix element O44 written at: O44/p3330
+p index: 254
+Momentum is (3, 3, 3, 1).Propagator written at path: prop/p3331
+Matrix element O11 written at: O11/p3331
+Matrix element O11 written at: O12/p3331
+Matrix element O11 written at: O13/p3331
+Matrix element O11 written at: O14/p3331
+Matrix element O22 written at: O21/p3331
+Matrix element O22 written at: O22/p3331
+Matrix element O22 written at: O23/p3331
+Matrix element O22 written at: O24/p3331
+Matrix element O33 written at: O31/p3331
+Matrix element O33 written at: O32/p3331
+Matrix element O33 written at: O33/p3331
+Matrix element O33 written at: O34/p3331
+Matrix element O44 written at: O41/p3331
+Matrix element O44 written at: O42/p3331
+Matrix element O44 written at: O43/p3331
+Matrix element O44 written at: O44/p3331
+p index: 255
+Momentum is (3, 3, 3, 2).Propagator written at path: prop/p3332
+Matrix element O11 written at: O11/p3332
+Matrix element O11 written at: O12/p3332
+Matrix element O11 written at: O13/p3332
+Matrix element O11 written at: O14/p3332
+Matrix element O22 written at: O21/p3332
+Matrix element O22 written at: O22/p3332
+Matrix element O22 written at: O23/p3332
+Matrix element O22 written at: O24/p3332
+Matrix element O33 written at: O31/p3332
+Matrix element O33 written at: O32/p3332
+Matrix element O33 written at: O33/p3332
+Matrix element O33 written at: O34/p3332
+Matrix element O44 written at: O41/p3332
+Matrix element O44 written at: O42/p3332
+Matrix element O44 written at: O43/p3332
+Matrix element O44 written at: O44/p3332
+p index: 256
+Momentum is (3, 3, 3, 3).Propagator written at path: prop/p3333
+Matrix element O11 written at: O11/p3333
+Matrix element O11 written at: O12/p3333
+Matrix element O11 written at: O13/p3333
+Matrix element O11 written at: O14/p3333
+Matrix element O22 written at: O21/p3333
+Matrix element O22 written at: O22/p3333
+Matrix element O22 written at: O23/p3333
+Matrix element O22 written at: O24/p3333
+Matrix element O33 written at: O31/p3333
+Matrix element O33 written at: O32/p3333
+Matrix element O33 written at: O33/p3333
+Matrix element O33 written at: O34/p3333
+Matrix element O44 written at: O41/p3333
+Matrix element O44 written at: O42/p3333
+Matrix element O44 written at: O43/p3333
+Matrix element O44 written at: O44/p3333

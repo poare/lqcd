@@ -1,0 +1,130 @@
++ cd /home/poare/lqcd/mosaic
++ bash
++ module load openmpi/3.1.5
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load openmpi/3.1.5
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5;' export '_LMFILES_;
+MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi;' export 'MODULES_LMALTNAME;
+MODULES_LMALTNAME_modshare=openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1;' export 'MODULES_LMCONFLICT_modshare;
+OPENMPI_TOP=/opt/software/openmpi-3.1.5;' export 'OPENMPI_TOP;
+LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5
+++ export _LMFILES_
+++ MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi'
+++ export MODULES_LMALTNAME
+++ MODULES_LMALTNAME_modshare='openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1'
+++ export MODULES_LMCONFLICT_modshare
+++ OPENMPI_TOP=/opt/software/openmpi-3.1.5
+++ export OPENMPI_TOP
+++ LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ module load qlua/20200107-gpu1080
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load qlua/20200107-gpu1080
++ eval '_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/qlua/20200107-gpu1080:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1;' export '_LMFILES__modshare;
+LOADEDMODULES_modshare=qlua/20200107-gpu1080:1:slurm/19.05.4.1:1:openmpi/3.1.5:1;' export 'LOADEDMODULES_modshare;
+MODULES_LMCONFLICT_modshare=qlua/20200107-gpu1080\&qlua:1:slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1;' export 'MODULES_LMCONFLICT_modshare;
+MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107-gpu1080/share/man;' export 'MANPATH;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107-gpu1080/bin;' export 'PATH;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107-gpu1080;' export '_LMFILES_;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107-gpu1080;' export 'LOADEDMODULES;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi:qlua/20200107-gpu1080\&qlua;' export 'MODULES_LMCONFLICT;
+MANPATH_modshare=:1:/opt/software/qlua-20200107-gpu1080/share/man:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/opt/software/qlua-20200107-gpu1080/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/qlua/20200107-gpu1080:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1
+++ export _LMFILES__modshare
+++ LOADEDMODULES_modshare=qlua/20200107-gpu1080:1:slurm/19.05.4.1:1:openmpi/3.1.5:1
+++ export LOADEDMODULES_modshare
+++ MODULES_LMCONFLICT_modshare='qlua/20200107-gpu1080&qlua:1:slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1'
+++ export MODULES_LMCONFLICT_modshare
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107-gpu1080/share/man
+++ export MANPATH
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107-gpu1080/bin
+++ export PATH
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107-gpu1080
+++ export _LMFILES_
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107-gpu1080
+++ export LOADEDMODULES
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi:qlua/20200107-gpu1080&qlua'
+++ export MODULES_LMCONFLICT
+++ MANPATH_modshare=:1:/opt/software/qlua-20200107-gpu1080/share/man:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/opt/software/qlua-20200107-gpu1080/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ EXE=qlua
++ cfgpath=/data/d10b/ensembles/isoClover/
++ cfgbase=cl3_16_48_b6p1_m0p2450
++ gf=true
++ gpu=true
++ home=/home/poare/lqcd/gq_mixing
++ logs=/home/poare/lqcd/gq_mixing/logs/cl3_16_48_b6p1_m0p2450_27838
++ output=/data/d10b/users/poare/gq_mixing/meas/cl3_16_48_b6p1_m0p2450_27838
++ mkdir /home/poare/lqcd/gq_mixing/logs/cl3_16_48_b6p1_m0p2450_27838
++ mkdir /home/poare/lqcd/gq_mixing/logs/cl3_16_48_b6p1_m0p2450_27838/no_output
++ mkdir /data/d10b/users/poare/gq_mixing/meas/cl3_16_48_b6p1_m0p2450_27838
++ parameters='jobid = 27838 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gf=true gpu=true'
++ export OMP_NUM_THREADS=6
++ OMP_NUM_THREADS=6
+++ seq 1000 10 1010
++ for cfg in `seq 1000 10 1010`
++ mpirun -np 4 qlua -e 'jobid = 27838 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gf=true gpu=true cfgnum = 1000' /home/poare/lqcd/gq_mixing/gq_mixing.qlua
++ for cfg in `seq 1000 10 1010`
++ mpirun -np 4 qlua -e 'jobid = 27838 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gf=true gpu=true cfgnum = 1010' /home/poare/lqcd/gq_mixing/gq_mixing.qlua
