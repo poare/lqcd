@@ -1,0 +1,27 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=field_strength
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=devel
+
+set -x
+
+cd /home/poare/lqcd/mosaic
+
+bash
+module load openmpi
+module load qlua
+
+EXE=qlua
+
+home=/home/poare/lqcd/qlua_scripts
+logs=${home}/logs
+
+mkdir ${logs}
+
+export OMP_NUM_THREADS=6
+
+mpirun -np 4 $EXE -e "jobid = ${SLURM_JOB_ID}" ${home}/field_strength.qlua > ${logs}/log${SLURM_JOB_ID}.txt

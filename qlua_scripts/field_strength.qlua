@@ -1,0 +1,179 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+require "lib/toAdjoint3"
+if gpu then
+  require "lib/quda"
+end
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+
+--[[
+  Pij = trace(U_\mu\nu), U_\mu\nu = U_\mu(n) U_\nu(n + \mu) U_\mu(n + \nu)^\dagger U_\nu(n)^\dagger.
+  If i or j is negative, then use U_{-\mu} =U__\mu(n - \mu)^\dagger. NOTE THIS IS 1-INDEXED, SO
+  i = 1 is x, i = 2 is y, i = 3 is z, and i = 4 is t. This is to allow for negative values of the
+  direction. This works with U[i], since it is 1-indexed, but shift is 0-indexed, so subtract 1
+]]
+function plaq(U, i, j)
+  local Pij
+  if i > 0 and j > 0 then
+    local U1 = U[j]:shift(i - 1, "from_forward")    -- shift is 0-indexed
+    local U2 = U[i]:shift(j - 1, "from_forward")
+    Pij = U[i] * U1 * U2:adjoin() * U[j]:adjoin()
+  elseif i < 0 and j > 0 then
+    local ii = -i
+    local U1 = U[ii]:shift(ii - 1, "from_backward")
+    local U2 = U[j]:shift(ii - 1, "from_backward")
+    local U3 = U[ii]:shift(ii - 1, "from_backward"):shift(j - 1, "from_forward")
+    Pij = U1:adjoin() *  U2 * U3 * U[j]:adjoin()
+  elseif i > 0 and j < 0 then
+    local jj = -j
+    local U1 = U[jj]:shift(i - 1, "from_forward"):shift(jj - 1, "from_backward")
+    local U2 = U[i]:shift(jj - 1, "from_backward")
+    local U3 = U[jj]:shift(jj - 1, "from_backward")
+    Pij = U[i] * U1:adjoin() * U2:adjoin() * U3
+  else  -- then i and j are both negative
+    local ii = -i
+    local jj = -j
+    local U1 = U[ii]:shift(ii - 1, "from_backward")
+    local U2 = U[jj]:shift(ii - 1, "from_backward"):shift(jj - 1, "from_backward")
+    local U3 = U[ii]:shift(ii - 1, "from_backward"):shift(jj - 1, "from_backward")
+    local U4 = U[jj]:shift(jj - 1, "from_backward")
+    Pij = U1:adjoin() * U2:adjoin() * U3 * U4
+  end
+  return Pij
+end
+
+function getFmunu(L, U, Nc)
+  local F = {}
+  for mu = 1, #L do
+    F[mu] = {}
+    for nu = 1, #L do
+      if mu < nu then
+        local Qmunu = plaq(U, mu, nu) + plaq(U, nu, -mu) + plaq(U, -mu, -nu) + plaq(U, -nu, mu)
+        local Qnumu = plaq(U, nu, mu) + plaq(U, mu, -nu) + plaq(U, -nu, -mu) + plaq(U, -mu, nu)
+        F[mu][nu] = (complex(0, -1) / 8) * (Qmunu - Qnumu)    -- mu, nu = 1, 2, 3, 4. Let's 1 index F_munu
+      elseif mu == nu then
+        --local tmp = qcd.ColorMatrixN(Nc)
+        --F[mu][nu] = L:ColorMatrix(tmp)
+        F[mu][nu] = L:ColorMatrix(complex(0, 0))
+      else
+        F[mu][nu] = - F[nu][mu]
+      end
+    end
+  end
+  return F
+end
+
+function getFmunuComponents(L, U, Nc)
+  local F = getFmunu(L, U, Nc)
+  local lambdaSU3 = fundMatrices(L, Nc)    -- Gell-mann matrices, t^a = (1/2) * lambda^a
+  local Fcomps = {}
+  for mu = 1, #L do
+    Fcomps[mu] = {}
+    for nu = 1, #L do
+      Fcomps[mu][nu] = {}
+      for a = 1, Nc * Nc - 1 do
+        Fcomps[mu][nu][a] = (F[mu][nu] * lambdaSU3[a]):trace()    -- F_{mu nu}^a = 2 * tr{F_{mu nu} t^a} = tr{F_{mu nu} lambda^a}
+      end
+    end
+  end
+  return Fcomps
+end
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Read in input from bash script.
+if jobid and cfgpath and cfgbase then
+    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
+else
+    print("No jobid, cfgpath, cfgbase entered.")
+end
+
+-- Set parameters
+Lx = 4
+Lt = 8
+
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+L_mom = qcd.lattice{Lt}
+
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+-- Paths to output file.
+out_folder = string.format("/data/d10b/users/poare/misc")
+filename = string.format("%s/field_strength%d.h5", out_folder, jobid)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+local csw = 1.2493
+--local csw = 1    -- uncomment after testing is done
+local bcs = {1, 1, 1, -1}
+
+local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
+print("Reading gauge file at: %s\n", gauge_file)
+
+U = load_conf(L, gauge_file)
+-- project gauge configuration onto SU(3)
+for mu = 0, #L-1 do U[mu + 1] = group.toGroup(U[mu + 1]) end
+
+-- Open file writer
+local hdf5params = { method = "phdf5" }
+local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+print("Gauge file read. Computing NPR.")
+
+F = getFmunuComponents(L, U, Nc)
+
+bbose = {1, 1, 1, 1}
+local FTargbose = L:Real(0)
+for mu = 0, #L - 1 do
+  FTargbose = FTargbose + L:Real(L:pcoord(mu)) * bbose[mu + 1] * 2 * math.pi / L[mu]
+end
+local FTbose = FTargbose:expi()
+
+bferm = {1, 1, 1, -1}
+local FTargferm = L:Real(0)
+for mu = 0, #L - 1 do
+  FTargferm = FTargferm + L:Real(L:pcoord(mu)) * bferm[mu + 1] * 2 * math.pi / L[mu]
+end
+local FTferm = FTargferm:expi()
+
+for a = 1, Nc * Nc - 1 do
+  for mu = 1, #L do
+    for nu = 1, #L do
+      local Fmunua = F[mu][nu][a]
+      local F_zero = Fmunua:sum()    -- also try with bcs = {1, 1, 1, -1}
+      local F_ferm = (Fmunua * FTferm):sum()
+      local F_bose = (Fmunua * FTbose):sum()
+      local path_zero = string.format("bcs_zero/F%d%d%d", mu, nu, a)
+      local path_ferm = string.format("bcs_ferm/F%d%d%d", mu, nu, a)
+      local path_bose = string.format("bcs_bose/F%d%d%d", mu, nu, a)
+      h5_force_write(writer, path_zero, F_zero)
+      h5_force_write(writer, path_ferm, F_ferm)
+      h5_force_write(writer, path_bose, F_bose)
+      printf("Matrix F^%d%d%d elements written at: %s, %s, %s\n", mu, nu, a, path_zero, path_ferm, path_bose)
+    end
+  end
+end
+
+writer:close()
+
+if gpu then
+    qcd.quda.fini()
+end
