@@ -105,8 +105,8 @@ end
 
 --[[
   Pij = trace(U_\mu\nu), U_\mu\nu = U_\mu(n) U_\nu(n + \mu) U_\mu(n + \nu)^\dagger U_\nu(n)^\dagger.
-  If i or j is negative, then use U_{-\mu} =U__\mu(n - \mu)^\dagger. NOTE THIS IS 1-INDEXED, SO 
-  i = 1 is x, i = 2 is y, i = 3 is z, and i = 4 is t. This is to allow for negative values of the 
+  If i or j is negative, then use U_{-\mu} =U__\mu(n - \mu)^\dagger. NOTE THIS IS 1-INDEXED, SO
+  i = 1 is x, i = 2 is y, i = 3 is z, and i = 4 is t. This is to allow for negative values of the
   direction. This works with U[i], since it is 1-indexed, but shift is 0-indexed, so subtract 1
 ]]
 function plaq(U, i, j)

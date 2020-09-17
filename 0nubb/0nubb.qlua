@@ -1,0 +1,392 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+if gpu then
+  require "lib/quda"
+end
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+-- Prints a qcd.DiracPropagator object
+function show_propagator(name, m)
+    local nc = m:colors()
+    for ci = 0, nc - 1 do
+    for cj = 0, nc - 1 do
+        for si = 0, qcd.Ns - 1 do
+            printf("%s[%d,%d,%d,.] ", name, ci,cj,si)
+            for sj = 0, qcd.Ns - 1 do
+              local zv = m[{c=ci,d=si}]
+              local z = zv[{c=cj,d=sj}]
+              printf("  [%1.12e %1.12e]", z:real(), z:imag())
+            end
+            printf("\n")
+          end
+        end
+      end
+      printf("\n")
+    end
+
+function compute_Zq_momsource(L, U, ferm_prop, p_list, hypervolume, group, clover, writer, Nc)
+  local bvec = {0,0,0,0.5}
+  print("Computing through sink.")
+
+  for pidx = 1, #p_list do
+    printf("p index: %d\n", pidx)
+    local p = p_list[pidx]
+    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
+    local FTarg = L:Real(0)
+    for mu = 0, #L - 1 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+    end
+    local FT = FTarg:expi()
+
+    -- Compute a source of e^{-ipx}
+    local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
+    local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
+    local mom4_prop = (FT * prop):sum()
+    mom4_prop = (1 / hypervolume) * mom4_prop
+
+    local prop_path = string.format("prop_sink/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    h5_force_write(writer, prop_path, mom4_prop)
+    printf("Propagator written at path: %s\n", prop_path)
+  end
+end
+
+--[[
+ For each momenta pair (k1, k2), computes (for q = k2 - k1):
+ 1. Mom-projected propagator S(q)
+ 2. Three point function for vector operator GV = gamma{mu = mu}
+ 3. Three point function for axial operator GA = gamma{mu = mu} * gamma{mu = 5}
+ 4. Three point function for operators O1, O2, O3, O1', O2' used in 0nubb
+]]
+function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer, gammaList)
+  local bvec = {0,0,0,0.5}
+  print("Computing through sink.")
+
+  for kidx = 1, #k1_list do
+    printf("p index: %d\n", kidx)
+    local k1 = k1_list[kidx]
+    local k2 = k2_list[kidx]
+    local q = {}
+    for mu = 0, #L - 1 do
+        q[mu] = k2[mu] - k1[mu]
+      end
+    printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
+              k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
+    local qFTarg = L:Real(0)
+    local qFT2arg = L:Real(0)    -- TODO figure out BCs: can we just take qFT^2, or do we need to use 2q + bvec in argument?
+    for mu = 0, #L - 1 do
+      qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      qFT2arg = qFT2arg + L:Real(L:pcoord(mu)) * (2 * q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+    end
+    local qFT = qFTarg:expi()
+    local qFT2 = qFT2arg:expi()
+
+    -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
+    local k1_path = string.format("moms/k1/q%d%d%d%d", k1[1], k1[2], k1[3], k1[4])
+    local k2_path = string.format("moms/k2/q%d%d%d%d", k2[1], k2[2], k2[3], k2[4])
+    h5_force_write(writer, k1_path, k1)
+    h5_force_write(writer, k2_path, k2)
+
+    local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
+    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
+    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+
+    -- COMPUTE PROPAGATORS
+    local S_k1 = compute_propagator(U, ferm_prop, srck1)
+    local S_k2 = compute_propagator(U, ferm_prop, srck2)
+    local S_q = compute_propagator(U, ferm_prop, srcq)
+
+    local mom4_prop_q = (qFT * S_q):sum()
+    local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
+
+    -- Write momentum projected propagator to file
+    local prop_path = string.format("prop/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, prop_path, mom4_prop_q)
+    printf("Propagator written at path: %s\n", prop_path)
+
+    -- Vector and axial currents.
+    for mu = 0, #L - 1 do
+      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum()
+      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum()
+      local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
+      local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
+      h5_force_write(writer, op_path_V, GV)
+      h5_force_write(writer, op_path_A, GA)
+      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
+      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
+    end
+
+    -- Three point functions for 0nubb operators. Generate A_\Gamma for each gamma.
+    --[[local Nc = S_k2:colors()
+    local A = {}
+    for idx = 1, #gammaList do
+      A[idx] = {}
+      local gammaProp = gammaList[idx] * S_k2
+      for a = 1, Nc do
+        A[idx][a] = {}
+        for b = 1, Nc do
+          A[idx][a][b] = {}
+          for c = 1, Nc do
+            A[idx][a][b][c] = {}
+            for d = 1, Nc do
+              -- TODO figure out how to multiply just the spin parts of a propagator.
+              A[idx][a][b][c][d] = antiprop_k1[{a=a, b=b}] * gammaProp[{a=c, b=d}]
+            end
+          end
+        end
+      end
+    end
+    ]]
+    local Nc = S_k2:colors()
+    local Nd = 4
+    local A = {}
+    for idx = 1, #gammaList do
+      A[idx] = {}
+      local GammaS_k2 = gammaList[idx] * S_k2
+      for alpha = 1, Nd do
+        A[idx][alpha] = {}
+        for beta = 1, Nd do
+          A[idx][alpha][beta] = {}
+          for a = 1, Nc do
+            A[idx][alpha][beta][a] = {}
+            local prop1Ferm = antiprop_k1[{c=a, d=alpha}]
+            for b = 1, Nc do
+              A[idx][alpha][beta][a][b] = {}
+              for c = 1, Nc do
+                A[idx][alpha][beta][a][b][c] = {}
+                for d = 1, Nc do
+                  -- TODO figure out how to multiply just the spin parts of a propagator.
+                  A[idx][alpha][beta][a][b][c][d] = L:Complex(0, 0)
+                  for gamma = 1, Nd do
+                    local antiprop_comps = prop1Ferm[{c=b, d=gamma}]    -- components of antiprop_k1
+                    local GammaS_k2_Ferm = GammaS_k2[{c=c, d=gamma}]
+                    local GammaS_k2_comps = GammaS_k2_Ferm[{c=d, d=beta}]
+                    A[idx][alpha][beta][a][b][c][d] = A[idx][alpha][beta][a][b][c][d] + antiprop_comps * GammaS_k2_comps
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    print("A tensor generated.")
+
+    -- Get three point functions.
+    local AL = A[1]
+    local AR = A[2]
+    local AvecL = {A[3], A[4], A[5], A[6]}
+    local AvecR = {A[7], A[8], A[9], A[10]}
+    local G1 = {}
+    local G2 = {}
+    local G3 = {}
+    local G1prime = {}
+    local G2prime = {}
+    for alpha = 1, Nd do
+      G1[alpha] = {}
+      G2[alpha] = {}
+      G3[alpha] = {}
+      G1prime[alpha] = {}
+      G2prime[alpha] = {}
+      for beta = 1, Nd do
+        G1[alpha][beta] = {}
+        G2[alpha][beta] = {}
+        G3[alpha][beta] = {}
+        G1prime[alpha][beta] = {}
+        G2prime[alpha][beta] = {}
+        for gamma = 1, Nd do
+          G1[alpha][beta][gamma] = {}
+          G2[alpha][beta][gamma] = {}
+          G3[alpha][beta][gamma] = {}
+          G1prime[alpha][beta][gamma] = {}
+          G2prime[alpha][beta][gamma] = {}
+          for sigma = 1, Nd do
+            G1[alpha][beta][gamma][sigma] = {}
+            G2[alpha][beta][gamma][sigma] = {}
+            G3[alpha][beta][gamma][sigma] = {}
+            G1prime[alpha][beta][gamma][sigma] = {}
+            G2prime[alpha][beta][gamma][sigma] = {}
+            for a = 1, Nc do
+              G1[alpha][beta][gamma][sigma][a] = {}
+              G2[alpha][beta][gamma][sigma][a] = {}
+              G3[alpha][beta][gamma][sigma][a] = {}
+              G1prime[alpha][beta][gamma][sigma][a] = {}
+              G2prime[alpha][beta][gamma][sigma][a] = {}
+              for b = 1, Nc do
+                G1[alpha][beta][gamma][sigma][a][b] = {}
+                G2[alpha][beta][gamma][sigma][a][b] = {}
+                G3[alpha][beta][gamma][sigma][a][b] = {}
+                G1prime[alpha][beta][gamma][sigma][a][b] = {}
+                G2prime[alpha][beta][gamma][sigma][a][b] = {}
+                for c = 1, Nc do
+                  G1[alpha][beta][gamma][sigma][a][b][c] = {}
+                  G2[alpha][beta][gamma][sigma][a][b][c] = {}
+                  G3[alpha][beta][gamma][sigma][a][b][c] = {}
+                  G1prime[alpha][beta][gamma][sigma][a][b][c] = {}
+                  G2prime[alpha][beta][gamma][sigma][a][b][c] = {}
+                  for d = 1, Nc do
+                    G1[alpha][beta][gamma][sigma][a][b][c][d] = complex(0, 0)
+                    G2[alpha][beta][gamma][sigma][a][b][c][d] = complex(0, 0)
+                    G3[alpha][beta][gamma][sigma][a][b][c][d] = complex(0, 0)
+                    G1prime[alpha][beta][gamma][sigma][a][b][c][d] = complex(0, 0)
+                    G2prime[alpha][beta][gamma][sigma][a][b][c][d] = complex(0, 0)
+                    for m = 1, Nc do
+                      for n = 1, Nc do
+                        G2[alpha][beta][gamma][sigma][a][b][c][d] = G2[alpha][beta][gamma][sigma][a][b][c][d] + 2 * (qFT2 *
+                          (AL[gamma][sigma][c][m][m][d] * AL[alpha][beta][a][n][n][b] - AL[gamma][beta][c][m][m][b] * AL[alpha][sigma][a][n][n][d] +
+                           AR[gamma][sigma][c][m][m][d] * AR[alpha][beta][a][n][n][b] - AR[gamma][beta][c][m][m][b] * AR[alpha][sigma][a][n][n][d]
+                          )) : sum()
+                        G2prime[alpha][beta][gamma][sigma][a][b][c][d] = G2[alpha][beta][gamma][sigma][a][b][c][d] + 2 * (qFT2 *
+                          (AL[gamma][sigma][c][m][n][d] * AL[alpha][beta][a][n][m][b] - AL[gamma][beta][c][m][m][b] * AL[alpha][sigma][a][n][n][d] +
+                           AR[gamma][sigma][c][m][n][d] * AR[alpha][beta][a][n][m][b] - AR[gamma][beta][c][m][m][b] * AR[alpha][sigma][a][n][n][d]
+                          )) : sum()
+                        for mu = 1, #L do
+                          G1[alpha][beta][gamma][sigma][a][b][c][d] = G1[alpha][beta][gamma][sigma][a][b][c][d] + (qFT2 * (
+                              AvecL[mu][gamma][sigma][c][m][m][d] * AvecR[mu][alpha][beta][a][n][n][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d] +
+                              AvecR[mu][gamma][sigma][c][m][m][d] * AvecL[mu][alpha][beta][a][n][n][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d]
+                          )) : sum()
+                          G1prime[alpha][beta][gamma][sigma][a][b][c][d] = G1prime[alpha][beta][gamma][sigma][a][b][c][d] + (qFT2 * (
+                              AvecL[mu][gamma][sigma][c][m][n][d] * AvecR[mu][alpha][beta][a][n][m][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d] +
+                              AvecR[mu][gamma][sigma][c][m][n][d] * AvecL[mu][alpha][beta][a][n][m][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d]
+                          )) : sum()
+                          G3[alpha][beta][gamma][sigma][a][b][c][d] = G3[alpha][beta][gamma][sigma][a][b][c][d] + 2 * (qFT2 * (
+                              AvecL[mu][gamma][sigma][c][m][m][d] * AvecL[mu][alpha][beta][a][n][n][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d] +
+                              AvecR[mu][gamma][sigma][c][m][m][d] * AvecR[mu][alpha][beta][a][n][n][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d]
+                          )) : sum()
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    print("Done with evaluation of Greens functions.")
+
+    -- WRITE TO FILE. TODO may need to write them as components
+    h5_force_write(writer, string.format("G1/q%d%d%d%d", q[1], q[2], q[3], q[4]), G1)
+    h5_force_write(writer, string.format("G2/q%d%d%d%d", q[1], q[2], q[3], q[4]), G2)
+    h5_force_write(writer, string.format("G3/q%d%d%d%d", q[1], q[2], q[3], q[4]), G3)
+    h5_force_write(writer, string.format("G1prime/q%d%d%d%d", q[1], q[2], q[3], q[4]), G1prime)
+    h5_force_write(writer, string.format("G2prime/q%d%d%d%d", q[1], q[2], q[3], q[4]), G2prime)
+  end
+end
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Read in input from bash script.
+if jobid and cfgpath and cfgbase then
+    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
+else
+    print("No jobid, cfgpath, cfgbase entered.")
+end
+
+-- Set parameters
+Lx = 24
+Lt = 24
+
+beta = 6.1
+mq = -0.2450
+kappa = 1 / (2 * mq + 8)
+
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+lqcd_dir = "/home/poare"
+
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+-- Paths to output file.
+folder = "/data/d10b/users/poare/0nubb/output"
+out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+local csw = 1.2493    -- TODO change clover coefficient
+local bcs = {1, 1, 1, -1}
+
+local clover
+if gpu then
+    qcd.quda.init(L)
+    clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+else
+    clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+end
+
+local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+-- momenta to compute Z(p) at
+local k1_list_NPR = {}
+local k2_list_NPR = {}
+for k = -6, 6 do
+  k1_list_NPR[#k1_list_NPR + 1] = {-k, 0, k, 0}
+  k2_list_NPR[#k2_list_NPR + 1] = {0, k, k, 0}
+  -- k1_list_NPR[#k1_list_NPR + 1] = {0, -k, 0, k}
+  -- k2_list_NPR[#k2_list_NPR + 1] = {0, 0, k, k}
+
+  -- TODO will it change anything to swap k1 <--> k2?
+  --[[
+  k1_list_NPR[#k1_list_NPR + 1] = {0, k, k, 0}
+  k2_list_NPR[#k2_list_NPR + 1] = {-k, 0, k, 0}
+  k1_list_NPR[#k1_list_NPR + 1] = {0, 0, k, k}
+  k2_list_NPR[#k2_list_NPR + 1] = {0, -k, 0, k}
+  ]]
+end
+printf("Number of momenta to compute at: %d.", #k1_list_NPR)
+
+-- init list of Dirac matrices
+local PL = (1 - gamma{mu = 5}) / 2
+local PR = (1 + gamma{mu = 5}) / 2
+local gammaList = {PL, PR}
+for mu = 0, #L - 1 do
+  gammaList[#gammaList + 1] = gamma{mu = mu} * PL
+end
+for mu = 0, #L - 1 do
+  gammaList[#gammaList + 1] = gamma{mu = mu} * PR
+end
+
+-- local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+print("Reading gauge file at: %s\n", gauge_file)
+
+status, U, finfo, info = pcall(load_conf, L, gauge_file)
+if status then
+  -- project gauge configuration onto SU(3)
+  for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+  -- Open file writer
+  local hdf5params = { method = "phdf5" }
+  local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+  print("Gauge file read. Computing NPR.")
+  compute_npr_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, gammaList)
+
+  writer:close()
+else
+  printf("No gauge field configuration at %s.\n", gauge_file)
+  logs_dir = string.format("%s/lqcd/0nubb/logs/%s_%d", lqcd_dir, cfgbase, jobid)
+  os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
+  print(U)
+end
+
+if gpu then
+    qcd.quda.fini()
+end
