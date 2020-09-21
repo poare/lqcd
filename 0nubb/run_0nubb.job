@@ -21,7 +21,7 @@ module load qlua/20200107
 EXE=qlua
 
 cfgpath="/data/d10b/ensembles/isoClover/"
-cfgbase="cl3_16_48_b6p1_m0p2450"
+cfgbase="cl3_24_24_b6p1_m0p2450"
 #gpu=true
 gpu=false
 
