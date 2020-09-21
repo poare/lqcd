@@ -1,0 +1,1949 @@
++ cd /home/poare/lqcd/mosaic
++ bash
++ module load openmpi/3.1.5
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load openmpi/3.1.5
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5;' export '_LMFILES_;
+MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi;' export 'MODULES_LMALTNAME;
+MODULES_LMALTNAME_modshare=openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1;' export 'MODULES_LMCONFLICT_modshare;
+OPENMPI_TOP=/opt/software/openmpi-3.1.5;' export 'OPENMPI_TOP;
+LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5
+++ export _LMFILES_
+++ MANPATH_modshare=:1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi'
+++ export MODULES_LMALTNAME
+++ MODULES_LMALTNAME_modshare='openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1'
+++ export MODULES_LMCONFLICT_modshare
+++ OPENMPI_TOP=/opt/software/openmpi-3.1.5
+++ export OPENMPI_TOP
+++ LOADEDMODULES_modshare=openmpi/3.1.5:1:slurm/19.05.4.1:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/usr/games:1:/opt/software/modules-4.4.0/bin:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ module load qlua/20200107
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /opt/software/modules-4.4.0/libexec/modulecmd.tcl bash load qlua/20200107
++ eval 'MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107/share/man;' export 'MANPATH;
+LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107;' export 'LOADEDMODULES;
+_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107;' export '_LMFILES_;
+MANPATH_modshare=/opt/software/qlua-20200107/share/man:1::1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1;' export 'MANPATH_modshare;
+MODULES_LMCONFLICT=slurm/19.05.4.1\&slurm:openmpi/3.1.5\&openmpi:qlua/20200107\&qlua;' export 'MODULES_LMCONFLICT;
+MODULES_LMALTNAME=openmpi/3.1.5\&openmpi/default\&openmpi:qlua/20200107\&qlua/default\&qlua;' export 'MODULES_LMALTNAME;
+MODULES_LMCONFLICT_modshare=slurm/19.05.4.1\&slurm:1:openmpi/3.1.5\&openmpi:1:qlua/20200107\&qlua:1;' export 'MODULES_LMCONFLICT_modshare;
+MODULES_LMALTNAME_modshare=qlua/20200107\&qlua/default\&qlua:1:openmpi/3.1.5\&openmpi/default\&openmpi:1;' export 'MODULES_LMALTNAME_modshare;
+LOADEDMODULES_modshare=slurm/19.05.4.1:1:openmpi/3.1.5:1:qlua/20200107:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/qlua/20200107:1;' export '_LMFILES__modshare;
+PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107/bin;' export 'PATH;
+PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/opt/software/qlua-20200107/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1;' export 'PATH_modshare;
+test' '0;'
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:::/opt/software/slurm-19.05.4.1/share/man:/opt/software/qlua-20200107/share/man
+++ export MANPATH
+++ LOADEDMODULES=slurm/19.05.4.1:openmpi/3.1.5:qlua/20200107
+++ export LOADEDMODULES
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:/opt/software/modules-4.4.0/modulefiles/qlua/20200107
+++ export _LMFILES_
+++ MANPATH_modshare=/opt/software/qlua-20200107/share/man:1::1:/opt/software/openmpi-3.1.5/share/man:1:/opt/software/slurm-19.05.4.1/share/man:1
+++ export MANPATH_modshare
+++ MODULES_LMCONFLICT='slurm/19.05.4.1&slurm:openmpi/3.1.5&openmpi:qlua/20200107&qlua'
+++ export MODULES_LMCONFLICT
+++ MODULES_LMALTNAME='openmpi/3.1.5&openmpi/default&openmpi:qlua/20200107&qlua/default&qlua'
+++ export MODULES_LMALTNAME
+++ MODULES_LMCONFLICT_modshare='slurm/19.05.4.1&slurm:1:openmpi/3.1.5&openmpi:1:qlua/20200107&qlua:1'
+++ export MODULES_LMCONFLICT_modshare
+++ MODULES_LMALTNAME_modshare='qlua/20200107&qlua/default&qlua:1:openmpi/3.1.5&openmpi/default&openmpi:1'
+++ export MODULES_LMALTNAME_modshare
+++ LOADEDMODULES_modshare=slurm/19.05.4.1:1:openmpi/3.1.5:1:qlua/20200107:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.4.1:1:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5:1:/opt/software/modules-4.4.0/modulefiles/qlua/20200107:1
+++ export _LMFILES__modshare
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/modules-4.4.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/software/slurm-19.05.4.1/bin:/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:/opt/software/qlua-20200107/bin
+++ export PATH
+++ PATH_modshare=/usr/lib/x86_64-linux-gnu/libmpi_mpifh.so.20:1:/usr/bin:1:/opt/software/slurm-19.05.4.1/bin:1:/usr/local/bin:1:/opt/software/openmpi-3.1.5/bin:1:/opt/software/qlua-20200107/bin:1:/bin:1:/sbin:1:/usr/sbin:1:/opt/software/modules-4.4.0/bin:1:/usr/games:1:/usr/local/sbin:1:/usr/local/games:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ EXE=qlua
++ cfgpath=/data/d10b/ensembles/isoClover/
++ cfgbase=cl3_16_48_b6p1_m0p2450
++ gpu=false
++ home=/home/poare/lqcd/0nubb
++ logs=/home/poare/lqcd/0nubb/logs/cl3_16_48_b6p1_m0p2450_28180
++ output=/data/d10b/users/poare/0nubb/output/cl3_16_48_b6p1_m0p2450_28180
++ mkdir /home/poare/lqcd/0nubb/logs/cl3_16_48_b6p1_m0p2450_28180
++ mkdir /home/poare/lqcd/0nubb/logs/cl3_16_48_b6p1_m0p2450_28180/no_output
++ mkdir /data/d10b/users/poare/0nubb/output/cl3_16_48_b6p1_m0p2450_28180
++ parameters='jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false'
++ export OMP_NUM_THREADS=6
++ OMP_NUM_THREADS=6
+++ seq 1010 10 1200
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1010' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20871] *** Process received signal ***
+[p51n2:20871] Signal: Segmentation fault (11)
+[p51n2:20871] Signal code:  (128)
+[p51n2:20871] Failing at address: (nil)
+[p51n2:20871] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f5921e03890]
+[p51n2:20871] [ 1] qlua(+0x66ab8)[0x55f6978e3ab8]
+[p51n2:20871] [ 2] qlua(+0x801928)[0x55f69807e928]
+[p51n2:20871] [ 3] qlua(+0x801d64)[0x55f69807ed64]
+[p51n2:20871] [ 4] qlua(+0x8097e6)[0x55f6980867e6]
+[p51n2:20871] [ 5] qlua(+0x80984a)[0x55f69808684a]
+[p51n2:20871] [ 6] qlua(+0x8099da)[0x55f6980869da]
+[p51n2:20871] [ 7] qlua(+0x80a98e)[0x55f69808798e]
+[p51n2:20871] [ 8] qlua(+0x801dad)[0x55f69807edad]
+[p51n2:20871] [ 9] qlua(+0x8010fe)[0x55f69807e0fe]
+[p51n2:20871] [10] qlua(+0x801f1b)[0x55f69807ef1b]
+[p51n2:20871] [11] qlua(+0x7ff668)[0x55f69807c668]
+[p51n2:20871] [12] qlua(+0x23977)[0x55f6978a0977]
+[p51n2:20871] [13] qlua(+0x2375e)[0x55f6978a075e]
+[p51n2:20871] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f5921a21b97]
+[p51n2:20871] [15] qlua(+0x2385a)[0x55f6978a085a]
+[p51n2:20871] *** End of error message ***
+[p51n2:20868] *** Process received signal ***
+[p51n2:20868] Signal: Segmentation fault (11)
+[p51n2:20868] Signal code:  (128)
+[p51n2:20868] Failing at address: (nil)
+[p51n2:20868] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7feda1d0e890]
+[p51n2:20868] [ 1] qlua(+0x66ab8)[0x55cc8f4d7ab8]
+[p51n2:20868] [ 2] qlua(+0x801928)[0x55cc8fc72928]
+[p51n2:20868] [ 3] qlua(+0x801d64)[0x55cc8fc72d64]
+[p51n2:20868] [ 4] qlua(+0x8097e6)[0x55cc8fc7a7e6]
+[p51n2:20868] [ 5] qlua(+0x80984a)[0x55cc8fc7a84a]
+[p51n2:20870] *** Process received signal ***
+[p51n2:20870] Signal: Segmentation fault (11)
+[p51n2:20870] Signal code:  (128)
+[p51n2:20870] Failing at address: (nil)
+[p51n2:20870] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f60c9d2b890]
+[p51n2:20870] [ 1] qlua(+0x66ab8)[0x563f2c42dab8]
+[p51n2:20870] [ 2] qlua(+0x801928)[0x563f2cbc8928]
+[p51n2:20870] [ 3] qlua(+0x801d64)[0x563f2cbc8d64]
+[p51n2:20870] [ 4] qlua(+0x8097e6)[0x563f2cbd07e6]
+[p51n2:20870] [ 5] qlua(+0x80984a)[0x563f2cbd084a]
+[p51n2:20870] [ 6] qlua(+0x8099da)[0x563f2cbd09da]
+[p51n2:20870] [ 7] qlua(+0x80a98e)[0x563f2cbd198e]
+[p51n2:20870] [ 8] qlua(+0x801dad)[0x563f2cbc8dad]
+[p51n2:20870] [ 9] qlua(+0x8010fe)[0x563f2cbc80fe]
+[p51n2:20870] [10] qlua(+0x801f1b)[0x563f2cbc8f1b]
+[p51n2:20870] [11] qlua(+0x7ff668)[0x563f2cbc6668]
+[p51n2:20870] [12] qlua(+0x23977)[0x563f2c3ea977]
+[p51n2:20870] [13] qlua(+0x2375e)[0x563f2c3ea75e]
+[p51n2:20870] [14] [p51n2:20868] [ 6] qlua(+0x8099da)[0x55cc8fc7a9da]
+[p51n2:20868] [ 7] qlua(+0x80a98e)[0x55cc8fc7b98e]
+[p51n2:20868] [ 8] qlua(+0x801dad)[0x55cc8fc72dad]
+[p51n2:20868] [ 9] qlua(+0x8010fe)[0x55cc8fc720fe]
+[p51n2:20868] [10] qlua(+0x801f1b)[0x55cc8fc72f1b]
+[p51n2:20868] [11] qlua(+0x7ff668)[0x55cc8fc70668]
+[p51n2:20868] [12] qlua(+0x23977)[0x55cc8f494977]
+[p51n2:20868] [13] qlua(+0x2375e)[0x55cc8f49475e]
+[p51n2:20868] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7feda192cb97]
+[p51n2:20868] [15] qlua(+0x2385a)[0x55cc8f49485a]
+[p51n2:20868] *** End of error message ***
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f60c9949b97]
+[p51n2:20870] [15] qlua(+0x2385a)[0x563f2c3ea85a]
+[p51n2:20870] *** End of error message ***
+[p51n2:20869] *** Process received signal ***
+[p51n2:20869] Signal: Segmentation fault (11)
+[p51n2:20869] Signal code:  (128)
+[p51n2:20869] Failing at address: (nil)
+[p51n2:20869] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f05d0dd9890]
+[p51n2:20869] [ 1] qlua(+0x66ab8)[0x55d6a739aab8]
+[p51n2:20869] [ 2] qlua(+0x801928)[0x55d6a7b35928]
+[p51n2:20869] [ 3] qlua(+0x801d64)[0x55d6a7b35d64]
+[p51n2:20869] [ 4] qlua(+0x8097e6)[0x55d6a7b3d7e6]
+[p51n2:20869] [ 5] qlua(+0x80984a)[0x55d6a7b3d84a]
+[p51n2:20869] [ 6] qlua(+0x8099da)[0x55d6a7b3d9da]
+[p51n2:20869] [ 7] qlua(+0x80a98e)[0x55d6a7b3e98e]
+[p51n2:20869] [ 8] qlua(+0x801dad)[0x55d6a7b35dad]
+[p51n2:20869] [ 9] qlua(+0x8010fe)[0x55d6a7b350fe]
+[p51n2:20869] [10] qlua(+0x801f1b)[0x55d6a7b35f1b]
+[p51n2:20869] [11] qlua(+0x7ff668)[0x55d6a7b33668]
+[p51n2:20869] [12] qlua(+0x23977)[0x55d6a7357977]
+[p51n2:20869] [13] qlua(+0x2375e)[0x55d6a735775e]
+[p51n2:20869] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f05d09f7b97]
+[p51n2:20869] [15] qlua(+0x2385a)[0x55d6a735785a]
+[p51n2:20869] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 3 with PID 20871 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1020' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20889] *** Process received signal ***
+[p51n2:20889] Signal: Segmentation fault (11)
+[p51n2:20889] Signal code:  (128)
+[p51n2:20889] Failing at address: (nil)
+[p51n2:20889] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7eff1703a890]
+[p51n2:20889] [ 1] qlua(+0x66ab8)[0x55e91bdb1ab8]
+[p51n2:20889] [ 2] qlua(+0x801928)[0x55e91c54c928]
+[p51n2:20889] [ 3] qlua(+0x801d64)[0x55e91c54cd64]
+[p51n2:20889] [ 4] qlua(+0x8097e6)[0x55e91c5547e6]
+[p51n2:20889] [ 5] qlua(+0x80984a)[0x55e91c55484a]
+[p51n2:20889] [ 6] qlua(+0x8099da)[0x55e91c5549da]
+[p51n2:20889] [ 7] qlua(+0x80a98e)[0x55e91c55598e]
+[p51n2:20889] [ 8] qlua(+0x801dad)[0x55e91c54cdad]
+[p51n2:20889] [ 9] qlua(+0x8010fe)[0x55e91c54c0fe]
+[p51n2:20889] [10] qlua(+0x801f1b)[0x55e91c54cf1b]
+[p51n2:20889] [11] qlua(+0x7ff668)[0x55e91c54a668]
+[p51n2:20889] [12] qlua(+0x23977)[0x55e91bd6e977]
+[p51n2:20889] [13] qlua(+0x2375e)[0x55e91bd6e75e]
+[p51n2:20889] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7eff16c58b97]
+[p51n2:20889] [15] qlua(+0x2385a)[0x55e91bd6e85a]
+[p51n2:20889] *** End of error message ***
+[p51n2:20890] *** Process received signal ***
+[p51n2:20890] Signal: Segmentation fault (11)
+[p51n2:20890] Signal code:  (128)
+[p51n2:20890] Failing at address: (nil)
+[p51n2:20890] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f9438815890]
+[p51n2:20890] [ 1] qlua(+0x66ab8)[0x55f7a3264ab8]
+[p51n2:20890] [ 2] qlua(+0x801928)[0x55f7a39ff928]
+[p51n2:20890] [ 3] qlua(+0x801d64)[0x55f7a39ffd64]
+[p51n2:20890] [ 4] qlua(+0x8097e6)[0x55f7a3a077e6]
+[p51n2:20890] [ 5] qlua(+0x80984a)[0x55f7a3a0784a]
+[p51n2:20890] [ 6] qlua(+0x8099da)[0x55f7a3a079da]
+[p51n2:20890] [ 7] qlua(+0x80a98e)[0x55f7a3a0898e]
+[p51n2:20890] [ 8] qlua(+0x801dad)[0x55f7a39ffdad]
+[p51n2:20890] [ 9] qlua(+0x8010fe)[0x55f7a39ff0fe]
+[p51n2:20890] [10] qlua(+0x801f1b)[0x55f7a39fff1b]
+[p51n2:20890] [11] qlua(+0x7ff668)[0x55f7a39fd668]
+[p51n2:20890] [12] qlua(+0x23977)[0x55f7a3221977]
+[p51n2:20890] [13] qlua(+0x2375e)[0x55f7a322175e]
+[p51n2:20890] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f9438433b97]
+[p51n2:20890] [15] qlua(+0x2385a)[0x55f7a322185a]
+[p51n2:20890] *** End of error message ***
+[p51n2:20888] *** Process received signal ***
+[p51n2:20888] Signal: Segmentation fault (11)
+[p51n2:20888] Signal code:  (128)
+[p51n2:20888] Failing at address: (nil)
+[p51n2:20888] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f47471f0890]
+[p51n2:20888] [ 1] qlua(+0x66ab8)[0x5625d36f5ab8]
+[p51n2:20888] [ 2] qlua(+0x801928)[0x5625d3e90928]
+[p51n2:20888] [ 3] qlua(+0x801d64)[0x5625d3e90d64]
+[p51n2:20888] [ 4] qlua(+0x8097e6)[0x5625d3e987e6]
+[p51n2:20888] [ 5] qlua(+0x80984a)[0x5625d3e9884a]
+[p51n2:20888] [ 6] qlua(+0x8099da)[0x5625d3e989da]
+[p51n2:20888] [ 7] qlua(+0x80a98e)[0x5625d3e9998e]
+[p51n2:20888] [ 8] qlua(+0x801dad)[0x5625d3e90dad]
+[p51n2:20888] [ 9] qlua(+0x8010fe)[0x5625d3e900fe]
+[p51n2:20888] [10] qlua(+0x801f1b)[0x5625d3e90f1b]
+[p51n2:20888] [11] qlua(+0x7ff668)[0x5625d3e8e668]
+[p51n2:20888] [12] qlua(+0x23977)[0x5625d36b2977]
+[p51n2:20888] [13] qlua(+0x2375e)[0x5625d36b275e]
+[p51n2:20888] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f4746e0eb97]
+[p51n2:20888] [15] qlua(+0x2385a)[0x5625d36b285a]
+[p51n2:20888] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 20889 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1030' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20905] *** Process received signal ***
+[p51n2:20905] Signal: Segmentation fault (11)
+[p51n2:20905] Signal code:  (128)
+[p51n2:20905] Failing at address: (nil)
+[p51n2:20905] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f81e0c1b890]
+[p51n2:20905] [ 1] qlua(+0x66ab8)[0x56440eb5cab8]
+[p51n2:20905] [ 2] qlua(+0x801928)[0x56440f2f7928]
+[p51n2:20905] [ 3] qlua(+0x801d64)[0x56440f2f7d64]
+[p51n2:20905] [ 4] qlua(+0x8097e6)[0x56440f2ff7e6]
+[p51n2:20905] [ 5] qlua(+0x80984a)[0x56440f2ff84a]
+[p51n2:20905] [ 6] qlua(+0x8099da)[0x56440f2ff9da]
+[p51n2:20905] [ 7] qlua(+0x80a98e)[0x56440f30098e]
+[p51n2:20905] [ 8] qlua(+0x801dad)[0x56440f2f7dad]
+[p51n2:20905] [ 9] qlua(+0x8010fe)[0x56440f2f70fe]
+[p51n2:20905] [10] qlua(+0x801f1b)[0x56440f2f7f1b]
+[p51n2:20905] [11] qlua(+0x7ff668)[0x56440f2f5668]
+[p51n2:20905] [12] qlua(+0x23977)[0x56440eb19977]
+[p51n2:20905] [13] qlua(+0x2375e)[0x56440eb1975e]
+[p51n2:20905] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f81e0839b97]
+[p51n2:20905] [15] qlua(+0x2385a)[0x56440eb1985a]
+[p51n2:20905] *** End of error message ***
+[p51n2:20903] *** Process received signal ***
+[p51n2:20903] Signal: Segmentation fault (11)
+[p51n2:20903] Signal code:  (128)
+[p51n2:20903] Failing at address: (nil)
+[p51n2:20903] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fc57597c890]
+[p51n2:20903] [ 1] qlua(+0x66ab8)[0x55ce236f2ab8]
+[p51n2:20903] [ 2] qlua(+0x801928)[0x55ce23e8d928]
+[p51n2:20903] [ 3] qlua(+0x801d64)[0x55ce23e8dd64]
+[p51n2:20903] [ 4] qlua(+0x8097e6)[0x55ce23e957e6]
+[p51n2:20903] [ 5] qlua(+0x80984a)[0x55ce23e9584a]
+[p51n2:20903] [ 6] qlua(+0x8099da)[0x55ce23e959da]
+[p51n2:20903] [ 7] qlua(+0x80a98e)[0x55ce23e9698e]
+[p51n2:20903] [ 8] qlua(+0x801dad)[0x55ce23e8ddad]
+[p51n2:20903] [ 9] qlua(+0x8010fe)[0x55ce23e8d0fe]
+[p51n2:20903] [10] qlua(+0x801f1b)[0x55ce23e8df1b]
+[p51n2:20903] [11] qlua(+0x7ff668)[0x55ce23e8b668]
+[p51n2:20903] [12] qlua(+0x23977)[0x55ce236af977]
+[p51n2:20903] [13] qlua(+0x2375e)[0x55ce236af75e]
+[p51n2:20903] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fc57559ab97]
+[p51n2:20903] [15] qlua(+0x2385a)[0x55ce236af85a]
+[p51n2:20903] *** End of error message ***
+[p51n2:20906] *** Process received signal ***
+[p51n2:20906] Signal: Segmentation fault (11)
+[p51n2:20906] Signal code:  (128)
+[p51n2:20906] Failing at address: (nil)
+[p51n2:20906] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f2b6ee61890]
+[p51n2:20906] [ 1] qlua(+0x66ab8)[0x5624903c6ab8]
+[p51n2:20906] [ 2] qlua(+0x801928)[0x562490b61928]
+[p51n2:20906] [ 3] qlua(+0x801d64)[0x562490b61d64]
+[p51n2:20906] [ 4] qlua(+0x8097e6)[0x562490b697e6]
+[p51n2:20906] [ 5] qlua(+0x80984a)[0x562490b6984a]
+[p51n2:20906] [ 6] qlua(+0x8099da)[0x562490b699da]
+[p51n2:20906] [ 7] qlua(+0x80a98e)[0x562490b6a98e]
+[p51n2:20906] [ 8] qlua(+0x801dad)[0x562490b61dad]
+[p51n2:20906] [ 9] qlua(+0x8010fe)[0x562490b610fe]
+[p51n2:20906] [10] qlua(+0x801f1b)[0x562490b61f1b]
+[p51n2:20906] [11] qlua(+0x7ff668)[0x562490b5f668]
+[p51n2:20906] [12] qlua(+0x23977)[0x562490383977]
+[p51n2:20906] [p51n2:20904] *** Process received signal ***
+[13] qlua(+0x2375e)[0x56249038375e]
+[p51n2:20906] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f2b6ea7fb97]
+[p51n2:20906] [15] qlua(+0x2385a)[0x56249038385a]
+[p51n2:20906] *** End of error message ***
+[p51n2:20904] Signal: Segmentation fault (11)
+[p51n2:20904] Signal code:  (128)
+[p51n2:20904] Failing at address: (nil)
+[p51n2:20904] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f8a8ddf9890]
+[p51n2:20904] [ 1] qlua(+0x66ab8)[0x55a56ee26ab8]
+[p51n2:20904] [ 2] qlua(+0x801928)[0x55a56f5c1928]
+[p51n2:20904] [ 3] qlua(+0x801d64)[0x55a56f5c1d64]
+[p51n2:20904] [ 4] qlua(+0x8097e6)[0x55a56f5c97e6]
+[p51n2:20904] [ 5] qlua(+0x80984a)[0x55a56f5c984a]
+[p51n2:20904] [ 6] qlua(+0x8099da)[0x55a56f5c99da]
+[p51n2:20904] [ 7] qlua(+0x80a98e)[0x55a56f5ca98e]
+[p51n2:20904] [ 8] qlua(+0x801dad)[0x55a56f5c1dad]
+[p51n2:20904] [ 9] qlua(+0x8010fe)[0x55a56f5c10fe]
+[p51n2:20904] [10] qlua(+0x801f1b)[0x55a56f5c1f1b]
+[p51n2:20904] [11] qlua(+0x7ff668)[0x55a56f5bf668]
+[p51n2:20904] [12] qlua(+0x23977)[0x55a56ede3977]
+[p51n2:20904] [13] qlua(+0x2375e)[0x55a56ede375e]
+[p51n2:20904] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f8a8da17b97]
+[p51n2:20904] [15] qlua(+0x2385a)[0x55a56ede385a]
+[p51n2:20904] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 20905 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1040' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20919] *** Process received signal ***
+[p51n2:20919] Signal: Segmentation fault (11)
+[p51n2:20919] Signal code:  (128)
+[p51n2:20919] Failing at address: (nil)
+[p51n2:20921] *** Process received signal ***
+[p51n2:20921] Signal: Segmentation fault (11)
+[p51n2:20921] Signal code:  (128)
+[p51n2:20921] Failing at address: (nil)
+[p51n2:20921] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fd5e14a8890]
+[p51n2:20921] [ 1] qlua(+0x66ab8)[0x560ed6306ab8]
+[p51n2:20921] [ 2] qlua(+0x801928)[0x560ed6aa1928]
+[p51n2:20921] [ 3] qlua(+0x801d64)[0x560ed6aa1d64]
+[p51n2:20921] [ 4] qlua(+0x8097e6)[0x560ed6aa97e6]
+[p51n2:20921] [ 5] qlua(+0x80984a)[0x560ed6aa984a]
+[p51n2:20921] [ 6] qlua(+0x8099da)[0x560ed6aa99da]
+[p51n2:20921] [ 7] qlua(+0x80a98e)[0x560ed6aaa98e]
+[p51n2:20921] [ 8] qlua(+0x801dad)[0x560ed6aa1dad]
+[p51n2:20921] [ 9] qlua(+0x8010fe)[0x560ed6aa10fe]
+[p51n2:20921] [10] qlua(+0x801f1b)[0x560ed6aa1f1b]
+[p51n2:20921] [11] qlua(+0x7ff668)[0x560ed6a9f668]
+[p51n2:20921] [12] qlua(+0x23977)[0x560ed62c3977]
+[p51n2:20921] [13] qlua(+0x2375e)[0x560ed62c375e]
+[p51n2:20921] [14] [p51n2:20919] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fa4cf2a0890]
+[p51n2:20919] [ 1] qlua(+0x66ab8)[0x562bb6e00ab8]
+[p51n2:20919] [ 2] qlua(+0x801928)[0x562bb759b928]
+[p51n2:20919] [ 3] qlua(+0x801d64)[0x562bb759bd64]
+[p51n2:20919] [ 4] qlua(+0x8097e6)[0x562bb75a37e6]
+[p51n2:20919] [ 5] qlua(+0x80984a)[0x562bb75a384a]
+[p51n2:20919] [ 6] qlua(+0x8099da)[0x562bb75a39da]
+[p51n2:20919] [ 7] qlua(+0x80a98e)[0x562bb75a498e]
+[p51n2:20919] [ 8] qlua(+0x801dad)[0x562bb759bdad]
+[p51n2:20919] [ 9] qlua(+0x8010fe)[0x562bb759b0fe]
+[p51n2:20919] [10] qlua(+0x801f1b)[0x562bb759bf1b]
+[p51n2:20919] [11] qlua(+0x7ff668)[0x562bb7599668]
+[p51n2:20919] [12] qlua(+0x23977)[0x562bb6dbd977]
+[p51n2:20919] [13] qlua(+0x2375e)[0x562bb6dbd75e]
+[p51n2:20919] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fd5e10c6b97]
+[p51n2:20921] [15] qlua(+0x2385a)[0x560ed62c385a]
+[p51n2:20921] *** End of error message ***
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fa4ceebeb97]
+[p51n2:20919] [15] qlua(+0x2385a)[0x562bb6dbd85a]
+[p51n2:20919] *** End of error message ***
+[p51n2:20922] *** Process received signal ***
+[p51n2:20922] Signal: Segmentation fault (11)
+[p51n2:20922] Signal code:  (128)
+[p51n2:20922] Failing at address: (nil)
+[p51n2:20922] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f73278ac890]
+[p51n2:20922] [ 1] qlua(+0x66ab8)[0x55ebd8b1eab8]
+[p51n2:20922] [ 2] qlua(+0x801928)[0x55ebd92b9928]
+[p51n2:20922] [ 3] qlua(+0x801d64)[0x55ebd92b9d64]
+[p51n2:20922] [ 4] qlua(+0x8097e6)[0x55ebd92c17e6]
+[p51n2:20922] [ 5] qlua(+0x80984a)[0x55ebd92c184a]
+[p51n2:20922] [ 6] qlua(+0x8099da)[0x55ebd92c19da]
+[p51n2:20922] [ 7] qlua(+0x80a98e)[0x55ebd92c298e]
+[p51n2:20922] [ 8] qlua(+0x801dad)[0x55ebd92b9dad]
+[p51n2:20922] [ 9] qlua(+0x8010fe)[0x55ebd92b90fe]
+[p51n2:20922] [10] qlua(+0x801f1b)[0x55ebd92b9f1b]
+[p51n2:20922] [11] qlua(+0x7ff668)[0x55ebd92b7668]
+[p51n2:20922] [12] qlua(+0x23977)[0x55ebd8adb977]
+[p51n2:20922] [13] qlua(+0x2375e)[0x55ebd8adb75e]
+[p51n2:20922] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f73274cab97]
+[p51n2:20922] [15] qlua(+0x2385a)[0x55ebd8adb85a]
+[p51n2:20922] *** End of error message ***
+[p51n2:20920] *** Process received signal ***
+[p51n2:20920] Signal: Segmentation fault (11)
+[p51n2:20920] Signal code:  (128)
+[p51n2:20920] Failing at address: (nil)
+[p51n2:20920] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fb8bb7ad890]
+[p51n2:20920] [ 1] qlua(+0x66ab8)[0x56512c407ab8]
+[p51n2:20920] [ 2] qlua(+0x801928)[0x56512cba2928]
+[p51n2:20920] [ 3] qlua(+0x801d64)[0x56512cba2d64]
+[p51n2:20920] [ 4] qlua(+0x8097e6)[0x56512cbaa7e6]
+[p51n2:20920] [ 5] qlua(+0x80984a)[0x56512cbaa84a]
+[p51n2:20920] [ 6] qlua(+0x8099da)[0x56512cbaa9da]
+[p51n2:20920] [ 7] qlua(+0x80a98e)[0x56512cbab98e]
+[p51n2:20920] [ 8] qlua(+0x801dad)[0x56512cba2dad]
+[p51n2:20920] [ 9] qlua(+0x8010fe)[0x56512cba20fe]
+[p51n2:20920] [10] qlua(+0x801f1b)[0x56512cba2f1b]
+[p51n2:20920] [11] qlua(+0x7ff668)[0x56512cba0668]
+[p51n2:20920] [12] qlua(+0x23977)[0x56512c3c4977]
+[p51n2:20920] [13] qlua(+0x2375e)[0x56512c3c475e]
+[p51n2:20920] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fb8bb3cbb97]
+[p51n2:20920] [15] qlua(+0x2385a)[0x56512c3c485a]
+[p51n2:20920] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 20919 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1050' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20937] *** Process received signal ***
+[p51n2:20937] Signal: Segmentation fault (11)
+[p51n2:20937] Signal code:  (128)
+[p51n2:20937] Failing at address: (nil)
+[p51n2:20937] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f1c8404e890]
+[p51n2:20937] [ 1] qlua(+0x66ab8)[0x55d585c01ab8]
+[p51n2:20937] [ 2] qlua(+0x801928)[0x55d58639c928]
+[p51n2:20937] [ 3] qlua(+0x801d64)[0x55d58639cd64]
+[p51n2:20937] [ 4] qlua(+0x8097e6)[0x55d5863a47e6]
+[p51n2:20937] [ 5] qlua(+0x80984a)[0x55d5863a484a]
+[p51n2:20937] [ 6] qlua(+0x8099da)[0x55d5863a49da]
+[p51n2:20937] [ 7] qlua(+0x80a98e)[0x55d5863a598e]
+[p51n2:20937] [ 8] qlua(+0x801dad)[0x55d58639cdad]
+[p51n2:20937] [ 9] qlua(+0x8010fe)[0x55d58639c0fe]
+[p51n2:20937] [10] qlua(+0x801f1b)[0x55d58639cf1b]
+[p51n2:20937] [11] qlua(+0x7ff668)[0x55d58639a668]
+[p51n2:20937] [12] qlua(+0x23977)[0x55d585bbe977]
+[p51n2:20937] [13] qlua(+0x2375e)[0x55d585bbe75e]
+[p51n2:20937] [14] [p51n2:20935] *** Process received signal ***
+[p51n2:20935] Signal: Segmentation fault (11)
+[p51n2:20935] Signal code:  (128)
+[p51n2:20935] Failing at address: (nil)
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f1c83c6cb97]
+[p51n2:20937] [15] qlua(+0x2385a)[0x55d585bbe85a]
+[p51n2:20937] *** End of error message ***
+[p51n2:20935] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fa71e97c890]
+[p51n2:20935] [ 1] qlua(+0x66ab8)[0x558112a58ab8]
+[p51n2:20935] [ 2] qlua(+0x801928)[0x5581131f3928]
+[p51n2:20935] [ 3] qlua(+0x801d64)[0x5581131f3d64]
+[p51n2:20935] [ 4] qlua(+0x8097e6)[0x5581131fb7e6]
+[p51n2:20935] [ 5] qlua(+0x80984a)[0x5581131fb84a]
+[p51n2:20935] [ 6] qlua(+0x8099da)[0x5581131fb9da]
+[p51n2:20935] [ 7] qlua(+0x80a98e)[0x5581131fc98e]
+[p51n2:20935] [ 8] qlua(+0x801dad)[0x5581131f3dad]
+[p51n2:20935] [ 9] qlua(+0x8010fe)[0x5581131f30fe]
+[p51n2:20935] [10] qlua(+0x801f1b)[0x5581131f3f1b]
+[p51n2:20935] [11] qlua(+0x7ff668)[0x5581131f1668]
+[p51n2:20935] [12] qlua(+0x23977)[0x558112a15977]
+[p51n2:20935] [13] qlua(+0x2375e)[0x558112a1575e]
+[p51n2:20935] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fa71e59ab97]
+[p51n2:20935] [15] qlua(+0x2385a)[0x558112a1585a]
+[p51n2:20935] *** End of error message ***
+[p51n2:20936] *** Process received signal ***
+[p51n2:20936] Signal: Segmentation fault (11)
+[p51n2:20936] Signal code:  (128)
+[p51n2:20936] Failing at address: (nil)
+[p51n2:20936] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f803f826890]
+[p51n2:20936] [ 1] qlua(+0x66ab8)[0x555e5efe5ab8]
+[p51n2:20936] [ 2] qlua(+0x801928)[0x555e5f780928]
+[p51n2:20936] [ 3] qlua(+0x801d64)[0x555e5f780d64]
+[p51n2:20936] [ 4] qlua(+0x8097e6)[0x555e5f7887e6]
+[p51n2:20936] [ 5] qlua(+0x80984a)[0x555e5f78884a]
+[p51n2:20936] [ 6] qlua(+0x8099da)[0x555e5f7889da]
+[p51n2:20936] [ 7] qlua(+0x80a98e)[0x555e5f78998e]
+[p51n2:20936] [ 8] qlua(+0x801dad)[0x555e5f780dad]
+[p51n2:20936] [ 9] qlua(+0x8010fe)[0x555e5f7800fe]
+[p51n2:20936] [10] qlua(+0x801f1b)[0x555e5f780f1b]
+[p51n2:20936] [11] qlua(+0x7ff668)[0x555e5f77e668]
+[p51n2:20936] [12] qlua(+0x23977)[0x555e5efa2977]
+[p51n2:20936] [13] qlua(+0x2375e)[0x555e5efa275e]
+[p51n2:20936] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f803f444b97]
+[p51n2:20936] [15] qlua(+0x2385a)[0x555e5efa285a]
+[p51n2:20936] *** End of error message ***
+[p51n2:20938] *** Process received signal ***
+[p51n2:20938] Signal: Segmentation fault (11)
+[p51n2:20938] Signal code:  (128)
+[p51n2:20938] Failing at address: (nil)
+[p51n2:20938] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f4054a5a890]
+[p51n2:20938] [ 1] qlua(+0x66ab8)[0x55675ea33ab8]
+[p51n2:20938] [ 2] qlua(+0x801928)[0x55675f1ce928]
+[p51n2:20938] [ 3] qlua(+0x801d64)[0x55675f1ced64]
+[p51n2:20938] [ 4] qlua(+0x8097e6)[0x55675f1d67e6]
+[p51n2:20938] [ 5] qlua(+0x80984a)[0x55675f1d684a]
+[p51n2:20938] [ 6] qlua(+0x8099da)[0x55675f1d69da]
+[p51n2:20938] [ 7] qlua(+0x80a98e)[0x55675f1d798e]
+[p51n2:20938] [ 8] qlua(+0x801dad)[0x55675f1cedad]
+[p51n2:20938] [ 9] qlua(+0x8010fe)[0x55675f1ce0fe]
+[p51n2:20938] [10] qlua(+0x801f1b)[0x55675f1cef1b]
+[p51n2:20938] [11] qlua(+0x7ff668)[0x55675f1cc668]
+[p51n2:20938] [12] qlua(+0x23977)[0x55675e9f0977]
+[p51n2:20938] [13] qlua(+0x2375e)[0x55675e9f075e]
+[p51n2:20938] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f4054678b97]
+[p51n2:20938] [15] qlua(+0x2385a)[0x55675e9f085a]
+[p51n2:20938] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 20935 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1060' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20951] *** Process received signal ***
+[p51n2:20951] Signal: Segmentation fault (11)
+[p51n2:20951] Signal code:  (128)
+[p51n2:20951] Failing at address: (nil)
+[p51n2:20951] [ 0] [p51n2:20953] *** Process received signal ***
+[p51n2:20953] Signal: Segmentation fault (11)
+[p51n2:20953] Signal code:  (128)
+[p51n2:20953] Failing at address: (nil)
+/lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fce0ddb0890]
+[p51n2:20951] [ 1] qlua(+0x66ab8)[0x55e85f192ab8]
+[p51n2:20951] [ 2] qlua(+0x801928)[0x55e85f92d928]
+[p51n2:20951] [ 3] qlua(+0x801d64)[0x55e85f92dd64]
+[p51n2:20951] [ 4] qlua(+0x8097e6)[0x55e85f9357e6]
+[p51n2:20951] [ 5] qlua(+0x80984a)[0x55e85f93584a]
+[p51n2:20951] [ 6] qlua(+0x8099da)[0x55e85f9359da]
+[p51n2:20951] [ 7] qlua(+0x80a98e)[0x55e85f93698e]
+[p51n2:20951] [ 8] qlua(+0x801dad)[0x55e85f92ddad]
+[p51n2:20951] [ 9] qlua(+0x8010fe)[0x55e85f92d0fe]
+[p51n2:20951] [10] qlua(+0x801f1b)[0x55e85f92df1b]
+[p51n2:20951] [11] qlua(+0x7ff668)[0x55e85f92b668]
+[p51n2:20951] [12] qlua(+0x23977)[0x55e85f14f977]
+[p51n2:20951] [13] qlua(+0x2375e)[0x55e85f14f75e]
+[p51n2:20951] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fce0d9ceb97]
+[p51n2:20951] [15] qlua(+0x2385a)[0x55e85f14f85a]
+[p51n2:20951] *** End of error message ***
+[p51n2:20953] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f87cb19a890]
+[p51n2:20953] [ 1] qlua(+0x66ab8)[0x558d99babab8]
+[p51n2:20953] [ 2] qlua(+0x801928)[0x558d9a346928]
+[p51n2:20953] [ 3] qlua(+0x801d64)[0x558d9a346d64]
+[p51n2:20953] [ 4] qlua(+0x8097e6)[0x558d9a34e7e6]
+[p51n2:20953] [ 5] qlua(+0x80984a)[0x558d9a34e84a]
+[p51n2:20953] [ 6] qlua(+0x8099da)[0x558d9a34e9da]
+[p51n2:20953] [ 7] qlua(+0x80a98e)[0x558d9a34f98e]
+[p51n2:20953] [ 8] qlua(+0x801dad)[0x558d9a346dad]
+[p51n2:20953] [ 9] qlua(+0x8010fe)[0x558d9a3460fe]
+[p51n2:20953] [10] qlua(+0x801f1b)[0x558d9a346f1b]
+[p51n2:20953] [11] qlua(+0x7ff668)[0x558d9a344668]
+[p51n2:20953] [12] qlua(+0x23977)[0x558d99b68977]
+[p51n2:20953] [13] qlua(+0x2375e)[0x558d99b6875e]
+[p51n2:20953] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f87cadb8b97]
+[p51n2:20953] [15] qlua(+0x2385a)[0x558d99b6885a]
+[p51n2:20953] *** End of error message ***
+[p51n2:20954] *** Process received signal ***
+[p51n2:20954] Signal: Segmentation fault (11)
+[p51n2:20954] Signal code:  (128)
+[p51n2:20954] Failing at address: (nil)
+[p51n2:20954] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0b7e0bf890]
+[p51n2:20954] [ 1] qlua(+0x66ab8)[0x55a355357ab8]
+[p51n2:20954] [ 2] qlua(+0x801928)[0x55a355af2928]
+[p51n2:20954] [ 3] qlua(+0x801d64)[0x55a355af2d64]
+[p51n2:20954] [ 4] qlua(+0x8097e6)[0x55a355afa7e6]
+[p51n2:20954] [ 5] qlua(+0x80984a)[0x55a355afa84a]
+[p51n2:20954] [ 6] qlua(+0x8099da)[0x55a355afa9da]
+[p51n2:20952] *** Process received signal ***
+[p51n2:20952] Signal: Segmentation fault (11)
+[p51n2:20952] Signal code:  (128)
+[p51n2:20952] Failing at address: (nil)
+[p51n2:20952] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f66d0397890]
+[p51n2:20952] [ 1] qlua(+0x66ab8)[0x555cad1abab8]
+[p51n2:20952] [ 2] qlua(+0x801928)[0x555cad946928]
+[p51n2:20952] [ 3] qlua(+0x801d64)[0x555cad946d64]
+[p51n2:20952] [ 4] qlua(+0x8097e6)[0x555cad94e7e6]
+[p51n2:20952] [ 5] qlua(+0x80984a)[0x555cad94e84a]
+[p51n2:20952] [ 6] qlua(+0x8099da)[0x555cad94e9da]
+[p51n2:20952] [ 7] qlua(+0x80a98e)[0x555cad94f98e]
+[p51n2:20952] [ 8] qlua(+0x801dad)[0x555cad946dad]
+[p51n2:20952] [ 9] qlua(+0x8010fe)[0x555cad9460fe]
+[p51n2:20952] [10] qlua(+0x801f1b)[0x555cad946f1b]
+[p51n2:20952] [11] qlua(+0x7ff668)[0x555cad944668]
+[p51n2:20952] [12] qlua(+0x23977)[0x555cad168977]
+[p51n2:20952] [13] qlua(+0x2375e)[0x555cad16875e]
+[p51n2:20952] [14] [p51n2:20954] [ 7] qlua(+0x80a98e)[0x55a355afb98e]
+[p51n2:20954] [ 8] qlua(+0x801dad)[0x55a355af2dad]
+[p51n2:20954] [ 9] qlua(+0x8010fe)[0x55a355af20fe]
+[p51n2:20954] [10] qlua(+0x801f1b)[0x55a355af2f1b]
+[p51n2:20954] [11] qlua(+0x7ff668)[0x55a355af0668]
+[p51n2:20954] [12] qlua(+0x23977)[0x55a355314977]
+[p51n2:20954] [13] qlua(+0x2375e)[0x55a35531475e]
+[p51n2:20954] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0b7dcddb97]
+[p51n2:20954] [15] qlua(+0x2385a)[0x55a35531485a]
+[p51n2:20954] *** End of error message ***
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f66cffb5b97]
+[p51n2:20952] [15] qlua(+0x2385a)[0x555cad16885a]
+[p51n2:20952] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 20951 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1070' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20969] *** Process received signal ***
+[p51n2:20969] Signal: Segmentation fault (11)
+[p51n2:20969] Signal code:  (128)
+[p51n2:20969] Failing at address: (nil)
+[p51n2:20969] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f2671d68890]
+[p51n2:20969] [ 1] qlua(+0x66ab8)[0x55cdc2f52ab8]
+[p51n2:20969] [ 2] qlua(+0x801928)[0x55cdc36ed928]
+[p51n2:20969] [ 3] qlua(+0x801d64)[0x55cdc36edd64]
+[p51n2:20969] [ 4] qlua(+0x8097e6)[0x55cdc36f57e6]
+[p51n2:20969] [ 5] qlua(+0x80984a)[0x55cdc36f584a]
+[p51n2:20969] [ 6] qlua(+0x8099da)[0x55cdc36f59da]
+[p51n2:20969] [ 7] qlua(+0x80a98e)[0x55cdc36f698e]
+[p51n2:20969] [ 8] qlua(+0x801dad)[0x55cdc36eddad]
+[p51n2:20969] [ 9] qlua(+0x8010fe)[0x55cdc36ed0fe]
+[p51n2:20969] [10] qlua(+0x801f1b)[0x55cdc36edf1b]
+[p51n2:20969] [11] qlua(+0x7ff668)[0x55cdc36eb668]
+[p51n2:20969] [12] qlua(+0x23977)[0x55cdc2f0f977]
+[p51n2:20969] [13] qlua(+0x2375e)[0x55cdc2f0f75e]
+[p51n2:20969] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f2671986b97]
+[p51n2:20969] [15] qlua(+0x2385a)[0x55cdc2f0f85a]
+[p51n2:20969] *** End of error message ***
+[p51n2:20970] *** Process received signal ***
+[p51n2:20970] Signal: Segmentation fault (11)
+[p51n2:20970] Signal code:  (128)
+[p51n2:20970] Failing at address: (nil)
+[p51n2:20970] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f39a1983890]
+[p51n2:20970] [ 1] qlua(+0x66ab8)[0x55757320dab8]
+[p51n2:20970] [ 2] qlua(+0x801928)[0x5575739a8928]
+[p51n2:20970] [ 3] qlua(+0x801d64)[0x5575739a8d64]
+[p51n2:20970] [ 4] qlua(+0x8097e6)[0x5575739b07e6]
+[p51n2:20970] [ 5] qlua(+0x80984a)[0x5575739b084a]
+[p51n2:20970] [ 6] qlua(+0x8099da)[0x5575739b09da]
+[p51n2:20970] [ 7] qlua(+0x80a98e)[0x5575739b198e]
+[p51n2:20970] [ 8] qlua(+0x801dad)[0x5575739a8dad]
+[p51n2:20970] [ 9] qlua(+0x8010fe)[0x5575739a80fe]
+[p51n2:20970] [10] qlua(+0x801f1b)[0x5575739a8f1b]
+[p51n2:20970] [11] qlua(+0x7ff668)[0x5575739a6668]
+[p51n2:20970] [12] qlua(+0x23977)[0x5575731ca977]
+[p51n2:20970] [13] qlua(+0x2375e)[0x5575731ca75e]
+[p51n2:20970] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f39a15a1b97]
+[p51n2:20970] [15] qlua(+0x2385a)[0x5575731ca85a]
+[p51n2:20970] *** End of error message ***
+[p51n2:20968] *** Process received signal ***
+[p51n2:20968] Signal: Segmentation fault (11)
+[p51n2:20968] Signal code:  (128)
+[p51n2:20968] Failing at address: (nil)
+[p51n2:20968] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f397f487890]
+[p51n2:20968] [ 1] qlua(+0x66ab8)[0x560d88e8fab8]
+[p51n2:20968] [ 2] qlua(+0x801928)[0x560d8962a928]
+[p51n2:20968] [ 3] qlua(+0x801d64)[0x560d8962ad64]
+[p51n2:20968] [ 4] qlua(+0x8097e6)[0x560d896327e6]
+[p51n2:20968] [ 5] qlua(+0x80984a)[0x560d8963284a]
+[p51n2:20968] [ 6] qlua(+0x8099da)[0x560d896329da]
+[p51n2:20968] [ 7] qlua(+0x80a98e)[0x560d8963398e]
+[p51n2:20968] [ 8] qlua(+0x801dad)[0x560d8962adad]
+[p51n2:20968] [ 9] qlua(+0x8010fe)[0x560d8962a0fe]
+[p51n2:20968] [10] qlua(+0x801f1b)[0x560d8962af1b]
+[p51n2:20968] [11] qlua(+0x7ff668)[0x560d89628668]
+[p51n2:20968] [12] qlua(+0x23977)[0x560d88e4c977]
+[p51n2:20968] [13] qlua(+0x2375e)[0x560d88e4c75e]
+[p51n2:20968] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f397f0a5b97]
+[p51n2:20968] [15] qlua(+0x2385a)[0x560d88e4c85a]
+[p51n2:20968] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 20969 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1080' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20983] *** Process received signal ***
+[p51n2:20983] Signal: Segmentation fault (11)
+[p51n2:20983] Signal code:  (128)
+[p51n2:20983] Failing at address: (nil)
+[p51n2:20983] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f85e774f890]
+[p51n2:20983] [ 1] qlua(+0x66ab8)[0x55db2d6f1ab8]
+[p51n2:20983] [ 2] qlua(+0x801928)[0x55db2de8c928]
+[p51n2:20983] [ 3] qlua(+0x801d64)[0x55db2de8cd64]
+[p51n2:20983] [ 4] qlua(+0x8097e6)[0x55db2de947e6]
+[p51n2:20983] [ 5] qlua(+0x80984a)[0x55db2de9484a]
+[p51n2:20983] [ 6] qlua(+0x8099da)[0x55db2de949da]
+[p51n2:20983] [ 7] qlua(+0x80a98e)[0x55db2de9598e]
+[p51n2:20983] [ 8] qlua(+0x801dad)[0x55db2de8cdad]
+[p51n2:20983] [ 9] qlua(+0x8010fe)[0x55db2de8c0fe]
+[p51n2:20983] [10] qlua(+0x801f1b)[0x55db2de8cf1b]
+[p51n2:20983] [11] qlua(+0x7ff668)[0x55db2de8a668]
+[p51n2:20983] [12] qlua(+0x23977)[0x55db2d6ae977]
+[p51n2:20983] [13] qlua(+0x2375e)[0x55db2d6ae75e]
+[p51n2:20983] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f85e736db97]
+[p51n2:20983] [15] qlua(+0x2385a)[0x55db2d6ae85a]
+[p51n2:20983] *** End of error message ***
+[p51n2:20985] *** Process received signal ***
+[p51n2:20985] Signal: Segmentation fault (11)
+[p51n2:20985] Signal code:  (128)
+[p51n2:20985] Failing at address: (nil)
+[p51n2:20985] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f42f90cc890]
+[p51n2:20985] [ 1] qlua(+0x66ab8)[0x555a077c3ab8]
+[p51n2:20985] [ 2] qlua(+0x801928)[0x555a07f5e928]
+[p51n2:20985] [ 3] qlua(+0x801d64)[0x555a07f5ed64]
+[p51n2:20985] [ 4] qlua(+0x8097e6)[0x555a07f667e6]
+[p51n2:20985] [ 5] qlua(+0x80984a)[0x555a07f6684a]
+[p51n2:20985] [ 6] qlua(+0x8099da)[0x555a07f669da]
+[p51n2:20985] [ 7] qlua(+0x80a98e)[0x555a07f6798e]
+[p51n2:20985] [ 8] qlua(+0x801dad)[0x555a07f5edad]
+[p51n2:20985] [ 9] qlua(+0x8010fe)[0x555a07f5e0fe]
+[p51n2:20985] [10] qlua(+0x801f1b)[0x555a07f5ef1b]
+[p51n2:20985] [11] qlua(+0x7ff668)[0x555a07f5c668]
+[p51n2:20985] [12] qlua(+0x23977)[0x555a07780977]
+[p51n2:20985] [13] qlua(+0x2375e)[0x555a0778075e]
+[p51n2:20985] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f42f8ceab97]
+[p51n2:20985] [15] qlua(+0x2385a)[0x555a0778085a]
+[p51n2:20985] *** End of error message ***
+[p51n2:20986] *** Process received signal ***
+[p51n2:20986] Signal: Segmentation fault (11)
+[p51n2:20986] Signal code:  (128)
+[p51n2:20986] Failing at address: (nil)
+[p51n2:20984] *** Process received signal ***
+[p51n2:20984] Signal: Segmentation fault (11)
+[p51n2:20984] Signal code:  (128)
+[p51n2:20984] Failing at address: (nil)
+[p51n2:20986] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f6da195a890]
+[p51n2:20986] [ 1] qlua(+0x66ab8)[0x556a27b14ab8]
+[p51n2:20986] [ 2] qlua(+0x801928)[0x556a282af928]
+[p51n2:20986] [ 3] qlua(+0x801d64)[0x556a282afd64]
+[p51n2:20986] [ 4] qlua(+0x8097e6)[0x556a282b77e6]
+[p51n2:20986] [ 5] qlua(+0x80984a)[0x556a282b784a]
+[p51n2:20986] [ 6] qlua(+0x8099da)[0x556a282b79da]
+[p51n2:20986] [ 7] qlua(+0x80a98e)[0x556a282b898e]
+[p51n2:20986] [ 8] qlua(+0x801dad)[0x556a282afdad]
+[p51n2:20986] [ 9] qlua(+0x8010fe)[0x556a282af0fe]
+[p51n2:20986] [10] qlua(+0x801f1b)[0x556a282aff1b]
+[p51n2:20986] [11] qlua(+0x7ff668)[0x556a282ad668]
+[p51n2:20986] [12] qlua(+0x23977)[0x556a27ad1977]
+[p51n2:20986] [13] qlua(+0x2375e)[0x556a27ad175e]
+[p51n2:20986] [14] [p51n2:20984] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f15ae4b6890]
+[p51n2:20984] [ 1] qlua(+0x66ab8)[0x55bcb645fab8]
+[p51n2:20984] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f6da1578b97]
+[p51n2:20986] [15] qlua(+0x2385a)[0x556a27ad185a]
+[p51n2:20986] *** End of error message ***
+[ 2] qlua(+0x801928)[0x55bcb6bfa928]
+[p51n2:20984] [ 3] qlua(+0x801d64)[0x55bcb6bfad64]
+[p51n2:20984] [ 4] qlua(+0x8097e6)[0x55bcb6c027e6]
+[p51n2:20984] [ 5] qlua(+0x80984a)[0x55bcb6c0284a]
+[p51n2:20984] [ 6] qlua(+0x8099da)[0x55bcb6c029da]
+[p51n2:20984] [ 7] qlua(+0x80a98e)[0x55bcb6c0398e]
+[p51n2:20984] [ 8] qlua(+0x801dad)[0x55bcb6bfadad]
+[p51n2:20984] [ 9] qlua(+0x8010fe)[0x55bcb6bfa0fe]
+[p51n2:20984] [10] qlua(+0x801f1b)[0x55bcb6bfaf1b]
+[p51n2:20984] [11] qlua(+0x7ff668)[0x55bcb6bf8668]
+[p51n2:20984] [12] qlua(+0x23977)[0x55bcb641c977]
+[p51n2:20984] [13] qlua(+0x2375e)[0x55bcb641c75e]
+[p51n2:20984] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f15ae0d4b97]
+[p51n2:20984] [15] qlua(+0x2385a)[0x55bcb641c85a]
+[p51n2:20984] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 20983 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1090' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:20999] *** Process received signal ***
+[p51n2:20999] Signal: Segmentation fault (11)
+[p51n2:20999] Signal code:  (128)
+[p51n2:20999] Failing at address: (nil)
+[p51n2:20999] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fcebfd9e890]
+[p51n2:20999] [ 1] qlua(+0x66ab8)[0x556fad7afab8]
+[p51n2:20999] [ 2] qlua(+0x801928)[0x556fadf4a928]
+[p51n2:20999] [ 3] qlua(+0x801d64)[0x556fadf4ad64]
+[p51n2:20999] [ 4] qlua(+0x8097e6)[0x556fadf527e6]
+[p51n2:20999] [ 5] qlua(+0x80984a)[0x556fadf5284a]
+[p51n2:20999] [ 6] qlua(+0x8099da)[0x556fadf529da]
+[p51n2:20999] [ 7] qlua(+0x80a98e)[0x556fadf5398e]
+[p51n2:20999] [ 8] qlua(+0x801dad)[0x556fadf4adad]
+[p51n2:20999] [ 9] qlua(+0x8010fe)[0x556fadf4a0fe]
+[p51n2:20999] [10] qlua(+0x801f1b)[0x556fadf4af1b]
+[p51n2:20999] [11] qlua(+0x7ff668)[0x556fadf48668]
+[p51n2:20999] [12] qlua(+0x23977)[0x556fad76c977]
+[p51n2:20999] [13] qlua(+0x2375e)[0x556fad76c75e]
+[p51n2:20999] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fcebf9bcb97]
+[p51n2:20999] [15] qlua(+0x2385a)[0x556fad76c85a]
+[p51n2:20999] *** End of error message ***
+[p51n2:21001] *** Process received signal ***
+[p51n2:21001] Signal: Segmentation fault (11)
+[p51n2:21001] Signal code:  (128)
+[p51n2:21001] Failing at address: (nil)
+[p51n2:21001] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f692b404890]
+[p51n2:21001] [ 1] qlua(+0x66ab8)[0x55a615b09ab8]
+[p51n2:21001] [ 2] qlua(+0x801928)[0x55a6162a4928]
+[p51n2:21001] [ 3] qlua(+0x801d64)[0x55a6162a4d64]
+[p51n2:21001] [ 4] qlua(+0x8097e6)[0x55a6162ac7e6]
+[p51n2:21001] [ 5] qlua(+0x80984a)[0x55a6162ac84a]
+[p51n2:21001] [ 6] qlua(+0x8099da)[0x55a6162ac9da]
+[p51n2:21001] [ 7] qlua(+0x80a98e)[0x55a6162ad98e]
+[p51n2:21001] [ 8] qlua(+0x801dad)[0x55a6162a4dad]
+[p51n2:21001] [ 9] qlua(+0x8010fe)[0x55a6162a40fe]
+[p51n2:21001] [10] qlua(+0x801f1b)[0x55a6162a4f1b]
+[p51n2:21001] [11] qlua(+0x7ff668)[0x55a6162a2668]
+[p51n2:21001] [12] qlua(+0x23977)[0x55a615ac6977]
+[p51n2:21001] [13] qlua(+0x2375e)[0x55a615ac675e]
+[p51n2:21001] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f692b022b97]
+[p51n2:21001] [15] qlua(+0x2385a)[0x55a615ac685a]
+[p51n2:21001] *** End of error message ***
+[p51n2:21002] *** Process received signal ***
+[p51n2:21002] Signal: Segmentation fault (11)
+[p51n2:21002] Signal code:  (128)
+[p51n2:21002] Failing at address: (nil)
+[p51n2:21002] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f5e02128890]
+[p51n2:21002] [ 1] qlua(+0x66ab8)[0x55c470e3eab8]
+[p51n2:21002] [ 2] qlua(+0x801928)[0x55c4715d9928]
+[p51n2:21002] [ 3] qlua(+0x801d64)[0x55c4715d9d64]
+[p51n2:21002] [ 4] qlua(+0x8097e6)[0x55c4715e17e6]
+[p51n2:21002] [ 5] qlua(+0x80984a)[0x55c4715e184a]
+[p51n2:21002] [ 6] qlua(+0x8099da)[0x55c4715e19da]
+[p51n2:21002] [ 7] qlua(+0x80a98e)[0x55c4715e298e]
+[p51n2:21002] [ 8] qlua(+0x801dad)[0x55c4715d9dad]
+[p51n2:21002] [ 9] qlua(+0x8010fe)[0x55c4715d90fe]
+[p51n2:21002] [10] qlua(+0x801f1b)[0x55c4715d9f1b]
+[p51n2:21002] [p51n2:21000] *** Process received signal ***
+[p51n2:21000] Signal: Segmentation fault (11)
+[p51n2:21000] Signal code:  (128)
+[p51n2:21000] Failing at address: (nil)
+[11] qlua(+0x7ff668)[0x55c4715d7668]
+[p51n2:21002] [12] qlua(+0x23977)[0x55c470dfb977]
+[p51n2:21002] [13] qlua(+0x2375e)[0x55c470dfb75e]
+[p51n2:21002] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f5e01d46b97]
+[p51n2:21002] [15] qlua(+0x2385a)[0x55c470dfb85a]
+[p51n2:21002] *** End of error message ***
+[p51n2:21000] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f9c878e8890]
+[p51n2:21000] [ 1] qlua(+0x66ab8)[0x56134e712ab8]
+[p51n2:21000] [ 2] qlua(+0x801928)[0x56134eead928]
+[p51n2:21000] [ 3] qlua(+0x801d64)[0x56134eeadd64]
+[p51n2:21000] [ 4] qlua(+0x8097e6)[0x56134eeb57e6]
+[p51n2:21000] [ 5] qlua(+0x80984a)[0x56134eeb584a]
+[p51n2:21000] [ 6] qlua(+0x8099da)[0x56134eeb59da]
+[p51n2:21000] [ 7] qlua(+0x80a98e)[0x56134eeb698e]
+[p51n2:21000] [ 8] qlua(+0x801dad)[0x56134eeaddad]
+[p51n2:21000] [ 9] qlua(+0x8010fe)[0x56134eead0fe]
+[p51n2:21000] [10] qlua(+0x801f1b)[0x56134eeadf1b]
+[p51n2:21000] [11] qlua(+0x7ff668)[0x56134eeab668]
+[p51n2:21000] [12] qlua(+0x23977)[0x56134e6cf977]
+[p51n2:21000] [13] qlua(+0x2375e)[0x56134e6cf75e]
+[p51n2:21000] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f9c87506b97]
+[p51n2:21000] [15] qlua(+0x2385a)[0x56134e6cf85a]
+[p51n2:21000] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 20999 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1100' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21015] *** Process received signal ***
+[p51n2:21015] Signal: Segmentation fault (11)
+[p51n2:21015] Signal code:  (128)
+[p51n2:21015] Failing at address: (nil)
+[p51n2:21015] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f8fdc44f890]
+[p51n2:21015] [ 1] qlua(+0x66ab8)[0x56125e108ab8]
+[p51n2:21015] [ 2] qlua(+0x801928)[0x56125e8a3928]
+[p51n2:21015] [ 3] qlua(+0x801d64)[0x56125e8a3d64]
+[p51n2:21015] [ 4] qlua(+0x8097e6)[0x56125e8ab7e6]
+[p51n2:21015] [ 5] qlua(+0x80984a)[0x56125e8ab84a]
+[p51n2:21015] [ 6] [p51n2:21017] *** Process received signal ***
+[p51n2:21017] Signal: Segmentation fault (11)
+[p51n2:21017] Signal code:  (128)
+[p51n2:21017] Failing at address: (nil)
+[p51n2:21017] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f1c8e7ac890]
+[p51n2:21017] [ 1] qlua(+0x66ab8)[0x562a393e4ab8]
+[p51n2:21017] [ 2] qlua(+0x801928)[0x562a39b7f928]
+[p51n2:21017] [ 3] qlua(+0x801d64)[0x562a39b7fd64]
+[p51n2:21017] [ 4] qlua(+0x8097e6)[0x562a39b877e6]
+[p51n2:21017] [ 5] qlua(+0x80984a)[0x562a39b8784a]
+[p51n2:21017] [ 6] qlua(+0x8099da)[0x562a39b879da]
+[p51n2:21017] [ 7] qlua(+0x80a98e)[0x562a39b8898e]
+[p51n2:21017] [ 8] qlua(+0x8099da)[0x56125e8ab9da]
+[p51n2:21015] [ 7] qlua(+0x80a98e)[0x56125e8ac98e]
+[p51n2:21015] [ 8] qlua(+0x801dad)[0x56125e8a3dad]
+[p51n2:21015] [ 9] qlua(+0x8010fe)[0x56125e8a30fe]
+[p51n2:21015] [10] qlua(+0x801f1b)[0x56125e8a3f1b]
+[p51n2:21015] [11] qlua(+0x7ff668)[0x56125e8a1668]
+[p51n2:21015] [12] qlua(+0x23977)[0x56125e0c5977]
+[p51n2:21015] [13] qlua(+0x2375e)[0x56125e0c575e]
+[p51n2:21015] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f8fdc06db97]
+[p51n2:21015] [15] qlua(+0x2385a)[0x56125e0c585a]
+[p51n2:21015] *** End of error message ***
+qlua(+0x801dad)[0x562a39b7fdad]
+[p51n2:21017] [ 9] qlua(+0x8010fe)[0x562a39b7f0fe]
+[p51n2:21017] [10] qlua(+0x801f1b)[0x562a39b7ff1b]
+[p51n2:21017] [11] qlua(+0x7ff668)[0x562a39b7d668]
+[p51n2:21017] [12] qlua(+0x23977)[0x562a393a1977]
+[p51n2:21017] [13] qlua(+0x2375e)[0x562a393a175e]
+[p51n2:21017] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f1c8e3cab97]
+[p51n2:21017] [15] qlua(+0x2385a)[0x562a393a185a]
+[p51n2:21017] *** End of error message ***
+[p51n2:21018] *** Process received signal ***
+[p51n2:21018] Signal: Segmentation fault (11)
+[p51n2:21018] Signal code:  (128)
+[p51n2:21018] Failing at address: (nil)
+[p51n2:21018] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fd7e9479890]
+[p51n2:21018] [ 1] qlua(+0x66ab8)[0x563508da9ab8]
+[p51n2:21018] [ 2] qlua(+0x801928)[0x563509544928]
+[p51n2:21018] [ 3] qlua(+0x801d64)[0x563509544d64]
+[p51n2:21018] [ 4] qlua(+0x8097e6)[0x56350954c7e6]
+[p51n2:21018] [ 5] qlua(+0x80984a)[0x56350954c84a]
+[p51n2:21018] [ 6] qlua(+0x8099da)[0x56350954c9da]
+[p51n2:21018] [ 7] qlua(+0x80a98e)[0x56350954d98e]
+[p51n2:21018] [ 8] qlua(+0x801dad)[0x563509544dad]
+[p51n2:21018] [ 9] qlua(+0x8010fe)[0x5635095440fe]
+[p51n2:21018] [10] qlua(+0x801f1b)[0x563509544f1b]
+[p51n2:21018] [11] qlua(+0x7ff668)[0x563509542668]
+[p51n2:21018] [12] qlua(+0x23977)[0x563508d66977]
+[p51n2:21018] [13] qlua(+0x2375e)[0x563508d6675e]
+[p51n2:21018] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fd7e9097b97]
+[p51n2:21018] [15] qlua(+0x2385a)[0x563508d6685a]
+[p51n2:21018] *** End of error message ***
+[p51n2:21016] *** Process received signal ***
+[p51n2:21016] Signal: Segmentation fault (11)
+[p51n2:21016] Signal code:  (128)
+[p51n2:21016] Failing at address: (nil)
+[p51n2:21016] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f7f059f8890]
+[p51n2:21016] [ 1] qlua(+0x66ab8)[0x55c1b5c42ab8]
+[p51n2:21016] [ 2] qlua(+0x801928)[0x55c1b63dd928]
+[p51n2:21016] [ 3] qlua(+0x801d64)[0x55c1b63ddd64]
+[p51n2:21016] [ 4] qlua(+0x8097e6)[0x55c1b63e57e6]
+[p51n2:21016] [ 5] qlua(+0x80984a)[0x55c1b63e584a]
+[p51n2:21016] [ 6] qlua(+0x8099da)[0x55c1b63e59da]
+[p51n2:21016] [ 7] qlua(+0x80a98e)[0x55c1b63e698e]
+[p51n2:21016] [ 8] qlua(+0x801dad)[0x55c1b63dddad]
+[p51n2:21016] [ 9] qlua(+0x8010fe)[0x55c1b63dd0fe]
+[p51n2:21016] [10] qlua(+0x801f1b)[0x55c1b63ddf1b]
+[p51n2:21016] [11] qlua(+0x7ff668)[0x55c1b63db668]
+[p51n2:21016] [12] qlua(+0x23977)[0x55c1b5bff977]
+[p51n2:21016] [13] qlua(+0x2375e)[0x55c1b5bff75e]
+[p51n2:21016] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f7f05616b97]
+[p51n2:21016] [15] qlua(+0x2385a)[0x55c1b5bff85a]
+[p51n2:21016] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 21015 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1110' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21031] *** Process received signal ***
+[p51n2:21031] Signal: Segmentation fault (11)
+[p51n2:21031] Signal code:  (128)
+[p51n2:21031] Failing at address: (nil)
+[p51n2:21031] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f5f462e2890]
+[p51n2:21031] [ 1] qlua(+0x66ab8)[0x55ebc923aab8]
+[p51n2:21031] [ 2] qlua(+0x801928)[0x55ebc99d5928]
+[p51n2:21031] [ 3] qlua(+0x801d64)[0x55ebc99d5d64]
+[p51n2:21031] [ 4] qlua(+0x8097e6)[0x55ebc99dd7e6]
+[p51n2:21031] [ 5] qlua(+0x80984a)[0x55ebc99dd84a]
+[p51n2:21031] [ 6] qlua(+0x8099da)[0x55ebc99dd9da]
+[p51n2:21031] [ 7] qlua(+0x80a98e)[0x55ebc99de98e]
+[p51n2:21031] [ 8] qlua(+0x801dad)[0x55ebc99d5dad]
+[p51n2:21031] [ 9] qlua(+0x8010fe)[0x55ebc99d50fe]
+[p51n2:21031] [10] qlua(+0x801f1b)[0x55ebc99d5f1b]
+[p51n2:21031] [11] qlua(+0x7ff668)[0x55ebc99d3668]
+[p51n2:21031] [12] qlua(+0x23977)[0x55ebc91f7977]
+[p51n2:21031] [13] qlua(+0x2375e)[0x55ebc91f775e]
+[p51n2:21031] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f5f45f00b97]
+[p51n2:21031] [15] qlua(+0x2385a)[0x55ebc91f785a]
+[p51n2:21031] *** End of error message ***
+[p51n2:21033] *** Process received signal ***
+[p51n2:21033] Signal: Segmentation fault (11)
+[p51n2:21033] Signal code:  (128)
+[p51n2:21033] Failing at address: (nil)
+[p51n2:21033] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0b3ee58890]
+[p51n2:21033] [ 1] qlua(+0x66ab8)[0x5626d288fab8]
+[p51n2:21033] [ 2] qlua(+0x801928)[0x5626d302a928]
+[p51n2:21033] [ 3] qlua(+0x801d64)[0x5626d302ad64]
+[p51n2:21033] [ 4] qlua(+0x8097e6)[0x5626d30327e6]
+[p51n2:21033] [ 5] qlua(+0x80984a)[0x5626d303284a]
+[p51n2:21033] [ 6] qlua(+0x8099da)[0x5626d30329da]
+[p51n2:21033] [ 7] qlua(+0x80a98e)[0x5626d303398e]
+[p51n2:21033] [p51n2:21032] *** Process received signal ***
+[p51n2:21032] Signal: Segmentation fault (11)
+[p51n2:21032] Signal code:  (128)
+[p51n2:21032] Failing at address: (nil)
+[ 8] qlua(+0x801dad)[0x5626d302adad]
+[p51n2:21033] [ 9] qlua(+0x8010fe)[0x5626d302a0fe]
+[p51n2:21033] [10] qlua(+0x801f1b)[0x5626d302af1b]
+[p51n2:21033] [11] qlua(+0x7ff668)[0x5626d3028668]
+[p51n2:21033] [12] qlua(+0x23977)[0x5626d284c977]
+[p51n2:21033] [13] qlua(+0x2375e)[0x5626d284c75e]
+[p51n2:21033] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0b3ea76b97]
+[p51n2:21033] [15] qlua(+0x2385a)[0x5626d284c85a]
+[p51n2:21033] *** End of error message ***
+[p51n2:21034] *** Process received signal ***
+[p51n2:21034] Signal: Segmentation fault (11)
+[p51n2:21034] Signal code:  (128)
+[p51n2:21034] Failing at address: (nil)
+[p51n2:21032] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fe27e2de890]
+[p51n2:21032] [ 1] [p51n2:21034] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fa3eab53890]
+[p51n2:21034] [ 1] qlua(+0x66ab8)[0x55cde1165ab8]
+[p51n2:21034] [ 2] qlua(+0x801928)[0x55cde1900928]
+[p51n2:21034] qlua(+0x66ab8)[0x56320ffe8ab8]
+[p51n2:21032] [ 2] qlua(+0x801928)[0x563210783928]
+[p51n2:21032] [ 3] qlua(+0x801d64)[0x563210783d64]
+[p51n2:21032] [ 4] qlua(+0x8097e6)[0x56321078b7e6]
+[p51n2:21032] [ 5] qlua(+0x80984a)[0x56321078b84a]
+[p51n2:21032] [ 6] qlua(+0x8099da)[0x56321078b9da]
+[p51n2:21032] [ 7] qlua(+0x80a98e)[0x56321078c98e]
+[p51n2:21032] [ 8] qlua(+0x801dad)[0x563210783dad]
+[ 3] qlua(+0x801d64)[0x55cde1900d64]
+[p51n2:21034] [ 4] qlua(+0x8097e6)[0x55cde19087e6]
+[p51n2:21034] [ 5] qlua(+0x80984a)[0x55cde190884a]
+[p51n2:21034] [ 6] qlua(+0x8099da)[0x55cde19089da]
+[p51n2:21034] [ 7] qlua(+0x80a98e)[0x55cde190998e]
+[p51n2:21034] [ 8] qlua(+0x801dad)[0x55cde1900dad]
+[p51n2:21034] [ 9] qlua(+0x8010fe)[0x55cde19000fe]
+[p51n2:21034] [10] qlua(+0x801f1b)[0x55cde1900f1b]
+[p51n2:21034] [p51n2:21032] [ 9] qlua(+0x8010fe)[0x5632107830fe]
+[p51n2:21032] [10] qlua(+0x801f1b)[0x563210783f1b]
+[p51n2:21032] [11] qlua(+0x7ff668)[0x563210781668]
+[p51n2:21032] [12] qlua(+0x23977)[0x56320ffa5977]
+[p51n2:21032] [13] qlua(+0x2375e)[0x56320ffa575e]
+[p51n2:21032] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fe27defcb97]
+[p51n2:21032] [15] qlua(+0x2385a)[0x56320ffa585a]
+[p51n2:21032] *** End of error message ***
+[11] qlua(+0x7ff668)[0x55cde18fe668]
+[p51n2:21034] [12] qlua(+0x23977)[0x55cde1122977]
+[p51n2:21034] [13] qlua(+0x2375e)[0x55cde112275e]
+[p51n2:21034] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fa3ea771b97]
+[p51n2:21034] [15] qlua(+0x2385a)[0x55cde112285a]
+[p51n2:21034] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 21031 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1120' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21048] *** Process received signal ***
+[p51n2:21048] Signal: Segmentation fault (11)
+[p51n2:21048] Signal code:  (128)
+[p51n2:21048] Failing at address: (nil)
+[p51n2:21050] *** Process received signal ***
+[p51n2:21050] Signal: Segmentation fault (11)
+[p51n2:21050] Signal code:  (128)
+[p51n2:21050] Failing at address: (nil)
+[p51n2:21050] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fed6a439890]
+[p51n2:21050] [ 1] qlua(+0x66ab8)[0x559f34327ab8]
+[p51n2:21050] [ 2] qlua(+0x801928)[0x559f34ac2928]
+[p51n2:21050] [ 3] qlua(+0x801d64)[0x559f34ac2d64]
+[p51n2:21050] [ 4] qlua(+0x8097e6)[0x559f34aca7e6]
+[p51n2:21050] [ 5] qlua(+0x80984a)[0x559f34aca84a]
+[p51n2:21050] [ 6] qlua(+0x8099da)[0x559f34aca9da]
+[p51n2:21050] [ 7] qlua(+0x80a98e)[0x559f34acb98e]
+[p51n2:21050] [ 8] qlua(+0x801dad)[0x559f34ac2dad]
+[p51n2:21050] [ 9] qlua(+0x8010fe)[0x559f34ac20fe]
+[p51n2:21050] [10] qlua(+0x801f1b)[0x559f34ac2f1b]
+[p51n2:21050] [11] qlua(+0x7ff668)[0x559f34ac0668]
+[p51n2:21050] [12] qlua(+0x23977)[0x559f342e4977]
+[p51n2:21050] [13] qlua(+0x2375e)[0x559f342e475e]
+[p51n2:21050] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fed6a057b97]
+[p51n2:21050] [15] qlua(+0x2385a)[0x559f342e485a]
+[p51n2:21050] *** End of error message ***
+[p51n2:21048] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f511e77d890]
+[p51n2:21048] [ 1] qlua(+0x66ab8)[0x561185b38ab8]
+[p51n2:21048] [ 2] qlua(+0x801928)[0x5611862d3928]
+[p51n2:21048] [ 3] qlua(+0x801d64)[0x5611862d3d64]
+[p51n2:21048] [ 4] qlua(+0x8097e6)[0x5611862db7e6]
+[p51n2:21048] [ 5] qlua(+0x80984a)[0x5611862db84a]
+[p51n2:21048] [ 6] qlua(+0x8099da)[0x5611862db9da]
+[p51n2:21048] [ 7] qlua(+0x80a98e)[0x5611862dc98e]
+[p51n2:21048] [ 8] qlua(+0x801dad)[0x5611862d3dad]
+[p51n2:21048] [ 9] qlua(+0x8010fe)[0x5611862d30fe]
+[p51n2:21048] [10] qlua(+0x801f1b)[0x5611862d3f1b]
+[p51n2:21048] [11] qlua(+0x7ff668)[0x5611862d1668]
+[p51n2:21048] [12] qlua(+0x23977)[0x561185af5977]
+[p51n2:21048] [13] qlua(+0x2375e)[0x561185af575e]
+[p51n2:21048] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f511e39bb97]
+[p51n2:21048] [15] qlua(+0x2385a)[0x561185af585a]
+[p51n2:21048] *** End of error message ***
+[p51n2:21051] *** Process received signal ***
+[p51n2:21051] Signal: Segmentation fault (11)
+[p51n2:21051] Signal code:  (128)
+[p51n2:21051] Failing at address: (nil)
+[p51n2:21051] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fa0071d2890]
+[p51n2:21051] [ 1] qlua(+0x66ab8)[0x559ee435bab8]
+[p51n2:21051] [ 2] qlua(+0x801928)[0x559ee4af6928]
+[p51n2:21051] [ 3] qlua(+0x801d64)[0x559ee4af6d64]
+[p51n2:21051] [ 4] qlua(+0x8097e6)[0x559ee4afe7e6]
+[p51n2:21051] [ 5] qlua(+0x80984a)[0x559ee4afe84a]
+[p51n2:21051] [ 6] qlua(+0x8099da)[0x559ee4afe9da]
+[p51n2:21051] [ 7] qlua(+0x80a98e)[0x559ee4aff98e]
+[p51n2:21051] [ 8] qlua(+0x801dad)[0x559ee4af6dad]
+[p51n2:21051] [ 9] qlua(+0x8010fe)[0x559ee4af60fe]
+[p51n2:21051] [10] qlua(+0x801f1b)[0x559ee4af6f1b]
+[p51n2:21051] [11] qlua(+0x7ff668)[0x559ee4af4668]
+[p51n2:21051] [12] qlua(+0x23977)[0x559ee4318977]
+[p51n2:21051] [13] qlua(+0x2375e)[0x559ee431875e]
+[p51n2:21051] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fa006df0b97]
+[p51n2:21051] [15] qlua(+0x2385a)[0x559ee431885a]
+[p51n2:21051] *** End of error message ***
+[p51n2:21049] *** Process received signal ***
+[p51n2:21049] Signal: Segmentation fault (11)
+[p51n2:21049] Signal code:  (128)
+[p51n2:21049] Failing at address: (nil)
+[p51n2:21049] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f84978ca890]
+[p51n2:21049] [ 1] qlua(+0x66ab8)[0x559ad5a7fab8]
+[p51n2:21049] [ 2] qlua(+0x801928)[0x559ad621a928]
+[p51n2:21049] [ 3] qlua(+0x801d64)[0x559ad621ad64]
+[p51n2:21049] [ 4] qlua(+0x8097e6)[0x559ad62227e6]
+[p51n2:21049] [ 5] qlua(+0x80984a)[0x559ad622284a]
+[p51n2:21049] [ 6] qlua(+0x8099da)[0x559ad62229da]
+[p51n2:21049] [ 7] qlua(+0x80a98e)[0x559ad622398e]
+[p51n2:21049] [ 8] qlua(+0x801dad)[0x559ad621adad]
+[p51n2:21049] [ 9] qlua(+0x8010fe)[0x559ad621a0fe]
+[p51n2:21049] [10] qlua(+0x801f1b)[0x559ad621af1b]
+[p51n2:21049] [11] qlua(+0x7ff668)[0x559ad6218668]
+[p51n2:21049] [12] qlua(+0x23977)[0x559ad5a3c977]
+[p51n2:21049] [13] qlua(+0x2375e)[0x559ad5a3c75e]
+[p51n2:21049] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f84974e8b97]
+[p51n2:21049] [15] qlua(+0x2385a)[0x559ad5a3c85a]
+[p51n2:21049] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 21048 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1130' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21066] *** Process received signal ***
+[p51n2:21066] Signal: Segmentation fault (11)
+[p51n2:21066] Signal code:  (128)
+[p51n2:21066] Failing at address: (nil)
+[p51n2:21066] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f4a901bb890]
+[p51n2:21066] [ 1] qlua(+0x66ab8)[0x5574e150bab8]
+[p51n2:21066] [ 2] qlua(+0x801928)[0x5574e1ca6928]
+[p51n2:21066] [ 3] qlua(+0x801d64)[0x5574e1ca6d64]
+[p51n2:21066] [ 4] qlua(+0x8097e6)[0x5574e1cae7e6]
+[p51n2:21066] [ 5] qlua(+0x80984a)[0x5574e1cae84a]
+[p51n2:21066] [ 6] qlua(+0x8099da)[0x5574e1cae9da]
+[p51n2:21066] [ 7] qlua(+0x80a98e)[0x5574e1caf98e]
+[p51n2:21066] [ 8] qlua(+0x801dad)[0x5574e1ca6dad]
+[p51n2:21066] [ 9] qlua(+0x8010fe)[0x5574e1ca60fe]
+[p51n2:21066] [10] qlua(+0x801f1b)[0x5574e1ca6f1b]
+[p51n2:21066] [11] qlua(+0x7ff668)[0x5574e1ca4668]
+[p51n2:21066] [12] qlua(+0x23977)[0x5574e14c8977]
+[p51n2:21066] [13] qlua(+0x2375e)[0x5574e14c875e]
+[p51n2:21066] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f4a8fdd9b97]
+[p51n2:21066] [15] qlua(+0x2385a)[0x5574e14c885a]
+[p51n2:21066] *** End of error message ***
+[p51n2:21064] *** Process received signal ***
+[p51n2:21064] Signal: Segmentation fault (11)
+[p51n2:21064] Signal code:  (128)
+[p51n2:21064] Failing at address: (nil)
+[p51n2:21064] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0f1fb87890]
+[p51n2:21064] [ 1] qlua(+0x66ab8)[0x55d1693a9ab8]
+[p51n2:21064] [ 2] qlua(+0x801928)[0x55d169b44928]
+[p51n2:21064] [ 3] qlua(+0x801d64)[0x55d169b44d64]
+[p51n2:21064] [ 4] qlua(+0x8097e6)[0x55d169b4c7e6]
+[p51n2:21064] [ 5] qlua(+0x80984a)[0x55d169b4c84a]
+[p51n2:21064] [ 6] qlua(+0x8099da)[0x55d169b4c9da]
+[p51n2:21064] [ 7] qlua(+0x80a98e)[0x55d169b4d98e]
+[p51n2:21064] [ 8] qlua(+0x801dad)[0x55d169b44dad]
+[p51n2:21064] [ 9] qlua(+0x8010fe)[0x55d169b440fe]
+[p51n2:21064] [10] qlua(+0x801f1b)[0x55d169b44f1b]
+[p51n2:21064] [11] qlua(+0x7ff668)[0x55d169b42668]
+[p51n2:21064] [12] qlua(+0x23977)[0x55d169366977]
+[p51n2:21064] [13] qlua(+0x2375e)[0x55d16936675e]
+[p51n2:21064] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0f1f7a5b97]
+[p51n2:21064] [15] qlua(+0x2385a)[0x55d16936685a]
+[p51n2:21064] *** End of error message ***
+[p51n2:21067] *** Process received signal ***
+[p51n2:21067] Signal: Segmentation fault (11)
+[p51n2:21067] Signal code:  (128)
+[p51n2:21067] Failing at address: (nil)
+[p51n2:21067] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7ffb3aa93890]
+[p51n2:21067] [ 1] qlua(+0x66ab8)[0x555da0944ab8]
+[p51n2:21067] [ 2] qlua(+0x801928)[0x555da10df928]
+[p51n2:21067] [ 3] qlua(+0x801d64)[0x555da10dfd64]
+[p51n2:21067] [ 4] qlua(+0x8097e6)[0x555da10e77e6]
+[p51n2:21067] [ 5] qlua(+0x80984a)[0x555da10e784a]
+[p51n2:21067] [ 6] qlua(+0x8099da)[0x555da10e79da]
+[p51n2:21067] [ 7] qlua(+0x80a98e)[0x555da10e898e]
+[p51n2:21067] [ 8] qlua(+0x801dad)[0x555da10dfdad]
+[p51n2:21067] [ 9] qlua(+0x8010fe)[0x555da10df0fe]
+[p51n2:21067] [10] qlua(+0x801f1b)[0x555da10dff1b]
+[p51n2:21067] [11] qlua(+0x7ff668)[0x555da10dd668]
+[p51n2:21067] [12] qlua(+0x23977)[0x555da0901977]
+[p51n2:21067] [13] qlua(+0x2375e)[0x555da090175e]
+[p51n2:21065] *** Process received signal ***
+[p51n2:21065] Signal: Segmentation fault (11)
+[p51n2:21065] Signal code:  (128)
+[p51n2:21065] Failing at address: (nil)
+[p51n2:21067] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7ffb3a6b1b97]
+[p51n2:21067] [15] qlua(+0x2385a)[0x555da090185a]
+[p51n2:21067] *** End of error message ***
+[p51n2:21065] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0211642890]
+[p51n2:21065] [ 1] qlua(+0x66ab8)[0x55ae3a015ab8]
+[p51n2:21065] [ 2] qlua(+0x801928)[0x55ae3a7b0928]
+[p51n2:21065] [ 3] qlua(+0x801d64)[0x55ae3a7b0d64]
+[p51n2:21065] [ 4] qlua(+0x8097e6)[0x55ae3a7b87e6]
+[p51n2:21065] [ 5] qlua(+0x80984a)[0x55ae3a7b884a]
+[p51n2:21065] [ 6] qlua(+0x8099da)[0x55ae3a7b89da]
+[p51n2:21065] [ 7] qlua(+0x80a98e)[0x55ae3a7b998e]
+[p51n2:21065] [ 8] qlua(+0x801dad)[0x55ae3a7b0dad]
+[p51n2:21065] [ 9] qlua(+0x8010fe)[0x55ae3a7b00fe]
+[p51n2:21065] [10] qlua(+0x801f1b)[0x55ae3a7b0f1b]
+[p51n2:21065] [11] qlua(+0x7ff668)[0x55ae3a7ae668]
+[p51n2:21065] [12] qlua(+0x23977)[0x55ae39fd2977]
+[p51n2:21065] [13] qlua(+0x2375e)[0x55ae39fd275e]
+[p51n2:21065] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0211260b97]
+[p51n2:21065] [15] qlua(+0x2385a)[0x55ae39fd285a]
+[p51n2:21065] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 21066 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1140' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21082] *** Process received signal ***
+[p51n2:21082] Signal: Segmentation fault (11)
+[p51n2:21082] Signal code:  (128)
+[p51n2:21082] Failing at address: (nil)
+[p51n2:21082] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fb3f0dad890]
+[p51n2:21082] [ 1] qlua(+0x66ab8)[0x555db93f3ab8]
+[p51n2:21082] [ 2] qlua(+0x801928)[0x555db9b8e928]
+[p51n2:21082] [ 3] qlua(+0x801d64)[0x555db9b8ed64]
+[p51n2:21082] [ 4] qlua(+0x8097e6)[0x555db9b967e6]
+[p51n2:21082] [ 5] qlua(+0x80984a)[0x555db9b9684a]
+[p51n2:21082] [ 6] qlua(+0x8099da)[0x555db9b969da]
+[p51n2:21082] [ 7] qlua(+0x80a98e)[0x555db9b9798e]
+[p51n2:21082] [ 8] qlua(+0x801dad)[0x555db9b8edad]
+[p51n2:21082] [ 9] qlua(+0x8010fe)[0x555db9b8e0fe]
+[p51n2:21082] [10] qlua(+0x801f1b)[0x555db9b8ef1b]
+[p51n2:21082] [11] qlua(+0x7ff668)[0x555db9b8c668]
+[p51n2:21082] [12] qlua(+0x23977)[0x555db93b0977]
+[p51n2:21082] [13] qlua(+0x2375e)[0x555db93b075e]
+[p51n2:21082] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fb3f09cbb97]
+[p51n2:21082] [15] qlua(+0x2385a)[0x555db93b085a]
+[p51n2:21082] *** End of error message ***
+[p51n2:21080] *** Process received signal ***
+[p51n2:21080] Signal: Segmentation fault (11)
+[p51n2:21080] Signal code:  (128)
+[p51n2:21080] Failing at address: (nil)
+[p51n2:21080] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0f828c3890]
+[p51n2:21080] [ 1] qlua(+0x66ab8)[0x55f1b470bab8]
+[p51n2:21080] [ 2] qlua(+0x801928)[0x55f1b4ea6928]
+[p51n2:21080] [ 3] qlua(+0x801d64)[0x55f1b4ea6d64]
+[p51n2:21080] [ 4] qlua(+0x8097e6)[0x55f1b4eae7e6]
+[p51n2:21080] [ 5] qlua(+0x80984a)[0x55f1b4eae84a]
+[p51n2:21080] [ 6] qlua(+0x8099da)[0x55f1b4eae9da]
+[p51n2:21080] [ 7] qlua(+0x80a98e)[0x55f1b4eaf98e]
+[p51n2:21080] [ 8] qlua(+0x801dad)[0x55f1b4ea6dad]
+[p51n2:21080] [ 9] qlua(+0x8010fe)[0x55f1b4ea60fe]
+[p51n2:21080] [10] qlua(+0x801f1b)[0x55f1b4ea6f1b]
+[p51n2:21080] [11] qlua(+0x7ff668)[0x55f1b4ea4668]
+[p51n2:21080] [12] qlua(+0x23977)[0x55f1b46c8977]
+[p51n2:21080] [13] qlua(+0x2375e)[0x55f1b46c875e]
+[p51n2:21080] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0f824e1b97]
+[p51n2:21080] [15] qlua(+0x2385a)[0x55f1b46c885a]
+[p51n2:21080] *** End of error message ***
+[p51n2:21083] *** Process received signal ***
+[p51n2:21083] Signal: Segmentation fault (11)
+[p51n2:21083] Signal code:  (128)
+[p51n2:21083] Failing at address: (nil)
+[p51n2:21081] *** Process received signal ***
+[p51n2:21081] Signal: Segmentation fault (11)
+[p51n2:21081] Signal code:  (128)
+[p51n2:21081] Failing at address: (nil)
+[p51n2:21083] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f1e93d20890]
+[p51n2:21083] [ 1] qlua(+0x66ab8)[0x559061410ab8]
+[p51n2:21083] [ 2] qlua(+0x801928)[0x559061bab928]
+[p51n2:21083] [ 3] qlua(+0x801d64)[0x559061babd64]
+[p51n2:21083] [ 4] qlua(+0x8097e6)[0x559061bb37e6]
+[p51n2:21083] [ 5] qlua(+0x80984a)[0x559061bb384a]
+[p51n2:21083] [ 6] qlua(+0x8099da)[0x559061bb39da]
+[p51n2:21083] [ 7] qlua(+0x80a98e)[0x559061bb498e]
+[p51n2:21083] [ 8] qlua(+0x801dad)[0x559061babdad]
+[p51n2:21083] [ 9] qlua(+0x8010fe)[0x559061bab0fe]
+[p51n2:21083] [10] qlua(+0x801f1b)[0x559061babf1b]
+[p51n2:21083] [11] qlua(+0x7ff668)[0x559061ba9668]
+[p51n2:21083] [12] qlua(+0x23977)[0x5590613cd977]
+[p51n2:21083] [13] qlua(+0x2375e)[0x5590613cd75e]
+[p51n2:21083] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f1e9393eb97]
+[p51n2:21083] [15] qlua(+0x2385a)[0x5590613cd85a]
+[p51n2:21083] *** End of error message ***
+[p51n2:21081] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fbb3eb07890]
+[p51n2:21081] [ 1] qlua(+0x66ab8)[0x55efca907ab8]
+[p51n2:21081] [ 2] qlua(+0x801928)[0x55efcb0a2928]
+[p51n2:21081] [ 3] qlua(+0x801d64)[0x55efcb0a2d64]
+[p51n2:21081] [ 4] qlua(+0x8097e6)[0x55efcb0aa7e6]
+[p51n2:21081] [ 5] qlua(+0x80984a)[0x55efcb0aa84a]
+[p51n2:21081] [ 6] qlua(+0x8099da)[0x55efcb0aa9da]
+[p51n2:21081] [ 7] qlua(+0x80a98e)[0x55efcb0ab98e]
+[p51n2:21081] [ 8] qlua(+0x801dad)[0x55efcb0a2dad]
+[p51n2:21081] [ 9] qlua(+0x8010fe)[0x55efcb0a20fe]
+[p51n2:21081] [10] qlua(+0x801f1b)[0x55efcb0a2f1b]
+[p51n2:21081] [11] qlua(+0x7ff668)[0x55efcb0a0668]
+[p51n2:21081] [12] qlua(+0x23977)[0x55efca8c4977]
+[p51n2:21081] [13] qlua(+0x2375e)[0x55efca8c475e]
+[p51n2:21081] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fbb3e725b97]
+[p51n2:21081] [15] qlua(+0x2385a)[0x55efca8c485a]
+[p51n2:21081] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 21082 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1150' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21096] *** Process received signal ***
+[p51n2:21096] Signal: Segmentation fault (11)
+[p51n2:21096] Signal code:  (128)
+[p51n2:21096] Failing at address: (nil)
+[p51n2:21096] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7ff1c1fcb890]
+[p51n2:21096] [ 1] qlua(+0x66ab8)[0x558d3417eab8]
+[p51n2:21096] [ 2] qlua(+0x801928)[0x558d34919928]
+[p51n2:21096] [ 3] qlua(+0x801d64)[0x558d34919d64]
+[p51n2:21096] [ 4] qlua(+0x8097e6)[0x558d349217e6]
+[p51n2:21096] [ 5] qlua(+0x80984a)[0x558d3492184a]
+[p51n2:21096] [ 6] qlua(+0x8099da)[0x558d349219da]
+[p51n2:21096] [ 7] qlua(+0x80a98e)[0x558d3492298e]
+[p51n2:21096] [ 8] qlua(+0x801dad)[0x558d34919dad]
+[p51n2:21096] [ 9] qlua(+0x8010fe)[0x558d349190fe]
+[p51n2:21096] [10] qlua(+0x801f1b)[0x558d34919f1b]
+[p51n2:21096] [11] qlua(+0x7ff668)[0x558d34917668]
+[p51n2:21096] [12] qlua(+0x23977)[0x558d3413b977]
+[p51n2:21096] [13] qlua(+0x2375e)[0x558d3413b75e]
+[p51n2:21096] [14] [p51n2:21098] *** Process received signal ***
+[p51n2:21098] Signal: Segmentation fault (11)
+[p51n2:21098] Signal code:  (128)
+[p51n2:21098] Failing at address: (nil)
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7ff1c1be9b97]
+[p51n2:21096] [15] qlua(+0x2385a)[0x558d3413b85a]
+[p51n2:21096] *** End of error message ***
+[p51n2:21098] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f3e88495890]
+[p51n2:21098] [ 1] qlua(+0x66ab8)[0x55c885ca4ab8]
+[p51n2:21098] [ 2] qlua(+0x801928)[0x55c88643f928]
+[p51n2:21098] [ 3] qlua(+0x801d64)[0x55c88643fd64]
+[p51n2:21098] [ 4] qlua(+0x8097e6)[0x55c8864477e6]
+[p51n2:21098] [ 5] qlua(+0x80984a)[0x55c88644784a]
+[p51n2:21098] [ 6] qlua(+0x8099da)[0x55c8864479da]
+[p51n2:21098] [ 7] qlua(+0x80a98e)[0x55c88644898e]
+[p51n2:21098] [ 8] qlua(+0x801dad)[0x55c88643fdad]
+[p51n2:21098] [ 9] qlua(+0x8010fe)[0x55c88643f0fe]
+[p51n2:21098] [10] qlua(+0x801f1b)[0x55c88643ff1b]
+[p51n2:21098] [11] qlua(+0x7ff668)[0x55c88643d668]
+[p51n2:21098] [12] qlua(+0x23977)[0x55c885c61977]
+[p51n2:21098] [13] qlua(+0x2375e)[0x55c885c6175e]
+[p51n2:21098] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f3e880b3b97]
+[p51n2:21098] [15] qlua(+0x2385a)[0x55c885c6185a]
+[p51n2:21098] *** End of error message ***
+[p51n2:21099] *** Process received signal ***
+[p51n2:21099] Signal: Segmentation fault (11)
+[p51n2:21099] Signal code:  (128)
+[p51n2:21099] Failing at address: (nil)
+[p51n2:21099] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fc43a054890]
+[p51n2:21099] [ 1] qlua(+0x66ab8)[0x5596238c0ab8]
+[p51n2:21099] [ 2] qlua(+0x801928)[0x55962405b928]
+[p51n2:21099] [ 3] qlua(+0x801d64)[0x55962405bd64]
+[p51n2:21099] [ 4] qlua(+0x8097e6)[0x5596240637e6]
+[p51n2:21099] [ 5] qlua(+0x80984a)[0x55962406384a]
+[p51n2:21099] [ 6] qlua(+0x8099da)[0x5596240639da]
+[p51n2:21099] [ 7] qlua(+0x80a98e)[0x55962406498e]
+[p51n2:21099] [ 8] qlua(+0x801dad)[0x55962405bdad]
+[p51n2:21099] [ 9] qlua(+0x8010fe)[0x55962405b0fe]
+[p51n2:21099] [10] qlua(+0x801f1b)[0x55962405bf1b]
+[p51n2:21099] [11] qlua(+0x7ff668)[0x559624059668]
+[p51n2:21099] [12] qlua(+0x23977)[0x55962387d977]
+[p51n2:21099] [13] qlua(+0x2375e)[0x55962387d75e]
+[p51n2:21099] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fc439c72b97]
+[p51n2:21099] [15] qlua(+0x2385a)[0x55962387d85a]
+[p51n2:21099] *** End of error message ***
+[p51n2:21097] *** Process received signal ***
+[p51n2:21097] Signal: Segmentation fault (11)
+[p51n2:21097] Signal code:  (128)
+[p51n2:21097] Failing at address: (nil)
+[p51n2:21097] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fb15d69d890]
+[p51n2:21097] [ 1] qlua(+0x66ab8)[0x560dc443cab8]
+[p51n2:21097] [ 2] qlua(+0x801928)[0x560dc4bd7928]
+[p51n2:21097] [ 3] qlua(+0x801d64)[0x560dc4bd7d64]
+[p51n2:21097] [ 4] qlua(+0x8097e6)[0x560dc4bdf7e6]
+[p51n2:21097] [ 5] qlua(+0x80984a)[0x560dc4bdf84a]
+[p51n2:21097] [ 6] qlua(+0x8099da)[0x560dc4bdf9da]
+[p51n2:21097] [ 7] qlua(+0x80a98e)[0x560dc4be098e]
+[p51n2:21097] [ 8] qlua(+0x801dad)[0x560dc4bd7dad]
+[p51n2:21097] [ 9] qlua(+0x8010fe)[0x560dc4bd70fe]
+[p51n2:21097] [10] qlua(+0x801f1b)[0x560dc4bd7f1b]
+[p51n2:21097] [11] qlua(+0x7ff668)[0x560dc4bd5668]
+[p51n2:21097] [12] qlua(+0x23977)[0x560dc43f9977]
+[p51n2:21097] [13] qlua(+0x2375e)[0x560dc43f975e]
+[p51n2:21097] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fb15d2bbb97]
+[p51n2:21097] [15] qlua(+0x2385a)[0x560dc43f985a]
+[p51n2:21097] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 21098 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1160' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21114] *** Process received signal ***
+[p51n2:21114] Signal: Segmentation fault (11)
+[p51n2:21114] Signal code:  (128)
+[p51n2:21114] Failing at address: (nil)
+[p51n2:21114] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0fb01f0890]
+[p51n2:21114] [ 1] qlua(+0x66ab8)[0x55a52fc46ab8]
+[p51n2:21114] [ 2] qlua(+0x801928)[0x55a5303e1928]
+[p51n2:21114] [ 3] qlua(+0x801d64)[0x55a5303e1d64]
+[p51n2:21114] [ 4] qlua(+0x8097e6)[0x55a5303e97e6]
+[p51n2:21114] [ 5] qlua(+0x80984a)[0x55a5303e984a]
+[p51n2:21114] [ 6] qlua(+0x8099da)[0x55a5303e99da]
+[p51n2:21114] [ 7] qlua(+0x80a98e)[0x55a5303ea98e]
+[p51n2:21114] [ 8] qlua(+0x801dad)[0x55a5303e1dad]
+[p51n2:21114] [ 9] qlua(+0x8010fe)[0x55a5303e10fe]
+[p51n2:21114] [10] qlua(+0x801f1b)[0x55a5303e1f1b]
+[p51n2:21114] [11] qlua(+0x7ff668)[0x55a5303df668]
+[p51n2:21114] [12] qlua(+0x23977)[0x55a52fc03977]
+[p51n2:21114] [13] qlua(+0x2375e)[0x55a52fc0375e]
+[p51n2:21114] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0fafe0eb97]
+[p51n2:21114] [15] qlua(+0x2385a)[0x55a52fc0385a]
+[p51n2:21114] *** End of error message ***
+[p51n2:21115] *** Process received signal ***
+[p51n2:21115] Signal: Segmentation fault (11)
+[p51n2:21115] Signal code:  (128)
+[p51n2:21115] Failing at address: (nil)
+[p51n2:21112] *** Process received signal ***
+[p51n2:21112] Signal: Segmentation fault (11)
+[p51n2:21112] Signal code:  (128)
+[p51n2:21112] Failing at address: (nil)
+[p51n2:21115] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7ffbfcc04890]
+[p51n2:21115] [ 1] qlua(+0x66ab8)[0x55bd5ad52ab8]
+[p51n2:21115] [ 2] qlua(+0x801928)[0x55bd5b4ed928]
+[p51n2:21115] [ 3] qlua(+0x801d64)[0x55bd5b4edd64]
+[p51n2:21115] [ 4] [p51n2:21112] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f900b664890]
+[p51n2:21112] [ 1] qlua(+0x66ab8)[0x564bfe126ab8]
+qlua(+0x8097e6)[0x55bd5b4f57e6]
+[p51n2:21115] [ 5] qlua(+0x80984a)[0x55bd5b4f584a]
+[p51n2:21115] [ 6] qlua(+0x8099da)[0x55bd5b4f59da]
+[p51n2:21115] [ 7] qlua(+0x80a98e)[0x55bd5b4f698e]
+[p51n2:21115] [ 8] qlua(+0x801dad)[0x55bd5b4eddad]
+[p51n2:21115] [ 9] qlua(+0x8010fe)[0x55bd5b4ed0fe]
+[p51n2:21115] [10] qlua(+0x801f1b)[0x55bd5b4edf1b]
+[p51n2:21115] [11] qlua(+0x7ff668)[0x55bd5b4eb668]
+[p51n2:21115] [12] qlua(+0x23977)[0x55bd5ad0f977]
+[p51n2:21115] [13] qlua(+0x2375e)[0x55bd5ad0f75e]
+[p51n2:21112] [ 2] qlua(+0x801928)[0x564bfe8c1928]
+[p51n2:21112] [ 3] qlua(+0x801d64)[0x564bfe8c1d64]
+[p51n2:21112] [ 4] qlua(+0x8097e6)[0x564bfe8c97e6]
+[p51n2:21112] [ 5] qlua(+0x80984a)[0x564bfe8c984a]
+[p51n2:21112] [ 6] qlua(+0x8099da)[0x564bfe8c99da]
+[p51n2:21112] [ 7] qlua(+0x80a98e)[0x564bfe8ca98e]
+[p51n2:21115] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7ffbfc822b97]
+[p51n2:21115] [15] qlua(+0x2385a)[0x55bd5ad0f85a]
+[p51n2:21115] *** End of error message ***
+[p51n2:21112] [ 8] qlua(+0x801dad)[0x564bfe8c1dad]
+[p51n2:21112] [ 9] qlua(+0x8010fe)[0x564bfe8c10fe]
+[p51n2:21112] [10] qlua(+0x801f1b)[0x564bfe8c1f1b]
+[p51n2:21112] [11] qlua(+0x7ff668)[0x564bfe8bf668]
+[p51n2:21112] [12] qlua(+0x23977)[0x564bfe0e3977]
+[p51n2:21112] [13] qlua(+0x2375e)[0x564bfe0e375e]
+[p51n2:21112] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f900b282b97]
+[p51n2:21112] [15] qlua(+0x2385a)[0x564bfe0e385a]
+[p51n2:21112] *** End of error message ***
+[p51n2:21113] *** Process received signal ***
+[p51n2:21113] Signal: Segmentation fault (11)
+[p51n2:21113] Signal code:  (128)
+[p51n2:21113] Failing at address: (nil)
+[p51n2:21113] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0df8ebe890]
+[p51n2:21113] [ 1] qlua(+0x66ab8)[0x55b12a214ab8]
+[p51n2:21113] [ 2] qlua(+0x801928)[0x55b12a9af928]
+[p51n2:21113] [ 3] qlua(+0x801d64)[0x55b12a9afd64]
+[p51n2:21113] [ 4] qlua(+0x8097e6)[0x55b12a9b77e6]
+[p51n2:21113] [ 5] qlua(+0x80984a)[0x55b12a9b784a]
+[p51n2:21113] [ 6] qlua(+0x8099da)[0x55b12a9b79da]
+[p51n2:21113] [ 7] qlua(+0x80a98e)[0x55b12a9b898e]
+[p51n2:21113] [ 8] qlua(+0x801dad)[0x55b12a9afdad]
+[p51n2:21113] [ 9] qlua(+0x8010fe)[0x55b12a9af0fe]
+[p51n2:21113] [10] qlua(+0x801f1b)[0x55b12a9aff1b]
+[p51n2:21113] [11] qlua(+0x7ff668)[0x55b12a9ad668]
+[p51n2:21113] [12] qlua(+0x23977)[0x55b12a1d1977]
+[p51n2:21113] [13] qlua(+0x2375e)[0x55b12a1d175e]
+[p51n2:21113] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0df8adcb97]
+[p51n2:21113] [15] qlua(+0x2385a)[0x55b12a1d185a]
+[p51n2:21113] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 21114 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1170' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21130] *** Process received signal ***
+[p51n2:21130] Signal: Segmentation fault (11)
+[p51n2:21130] Signal code:  (128)
+[p51n2:21130] Failing at address: (nil)
+[p51n2:21130] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f261f771890]
+[p51n2:21130] [ 1] qlua(+0x66ab8)[0x56419544fab8]
+[p51n2:21130] [ 2] qlua(+0x801928)[0x564195bea928]
+[p51n2:21130] [ 3] qlua(+0x801d64)[0x564195bead64]
+[p51n2:21130] [ 4] qlua(+0x8097e6)[0x564195bf27e6]
+[p51n2:21130] [ 5] qlua(+0x80984a)[0x564195bf284a]
+[p51n2:21130] [ 6] qlua(+0x8099da)[0x564195bf29da]
+[p51n2:21130] [ 7] qlua(+0x80a98e)[0x564195bf398e]
+[p51n2:21130] [ 8] qlua(+0x801dad)[0x564195beadad]
+[p51n2:21130] [ 9] qlua(+0x8010fe)[0x564195bea0fe]
+[p51n2:21130] [10] qlua(+0x801f1b)[0x564195beaf1b]
+[p51n2:21130] [11] qlua(+0x7ff668)[0x564195be8668]
+[p51n2:21130] [12] qlua(+0x23977)[0x56419540c977]
+[p51n2:21130] [13] qlua(+0x2375e)[0x56419540c75e]
+[p51n2:21130] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f261f38fb97]
+[p51n2:21130] [15] qlua(+0x2385a)[0x56419540c85a]
+[p51n2:21130] *** End of error message ***
+[p51n2:21128] *** Process received signal ***
+[p51n2:21128] Signal: Segmentation fault (11)
+[p51n2:21128] Signal code:  (128)
+[p51n2:21128] Failing at address: (nil)
+[p51n2:21128] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f227b2c6890]
+[p51n2:21128] [ 1] qlua(+0x66ab8)[0x558f2998dab8]
+[p51n2:21128] [ 2] qlua(+0x801928)[0x558f2a128928]
+[p51n2:21128] [ 3] qlua(+0x801d64)[0x558f2a128d64]
+[p51n2:21128] [ 4] qlua(+0x8097e6)[0x558f2a1307e6]
+[p51n2:21128] [ 5] qlua(+0x80984a)[0x558f2a13084a]
+[p51n2:21128] [ 6] qlua(+0x8099da)[0x558f2a1309da]
+[p51n2:21128] [ 7] qlua(+0x80a98e)[0x558f2a13198e]
+[p51n2:21128] [ 8] qlua(+0x801dad)[0x558f2a128dad]
+[p51n2:21128] [ 9] qlua(+0x8010fe)[0x558f2a1280fe]
+[p51n2:21128] [10] qlua(+0x801f1b)[0x558f2a128f1b]
+[p51n2:21128] [11] qlua(+0x7ff668)[0x558f2a126668]
+[p51n2:21128] [12] qlua(+0x23977)[0x558f2994a977]
+[p51n2:21128] [13] qlua(+0x2375e)[0x558f2994a75e]
+[p51n2:21128] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f227aee4b97]
+[p51n2:21128] [15] qlua(+0x2385a)[0x558f2994a85a]
+[p51n2:21128] *** End of error message ***
+[p51n2:21131] *** Process received signal ***
+[p51n2:21131] Signal: Segmentation fault (11)
+[p51n2:21131] Signal code:  (128)
+[p51n2:21131] Failing at address: (nil)
+[p51n2:21131] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f8dda78c890]
+[p51n2:21131] [ 1] qlua(+0x66ab8)[0x55b02a1a6ab8]
+[p51n2:21131] [ 2] qlua(+0x801928)[0x55b02a941928]
+[p51n2:21131] [ 3] qlua(+0x801d64)[0x55b02a941d64]
+[p51n2:21131] [ 4] qlua(+0x8097e6)[0x55b02a9497e6]
+[p51n2:21131] [ 5] qlua(+0x80984a)[0x55b02a94984a]
+[p51n2:21131] [ 6] qlua(+0x8099da)[0x55b02a9499da]
+[p51n2:21131] [ 7] qlua(+0x80a98e)[0x55b02a94a98e]
+[p51n2:21131] [ 8] qlua(+0x801dad)[0x55b02a941dad]
+[p51n2:21131] [ 9] qlua(+0x8010fe)[0x55b02a9410fe]
+[p51n2:21131] [10] qlua(+0x801f1b)[0x55b02a941f1b]
+[p51n2:21131] [11] qlua(+0x7ff668)[0x55b02a93f668]
+[p51n2:21131] [12] qlua(+0x23977)[0x55b02a163977]
+[p51n2:21131] [13] qlua(+0x2375e)[0x55b02a16375e]
+[p51n2:21131] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f8dda3aab97]
+[p51n2:21131] [15] qlua(+0x2385a)[0x55b02a16385a]
+[p51n2:21131] *** End of error message ***
+[p51n2:21129] *** Process received signal ***
+[p51n2:21129] Signal: Segmentation fault (11)
+[p51n2:21129] Signal code:  (128)
+[p51n2:21129] Failing at address: (nil)
+[p51n2:21129] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f905985f890]
+[p51n2:21129] [ 1] qlua(+0x66ab8)[0x55edf0a78ab8]
+[p51n2:21129] [ 2] qlua(+0x801928)[0x55edf1213928]
+[p51n2:21129] [ 3] qlua(+0x801d64)[0x55edf1213d64]
+[p51n2:21129] [ 4] qlua(+0x8097e6)[0x55edf121b7e6]
+[p51n2:21129] [ 5] qlua(+0x80984a)[0x55edf121b84a]
+[p51n2:21129] [ 6] qlua(+0x8099da)[0x55edf121b9da]
+[p51n2:21129] [ 7] qlua(+0x80a98e)[0x55edf121c98e]
+[p51n2:21129] [ 8] qlua(+0x801dad)[0x55edf1213dad]
+[p51n2:21129] [ 9] qlua(+0x8010fe)[0x55edf12130fe]
+[p51n2:21129] [10] qlua(+0x801f1b)[0x55edf1213f1b]
+[p51n2:21129] [11] qlua(+0x7ff668)[0x55edf1211668]
+[p51n2:21129] [12] qlua(+0x23977)[0x55edf0a35977]
+[p51n2:21129] [13] qlua(+0x2375e)[0x55edf0a3575e]
+[p51n2:21129] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f905947db97]
+[p51n2:21129] [15] qlua(+0x2385a)[0x55edf0a3585a]
+[p51n2:21129] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 21130 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1180' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21146] *** Process received signal ***
+[p51n2:21146] Signal: Segmentation fault (11)
+[p51n2:21146] Signal code:  (128)
+[p51n2:21146] Failing at address: (nil)
+[p51n2:21146] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f984ddef890]
+[p51n2:21146] [ 1] qlua(+0x66ab8)[0x5599c3299ab8]
+[p51n2:21146] [ 2] qlua(+0x801928)[0x5599c3a34928]
+[p51n2:21146] [ 3] qlua(+0x801d64)[0x5599c3a34d64]
+[p51n2:21146] [ 4] qlua(+0x8097e6)[0x5599c3a3c7e6]
+[p51n2:21146] [ 5] qlua(+0x80984a)[0x5599c3a3c84a]
+[p51n2:21146] [ 6] qlua(+0x8099da)[0x5599c3a3c9da]
+[p51n2:21146] [ 7] qlua(+0x80a98e)[0x5599c3a3d98e]
+[p51n2:21146] [ 8] qlua(+0x801dad)[0x5599c3a34dad]
+[p51n2:21146] [ 9] qlua(+0x8010fe)[0x5599c3a340fe]
+[p51n2:21146] [10] qlua(+0x801f1b)[0x5599c3a34f1b]
+[p51n2:21146] [11] qlua(+0x7ff668)[0x5599c3a32668]
+[p51n2:21146] [12] qlua(+0x23977)[0x5599c3256977]
+[p51n2:21146] [13] qlua(+0x2375e)[0x5599c325675e]
+[p51n2:21146] [14] [p51n2:21144] *** Process received signal ***
+[p51n2:21144] Signal: Segmentation fault (11)
+[p51n2:21144] Signal code:  (128)
+[p51n2:21144] Failing at address: (nil)
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f984da0db97]
+[p51n2:21146] [15] qlua(+0x2385a)[0x5599c325685a]
+[p51n2:21146] *** End of error message ***
+[p51n2:21144] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fa01476d890]
+[p51n2:21144] [ 1] qlua(+0x66ab8)[0x563d68bbfab8]
+[p51n2:21144] [ 2] qlua(+0x801928)[0x563d6935a928]
+[p51n2:21144] [ 3] qlua(+0x801d64)[0x563d6935ad64]
+[p51n2:21144] [ 4] qlua(+0x8097e6)[0x563d693627e6]
+[p51n2:21144] [ 5] qlua(+0x80984a)[0x563d6936284a]
+[p51n2:21144] [ 6] qlua(+0x8099da)[0x563d693629da]
+[p51n2:21144] [ 7] qlua(+0x80a98e)[0x563d6936398e]
+[p51n2:21144] [ 8] qlua(+0x801dad)[0x563d6935adad]
+[p51n2:21144] [ 9] qlua(+0x8010fe)[0x563d6935a0fe]
+[p51n2:21144] [10] qlua(+0x801f1b)[0x563d6935af1b]
+[p51n2:21144] [11] qlua(+0x7ff668)[0x563d69358668]
+[p51n2:21144] [12] qlua(+0x23977)[0x563d68b7c977]
+[p51n2:21144] [13] qlua(+0x2375e)[0x563d68b7c75e]
+[p51n2:21144] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fa01438bb97]
+[p51n2:21144] [15] qlua(+0x2385a)[0x563d68b7c85a]
+[p51n2:21144] *** End of error message ***
+[p51n2:21145] *** Process received signal ***
+[p51n2:21145] Signal: Segmentation fault (11)
+[p51n2:21145] Signal code:  (128)
+[p51n2:21145] Failing at address: (nil)
+[p51n2:21145] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f2ba35ed890]
+[p51n2:21145] [ 1] qlua(+0x66ab8)[0x55dcd4e1fab8]
+[p51n2:21145] [ 2] qlua(+0x801928)[0x55dcd55ba928]
+[p51n2:21145] [ 3] qlua(+0x801d64)[0x55dcd55bad64]
+[p51n2:21145] [ 4] qlua(+0x8097e6)[0x55dcd55c27e6]
+[p51n2:21145] [ 5] qlua(+0x80984a)[0x55dcd55c284a]
+[p51n2:21145] [ 6] qlua(+0x8099da)[0x55dcd55c29da]
+[p51n2:21145] [ 7] qlua(+0x80a98e)[0x55dcd55c398e]
+[p51n2:21145] [ 8] qlua(+0x801dad)[0x55dcd55badad]
+[p51n2:21145] [ 9] qlua(+0x8010fe)[0x55dcd55ba0fe]
+[p51n2:21145] [10] qlua(+0x801f1b)[0x55dcd55baf1b]
+[p51n2:21145] [11] qlua(+0x7ff668)[0x55dcd55b8668]
+[p51n2:21145] [12] qlua(+0x23977)[0x55dcd4ddc977]
+[p51n2:21145] [13] qlua(+0x2375e)[0x55dcd4ddc75e]
+[p51n2:21145] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f2ba320bb97]
+[p51n2:21145] [15] qlua(+0x2385a)[0x55dcd4ddc85a]
+[p51n2:21145] *** End of error message ***
+[p51n2:21147] *** Process received signal ***
+[p51n2:21147] Signal: Segmentation fault (11)
+[p51n2:21147] Signal code:  (128)
+[p51n2:21147] Failing at address: (nil)
+[p51n2:21147] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f0d8681b890]
+[p51n2:21147] [ 1] qlua(+0x66ab8)[0x55bc94927ab8]
+[p51n2:21147] [ 2] qlua(+0x801928)[0x55bc950c2928]
+[p51n2:21147] [ 3] qlua(+0x801d64)[0x55bc950c2d64]
+[p51n2:21147] [ 4] qlua(+0x8097e6)[0x55bc950ca7e6]
+[p51n2:21147] [ 5] qlua(+0x80984a)[0x55bc950ca84a]
+[p51n2:21147] [ 6] qlua(+0x8099da)[0x55bc950ca9da]
+[p51n2:21147] [ 7] qlua(+0x80a98e)[0x55bc950cb98e]
+[p51n2:21147] [ 8] qlua(+0x801dad)[0x55bc950c2dad]
+[p51n2:21147] [ 9] qlua(+0x8010fe)[0x55bc950c20fe]
+[p51n2:21147] [10] qlua(+0x801f1b)[0x55bc950c2f1b]
+[p51n2:21147] [11] qlua(+0x7ff668)[0x55bc950c0668]
+[p51n2:21147] [12] qlua(+0x23977)[0x55bc948e4977]
+[p51n2:21147] [13] qlua(+0x2375e)[0x55bc948e475e]
+[p51n2:21147] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f0d86439b97]
+[p51n2:21147] [15] qlua(+0x2385a)[0x55bc948e485a]
+[p51n2:21147] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 21144 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1190' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21160] *** Process received signal ***
+[p51n2:21160] Signal: Segmentation fault (11)
+[p51n2:21160] Signal code:  (128)
+[p51n2:21160] Failing at address: (nil)
+[p51n2:21160] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f70b62f6890]
+[p51n2:21160] [ 1] qlua(+0x66ab8)[0x55d825bacab8]
+[p51n2:21160] [ 2] qlua(+0x801928)[0x55d826347928]
+[p51n2:21160] [ 3] qlua(+0x801d64)[0x55d826347d64]
+[p51n2:21160] [ 4] qlua(+0x8097e6)[0x55d82634f7e6]
+[p51n2:21160] [ 5] qlua(+0x80984a)[0x55d82634f84a]
+[p51n2:21160] [ 6] qlua(+0x8099da)[0x55d82634f9da]
+[p51n2:21160] [ 7] qlua(+0x80a98e)[0x55d82635098e]
+[p51n2:21160] [ 8] qlua(+0x801dad)[0x55d826347dad]
+[p51n2:21160] [ 9] qlua(+0x8010fe)[0x55d8263470fe]
+[p51n2:21160] [10] qlua(+0x801f1b)[0x55d826347f1b]
+[p51n2:21160] [p51n2:21162] *** Process received signal ***
+[p51n2:21162] Signal: Segmentation fault (11)
+[p51n2:21162] Signal code:  (128)
+[p51n2:21162] Failing at address: (nil)
+[11] qlua(+0x7ff668)[0x55d826345668]
+[p51n2:21160] [12] qlua(+0x23977)[0x55d825b69977]
+[p51n2:21160] [13] qlua(+0x2375e)[0x55d825b6975e]
+[p51n2:21160] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f70b5f14b97]
+[p51n2:21160] [15] qlua(+0x2385a)[0x55d825b6985a]
+[p51n2:21160] *** End of error message ***
+[p51n2:21162] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f2bc89f8890]
+[p51n2:21162] [ 1] qlua(+0x66ab8)[0x55edbf344ab8]
+[p51n2:21162] [ 2] qlua(+0x801928)[0x55edbfadf928]
+[p51n2:21162] [ 3] qlua(+0x801d64)[0x55edbfadfd64]
+[p51n2:21162] [ 4] qlua(+0x8097e6)[0x55edbfae77e6]
+[p51n2:21162] [ 5] qlua(+0x80984a)[0x55edbfae784a]
+[p51n2:21162] [ 6] qlua(+0x8099da)[0x55edbfae79da]
+[p51n2:21162] [ 7] qlua(+0x80a98e)[0x55edbfae898e]
+[p51n2:21162] [ 8] qlua(+0x801dad)[0x55edbfadfdad]
+[p51n2:21162] [ 9] qlua(+0x8010fe)[0x55edbfadf0fe]
+[p51n2:21162] [10] qlua(+0x801f1b)[0x55edbfadff1b]
+[p51n2:21162] [11] qlua(+0x7ff668)[0x55edbfadd668]
+[p51n2:21162] [12] qlua(+0x23977)[0x55edbf301977]
+[p51n2:21162] [13] qlua(+0x2375e)[0x55edbf30175e]
+[p51n2:21162] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f2bc8616b97]
+[p51n2:21162] [15] qlua(+0x2385a)[0x55edbf30185a]
+[p51n2:21162] *** End of error message ***
+[p51n2:21163] *** Process received signal ***
+[p51n2:21163] Signal: Segmentation fault (11)
+[p51n2:21163] Signal code:  (128)
+[p51n2:21163] Failing at address: (nil)
+[p51n2:21163] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f225b56c890]
+[p51n2:21163] [ 1] qlua(+0x66ab8)[0x55af9993bab8]
+[p51n2:21163] [ 2] qlua(+0x801928)[0x55af9a0d6928]
+[p51n2:21163] [ 3] qlua(+0x801d64)[0x55af9a0d6d64]
+[p51n2:21163] [ 4] qlua(+0x8097e6)[0x55af9a0de7e6]
+[p51n2:21163] [ 5] qlua(+0x80984a)[0x55af9a0de84a]
+[p51n2:21163] [ 6] qlua(+0x8099da)[0x55af9a0de9da]
+[p51n2:21163] [ 7] qlua(+0x80a98e)[0x55af9a0df98e]
+[p51n2:21163] [ 8] qlua(+0x801dad)[0x55af9a0d6dad]
+[p51n2:21163] [ 9] qlua(+0x8010fe)[0x55af9a0d60fe]
+[p51n2:21163] [10] qlua(+0x801f1b)[0x55af9a0d6f1b]
+[p51n2:21163] [11] qlua(+0x7ff668)[0x55af9a0d4668]
+[p51n2:21163] [12] qlua(+0x23977)[0x55af998f8977]
+[p51n2:21163] [13] qlua(+0x2375e)[0x55af998f875e]
+[p51n2:21161] *** Process received signal ***
+[p51n2:21161] Signal: Segmentation fault (11)
+[p51n2:21161] Signal code:  (128)
+[p51n2:21161] Failing at address: (nil)
+[p51n2:21163] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f225b18ab97]
+[p51n2:21163] [15] qlua(+0x2385a)[0x55af998f885a]
+[p51n2:21163] *** End of error message ***
+[p51n2:21161] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7faecd264890]
+[p51n2:21161] [ 1] qlua(+0x66ab8)[0x5618b71e6ab8]
+[p51n2:21161] [ 2] qlua(+0x801928)[0x5618b7981928]
+[p51n2:21161] [ 3] qlua(+0x801d64)[0x5618b7981d64]
+[p51n2:21161] [ 4] qlua(+0x8097e6)[0x5618b79897e6]
+[p51n2:21161] [ 5] qlua(+0x80984a)[0x5618b798984a]
+[p51n2:21161] [ 6] qlua(+0x8099da)[0x5618b79899da]
+[p51n2:21161] [ 7] qlua(+0x80a98e)[0x5618b798a98e]
+[p51n2:21161] [ 8] qlua(+0x801dad)[0x5618b7981dad]
+[p51n2:21161] [ 9] qlua(+0x8010fe)[0x5618b79810fe]
+[p51n2:21161] [10] qlua(+0x801f1b)[0x5618b7981f1b]
+[p51n2:21161] [11] qlua(+0x7ff668)[0x5618b797f668]
+[p51n2:21161] [12] qlua(+0x23977)[0x5618b71a3977]
+[p51n2:21161] [13] qlua(+0x2375e)[0x5618b71a375e]
+[p51n2:21161] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7faecce82b97]
+[p51n2:21161] [15] qlua(+0x2385a)[0x5618b71a385a]
+[p51n2:21161] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 21162 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
++ for cfg in `seq 1010 10 1200`
++ mpirun -np 4 qlua -e 'jobid = 28180 cfgpath = '\''/data/d10b/ensembles/isoClover/'\'' cfgbase = '\''cl3_16_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1200' /home/poare/lqcd/0nubb/0nubb.qlua
+[p51n2:21176] *** Process received signal ***
+[p51n2:21176] Signal: Segmentation fault (11)
+[p51n2:21176] Signal code:  (128)
+[p51n2:21176] Failing at address: (nil)
+[p51n2:21176] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f59ccb4a890]
+[p51n2:21176] [ 1] qlua(+0x66ab8)[0x56157ccfdab8]
+[p51n2:21176] [ 2] qlua(+0x801928)[0x56157d498928]
+[p51n2:21176] [ 3] qlua(+0x801d64)[0x56157d498d64]
+[p51n2:21176] [ 4] qlua(+0x8097e6)[0x56157d4a07e6]
+[p51n2:21176] [ 5] qlua(+0x80984a)[0x56157d4a084a]
+[p51n2:21176] [ 6] qlua(+0x8099da)[0x56157d4a09da]
+[p51n2:21176] [ 7] qlua(+0x80a98e)[0x56157d4a198e]
+[p51n2:21176] [ 8] qlua(+0x801dad)[0x56157d498dad]
+[p51n2:21176] [ 9] qlua(+0x8010fe)[0x56157d4980fe]
+[p51n2:21176] [10] qlua(+0x801f1b)[0x56157d498f1b]
+[p51n2:21176] [11] qlua(+0x7ff668)[0x56157d496668]
+[p51n2:21176] [12] qlua(+0x23977)[0x56157ccba977]
+[p51n2:21176] [13] qlua(+0x2375e)[0x56157ccba75e]
+[p51n2:21176] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f59cc768b97]
+[p51n2:21176] [15] qlua(+0x2385a)[0x56157ccba85a]
+[p51n2:21176] *** End of error message ***
+[p51n2:21178] *** Process received signal ***
+[p51n2:21178] Signal: Segmentation fault (11)
+[p51n2:21178] Signal code:  (128)
+[p51n2:21178] Failing at address: (nil)
+[p51n2:21178] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f718d3cf890]
+[p51n2:21178] [ 1] qlua(+0x66ab8)[0x55bda7577ab8]
+[p51n2:21178] [ 2] qlua(+0x801928)[0x55bda7d12928]
+[p51n2:21178] [ 3] qlua(+0x801d64)[0x55bda7d12d64]
+[p51n2:21178] [ 4] qlua(+0x8097e6)[0x55bda7d1a7e6]
+[p51n2:21178] [ 5] qlua(+0x80984a)[0x55bda7d1a84a]
+[p51n2:21178] [ 6] qlua(+0x8099da)[0x55bda7d1a9da]
+[p51n2:21178] [ 7] qlua(+0x80a98e)[0x55bda7d1b98e]
+[p51n2:21178] [ 8] qlua(+0x801dad)[0x55bda7d12dad]
+[p51n2:21178] [ 9] qlua(+0x8010fe)[0x55bda7d120fe]
+[p51n2:21178] [10] qlua(+0x801f1b)[0x55bda7d12f1b]
+[p51n2:21178] [11] qlua(+0x7ff668)[0x55bda7d10668]
+[p51n2:21178] [12] qlua(+0x23977)[0x55bda7534977]
+[p51n2:21178] [13] qlua(+0x2375e)[0x55bda753475e]
+[p51n2:21178] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f718cfedb97]
+[p51n2:21178] [15] qlua(+0x2385a)[0x55bda753485a]
+[p51n2:21178] *** End of error message ***
+[p51n2:21179] *** Process received signal ***
+[p51n2:21179] Signal: Segmentation fault (11)
+[p51n2:21179] Signal code:  (128)
+[p51n2:21179] Failing at address: (nil)
+[p51n2:21179] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7f4685986890]
+[p51n2:21179] [ 1] qlua(+0x66ab8)[0x559b284b5ab8]
+[p51n2:21179] [ 2] qlua(+0x801928)[0x559b28c50928]
+[p51n2:21179] [ 3] qlua(+0x801d64)[0x559b28c50d64]
+[p51n2:21179] [ 4] qlua(+0x8097e6)[0x559b28c587e6]
+[p51n2:21179] [ 5] qlua(+0x80984a)[0x559b28c5884a]
+[p51n2:21179] [ 6] qlua(+0x8099da)[0x559b28c589da]
+[p51n2:21179] [ 7] qlua(+0x80a98e)[0x559b28c5998e]
+[p51n2:21179] [ 8] qlua(+0x801dad)[0x559b28c50dad]
+[p51n2:21179] [ 9] qlua(+0x8010fe)[0x559b28c500fe]
+[p51n2:21179] [10] qlua(+0x801f1b)[0x559b28c50f1b]
+[p51n2:21179] [11] qlua(+0x7ff668)[0x559b28c4e668]
+[p51n2:21179] [12] qlua(+0x23977)[0x559b28472977]
+[p51n2:21179] [13] qlua(+0x2375e)[0x559b2847275e]
+[p51n2:21179] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7f46855a4b97]
+[p51n2:21179] [15] qlua(+0x2385a)[0x559b2847285a]
+[p51n2:21179] *** End of error message ***
+[p51n2:21177] *** Process received signal ***
+[p51n2:21177] Signal: Segmentation fault (11)
+[p51n2:21177] Signal code:  (128)
+[p51n2:21177] Failing at address: (nil)
+[p51n2:21177] [ 0] /lib/x86_64-linux-gnu/libpthread.so.0(+0x12890)[0x7fc0022e4890]
+[p51n2:21177] [ 1] qlua(+0x66ab8)[0x559b91b71ab8]
+[p51n2:21177] [ 2] qlua(+0x801928)[0x559b9230c928]
+[p51n2:21177] [ 3] qlua(+0x801d64)[0x559b9230cd64]
+[p51n2:21177] [ 4] qlua(+0x8097e6)[0x559b923147e6]
+[p51n2:21177] [ 5] qlua(+0x80984a)[0x559b9231484a]
+[p51n2:21177] [ 6] qlua(+0x8099da)[0x559b923149da]
+[p51n2:21177] [ 7] qlua(+0x80a98e)[0x559b9231598e]
+[p51n2:21177] [ 8] qlua(+0x801dad)[0x559b9230cdad]
+[p51n2:21177] [ 9] qlua(+0x8010fe)[0x559b9230c0fe]
+[p51n2:21177] [10] qlua(+0x801f1b)[0x559b9230cf1b]
+[p51n2:21177] [11] qlua(+0x7ff668)[0x559b9230a668]
+[p51n2:21177] [12] qlua(+0x23977)[0x559b91b2e977]
+[p51n2:21177] [13] qlua(+0x2375e)[0x559b91b2e75e]
+[p51n2:21177] [14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fc001f02b97]
+[p51n2:21177] [15] qlua(+0x2385a)[0x559b91b2e85a]
+[p51n2:21177] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 21176 on node p51n2 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------

@@ -1,0 +1,23 @@
+Job ID: 28183.
+Evaluating configurations at: /data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450.
+[1]:CPU being used.
+[1]:Clover object initialized.
+[1]:Propagator object initialized.
+[1]:Initializing momenta.
+[1]:Momenta initialized. Initializing Dirac matrices.
+[2]:CPU being used.
+[2]:Clover object initialized.
+[2]:Propagator object initialized.
+[2]:Initializing momenta.
+[2]:Momenta initialized. Initializing Dirac matrices.
+[3]:CPU being used.
+[3]:Clover object initialized.
+[3]:Propagator object initialized.
+[3]:Initializing momenta.
+[3]:Momenta initialized. Initializing Dirac matrices.
+OUTPUT FILE WILL WRITE TO: /data/d10b/users/poare/0nubb/output/cl3_16_48_b6p1_m0p2450_28183/cfg1010.h5
+[0]:CPU being used.
+[0]:Clover object initialized.
+[0]:Propagator object initialized.
+[0]:Initializing momenta.
+[0]:Momenta initialized. Initializing Dirac matrices.

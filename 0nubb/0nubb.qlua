@@ -327,30 +327,29 @@ local clover
 if gpu then
     qcd.quda.init(L)
     clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+    print("GPU Initialized.")
 else
     clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+    print("CPU being used.")
 end
 
+print("Clover object initialized.")
+
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+print("Propagator object initialized.")
 
 -- momenta to compute Z(p) at
 local k1_list_NPR = {}
 local k2_list_NPR = {}
-for k = -6, 6 do
-  k1_list_NPR[#k1_list_NPR + 1] = {-k, 0, k, 0}
-  k2_list_NPR[#k2_list_NPR + 1] = {0, k, k, 0}
-  -- k1_list_NPR[#k1_list_NPR + 1] = {0, -k, 0, k}
-  -- k2_list_NPR[#k2_list_NPR + 1] = {0, 0, k, k}
-
-  -- TODO will it change anything to swap k1 <--> k2?
-  --[[
-  k1_list_NPR[#k1_list_NPR + 1] = {0, k, k, 0}
-  k2_list_NPR[#k2_list_NPR + 1] = {-k, 0, k, 0}
-  k1_list_NPR[#k1_list_NPR + 1] = {0, 0, k, k}
-  k2_list_NPR[#k2_list_NPR + 1] = {0, -k, 0, k}
-  ]]
-end
-printf("Number of momenta to compute at: %d.", #k1_list_NPR)
+print("Initializing momenta.")
+for m = -6, 6 do
+  local minusM = -m
+  k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
+  k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
+ end
+--printf("Number of momenta to compute at: %d.", #k1_list_NPR)
+print("Momenta initialized. Initializing Dirac matrices.")
 
 -- init list of Dirac matrices
 local PL = (1 - gamma{mu = 5}) / 2
@@ -362,6 +361,8 @@ end
 for mu = 0, #L - 1 do
   gammaList[#gammaList + 1] = gamma{mu = mu} * PR
 end
+
+print("Dirac matrices initialized")
 
 -- local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
