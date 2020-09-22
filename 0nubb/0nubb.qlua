@@ -134,28 +134,32 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
 
     local Nc = S_k2:colors()
     local Nd = 4
-    local L_A = qcd.lattice{Nd, Nd, Nc, Nc, Nc, Nc}
-    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
+    -- local L_A = qcd.lattice{Nd, Nd, Nc, Nc, Nc, Nc}
     local A = {}
     for idx = 0, #gammaList - 1 do
       local GammaS_k2 = gammaList[idx + 1] * S_k2
-      A[idx] = L_A:Complex(complex(0, 0))
+      -- A[idx] = L_A:Complex(complex(0, 0))
+      A[idx] = {}
       for alpha = 0, Nd - 1 do
+        A[idx][alpha] = {}
         for beta = 0, Nd - 1 do
+          A[idx][alpha][beta] = {}
           for a = 0, Nc - 1 do
+            A[idx][alpha][beta][a] = {}
             local prop1Ferm = antiprop_k1[{c=a, d=alpha}]
             for b = 0, Nc - 1 do
+              A[idx][alpha][beta][a][b] = {}
               for c = 0, Nc - 1 do
+                A[idx][alpha][beta][a][b][c] = {}
                 for d = 0, Nc - 1 do
                   -- A[idx][{alpha, beta, a, b, c, d}] = complex(0, 0)
+                  A[idx][alpha][beta][a][b][c][d] = L:Complex(complex(0, 0))
                   for gamma = 0, Nd - 1 do
                     local antiprop_comps = prop1Ferm[{c=b, d=gamma}]    -- components of antiprop_k1
                     local GammaS_k2_Ferm = GammaS_k2[{c=c, d=gamma}]
                     local GammaS_k2_comps = GammaS_k2_Ferm[{c=d, d=beta}]
-			print(A[idx][{alpha, beta, a, b, c, d}])
-			print(antiprop_comps)
-			print(GammaS_k2_comps)
-                    A[idx][{alpha, beta, a, b, c, d}] = A[idx][{alpha, beta, a, b, c, d}] + antiprop_comps * GammaS_k2_comps
+                    -- A[idx][{alpha, beta, a, b, c, d}] = A[idx][{alpha, beta, a, b, c, d}] + antiprop_comps * GammaS_k2_comps
+                    A[idx][alpha][beta][a][b][c][d] = A[idx][alpha][beta][a][b][c][d] + antiprop_comps * GammaS_k2_comps
                   end
                 end
               end
@@ -166,11 +170,14 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
     end
     print("A tensor generated.")
 
-    -- Get three point functions.
+    -- Sort A tensor into gamma structures
     local AL = A[1]
     local AR = A[2]
     local AvecL = {A[3], A[4], A[5], A[6]}
     local AvecR = {A[7], A[8], A[9], A[10]}
+
+    -- Get three point function
+    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
     local G1 = L_NPR:Complex(complex(0, 0))
     local G2 = L_NPR:Complex(complex(0, 0))
     local G3 = L_NPR:Complex(complex(0, 0))
@@ -191,26 +198,46 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
                     -- G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = complex(0, 0)
                     for m = 0, Nc - 1 do
                       for n = 0, Nc - 1 do
+                        -- G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
+                        --   (AL[{gamma, sigma, c, m, m, d}] * AL[{alpha, beta, a, n, n, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
+                        --    AR[{gamma, sigma, c, m, m, d}] * AR[{alpha, beta, a, n, n, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
+                        --   )) : sum()
+                        -- G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
+                        --   (AL[{gamma, sigma, c, m, n, d}] * AL[{alpha, beta, a, n, m, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
+                        --    AR[{gamma, sigma, c, m, n, d}] * AR[{alpha, beta, a, n, m, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
+                        --   )) : sum()
                         G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                          (AL[{gamma, sigma, c, m, m, d}] * AL[{alpha, beta, a, n, n, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
-                           AR[{gamma, sigma, c, m, m, d}] * AR[{alpha, beta, a, n, n, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
+                          (AL[gamma][sigma][c][m][m][d] * AL[alpha][beta][a][n][n][b] - AL[gamma][beta][c][m][m][b] * AL[alpha][sigma][a][n][n][d] +
+                           AR[gamma][sigma][c][m][m][d] * AR[alpha][beta][a][n][n][b] - AR[gamma][beta][c][m][m][b] * AR[alpha][sigma][a][n][n][d]
                           )) : sum()
                         G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                          (AL[{gamma, sigma, c, m, n, d}] * AL[{alpha, beta, a, n, m, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
-                           AR[{gamma, sigma, c, m, n, d}] * AR[{alpha, beta, a, n, m, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
+                          (AL[gamma][sigma][c][m][n][d] * AL[alpha][beta][a][n][m][b] - AL[gamma][beta][c][m][m][b] * AL[alpha][sigma][a][n][n][d] +
+                           AR[gamma][sigma][c][m][n][d] * AR[alpha][beta][a][n][m][b] - AR[gamma][beta][c][m][m][b] * AR[alpha][sigma][a][n][n][d]
                           )) : sum()
                         for mu = 1, #L do
+                          -- G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
+                          --     AvecL[mu][{gamma, sigma, c, m, m, d}] * AvecR[mu][{alpha, beta, a, n, n, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}] +
+                          --     AvecR[mu][{gamma, sigma, c, m, m, d}] * AvecL[mu][{alpha, beta, a, n, n, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}]
+                          -- )) : sum()
+                          -- G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
+                          --     AvecL[mu][{gamma, sigma, c, m, n, d}] * AvecR[mu][{alpha, beta, a, n, m, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}] +
+                          --     AvecR[mu][{gamma, sigma, c, m, n, d}] * AvecL[mu][{alpha, beta, a, n, m, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}]
+                          -- )) : sum()
+                          -- G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
+                          --     AvecL[mu][{gamma, sigma, c, m, m, d}] * AvecL[mu][{alpha, beta, a, n, n, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}] +
+                          --     AvecR[mu][{gamma, sigma, c, m, m, d}] * AvecR[mu][{alpha, beta, a, n, n, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}]
+                          -- )) : sum()
                           G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                              AvecL[mu][{gamma, sigma, c, m, m, d}] * AvecR[mu][{alpha, beta, a, n, n, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}] +
-                              AvecR[mu][{gamma, sigma, c, m, m, d}] * AvecL[mu][{alpha, beta, a, n, n, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}]
+                              AvecL[mu][gamma][sigma][c][m][m][d] * AvecR[mu][alpha][beta][a][n][n][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d] +
+                              AvecR[mu][gamma][sigma][c][m][m][d] * AvecL[mu][alpha][beta][a][n][n][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d]
                           )) : sum()
                           G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                              AvecL[mu][{gamma, sigma, c, m, n, d}] * AvecR[mu][{alpha, beta, a, n, m, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}] +
-                              AvecR[mu][{gamma, sigma, c, m, n, d}] * AvecL[mu][{alpha, beta, a, n, m, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}]
+                              AvecL[mu][gamma][sigma][c][m][n][d] * AvecR[mu][alpha][beta][a][n][m][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d] +
+                              AvecR[mu][gamma][sigma][c][m][n][d] * AvecL[mu][alpha][beta][a][n][m][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d]
                           )) : sum()
                           G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
-                              AvecL[mu][{gamma, sigma, c, m, m, d}] * AvecL[mu][{alpha, beta, a, n, n, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}] +
-                              AvecR[mu][{gamma, sigma, c, m, m, d}] * AvecR[mu][{alpha, beta, a, n, n, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}]
+                              AvecL[mu][gamma][sigma][c][m][m][d] * AvecL[mu][alpha][beta][a][n][n][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d] +
+                              AvecR[mu][gamma][sigma][c][m][m][d] * AvecR[mu][alpha][beta][a][n][n][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d]
                           )) : sum()
                         end
                       end
