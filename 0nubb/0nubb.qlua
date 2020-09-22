@@ -132,6 +132,131 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
       printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
     end
 
+    -- Sort A tensor into gamma structures
+    -- local AL = A[1]
+    -- local AR = A[2]
+    -- local AvecL = {A[3], A[4], A[5], A[6]}
+    -- local AvecR = {A[7], A[8], A[9], A[10]}
+    -- gammaList = {PL, PR, gamma^0 PL, ..., gamma^3 PL, gamma^0 PR, ..., gamma^0 PR}
+
+    -- Get three point function for unprimed operators
+    print("Evaluating three point functions.")
+    local Nc = S_k2:colors()
+    local Nd = 4
+    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
+    local G1 = L_NPR:Complex(complex(0, 0))
+    local G2 = L_NPR:Complex(complex(0, 0))
+    local G3 = L_NPR:Complex(complex(0, 0))
+    for alpha = 0, Nd - 1 do
+      print(alpha)
+      for beta = 0, Nd - 1 do
+        for gamma = 0, Nd - 1 do
+          for sigma = 0, Nd - 1 do
+            for a = 0, Nc - 1 do
+              for b = 0, Nc - 1 do
+                for c = 0, Nc - 1 do
+                  for d = 0, Nc - 1 do
+                    local A_PL = antiprop_k1 * (gammaList[1] * Sk2)
+                    local A_PR = antiprop_k1 * (gammaList[2] * Sk2)
+                    local A_muPL = {}
+                    local A_muPR = {}
+                    for mu = 0, #L - 1 do    -- gamma^mu PL is 3, 4, 5, 6 and gamma^mu PR is 7, 8, 9, 10
+                      A_muPL[mu] = antiprop_k1 * (gammaList[3 + mu] * Sk2)
+                      A_muPR[mu] = antiprop_k1 * (gammaList[7 + mu] * Sk2)
+                    end
+
+                    -- evaluate unprimed operators
+                    G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
+                      (A_PL[{c=c, d=gamma}][{c=d, d=sigma}] * A_PL[{c=a, d=alpha}][{c=b, d=beta}] - A_PL[{c=c, d=gamma}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] +
+                       A_PR[{c=c, d=gamma}][{c=d, d=sigma}] * A_PR[{c=a, d=alpha}][{c=b, d=beta}] - A_PR[{c=c, d=gamma}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum()
+                    for mu = 0, #L - 1 do
+                      G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
+                          A_muPL[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
+                          A_muPR[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum()
+                      G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
+                          A_muPL[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
+                          A_muPR[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum()
+                    end
+
+                    -- evaluate primed operators. First add on normal color contractions.
+                    G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] - 2 * (qFT2 *
+                       A_PL[{c=c, d=gamma}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] + A_PR[{c=c, d=gamma}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum()
+                    for mu = 0, #L - 1 do
+                      G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] - (qFT2 * (
+                          A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] + A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum()
+                    end
+                    -- now add on abnormal contractions
+                    for m = 0, Nc - 1 do
+                      for n = 0, Nc - 1 do
+                        local A_PL_cmnd = L:Complex(complex(0, 0))
+                        local A_PL_anmb = L:Complex(complex(0, 0))
+                        local A_PR_cmnd = L:Complex(complex(0, 0))
+                        local A_PR_anmb = L:Complex(complex(0, 0))
+                        local A_muPL_cmnd = {}
+                        local A_muPL_anmb = {}
+                        local A_muPR_cmnd = {}
+                        local A_muPR_anmb = {}
+                        local g1Sk2 = gammaList[1] * S_k2
+                        local g2Sk2 = gammaList[2] * S_k2
+                        for rho = 0, Nd - 1 do
+                          A_PL_cmnd = A_PL_cmnd + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (g1Sk2[{c=n, d=rho}][{c=d, d=sigma}])
+                          A_PL_anmb = A_PL_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (g1Sk2[{c=m, d=rho}][{c=b, d=beta}])
+                          A_PR_cmnd = A_PR_cmnd + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (g2Sk2[{c=n, d=rho}][{c=d, d=sigma}])
+                          A_PR_anmb = A_PR_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (g2Sk2[{c=m, d=rho}][{c=b, d=beta}])
+                        end
+
+                        for mu = 0, #L - 1 do
+                          A_muPL_cmnd[mu] = L:Complex(complex(0, 0))
+                          A_muPL_anmb[mu] = L:Complex(complex(0, 0))
+                          A_muPR_cmnd[mu] = L:Complex(complex(0, 0))
+                          A_muPR_anmb[mu] = L:Complex(complex(0, 0))
+                          local gmuLSk2 = gammaList[3 + mu] * Sk2
+                          local gmuRSk2 = gammaList[7 + mu] * Sk2
+                          for rho = 0, Nd - 1 do
+                            A_muPL_cmnd[mu] = A_muPL_cmnd[mu] + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (gmuLSk2[{c=n, d=rho}][{c=d, d=sigma}])
+                            A_muPL_anmb[mu] = A_muPL_anmb[mu] + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (gmuLSk2[{c=m, d=rho}][{c=b, d=beta}])
+                            A_muPR_cmnd[mu] = A_muPR_cmnd[mu] + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (gmuRSk2[{c=n, d=rho}][{c=d, d=sigma}])
+                            A_muPR_anmb[mu] = A_muPR_anmb[mu] + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (gmuRSk2[{c=m, d=rho}][{c=b, d=beta}])
+                          end
+                        end
+                        G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] +
+                            2 * (qFT2 * (A_PL_cmnd * A_PL_anmb + A_PR_cmnd * A_PR_anmb)) : sum()
+                        for mu = 0, #L - 1 do
+                          G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] +
+                            (qFT2 * (A_muPL_cmnd * A_muPR_anmb + A_muPR_cmnd * A_muPL_anmb)) : sum()
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    print("Done evaluating operators.")
+    local G1path = string.format("G1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local G2path = string.format("G2/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local G3path = string.format("G3/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local G1Ppath = string.format("G1prime/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local G2Ppath = string.format("G2prime/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, G1path, G1)
+    h5_force_write(writer, G2path, G2)
+    h5_force_write(writer, G3path, G3)
+    h5_force_write(writer, G1Ppath, G1prime)
+    h5_force_write(writer, G2Ppath, G2prime)
+    printf("G1 written at: %s", G1path)
+    printf("G2 written at: %s", G2path)
+    printf("G3 written at: %s", G3path)
+    printf("G1prime written at: %s", G1Ppath)
+    printf("G2prime written at: %s", G2Ppath)
+    --[[
     local Nc = S_k2:colors()
     local Nd = 4
     -- local L_A = qcd.lattice{Nd, Nd, Nc, Nc, Nc, Nc}
@@ -251,13 +376,7 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
       end
     end
     print("Done with evaluation of Greens functions.")
-
-    -- WRITE TO FILE. TODO may need to write them as components
-    h5_force_write(writer, string.format("G1/q%d%d%d%d", q[1], q[2], q[3], q[4]), G1)
-    h5_force_write(writer, string.format("G2/q%d%d%d%d", q[1], q[2], q[3], q[4]), G2)
-    h5_force_write(writer, string.format("G3/q%d%d%d%d", q[1], q[2], q[3], q[4]), G3)
-    h5_force_write(writer, string.format("G1prime/q%d%d%d%d", q[1], q[2], q[3], q[4]), G1prime)
-    h5_force_write(writer, string.format("G2prime/q%d%d%d%d", q[1], q[2], q[3], q[4]), G2prime)
+    ]]
   end
 end
 
