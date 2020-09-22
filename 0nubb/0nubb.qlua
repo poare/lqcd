@@ -77,7 +77,7 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
     local k2 = k2_list[kidx]
     local q = {}
     for mu = 0, #L - 1 do
-        q[mu] = k2[mu] - k1[mu]
+        q[mu + 1] = k2[mu + 1] - k1[mu + 1]
       end
     printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
               k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
@@ -91,8 +91,8 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
     local qFT2 = qFT2arg:expi()
 
     -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
-    local L_vec = qcd:lattice{4}
-    local k1_lat = L:Int(0)
+    local L_vec = qcd.lattice{4}
+    local k1_lat = L_vec:Int(0)
     local k2_lat = L_vec:Int(0)
     for mu = 0, #L - 1 do
       k1_lat[{mu}] = k1[mu + 1]
@@ -152,6 +152,9 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
                     local antiprop_comps = prop1Ferm[{c=b, d=gamma}]    -- components of antiprop_k1
                     local GammaS_k2_Ferm = GammaS_k2[{c=c, d=gamma}]
                     local GammaS_k2_comps = GammaS_k2_Ferm[{c=d, d=beta}]
+			print(A[idx][{alpha, beta, a, b, c, d}])
+			print(antiprop_comps)
+			print(GammaS_k2_comps)
                     A[idx][{alpha, beta, a, b, c, d}] = A[idx][{alpha, beta, a, b, c, d}] + antiprop_comps * GammaS_k2_comps
                   end
                 end
@@ -192,7 +195,7 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
                           (AL[{gamma, sigma, c, m, m, d}] * AL[{alpha, beta, a, n, n, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
                            AR[{gamma, sigma, c, m, m, d}] * AR[{alpha, beta, a, n, n, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
                           )) : sum()
-                        G2prime[{alpha][beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
+                        G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
                           (AL[{gamma, sigma, c, m, n, d}] * AL[{alpha, beta, a, n, m, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
                            AR[{gamma, sigma, c, m, n, d}] * AR[{alpha, beta, a, n, m, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
                           )) : sum()
