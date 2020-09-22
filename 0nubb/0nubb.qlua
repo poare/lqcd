@@ -182,7 +182,7 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
                     end
 
                     -- evaluate primed operators. First add on normal color contractions.
-                    G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] - 2 * (qFT2 *
+                    G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] - 2 * (qFT2 * (
                        A_PL[{c=c, d=gamma}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] + A_PR[{c=c, d=gamma}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum()
                     for mu = 0, #L - 1 do
