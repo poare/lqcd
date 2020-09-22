@@ -150,10 +150,10 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
     local G1prime = L_NPR:Complex(complex(0, 0))
     local G2prime = L_NPR:Complex(complex(0, 0))
     for alpha = 0, Nd - 1 do
-      print(alpha)
       for beta = 0, Nd - 1 do
         for gamma = 0, Nd - 1 do
           for sigma = 0, Nd - 1 do
+            printf("Index (alpha, beta, gamma, sigma): (%d, %d, %d, %d)", alpha, beta, gamma, sigma)
             for a = 0, Nc - 1 do
               for b = 0, Nc - 1 do
                 for c = 0, Nc - 1 do
