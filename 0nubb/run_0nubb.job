@@ -26,7 +26,7 @@ cfgbase="cl3_16_48_b6p1_m0p2450"
 gpu=false
 
 # whether to compute color-mixed operators or not. Use this for testing purposes.
-mixed=true
+mixed=false
 
 home=/home/poare/lqcd/0nubb
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
