@@ -153,8 +153,9 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
       for beta = 0, Nd - 1 do
         for gamma = 0, Nd - 1 do
           for sigma = 0, Nd - 1 do
-            printf("Index (alpha, beta, gamma, sigma): (%d, %d, %d, %d)", alpha, beta, gamma, sigma)
+            --printf("Index (alpha, beta, gamma, sigma): (%d, %d, %d, %d)", alpha, beta, gamma, sigma)
             for a = 0, Nc - 1 do
+	      print(a)        -- to give an idea of how long this will take
               for b = 0, Nc - 1 do
                 for c = 0, Nc - 1 do
                   for d = 0, Nc - 1 do
@@ -390,8 +391,8 @@ else
 end
 
 -- Set parameters
-Lx = 24
-Lt = 24
+Lx = 16
+Lt = 48
 
 beta = 6.1
 mq = -0.2450
