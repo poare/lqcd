@@ -338,7 +338,13 @@ else
 end
 
 -- Set parameters
-Lx = 16
+--Lx = 16
+--Lt = 48
+
+--Lx = 24
+--Lt = 24
+
+Lx = 32
 Lt = 48
 
 beta = 6.1
