@@ -16,7 +16,8 @@ cd /home/poare/lqcd/mosaic
 bash
 module load openmpi/3.1.5
 # module load qlua
-module load qlua/20200107-gpu1080
+module load qlua/20200107
+# module load qlua/20200107-gpu1080
 
 EXE=qlua
 

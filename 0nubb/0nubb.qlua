@@ -34,29 +34,83 @@ function show_propagator(name, m)
       printf("\n")
     end
 
-function compute_Zq_momsource(L, U, ferm_prop, p_list, hypervolume, group, clover, writer, Nc)
+-- compute Green's functions for axial and vector currents, and save propagators as well.
+function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
-  for pidx = 1, #p_list do
-    printf("p index: %d\n", pidx)
-    local p = p_list[pidx]
-    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
-    local FTarg = L:Real(0)
+  for kidx = 1, #k1_list do
+    printf("p index: %d\n", kidx)
+    local k1 = k1_list[kidx]
+    local k2 = k2_list[kidx]
+    local q = {}
     for mu = 0, #L - 1 do
-      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+        q[mu + 1] = k2[mu + 1] - k1[mu + 1]
+      end
+    printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
+              k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
+    local qFTarg = L:Real(0)
+    local k1FTarg = L:Real(0)
+    local k2FTarg = L:Real(0)
+    for mu = 0, #L - 1 do
+      qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
-    local FT = FTarg:expi()
+    local qFT = qFTarg:expi()
+    local k1FT = k1FTarg:expi()
+    local k2FT = k2FTarg:expi()
 
-    -- Compute a source of e^{-ipx}
-    local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
-    local mom4_prop = (FT * prop):sum()
-    mom4_prop = (1 / hypervolume) * mom4_prop
+    -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
+    local L_vec = qcd.lattice{4}
+    local k1_lat = L_vec:Int(0)
+    local k2_lat = L_vec:Int(0)
+    for mu = 0, #L - 1 do
+      k1_lat[{mu}] = k1[mu + 1]
+      k2_lat[{mu}] = k2[mu + 1]
+    end
+    local k1_path = string.format("moms/q%d%d%d%d/k1", q[1], q[2], q[3], q[4])
+    local k2_path = string.format("moms/q%d%d%d%d/k2", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, k1_path, k1_lat)
+    h5_force_write(writer, k2_path, k2_lat)
 
-    local prop_path = string.format("prop_sink/p%d%d%d%d", p[1], p[2], p[3], p[4])
-    h5_force_write(writer, prop_path, mom4_prop)
-    printf("Propagator written at path: %s\n", prop_path)
+    local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
+    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
+    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+
+    -- COMPUTE PROPAGATORS
+    local S_k1 = compute_propagator(U, ferm_prop, srck1)
+    local S_k2 = compute_propagator(U, ferm_prop, srck2)
+    local S_q = compute_propagator(U, ferm_prop, srcq)
+
+    local mom4_prop_k1 = (k1FT * S_k2):sum()
+    local mom4_prop_k2 = (k2FT * S_k1):sum()
+    local mom4_prop_q = (qFT * S_q):sum()
+
+    local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
+
+    -- Write momentum projected propagator to file
+    local prop_path_k1 = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local prop_path_k2 = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local prop_path_q = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, prop_path_k1, mom4_prop_k1)
+    h5_force_write(writer, prop_path_k2, mom4_prop_k2)
+    h5_force_write(writer, prop_path_q, mom4_prop_q)
+    printf("Propagator for momentum k1 written at path: %s\n", prop_path_k1)
+    printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
+    printf("Propagator for momentum q written at path: %s\n", prop_path_q)
+
+    -- Vector and axial currents.
+    for mu = 0, #L - 1 do
+      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum()
+      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum()
+      local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
+      local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
+      h5_force_write(writer, op_path_V, GV)
+      h5_force_write(writer, op_path_A, GA)
+      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
+      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
+    end
   end
 end
 
@@ -66,8 +120,9 @@ end
  2. Three point function for vector operator GV = gamma{mu = mu}
  3. Three point function for axial operator GA = gamma{mu = mu} * gamma{mu = 5}
  4. Three point function for operators O1, O2, O3, O1', O2' used in 0nubb
+ NOTE: this is VERY slow and not practical; instead compute bilinears and Fierz them into the positive parity operators
 ]]
-function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer, gammaList)
+function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer, gammaList)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -131,13 +186,6 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
       printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
       printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
     end
-
-    -- Sort A tensor into gamma structures
-    -- local AL = A[1]
-    -- local AR = A[2]
-    -- local AvecL = {A[3], A[4], A[5], A[6]}
-    -- local AvecR = {A[7], A[8], A[9], A[10]}
-    -- gammaList = {PL, PR, gamma^0 PL, ..., gamma^3 PL, gamma^0 PR, ..., gamma^0 PR}
 
     -- Get three point function for unprimed operators
     print("Evaluating three point functions.")
@@ -255,269 +303,11 @@ function compute_npr_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, g
     printf("G3 written at: %s", G3path)
     printf("G1prime written at: %s", G1Ppath)
     printf("G2prime written at: %s", G2Ppath)
-    --[[
-    local Nc = S_k2:colors()
-    local Nd = 4
-    -- local L_A = qcd.lattice{Nd, Nd, Nc, Nc, Nc, Nc}
-    local A = {}
-    for idx = 0, #gammaList - 1 do
-      local GammaS_k2 = gammaList[idx + 1] * S_k2
-      -- A[idx] = L_A:Complex(complex(0, 0))
-      A[idx] = {}
-      for alpha = 0, Nd - 1 do
-        A[idx][alpha] = {}
-        for beta = 0, Nd - 1 do
-          A[idx][alpha][beta] = {}
-          for a = 0, Nc - 1 do
-            A[idx][alpha][beta][a] = {}
-            local prop1Ferm = antiprop_k1[{c=a, d=alpha}]
-            for b = 0, Nc - 1 do
-              A[idx][alpha][beta][a][b] = {}
-              for c = 0, Nc - 1 do
-                A[idx][alpha][beta][a][b][c] = {}
-                for d = 0, Nc - 1 do
-                  -- A[idx][{alpha, beta, a, b, c, d}] = complex(0, 0)
-                  A[idx][alpha][beta][a][b][c][d] = L:Complex(complex(0, 0))
-                  for gamma = 0, Nd - 1 do
-                    local antiprop_comps = prop1Ferm[{c=b, d=gamma}]    -- components of antiprop_k1
-                    local GammaS_k2_Ferm = GammaS_k2[{c=c, d=gamma}]
-                    local GammaS_k2_comps = GammaS_k2_Ferm[{c=d, d=beta}]
-                    -- A[idx][{alpha, beta, a, b, c, d}] = A[idx][{alpha, beta, a, b, c, d}] + antiprop_comps * GammaS_k2_comps
-                    A[idx][alpha][beta][a][b][c][d] = A[idx][alpha][beta][a][b][c][d] + antiprop_comps * GammaS_k2_comps
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    print("A tensor generated.")
-
-    -- Sort A tensor into gamma structures
-    local AL = A[1]
-    local AR = A[2]
-    local AvecL = {A[3], A[4], A[5], A[6]}
-    local AvecR = {A[7], A[8], A[9], A[10]}
-
-    -- Get three point function
-    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
-    local G1 = L_NPR:Complex(complex(0, 0))
-    local G2 = L_NPR:Complex(complex(0, 0))
-    local G3 = L_NPR:Complex(complex(0, 0))
-    local G1prime = L_NPR:Complex(complex(0, 0))
-    local G2prime = L_NPR:Complex(complex(0, 0))
-    for alpha = 0, Nd - 1 do
-      for beta = 0, Nd - 1 do
-        for gamma = 0, Nd - 1 do
-          for sigma = 0, Nd - 1 do
-            for a = 0, Nc - 1 do
-              for b = 0, Nc - 1 do
-                for c = 0, Nc - 1 do
-                  for d = 0, Nc - 1 do
-                    -- G1[{alpha, beta, gamma, sigma, a, b, c, d}] = complex(0, 0)
-                    -- G2[{alpha, beta, gamma, sigma, a, b, c, d}] = complex(0, 0)
-                    -- G3[{alpha, beta, gamma, sigma, a, b, c, d}] = complex(0, 0)
-                    -- G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = complex(0, 0)
-                    -- G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = complex(0, 0)
-                    for m = 0, Nc - 1 do
-                      for n = 0, Nc - 1 do
-                        -- G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                        --   (AL[{gamma, sigma, c, m, m, d}] * AL[{alpha, beta, a, n, n, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
-                        --    AR[{gamma, sigma, c, m, m, d}] * AR[{alpha, beta, a, n, n, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
-                        --   )) : sum()
-                        -- G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                        --   (AL[{gamma, sigma, c, m, n, d}] * AL[{alpha, beta, a, n, m, b}] - AL[{gamma, beta, c, m, m, b}] * AL[{alpha, sigma, a, n, n, d}] +
-                        --    AR[{gamma, sigma, c, m, n, d}] * AR[{alpha, beta, a, n, m, b}] - AR[{gamma, beta, c, m, m, b}] * AR[{alpha, sigma, a, n, n, d}]
-                        --   )) : sum()
-                        G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                          (AL[gamma][sigma][c][m][m][d] * AL[alpha][beta][a][n][n][b] - AL[gamma][beta][c][m][m][b] * AL[alpha][sigma][a][n][n][d] +
-                           AR[gamma][sigma][c][m][m][d] * AR[alpha][beta][a][n][n][b] - AR[gamma][beta][c][m][m][b] * AR[alpha][sigma][a][n][n][d]
-                          )) : sum()
-                        G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                          (AL[gamma][sigma][c][m][n][d] * AL[alpha][beta][a][n][m][b] - AL[gamma][beta][c][m][m][b] * AL[alpha][sigma][a][n][n][d] +
-                           AR[gamma][sigma][c][m][n][d] * AR[alpha][beta][a][n][m][b] - AR[gamma][beta][c][m][m][b] * AR[alpha][sigma][a][n][n][d]
-                          )) : sum()
-                        for mu = 1, #L do
-                          -- G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                          --     AvecL[mu][{gamma, sigma, c, m, m, d}] * AvecR[mu][{alpha, beta, a, n, n, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}] +
-                          --     AvecR[mu][{gamma, sigma, c, m, m, d}] * AvecL[mu][{alpha, beta, a, n, n, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}]
-                          -- )) : sum()
-                          -- G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                          --     AvecL[mu][{gamma, sigma, c, m, n, d}] * AvecR[mu][{alpha, beta, a, n, m, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}] +
-                          --     AvecR[mu][{gamma, sigma, c, m, n, d}] * AvecL[mu][{alpha, beta, a, n, m, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}]
-                          -- )) : sum()
-                          -- G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
-                          --     AvecL[mu][{gamma, sigma, c, m, m, d}] * AvecL[mu][{alpha, beta, a, n, n, d}] - AvecL[mu][{gamma, beta, c, m, m, b}] * AvecL[mu][{alpha, sigma, a, n, n, d}] +
-                          --     AvecR[mu][{gamma, sigma, c, m, m, d}] * AvecR[mu][{alpha, beta, a, n, n, d}] - AvecR[mu][{gamma, beta, c, m, m, b}] * AvecR[mu][{alpha, sigma, a, n, n, d}]
-                          -- )) : sum()
-                          G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                              AvecL[mu][gamma][sigma][c][m][m][d] * AvecR[mu][alpha][beta][a][n][n][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d] +
-                              AvecR[mu][gamma][sigma][c][m][m][d] * AvecL[mu][alpha][beta][a][n][n][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d]
-                          )) : sum()
-                          G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                              AvecL[mu][gamma][sigma][c][m][n][d] * AvecR[mu][alpha][beta][a][n][m][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d] +
-                              AvecR[mu][gamma][sigma][c][m][n][d] * AvecL[mu][alpha][beta][a][n][m][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d]
-                          )) : sum()
-                          G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
-                              AvecL[mu][gamma][sigma][c][m][m][d] * AvecL[mu][alpha][beta][a][n][n][d] - AvecL[mu][gamma][beta][c][m][m][b] * AvecL[mu][alpha][sigma][a][n][n][d] +
-                              AvecR[mu][gamma][sigma][c][m][m][d] * AvecR[mu][alpha][beta][a][n][n][d] - AvecR[mu][gamma][beta][c][m][m][b] * AvecR[mu][alpha][sigma][a][n][n][d]
-                          )) : sum()
-                        end
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    print("Done with evaluation of Greens functions.")
-    ]]
   end
 end
-
--- compute only unmixed operators to see if the primed operators are slowing down the computation significantly.
-function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer, gammaList)
-  local bvec = {0,0,0,0.5}
-  print("Computing through sink.")
-
-  for kidx = 1, #k1_list do
-    printf("p index: %d\n", kidx)
-    local k1 = k1_list[kidx]
-    local k2 = k2_list[kidx]
-    local q = {}
-    for mu = 0, #L - 1 do
-        q[mu + 1] = k2[mu + 1] - k1[mu + 1]
-      end
-    printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
-              k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
-    local qFTarg = L:Real(0)
-    local qFT2arg = L:Real(0)    -- TODO figure out BCs: can we just take qFT^2, or do we need to use 2q + bvec in argument?
-    for mu = 0, #L - 1 do
-      qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      qFT2arg = qFT2arg + L:Real(L:pcoord(mu)) * (2 * q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-    end
-    local qFT = qFTarg:expi()
-    local qFT2 = qFT2arg:expi()
-
-    -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
-    local L_vec = qcd.lattice{4}
-    local k1_lat = L_vec:Int(0)
-    local k2_lat = L_vec:Int(0)
-    for mu = 0, #L - 1 do
-      k1_lat[{mu}] = k1[mu + 1]
-      k2_lat[{mu}] = k2[mu + 1]
-    end
-    local k1_path = string.format("moms/q%d%d%d%d/k1", q[1], q[2], q[3], q[4])
-    local k2_path = string.format("moms/q%d%d%d%d/k2", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, k1_path, k1_lat)
-    h5_force_write(writer, k2_path, k2_lat)
-
-    local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
-    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
-    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
-
-    -- COMPUTE PROPAGATORS
-    local S_k1 = compute_propagator(U, ferm_prop, srck1)
-    local S_k2 = compute_propagator(U, ferm_prop, srck2)
-    local S_q = compute_propagator(U, ferm_prop, srcq)
-
-    local mom4_prop_q = (qFT * S_q):sum()
-    local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
-
-    -- Write momentum projected propagator to file
-    local prop_path = string.format("prop/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, prop_path, mom4_prop_q)
-    printf("Propagator written at path: %s\n", prop_path)
-
-    -- Vector and axial currents.
-    for mu = 0, #L - 1 do
-      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum()
-      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum()
-      local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
-      local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
-      h5_force_write(writer, op_path_V, GV)
-      h5_force_write(writer, op_path_A, GA)
-      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
-      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
-    end
-
-    -- Sort A tensor into gamma structures
-    -- local AL = A[1]
-    -- local AR = A[2]
-    -- local AvecL = {A[3], A[4], A[5], A[6]}
-    -- local AvecR = {A[7], A[8], A[9], A[10]}
-    -- gammaList = {PL, PR, gamma^0 PL, ..., gamma^3 PL, gamma^0 PR, ..., gamma^0 PR}
-
-    -- Get three point function for unprimed operators
-    print("Evaluating three point functions.")
-    local Nc = S_k2:colors()
-    local Nd = 4
-    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
-    local G1 = L_NPR:Complex(complex(0, 0))
-    local G2 = L_NPR:Complex(complex(0, 0))
-    local G3 = L_NPR:Complex(complex(0, 0))
-    local A_PL = antiprop_k1 * (gammaList[1] * S_k2)
-    local A_PR = antiprop_k1 * (gammaList[2] * S_k2)
-    local A_muPL = {}
-    local A_muPR = {}
-    for mu = 0, #L - 1 do    -- gamma^mu PL is 3, 4, 5, 6 and gamma^mu PR is 7, 8, 9, 10
-      A_muPL[mu] = antiprop_k1 * (gammaList[3 + mu] * S_k2)
-      A_muPR[mu] = antiprop_k1 * (gammaList[7 + mu] * S_k2)
-    end
-    for alpha = 0, Nd - 1 do
-      print(alpha)
-      for beta = 0, Nd - 1 do
-        for gamma = 0, Nd - 1 do
-          for sigma = 0, Nd - 1 do
-            for a = 0, Nc - 1 do
-              for b = 0, Nc - 1 do
-                for c = 0, Nc - 1 do
-                  for d = 0, Nc - 1 do
-                    -- TODO streamline this and make it slightly faster by indexing repetitions at a more efficient time
-                    -- evaluate unprimed operators
-                    G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                      (A_PL[{c=c, d=gamma}][{c=d, d=sigma}] * A_PL[{c=a, d=alpha}][{c=b, d=beta}] - A_PL[{c=c, d=gamma}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] +
-                       A_PR[{c=c, d=gamma}][{c=d, d=sigma}] * A_PR[{c=a, d=alpha}][{c=b, d=beta}] - A_PR[{c=c, d=gamma}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
-                      )) : sum()
-                    for mu = 0, #L - 1 do
-                      G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                          A_muPL[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
-                          A_muPR[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
-                      )) : sum()
-                      G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
-                          A_muPL[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
-                          A_muPR[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}]
-                      )) : sum()
-                    end
-
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    print("Done evaluating operators.")
-    local G1path = string.format("G1/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local G2path = string.format("G2/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local G3path = string.format("G3/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, G1path, G1)
-    h5_force_write(writer, G2path, G2)
-    h5_force_write(writer, G3path, G3)
-    printf("G1 written at: %s", G1path)
-    printf("G2 written at: %s", G2path)
-    printf("G3 written at: %s", G3path)
-  end
-end
-
 
 -- compute all color-unmixed bilinears with all gamma matrices.
-function compute_npr_momsource_allgamma(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer)
+function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -533,12 +323,18 @@ function compute_npr_momsource_allgamma(L, U, ferm_prop, k1_list, k2_list, hyper
               k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
     local qFTarg = L:Real(0)
     local qFT2arg = L:Real(0)    -- TODO figure out BCs: can we just take qFT^2, or do we need to use 2q + bvec in argument?
+    local k1FTarg = L:Real(0)
+    local k2FTarg = L:Real(0)
     for mu = 0, #L - 1 do
       qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       qFT2arg = qFT2arg + L:Real(L:pcoord(mu)) * (2 * q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
     local qFT = qFTarg:expi()
     local qFT2 = qFT2arg:expi()
+    local k1FT = k1FTarg:expi()
+    local k2FT = k2FTarg:expi()
 
     -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
     local L_vec = qcd.lattice{4}
@@ -562,13 +358,22 @@ function compute_npr_momsource_allgamma(L, U, ferm_prop, k1_list, k2_list, hyper
     local S_k2 = compute_propagator(U, ferm_prop, srck2)
     local S_q = compute_propagator(U, ferm_prop, srcq)
 
+    local mom4_prop_k1 = (k1FT * S_k2):sum()
+    local mom4_prop_k2 = (k2FT * S_k1):sum()
     local mom4_prop_q = (qFT * S_q):sum()
+
     local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
 
     -- Write momentum projected propagator to file
-    local prop_path = string.format("prop/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, prop_path, mom4_prop_q)
-    printf("Propagator written at path: %s\n", prop_path)
+    local prop_path_k1 = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local prop_path_k2 = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local prop_path_q = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, prop_path_k1, mom4_prop_k1)
+    h5_force_write(writer, prop_path_k2, mom4_prop_k2)
+    h5_force_write(writer, prop_path_q, mom4_prop_q)
+    printf("Propagator for momentum k1 written at path: %s\n", prop_path_k1)
+    printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
+    printf("Propagator for momentum q written at path: %s\n", prop_path_q)
 
     -- Vector and axial currents.
     for mu = 0, #L - 1 do
@@ -714,14 +519,16 @@ if status then
   local hdf5params = { method = "phdf5" }
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-  print("Gauge file read. Computing NPR.")
-  if mixed then
-    print("Computing all operators.")
-    compute_npr_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, gammaList)
+  print("Gauge file read.")
+
+  if operators then
+    print("Computing vector / axial three point functions and all color-unmixed bilinears.")
+    compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
+    -- print("Computing all operators including color-mixed.")
+    -- compute_npr_momsource_mixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, gammaList)
   else
-    print("Computing all color-unmixed bilinears.")
-    -- compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, gammaList)
-    compute_npr_momsource_allgamma(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
+    print("Computing vector / axial three point functions.")
+    compute_npr_currents_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
   end
 
   writer:close()
