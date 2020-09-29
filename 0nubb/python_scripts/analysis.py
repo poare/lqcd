@@ -31,11 +31,12 @@ hypervolume = (L ** 3) * T
 def set_dimensions(l, t):
     global L
     global T
+    global LL
     L, T, hypervolume = l, t, (l ** 3) * t
-    return L, T, hypervolume
+    LL = [l, l, l, t]
+    return L, T, hypervolume, LL
 
 n_boot = 50
-num_cfgs = 1
 
 def kstring_to_list(pstring, str):
     def get_momenta(x):
@@ -51,18 +52,18 @@ def kstring_to_list(pstring, str):
     return get_momenta(pstring.split(str)[1])
 
 # str is the beginning of the string, ex klist_to_string([1, 2, 3, 4], 'k1') gives 'k1_1234'
-def klist_to_string(k, str):
-    return str + str(k[0]) + str(k[1]) + str(k[2]) + str(k[3])
+def klist_to_string(k, prefix):
+    return prefix + str(k[0]) + str(k[1]) + str(k[2]) + str(k[3])
 
 def to_linear_momentum(k):
-    return [np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)]
+    return np.array([np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)])
 
 def to_lattice_momentum(k):
-    return [np.complex64(2 * np.sin(np.pi * (k[mu] + bvec[mu]) / LL[mu])) for mu in range(4)]
+    return np.array([np.complex64(2 * np.sin(np.pi * (k[mu] + bvec[mu]) / LL[mu])) for mu in range(4)])
 
 # squares a 4 vector.
 def square(k):
-    return np.dot(k, np.dot(g, k.T))[0, 0]
+    return np.dot(k, np.dot(g, k.T))
 
 def slash(k):
     return sum([k[mu] * gamma[mu] for mu in range(4)])
@@ -78,9 +79,9 @@ def readfiles(cfgs, q, op_renorm = True):
     props_k1 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
     props_k2 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
     props_q = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
-    GV = np.zeros((len(cfgs), 4, 3, 4, 3, 4), dtype = np.complex64)
-    GA = np.zeros((len(cfgs), 4, 3, 4, 3, 4), dtype = np.complex64)
-    GO = np.zeros((len(cfgs), 16, 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
+    GV = np.zeros((4, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    GA = np.zeros((4, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    GO = np.zeros((16, len(cfgs), 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
 
     for idx, file in enumerate(cfgs):
         f = h5py.File(file, 'r')
@@ -92,77 +93,60 @@ def readfiles(cfgs, q, op_renorm = True):
         props_k2[idx] = np.einsum('ijab->aibj', f['prop_k2/' + qstr][()])
         props_q[idx] = np.einsum('ijab->aibj', f['prop_q/' + qstr][()])
         for mu in range(0, 4):
-            GV[idx, mu] = np.einsum('ijab->aibj', f['GV' + str(mu + 1) + '/' + qstr][()])
-            GA[idx, mu] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()])
+            GV[mu, idx] = np.einsum('ijab->aibj', f['GV' + str(mu + 1) + '/' + qstr][()])
+            GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()])
         if op_renorm:
             for n in range(16):
-                GO[idx, n] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])
+                GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
-# Bootstraps a set of propagator labelled by momentum. Will return a momentum
-# dictionary, and the value of each key will be [boot, cfg, c, s, c, s].
-def bootstrap(D, seed = 5):
-    weights = np.ones((len(D[list(D.keys())[0]])))
-    weights2=weights/float(np.sum(weights))
-    samples = {}
-    np.random.seed(5)
-    for p in D.keys():
-        S = D[p]
-        num_configs = S.shape[0]
-        samples[p] = np.zeros((n_boot, 3, 4, 3, 4), dtype = np.complex64)
-        for boot_id in range(n_boot):
-            cfg_ids = np.random.choice(num_configs, p = weights2, size = num_configs, replace = True)    #Configuration ids to pick
-            cfg_ids = np.random.choice(num_configs, size = num_configs, replace = True)
-            samples[p][boot_id] = np.mean(S[cfg_ids], axis = 0)
+# Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
+def bootstrap(S, seed = 1):
+    num_configs, tensor_shape = S.shape[0], S.shape[1:]
+    np.random.seed(seed)
+    bootshape = [n_boot]
+    bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
+    samples = np.zeros(bootshape, dtype = np.complex64)
+    for boot_id in range(n_boot):
+        cfg_ids = np.random.choice(num_configs, size = num_configs, replace = True)
+        samples[boot_id] = np.mean(S[cfg_ids], axis = 0)
     return samples
 
-# Invert propagator to get S^{-1}. This agrees with Phiala's code.
-def invert_prop(props, B = n_boot):
-    Sinv = {}
-    for p in props.keys():
-        Sinv[p] = np.zeros(props[p].shape, dtype = np.complex64)
-        for b in range(B):
-            Sinv[p][b, :, :, :, :] = np.linalg.tensorinv(props[p][b])
+# Invert propagators to get S^{-1} required for amputation.
+def invert_props(props):
+    Sinv = np.zeros(props.shape, dtype = np.complex64)
+    for b in range(n_boot):
+        Sinv[b] = np.linalg.tensorinv(props[b])
     return Sinv
 
 # Amputate legs to get vertex function \Gamma(p)
-def amputate(props_inv, threepts, B = n_boot):
-    Gamma = {}
-    for p in props_inv.keys():
-        # p = plist_to_string(plist)
-        Gamma[p] = np.zeros(props_inv[p].shape, dtype = np.complex64)
-        for b in range(B):
-            Sinv = props_inv[p][b]
-            G = threepts[p][b]
-            Gamma[p][b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv, G, Sinv) * hypervolume
+def amputate_threepoint(props_inv_k1, props_inv_k2, threepts):
+    Gamma = np.zeros(threepts.shape, dtype = np.complex64)
+    for b in range(n_boot):
+        Sinv_k1, Sinv_k2, G = props_inv_k1[b], props_inv_k2[b], threepts[b]
+        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_k1, G, Sinv_k2) * hypervolume
+    return Gamma
+
+# amputates the four point function. Assumes the left leg has momentum p1 and right legs have
+# momentum p2, so amputates with p1 on the left and p2 on the right
+def amputate_fourpoint(props_inv_k1, props_inv_k2, fourpoints):
+    Gamma = np.zeros(fourpoints.shape, dtype = np.complex64)
+    for b in range(n_boot):
+        Sinv_k1, Sinv_k2, G = props_inv_k1[b], props_inv_k2[b], fourpoints[b]
+        Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl', Sinv_k1, Sinv_k1, G, Sinv_k2, Sinv_k2)
     return Gamma
 
 
-# Compute quark field renormalization. This agrees with Phiala's code.
-def quark_renorm(props_inv):
-    Zq = {}
-    for pstring in props_inv.keys():
-        p = pstring_to_list(pstring)
-        Zq[pstring] = np.zeros((n_boot), dtype = np.complex64)
-        phase = [np.sin(2 * np.pi * (p[mu] + bvec[mu]) / LL[mu]) for mu in range(4)]
-        for b in range(n_boot):
-            Sinv = props_inv[pstring][b]
-            num = sum([phase[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)])
-            denom = 12 * sum([np.sin(2 * np.pi * (p[mu] + bvec[mu]) / LL[mu]) ** 2 for mu in range(4)])
-            Zq[pstring][b] = (1j) * (num / denom) * hypervolume
+# Compute quark field renormalization. Pass in the momentum projected propagator for q.
+def quark_renorm(props_inv_q, q):
+    Zq = np.zeros((n_boot), dtype = np.complex64)
+    phase = [np.sin(2 * np.pi * (q[mu] + bvec[mu]) / LL[mu]) for mu in range(4)]
+    for b in range(n_boot):
+        Sinv = props_inv_q[b]
+        num = sum([phase[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)])
+        denom = 12 * sum([np.sin(2 * np.pi * (q[mu] + bvec[mu]) / LL[mu]) ** 2 for mu in range(4)])
+        Zq[b] = (1j) * (num / denom) * hypervolume
     return Zq
-
-# Naive Born term without mixing.
-def born_term(mu, momenta = k_list):
-    Gamma_B = {}
-    Gamma_B_inv = {}
-    for k in momenta:
-        p_lat = to_lattice_momentum(k)
-        pstring = plist_to_string(k)
-        Gamma_B[pstring] = (-1j) * 2 * p_lat[mu] * gamma[mu]
-        # Gamma_B[pstring] = (-1j) * (2 * p_lat[mu] * gamma[mu] - (1/2) * slash(p_lat))
-        # Gamma_B_inv[pstring] = np.linalg.inv(Gamma_B[pstring])
-    return Gamma_B#, Gamma_B_inv
 
 # Compute operator renormalization Z(p)
 def get_Z(Zq, Gamma, Gamma_B_inv):
@@ -202,36 +186,10 @@ def load_data_h5(file):
 def load_Zq(file):
     f = h5py.File(file, 'r')
     k_list = f['momenta'][()]
-    # p_list = np.array([2 * np.sin(np.pi * np.array([k[mu] / LL[mu] for mu in range(4)])) for k in k_list])
     p_list = np.array([to_lattice_momentum(k) for k in k_list])
     Zq = f['Zq'][()]
     f.close()
     return k_list, p_list, Zq
-
-# momenta is subset of k_list
-def subsample(mu, sigma, momenta):
-    mu_sub, sigma_sub = [], []
-    for mu_i, sigma_i in zip(mu, sigma):
-        cur_mu = {}
-        cur_sigma = {}
-        for p in momenta:
-            pstring = plist_to_string(p)
-            cur_mu[pstring] = mu_i[pstring]
-            cur_sigma[pstring] = sigma_i[pstring]
-        mu_sub.append(cur_mu)
-        sigma_sub.append(cur_sigma)
-    return mu_sub, sigma_sub
-
-def get_point_list(file):
-    f = h5py.File(file, 'r')
-    allpts = f['prop']
-    pts = []
-    for ptstr in allpts.keys():    # should be of the form x#y#z#t#
-        parts = re.split('x|y|z|t', ptstr)[1:]
-        pt = [int(x) for x in parts]
-        pts.append(pt)
-    f.close()
-    return pts
 
 # partition k_list into orbits by O(3) norm and p[3]
 def get_O3_orbits(k_list):

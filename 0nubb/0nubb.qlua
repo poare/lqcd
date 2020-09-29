@@ -35,7 +35,7 @@ function show_propagator(name, m)
     end
 
 -- compute Green's functions for axial and vector currents, and save propagators as well.
-function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer)
+function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, vol, group, clover, writer)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -83,9 +83,9 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, hyper
     local S_k2 = compute_propagator(U, ferm_prop, srck2)
     local S_q = compute_propagator(U, ferm_prop, srcq)
 
-    local mom4_prop_k1 = (k1FT * S_k2):sum()
-    local mom4_prop_k2 = (k2FT * S_k1):sum()
-    local mom4_prop_q = (qFT * S_q):sum()
+    local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
+    local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
+    local mom4_prop_q = (qFT * S_q):sum() / vol
 
     local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
 
@@ -102,8 +102,8 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, hyper
 
     -- Vector and axial currents.
     for mu = 0, #L - 1 do
-      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum()
-      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum()
+      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
+      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
       local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       h5_force_write(writer, op_path_V, GV)
@@ -122,7 +122,7 @@ end
  4. Three point function for operators O1, O2, O3, O1', O2' used in 0nubb
  NOTE: this is VERY slow and not practical; instead compute bilinears and Fierz them into the positive parity operators
 ]]
-function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer, gammaList)
+function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, group, clover, writer, gammaList)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -167,6 +167,8 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, hypervol
     local S_k2 = compute_propagator(U, ferm_prop, srck2)
     local S_q = compute_propagator(U, ferm_prop, srcq)
 
+    local mom4_prop_k1 = (k1FT * S_k1):sum()
+    local mom4_prop_k2 = (k2FT * S_k2):sum()
     local mom4_prop_q = (qFT * S_q):sum()
     local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
 
@@ -307,7 +309,7 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, hypervol
 end
 
 -- compute all color-unmixed bilinears with all gamma matrices.
-function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, hypervolume, group, clover, writer)
+function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, group, clover, writer)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -358,8 +360,8 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, hyperv
     local S_k2 = compute_propagator(U, ferm_prop, srck2)
     local S_q = compute_propagator(U, ferm_prop, srcq)
 
-    local mom4_prop_k1 = (k1FT * S_k2):sum()
-    local mom4_prop_k2 = (k2FT * S_k1):sum()
+    local mom4_prop_k1 = (k1FT * S_k1):sum()
+    local mom4_prop_k2 = (k2FT * S_k2):sum()
     local mom4_prop_q = (qFT * S_q):sum()
 
     local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
