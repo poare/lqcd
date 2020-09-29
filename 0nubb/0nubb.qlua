@@ -201,7 +201,7 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, gro
     local G2prime = L_NPR:Complex(complex(0, 0))
     for alpha = 0, Nd - 1 do
       for beta = 0, Nd - 1 do
-        for gamma = 0, Nd - 1 do
+        for rho = 0, Nd - 1 do
           for sigma = 0, Nd - 1 do
             --printf("Index (alpha, beta, gamma, sigma): (%d, %d, %d, %d)", alpha, beta, gamma, sigma)
             for a = 0, Nc - 1 do
@@ -219,28 +219,28 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, gro
                     end
 
                     -- evaluate unprimed operators
-                    G2[{alpha, beta, gamma, sigma, a, b, c, d}] = G2[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 *
-                      (A_PL[{c=c, d=gamma}][{c=d, d=sigma}] * A_PL[{c=a, d=alpha}][{c=b, d=beta}] - A_PL[{c=c, d=gamma}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] +
-                       A_PR[{c=c, d=gamma}][{c=d, d=sigma}] * A_PR[{c=a, d=alpha}][{c=b, d=beta}] - A_PR[{c=c, d=gamma}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
+                    G2[{alpha, beta, rho, sigma, a, b, c, d}] = G2[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (qFT2 *
+                      (A_PL[{c=c, d=rho}][{c=d, d=sigma}] * A_PL[{c=a, d=alpha}][{c=b, d=beta}] - A_PL[{c=c, d=rho}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] +
+                       A_PR[{c=c, d=rho}][{c=d, d=sigma}] * A_PR[{c=a, d=alpha}][{c=b, d=beta}] - A_PR[{c=c, d=rho}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum()
                     for mu = 0, #L - 1 do
-                      G1[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] + (qFT2 * (
-                          A_muPL[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
-                          A_muPR[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
+                      G1[{alpha, beta, rho, sigma, a, b, c, d}] = G1[{alpha, beta, rho, sigma, a, b, c, d}] + (qFT2 * (
+                          A_muPL[mu][{c=c, d=rho}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=rho}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
+                          A_muPR[mu][{c=c, d=rho}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=rho}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum()
-                      G3[{alpha, beta, gamma, sigma, a, b, c, d}] = G3[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
-                          A_muPL[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
-                          A_muPR[mu][{c=c, d=gamma}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}]
+                      G3[{alpha, beta, rho, sigma, a, b, c, d}] = G3[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (qFT2 * (
+                          A_muPL[mu][{c=c, d=rho}][{c=d, d=sigma}] * A_muPL[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPL[mu][{c=c, d=rho}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}] +
+                          A_muPR[mu][{c=c, d=rho}][{c=d, d=sigma}] * A_muPR[mu][{c=a, d=alpha}][{c=b, d=beta}] - A_muPR[mu][{c=c, d=rho}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum()
                     end
 
                     -- evaluate primed operators. First add on normal color contractions.
-                    G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] - 2 * (qFT2 * (
-                       A_PL[{c=c, d=gamma}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] + A_PR[{c=c, d=gamma}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
+                    G2prime[{alpha, beta, rho, sigma, a, b, c, d}] = G2prime[{alpha, beta, rho, sigma, a, b, c, d}] - 2 * (qFT2 * (
+                       A_PL[{c=c, d=rho}][{c=b, d=beta}] * A_PL[{c=a, d=alpha}][{c=d, d=sigma}] + A_PR[{c=c, d=rho}][{c=b, d=beta}] * A_PR[{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum()
                     for mu = 0, #L - 1 do
-                      G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1[{alpha, beta, gamma, sigma, a, b, c, d}] - (qFT2 * (
-                          A_muPL[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] + A_muPR[mu][{c=c, d=gamma}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
+                      G1prime[{alpha, beta, rho, sigma, a, b, c, d}] = G1[{alpha, beta, rho, sigma, a, b, c, d}] - (qFT2 * (
+                          A_muPL[mu][{c=c, d=rho}][{c=b, d=beta}] * A_muPR[mu][{c=a, d=alpha}][{c=d, d=sigma}] + A_muPR[mu][{c=c, d=rho}][{c=b, d=beta}] * A_muPL[mu][{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum()
                     end
                     -- now add on abnormal contractions
@@ -252,13 +252,13 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, gro
                         local A_PR_anmb = L:Complex(complex(0, 0))
                         local g1Sk2 = gammaList[1] * S_k2
                         local g2Sk2 = gammaList[2] * S_k2
-                        for rho = 0, Nd - 1 do
-                          A_PL_cmnd = A_PL_cmnd + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (g1Sk2[{c=n, d=rho}][{c=d, d=sigma}])
-                          A_PL_anmb = A_PL_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (g1Sk2[{c=m, d=rho}][{c=b, d=beta}])
-                          A_PR_cmnd = A_PR_cmnd + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (g2Sk2[{c=n, d=rho}][{c=d, d=sigma}])
-                          A_PR_anmb = A_PR_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (g2Sk2[{c=m, d=rho}][{c=b, d=beta}])
+                        for xi = 0, Nd - 1 do
+                          A_PL_cmnd = A_PL_cmnd + (antiprop_k1[{c=c, d=rho}][{c=m, d=xi}]) * (g1Sk2[{c=n, d=xi}][{c=d, d=sigma}])
+                          A_PL_anmb = A_PL_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=xi}]) * (g1Sk2[{c=m, d=xi}][{c=b, d=beta}])
+                          A_PR_cmnd = A_PR_cmnd + (antiprop_k1[{c=c, d=rho}][{c=m, d=xi}]) * (g2Sk2[{c=n, d=xi}][{c=d, d=sigma}])
+                          A_PR_anmb = A_PR_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=xi}]) * (g2Sk2[{c=m, d=xi}][{c=b, d=beta}])
                         end
-                        G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G2prime[{alpha, beta, gamma, sigma, a, b, c, d}] +
+                        G2prime[{alpha, beta, rho, sigma, a, b, c, d}] = G2prime[{alpha, beta, rho, sigma, a, b, c, d}] +
                             2 * (qFT2 * (A_PL_cmnd * A_PL_anmb + A_PR_cmnd * A_PR_anmb)) : sum()
 
                         for mu = 0, #L - 1 do
@@ -268,13 +268,13 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, gro
                           local A_muPR_anmb = L:Complex(complex(0, 0))
                           local gmuLSk2 = gammaList[3 + mu] * S_k2
                           local gmuRSk2 = gammaList[7 + mu] * S_k2
-                          for rho = 0, Nd - 1 do
-                            A_muPL_cmnd = A_muPL_cmnd + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (gmuLSk2[{c=n, d=rho}][{c=d, d=sigma}])
-                            A_muPL_anmb = A_muPL_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (gmuLSk2[{c=m, d=rho}][{c=b, d=beta}])
-                            A_muPR_cmnd = A_muPR_cmnd + (antiprop_k1[{c=c, d=gamma}][{c=m, d=rho}]) * (gmuRSk2[{c=n, d=rho}][{c=d, d=sigma}])
-                            A_muPR_anmb = A_muPR_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=rho}]) * (gmuRSk2[{c=m, d=rho}][{c=b, d=beta}])
+                          for xi = 0, Nd - 1 do
+                            A_muPL_cmnd = A_muPL_cmnd + (antiprop_k1[{c=c, d=rho}][{c=m, d=xi}]) * (gmuLSk2[{c=n, d=xi}][{c=d, d=sigma}])
+                            A_muPL_anmb = A_muPL_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=xi}]) * (gmuLSk2[{c=m, d=xi}][{c=b, d=beta}])
+                            A_muPR_cmnd = A_muPR_cmnd + (antiprop_k1[{c=c, d=rho}][{c=m, d=xi}]) * (gmuRSk2[{c=n, d=xi}][{c=d, d=sigma}])
+                            A_muPR_anmb = A_muPR_anmb + (antiprop_k1[{c=a, d=alpha}][{c=n, d=xi}]) * (gmuRSk2[{c=m, d=xi}][{c=b, d=beta}])
                           end
-                          G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] = G1prime[{alpha, beta, gamma, sigma, a, b, c, d}] +
+                          G1prime[{alpha, beta, rho, sigma, a, b, c, d}] = G1prime[{alpha, beta, rho, sigma, a, b, c, d}] +
                             (qFT2 * (A_muPL_cmnd * A_muPR_anmb + A_muPR_cmnd * A_muPL_anmb)) : sum()
                         end
 
@@ -360,9 +360,9 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
     local S_k2 = compute_propagator(U, ferm_prop, srck2)
     local S_q = compute_propagator(U, ferm_prop, srcq)
 
-    local mom4_prop_k1 = (k1FT * S_k1):sum()
-    local mom4_prop_k2 = (k2FT * S_k2):sum()
-    local mom4_prop_q = (qFT * S_q):sum()
+    local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
+    local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
+    local mom4_prop_q = (qFT * S_q):sum() / vol
 
     local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
 
@@ -379,8 +379,8 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
 
     -- Vector and axial currents.
     for mu = 0, #L - 1 do
-      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum()
-      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum()
+      local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
+      local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
       local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       h5_force_write(writer, op_path_V, GV)
@@ -400,15 +400,15 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
       for alpha = 0, Nd - 1 do
         print(alpha)
         for beta = 0, Nd - 1 do
-          for gamma = 0, Nd - 1 do
+          for rho = 0, Nd - 1 do
             for sigma = 0, Nd - 1 do
               for a = 0, Nc - 1 do
                 for b = 0, Nc - 1 do
                   for c = 0, Nc - 1 do
                     for d = 0, Nc - 1 do
-                      G[{alpha, beta, gamma, sigma, a, b, c, d}] = G[{alpha, beta, gamma, sigma, a, b, c, d}] + 2 * (qFT2 * (
-                        A_gamma[{c=c, d=gamma}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=gamma}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
-                      )) : sum()
+                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (qFT2 * (
+                        A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum() / vol
                     end
                   end
                 end

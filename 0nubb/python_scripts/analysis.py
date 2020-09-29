@@ -26,15 +26,15 @@ bvec = [0, 0, 0, .5]
 L = 16
 T = 48
 LL = [L, L, L, T]
-hypervolume = (L ** 3) * T
+vol = (L ** 3) * T
 
 def set_dimensions(l, t):
     global L
     global T
     global LL
-    L, T, hypervolume = l, t, (l ** 3) * t
+    L, T, vol = l, t, (l ** 3) * t
     LL = [l, l, l, t]
-    return L, T, hypervolume, LL
+    return L, T, vol, LL
 
 n_boot = 50
 
@@ -124,7 +124,7 @@ def amputate_threepoint(props_inv_k1, props_inv_k2, threepts):
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
     for b in range(n_boot):
         Sinv_k1, Sinv_k2, G = props_inv_k1[b], props_inv_k2[b], threepts[b]
-        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_k1, G, Sinv_k2) * hypervolume
+        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_k1, G, Sinv_k2) * vol
     return Gamma
 
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
@@ -145,7 +145,7 @@ def quark_renorm(props_inv_q, q):
         Sinv = props_inv_q[b]
         num = sum([phase[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)])
         denom = 12 * sum([np.sin(2 * np.pi * (q[mu] + bvec[mu]) / LL[mu]) ** 2 for mu in range(4)])
-        Zq[b] = (1j) * (num / denom) * hypervolume
+        Zq[b] = (1j) * (num / denom)# * vol
     return Zq
 
 # Compute operator renormalization Z(p)
