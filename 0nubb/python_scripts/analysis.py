@@ -124,7 +124,7 @@ def amputate_threepoint(props_inv_k1, props_inv_k2, threepts):
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
     for b in range(n_boot):
         Sinv_k1, Sinv_k2, G = props_inv_k1[b], props_inv_k2[b], threepts[b]
-        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_k1, G, Sinv_k2) * vol
+        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_k1, G, Sinv_k2)# * vol
     return Gamma
 
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
@@ -148,15 +148,13 @@ def quark_renorm(props_inv_q, q):
         Zq[b] = (1j) * (num / denom)# * vol
     return Zq
 
-# Compute operator renormalization Z(p)
-def get_Z(Zq, Gamma, Gamma_B_inv):
-    Z = {}
-    for p in k_str_list:
-        Z[p] = np.zeros((n_boot), dtype = np.complex64)
-        for b in range(n_boot):
-            trace = np.einsum('aiaj,ji', Gamma[p][b], Gamma_B_inv[p])
-            Z[p][b] = 12 * Zq[p][b] / trace
-    return Z
+# Returns the adjoint of a bootstrapped propagator object
+def adjoint(S):
+    return np.conjugate(np.einsum('zaibj->zbjai', S))
+
+def antiprop(S):
+    Sdagger = adjoint(S)
+    return np.einsum('ij,zajbk,kl->zaibl', gamma5, Sdagger, gamma5)
 
 # Returns a in units of GeV^{-1}
 def fm_to_GeV(a):
