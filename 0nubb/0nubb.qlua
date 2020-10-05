@@ -108,8 +108,10 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, vol, 
     for mu = 0, #L - 1 do
       -- local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
       -- local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
-      local GV = (mqFT * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
-      local GA = (mqFT * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
+      -- local GV = (mqFT * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
+      -- local GA = (mqFT * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
+      local GV = (qFT * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
+      local GA = (qFT * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
       local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       h5_force_write(writer, op_path_V, GV)

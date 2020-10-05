@@ -48,6 +48,8 @@ NPR MOMFRAC JOBS:
 
 25291 - 25293 ||| Running npr_momfrac on 24^3 x 24 lattice at 10 configurations and all momenta to get out another estimate of ZO ||| 7/20
 25350 - 25352, 25362, 25363 ||| Running same as previous, trying to get more configurations run ||| 7/22
+28229 ||| Running npr_momfrac on 32^3 x 48 lattice ||| 9/24
+28390 ||| Running current_npr on the lattice to see what a reasonable output for ZV / ZA should be ||| 10/1
 
 Storing all the npr_momfrac output from -6 to 6 in 22454 (/data/d10b/users/poare/lqcd/npr_momfrac/output/cl3_16_48_b6p1_m0p2450_22454).
 Useful data sets:
@@ -61,3 +63,12 @@ Useful data sets:
 GAUGE FIXING JOBS
 25277 ||| Smearing cl3_24_24_b6p1_m0p2450 for configs 1000 to 4400 ||| 7/19
 25284 ||| Gauge fixing cl3_24_24_b6p1_m0p2450 for configs 1000 to 4400 ||| 7/19
+
+0NUBB JOBS
+28215 ||| Running just color-unmixed bilinears to see how fast they run: they run significantly faster (almost 100x faster) than if we include the color mixed operators ||| 9/22
+28216 ||| Running all operators (including color-mixed): runs VERY slow ||| 9/22
+28230 ||| All color-unmixed operators needed for current renormalization on cl3_16_48_b6p1_m0p2450, cfgs 1000 - 1200 ||| 9/24
+28231 ||| Correlators needed for current renormalization on cl3_16_48_b6p1_m0p2450, cfgs 1000 - 1500 ||| 9/24
+28337 ||| Running vector and current renormalization. Analysis output isn't great; Zq matches the old Zq factors from RI'-MOM which is good, but ZV and ZA are much too small. Trying to debug now and seeing what part of the code the error is in ||| 9/28
+28357 ||| Rerunning and being a bit more careful about the momentum projection steps; I may have previously amputated with the wrong propagators ||| 9/30
+28357 ||| Same as before, but changing up the momenta a bit ||| 10/1

@@ -59,7 +59,8 @@ def to_linear_momentum(k):
     return np.array([np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)])
 
 def to_lattice_momentum(k):
-    return np.array([np.complex64(2 * np.sin(np.pi * (k[mu] + bvec[mu]) / LL[mu])) for mu in range(4)])
+    # return np.array([np.complex64(2 * np.sin(np.pi * (k[mu] + bvec[mu]) / LL[mu])) for mu in range(4)])
+    return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / LL[mu])) for mu in range(4)])
 
 # squares a 4 vector.
 def square(k):
@@ -86,19 +87,37 @@ def readfiles(cfgs, q, op_renorm = True):
     for idx, file in enumerate(cfgs):
         f = h5py.File(file, 'r')
         qstr = klist_to_string(q, 'q')
-        if idx == 0:
-            k1 = f['moms/' + qstr + '/k1'][()]          # might need to declare these earlier
+        if idx == 0:            # just choose a specific config to get these on, since they should be the same
+            k1 = f['moms/' + qstr + '/k1'][()]
             k2 = f['moms/' + qstr + '/k2'][()]
         props_k1[idx] = np.einsum('ijab->aibj', f['prop_k1/' + qstr][()])
         props_k2[idx] = np.einsum('ijab->aibj', f['prop_k2/' + qstr][()])
         props_q[idx] = np.einsum('ijab->aibj', f['prop_q/' + qstr][()])
-        for mu in range(0, 4):
+        for mu in range(4):
             GV[mu, idx] = np.einsum('ijab->aibj', f['GV' + str(mu + 1) + '/' + qstr][()])
             GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()])
         if op_renorm:
             for n in range(16):
                 GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
+
+# read in npr_momfrac format. Used for testing RI/sMOM RCs on RI'-MOM data.
+def readfiles_momfrac(cfgs, q):
+    props_k1 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    props_k2 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    props_q = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    GV = np.zeros((4, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    GA = np.zeros((4, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
+    GO = np.zeros((16, len(cfgs), 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
+
+    for idx, file in enumerate(cfgs):
+        f = h5py.File(file, 'r')
+        qstr = klist_to_string(q, 'p')
+        props_q[idx] = np.einsum('ijab->aibj', f['prop/' + qstr][()]) / vol
+        for mu in range(4):
+            GV[mu, idx] = np.einsum('ijab->aibj', f['O' + str(mu + 1) + '/' + qstr][()]) / vol
+            GA[mu, idx] = np.einsum('ijab->aibj', f['O5' + str(mu + 1) + '/' + qstr][()]) / vol
+    return props_q, GV, GA
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 1):
@@ -119,12 +138,13 @@ def invert_props(props):
         Sinv[b] = np.linalg.tensorinv(props[b])
     return Sinv
 
-# Amputate legs to get vertex function \Gamma(p)
-def amputate_threepoint(props_inv_k1, props_inv_k2, threepts):
+# Amputate legs to get vertex function \Gamma(p). Uses first argument to amputate left-hand side and
+# second argument to amputate right-hand side.
+def amputate_threepoint(props_inv_L, props_inv_R, threepts):
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
     for b in range(n_boot):
-        Sinv_k1, Sinv_k2, G = props_inv_k1[b], props_inv_k2[b], threepts[b]
-        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_k1, G, Sinv_k2)# * vol
+        Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], threepts[b]
+        Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_L, G, Sinv_R)
     return Gamma
 
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
@@ -136,16 +156,20 @@ def amputate_fourpoint(props_inv_k1, props_inv_k2, fourpoints):
         Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl', Sinv_k1, Sinv_k1, G, Sinv_k2, Sinv_k2)
     return Gamma
 
+# def quark_renorm(props_inv_q, k):
+#     q = np.sin(to_linear_momentum(k + bvec))
+#     Zq = np.zeros((n_boot), dtype = np.complex64)
+#     for b in range(n_boot):
+#         Sinv = props_inv_q[b]
+#         Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)]) / (12 * square(q))
+#     return Zq
 
-# Compute quark field renormalization. Pass in the momentum projected propagator for q.
+# q is the lattice momentum that should be passed in
 def quark_renorm(props_inv_q, q):
     Zq = np.zeros((n_boot), dtype = np.complex64)
-    phase = [np.sin(2 * np.pi * (q[mu] + bvec[mu]) / LL[mu]) for mu in range(4)]
     for b in range(n_boot):
         Sinv = props_inv_q[b]
-        num = sum([phase[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)])
-        denom = 12 * sum([np.sin(2 * np.pi * (q[mu] + bvec[mu]) / LL[mu]) ** 2 for mu in range(4)])
-        Zq[b] = (1j) * (num / denom)# * vol
+        Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)]) / (12 * square(q))
     return Zq
 
 # Returns the adjoint of a bootstrapped propagator object
