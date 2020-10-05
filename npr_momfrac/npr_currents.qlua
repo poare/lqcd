@@ -230,7 +230,7 @@ end
 -- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 folder = string.format("/data/d10b/users/poare/0nubb/output")
 out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
-filename = string.format("%s/npr_momfrac_code_cfg%d.h5", out_folder, cfgnum)
+filename = string.format("%s/npr_momfrac_output/cfg%d.h5", out_folder, cfgnum)
 
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 

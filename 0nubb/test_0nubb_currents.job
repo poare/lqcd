@@ -32,15 +32,20 @@ operators=false
 home=/home/poare/lqcd/0nubb
 logs=${home}/logs/${cfgbase}_test0mode_${SLURM_JOB_ID}
 output=/data/d10b/users/poare/0nubb/output/${cfgbase}_test0mode_${SLURM_JOB_ID}
+output1=/data/d10b/users/poare/0nubb/output/${cfgbase}_test0mode_${SLURM_JOB_ID}/0nubb_output
+output2=/data/d10b/users/poare/0nubb/output/${cfgbase}_test0mode_${SLURM_JOB_ID}/npr_momfrac_output
 
 mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
+mkdir ${output1}
+mkdir ${output2}
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu} operators=${operators}"
 export OMP_NUM_THREADS=6
 
-
-cfg=1000
-mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/0nubb_code.txt
-mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/npr_momfrac/npr_currents.qlua > ${logs}/npr_momfrac_code.txt
+for cfg in `seq 1000 10 1050`
+do
+  mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/0nubb_code.txt
+  mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/npr_momfrac/npr_currents.qlua > ${logs}/npr_momfrac_code.txt
+done
