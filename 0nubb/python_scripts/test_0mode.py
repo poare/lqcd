@@ -6,9 +6,9 @@ from analysis import *
 
 ################################## PARAMETERS #################################
 cfgbase = 'cl3_16_48_b6p1_m0p2450'
-# job_num = 28337
-job_num = 28357
-data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
+job_num = 28506
+data_dir1 = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_test0mode_' + str(job_num) + '/0nubb_output'
+data_dir2 = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_test0mode_' + str(job_num) + '/npr_momfrac_output'
 
 L = 16
 T = 48
@@ -21,19 +21,18 @@ q_lat = np.sin(to_linear_momentum(q + bvec))            # choice of lattice mome
 qlat_slash = slash(q_lat)
 print('Number of total momenta: ' + str(len(q_list)))
 
-############################### PERFORM ANALYSIS ##############################
-cfgs = []
-for (dirpath, dirnames, file) in os.walk(data_dir):
-    cfgs.extend(file)
-for idx, cfg in enumerate(cfgs):
-    cfgs[idx] = data_dir + '/' + cfgs[idx]
-n_cfgs = len(cfgs)
-
 Zq1, Zq2 = np.zeros((n_boot), dtype = np.complex64), np.zeros((n_boot), dtype = np.complex64)
 ZV1, ZV2 = np.zeros((n_boot), dtype = np.complex64), np.zeros((n_boot), dtype = np.complex64)
 ZA1, ZA2 = np.zeros((n_boot), dtype = np.complex64), np.zeros((n_boot), dtype = np.complex64)
 
-# do 0nubb
+################################# 0NUBB ANALYSIS ################################
+cfgs1 = []
+for (dirpath, dirnames, file) in os.walk(data_dir1):
+    cfgs1.extend(file)
+for idx, cfg in enumerate(cfgs1):
+    cfgs1[idx] = data_dir + '/' + cfgs1[idx]
+n_cfgs1 = len(cfgs1)
+
 k1, k2, props_k1, props_k2, props_q, GV1, GA1, GO = readfiles(cfgs, q, False)
 props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
 GV1_boot, GA1_boot = np.array([bootstrap(GV1[mu]) for mu in range(4)]), np.array([bootstrap(GA1[mu]) for mu in range(4)])
@@ -50,19 +49,25 @@ for mu in range(4):
 ZV1 = 12 * Zq1 * square(q_lat) / np.einsum('zaiaj,ji->z', qDotV1, qlat_slash)
 ZA1 = 12 * Zq1 * square(q_lat) / np.einsum('zaiaj,jk,ki->z', qDotA1, gamma5, qlat_slash)
 
-
-
-
-################################## SAVE DATA ##################################
 out_file1 = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/currents' + str(job_num) + '/Z_0nubb.h5'
 f1 = h5py.File(out_file1, 'w')
 f1['momenta'] = q_list
 f1['ZV'] = ZV1
 f1['ZA'] = ZA1
 f1['Zq'] = Zq1
-f1['cfgnum'] = n_cfgs
+f1['cfgnum'] = n_cfgs1
 f1.close()
 print('Onubb output saved at: ' + out_file1)
+
+############################## NPR_MOMFRAC ANALYSIS #############################
+cfgs2 = []
+for (dirpath, dirnames, file) in os.walk(data_dir2):
+    cfgs2.extend(file)
+for idx, cfg in enumerate(cfgs2):
+    cfgs2[idx] = data_dir + '/' + cfgs2[idx]
+n_cfgs2 = len(cfgs2)
+
+
 
 out_file2 = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/currents' + str(job_num) + '/Z_npr_momfrac.h5'
 f2 = h5py.File(out_file2, 'w')
@@ -70,6 +75,6 @@ f2['momenta'] = q_list
 f2['ZV'] = ZV2
 f2['ZA'] = ZA2
 f2['Zq'] = Zq2
-f2['cfgnum'] = n_cfgs
+f2['cfgnum'] = n_cfgs2
 f2.close()
 print('npr_momfrac output saved at: ' + out_file2)

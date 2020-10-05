@@ -46,6 +46,6 @@ export OMP_NUM_THREADS=6
 
 for cfg in `seq 1000 10 1050`
 do
-  mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/0nubb_code.txt
-  mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/npr_momfrac/npr_currents.qlua > ${logs}/npr_momfrac_code.txt
+  mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/0nubb_cfg${cfg}.txt
+  mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/npr_momfrac/npr_currents.qlua > ${logs}/npr_momfrac_cfg${cfg}.txt
 done
