@@ -474,7 +474,7 @@ folder = "/data/d10b/users/poare/0nubb/output"
 -- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
 -- filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
-filename = string.format("%s/0nubb_code.h5", out_folder, cfgnum)
+filename = string.format("%s/0nubb_code_cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
