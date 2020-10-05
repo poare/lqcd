@@ -50,16 +50,19 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, vol, 
     printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
               k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
     local qFTarg = L:Real(0)
+    local mqFTarg_nobvec = L:Real(0)
     local mqFTarg = L:Real(0)
     local k1FTarg = L:Real(0)
     local k2FTarg = L:Real(0)
     for mu = 0, #L - 1 do
       qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]
       mqFTarg = mqFTarg + L:Real(L:pcoord(mu)) * (-q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
     local qFT = qFTarg:expi()
+    local mqFT_nobvec = mqFTarg_nobvec:expi()
     local mqFT = mqFTarg:expi()
     local k1FT = k1FTarg:expi()
     local k2FT = k2FTarg:expi()
@@ -104,14 +107,14 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, vol, 
     printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
     printf("Propagator for momentum q written at path: %s\n", prop_path_q)
 
-    -- Vector and axial currents.
+    -- Vector and axial currents. TODO the only difference with RI'-MOM is adding bvec to the momentum projection-- try to take that out later
     for mu = 0, #L - 1 do
       -- local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
       -- local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
       -- local GV = (mqFT * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
       -- local GA = (mqFT * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
-      local GV = (qFT * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
-      local GA = (qFT * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
+      local GV = (mqFT_nobvec * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
+      local GA = (mqFT_nobvec * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
       local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       h5_force_write(writer, op_path_V, GV)

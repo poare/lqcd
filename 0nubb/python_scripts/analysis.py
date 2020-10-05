@@ -115,8 +115,8 @@ def readfiles_momfrac(cfgs, q):
         qstr = klist_to_string(q, 'p')
         props_q[idx] = np.einsum('ijab->aibj', f['prop/' + qstr][()]) / vol
         for mu in range(4):
-            GV[mu, idx] = np.einsum('ijab->aibj', f['O' + str(mu + 1) + '/' + qstr][()]) / vol
-            GA[mu, idx] = np.einsum('ijab->aibj', f['O5' + str(mu + 1) + '/' + qstr][()]) / vol
+            GV[mu, idx] = np.einsum('ijab->aibj', f['GV' + str(mu + 1) + '/' + qstr][()]) / vol
+            GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()]) / vol
     return props_q, GV, GA
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
