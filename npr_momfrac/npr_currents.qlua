@@ -114,12 +114,12 @@ function compute_npr_through_sink(L, U, ferm_prop, p_list, hypervolume, L_mom, g
     for mu = 0, #L - 1 do
       local matrix_element = (antiprop * (gamma{mu = mu} * prop)):sum()
       local matrix_element_5 = (antiprop * ((gamma{mu = mu} * gamma{mu = 5}) * prop)):sum()
-      local op_path = string.format("O%d/p%d%d%d%d", mu + 1, p[1], p[2], p[3], p[4])
-      local op_path_5 = string.format("O5%d/p%d%d%d%d", mu + 1, p[1], p[2], p[3], p[4])
+      local op_path = string.format("GV%d/p%d%d%d%d", mu + 1, p[1], p[2], p[3], p[4])
+      local op_path_5 = string.format("GA%d/p%d%d%d%d", mu + 1, p[1], p[2], p[3], p[4])
       h5_force_write(writer, op_path, matrix_element)
       h5_force_write(writer, op_path_5, matrix_element_5)
-      printf("Matrix element O%d written at: %s\n", mu + 1, op_path)
-      printf("Matrix element O5%d written at: %s\n", mu + 1, op_path_5)
+      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path)
+      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_5)
     end
   end
 end
@@ -224,10 +224,14 @@ for i = 0, #L - 1 do
   vol = vol * L[i]
 end
 
--- Paths to output file.
-folder = string.format("/data/d10b/users/poare/npr_momfrac/output")
-out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+-- Paths to output file. Uncomment after 0 mode test
+-- folder = string.format("/data/d10b/users/poare/npr_momfrac/output")
+-- filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+-- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+folder = string.format("/data/d10b/users/poare/0nubb/output")
+out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
+filename = string.format("%s/npr_momfrac_code.h5", out_folder, cfgnum)
+
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
@@ -259,10 +263,11 @@ for i = -6, 6 do
   end
 end
 ]]
-local p_list_NPR = {}
-for k = -6, 6 do
-    p_list_NPR[#p_list_NPR + 1] = {k, k, 0, 0}
-end
+-- local p_list_NPR = {}
+-- for k = -6, 6 do
+--     p_list_NPR[#p_list_NPR + 1] = {k, k, 0, 0}
+-- end
+local p_list_NPR = {{0, 0, 0, 0}}
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 

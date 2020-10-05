@@ -469,10 +469,12 @@ for i = 0, #L - 1 do
   vol = vol * L[i]
 end
 
--- Paths to output file.
+-- Paths to output file. UNCOMMENT PATHS AFTER 0 MODE IS DEBUGGED
 folder = "/data/d10b/users/poare/0nubb/output"
-out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+-- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+-- filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
+filename = string.format("%s/0nubb_code.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
@@ -497,15 +499,19 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 print("Propagator object initialized.")
 
 -- momenta to compute Z(p) at
-local k1_list_NPR = {}
-local k2_list_NPR = {}
-print("Initializing momenta.")
-for m = -6, 6 do
-  local minusM = -m
-  k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
-  k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
- end
---printf("Number of momenta to compute at: %d.", #k1_list_NPR)
+-- local k1_list_NPR = {}
+-- local k2_list_NPR = {}
+-- print("Initializing momenta.")
+-- for m = -6, 6 do
+--   local minusM = -m
+--   k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
+--   k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
+--  end
+
+-- FOR TESTING PURPOSES ONLY, MAKE SURE THIS AGREES WITH RI'-MOM AT MOMENTA 0
+local k1_list_NPR = {{0, 0, 0, 0}}
+local k2_list_NPR = {{0, 0, 0, 0}}
+
 print("Momenta initialized. Initializing Dirac matrices.")
 
 -- init list of Dirac matrices
