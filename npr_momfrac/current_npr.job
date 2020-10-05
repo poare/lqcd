@@ -5,7 +5,8 @@
 #SBATCH --job-name=npr_currents
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long4
+#SBATCH --partition=long
+#SBATCH -t 144:00:00
 
 set -x
 
@@ -19,7 +20,7 @@ EXE=qlua
 
 cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
-gpu=true
+gpu=false
 
 home=/home/poare/lqcd/npr_momfrac
 logs=${home}/testing/logs/${cfgbase}_${SLURM_JOB_ID}
@@ -32,7 +33,7 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 200 10 490`
+for cfg in `seq 200 10 300`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_currents.qlua > ${logs}/cfg${cfg}.txt
 done

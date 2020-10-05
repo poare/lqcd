@@ -18,6 +18,7 @@ module load openmpi/3.1.5
 #module load qlua
 module load qlua/20200107
 #module load qlua/20200107-gpu1080
+#module load qlua/20201002
 
 EXE=qlua
 
@@ -27,7 +28,7 @@ cfgbase="cl3_16_48_b6p1_m0p2450"
 gpu=false
 
 # whether to only compute current correlators, or to compute operator correlators as well
-operators=true
+operators=false
 
 home=/home/poare/lqcd/0nubb
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
@@ -40,7 +41,7 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu} operators=${operators}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 1000 10 1200`
+for cfg in `seq 1000 10 1100`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 done

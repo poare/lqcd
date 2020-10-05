@@ -247,6 +247,7 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
+--[[
 local p_list_NPR = {}
 for i = -6, 6 do
   for j = -6, 6 do
@@ -256,6 +257,11 @@ for i = -6, 6 do
       end
     end
   end
+end
+]]
+local p_list_NPR = {}
+for k = -6, 6 do
+    p_list_NPR[#p_list_NPR + 1] = {k, k, 0, 0}
 end
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
@@ -274,7 +280,7 @@ if status then
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  compute_npr_through_op(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
+  compute_npr_through_sink(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
 
   writer:close()
 else
