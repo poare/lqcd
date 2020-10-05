@@ -20,7 +20,7 @@ function compute_pion2pt(U, ferm_prop, bcs, src_coord, h5_writer, L_mom)
 
 
    -- note: don't change to non-zero p without changing code (mtm smearing etc will break)
-   local p = {0,0,0}
+   local p = {5,0,0}
 
    -- build props
    local Vol = 1
@@ -87,8 +87,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 500)
 local src_coord = {0,0,0,0}
 
 -- prepare to write props
-local myhdf5 = "/data/d10a/projects/playingwithpions/pion2pt_kappa"..tostring(kappa).."_cfg"..tostring(cfgnum)..".h5"
-
+-- local myhdf5 = "/data/d10a/projects/playingwithpions/pion2pt_kappa"..tostring(kappa).."_cfg"..tostring(cfgnum)..".h5"
+local myhdf5 = "/home/poare/lqcd/pion_mass/output/playing_with_pions_output_p_5/pion2pt_kappa"..tostring(kappa).."_cfg"..tostring(cfgnum)..".h5"
 
 local hdf5params = { method = "phdf5" }
 local h5_writer = qcd.hdf5.Writer(myhdf5, hdf5params)

@@ -1,3 +1,6 @@
+qlua_scripts/bash_output
+qlua_scripts/logs
+
 pion_mass/logs
 pion_mass/output
 pion_mass/bash_output
@@ -14,6 +17,10 @@ npr_momfrac/testing/bash_output
 npr_momfrac/examples/logs
 npr_momfrac/examples/meas
 npr_momfrac/analysis_output
+
+gf/scripts/bash_output
+gf/logs
+gf/testing
 
 0nubb/bash_output
 0nubb/logs

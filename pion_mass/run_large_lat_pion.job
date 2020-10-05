@@ -20,12 +20,13 @@ cfgpath="/data/d10b/ensembles/isoClover/"
 cfgbase="cl21_32_96_b6p1_m0p2800_m0p2450_mn3-ec"
 
 mkdir ./logs/${cfgbase}_${SLURM_JOB_ID}
+mkdir ./logs/${cfgbase}_${SLURM_JOB_ID}/no_output
 mkdir ./output/${cfgbase}_${SLURM_JOB_ID}
 
 Lx=32
 Lt=96
 beta=6.1
-mq=.28
+mq=-.28
 
 pmax=5
 

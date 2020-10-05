@@ -8,9 +8,6 @@ require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
 require "lib/toAdjoint3"
-if gpu then
-  require "lib/quda"
-end
 
 -------------------------------------------------------------------
 ------------------------ UTILITY FUNCTIONS ------------------------
@@ -94,13 +91,6 @@ end
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
 
--- Read in input from bash script.
-if jobid and cfgpath and cfgbase then
-    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
-else
-    print("No jobid, cfgpath, cfgbase entered.")
-end
-
 -- Set parameters
 Lx = 4
 Lt = 8
@@ -140,40 +130,21 @@ print("Gauge file read. Computing NPR.")
 
 F = getFmunuComponents(L, U, Nc)
 
-bbose = {1, 1, 1, 1}
-local FTargbose = L:Real(0)
-for mu = 0, #L - 1 do
-  FTargbose = FTargbose + L:Real(L:pcoord(mu)) * bbose[mu + 1] * 2 * math.pi / L[mu]
-end
-local FTbose = FTargbose:expi()
-
-bferm = {1, 1, 1, -1}
-local FTargferm = L:Real(0)
-for mu = 0, #L - 1 do
-  FTargferm = FTargferm + L:Real(L:pcoord(mu)) * bferm[mu + 1] * 2 * math.pi / L[mu]
-end
-local FTferm = FTargferm:expi()
-
 for a = 1, Nc * Nc - 1 do
   for mu = 1, #L do
     for nu = 1, #L do
       local Fmunua = F[mu][nu][a]
-      local F_zero = Fmunua:sum()    -- also try with bcs = {1, 1, 1, -1}
-      local F_ferm = (Fmunua * FTferm):sum()
-      local F_bose = (Fmunua * FTbose):sum()
+      local F_zero = Fmunua:sum(L:MultiSet(L[3], L:pcoord(3)))    -- also try with bcs = {1, 1, 1, -1}
+      local F_lat = L_mom:Complex(0)
+      for t = 0, L[3] - 1 do
+        F_lat[{t}] = F_zero[t]
+      end
       local path_zero = string.format("bcs_zero/F%d%d%d", mu, nu, a)
-      local path_ferm = string.format("bcs_ferm/F%d%d%d", mu, nu, a)
-      local path_bose = string.format("bcs_bose/F%d%d%d", mu, nu, a)
-      h5_force_write(writer, path_zero, F_zero)
-      h5_force_write(writer, path_ferm, F_ferm)
-      h5_force_write(writer, path_bose, F_bose)
-      printf("Matrix F^%d%d%d elements written at: %s, %s, %s\n", mu, nu, a, path_zero, path_ferm, path_bose)
+      h5_force_write(writer, path_zero, F_lat)
+      printf("Matrix F^%d%d%d elements written at: %s\n", mu, nu, a, path_zero)
     end
   end
 end
 
 writer:close()
 
-if gpu then
-    qcd.quda.fini()
-end

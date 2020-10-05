@@ -39,7 +39,7 @@
 #SBATCH -N 1                         # Total # of nodes
 #SBATCH -n 1                         # Total # of mpi tasks
 #SBATCH --exclusive
-#SBATCH -t 6-00:00:00                  # Run time (hh:mm:ss)
+#SBATCH -t 144:00:00                  # Run time (hh:mm:ss)
 ###SBATCH --mail-user=poare@mit.edu
 ###SBATCH --mail-type=all            # Send email at begin and end of job
 
@@ -56,6 +56,8 @@ base_dir=/home/poare/lqcd/gf
 run_dir=${base_dir}/scripts
 now=$(date '+%Y%m%d%H%M%S')
 log_file=${base_dir}/logs/log-${now}.out
+run_file=gf.sh
+# run_file=smear.sh
 
 cd ${run_dir}
-${run_dir}/smear.sh | tee ${log_file}
+${run_dir}/${run_file} | tee ${log_file}

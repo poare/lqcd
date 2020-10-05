@@ -16,8 +16,8 @@ module load qlua
 
 EXE=qlua
 
-# cfgpath="/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/"
-cfgpath="/data/d10b/users/poare/gf/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/"
+cfgpath="/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/coulomb/"
+# cfgpath="/data/d10b/users/poare/gf/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/"
 cfgbase="cl3_16_48_b6p1_m0p2450"
 
 home=/home/poare/lqcd/pion_mass

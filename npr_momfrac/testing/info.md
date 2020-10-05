@@ -8,3 +8,4 @@ This directory is for local testing with QLUA, and running very small configurat
 - Job 14503: Added in extra group projection in gauge transformation \Omega(n) to see if that helps.
 - Job 15890: Propagators match with David's code. Running this job to compare Green's functions with David.
 - Job 16636: Running through the operator with a whole lot of momenta. Job 16637 is also running with momenta from 1000 to 1500
+- Jobs 16872 to 16877: Running through operator. Sink momenta are within the cylinder of radius 2 about the Brillouin zone diagonal, and running about 30-40 configurations per job.

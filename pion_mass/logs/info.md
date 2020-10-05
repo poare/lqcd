@@ -16,3 +16,32 @@
 - 1/27:
   - Job 169: Running cl3 dispersion curve with p ranging from 0 to 8, step size 1/3. Want to see what happens on the non-integral values.
   - Job 172: Running su3 dispersion curve with p from 0 to 5, step size 1/2. See if there's still weird stuff happening on the half integers.
+  - Half integers are supposed to be problematic because momentum is quantized, so it's actually good that we're getting weird results. However, still not matching up with the desired dispersion relation.
+- 1/31: 
+  - Job 11705: Running cl3 dispersion with Fourier factor inverted to see if it changes anything. Didn't work.
+  - Job 11713: Running cl3 dispersion with some extra changes. Probably won't work, but worth a shot.
+  - I should examine how the momentum is changing at different momentum values. It doesn't seem to be changing really at all, but the FT factor should be significant.
+  - Next up: Run Phiala's code at p = {5, 0, 0} vs my quenched code. See if they have similar results. If they do, then there's probably a bug in my analysis.
+    - Job 11716: Running my quenched code. Output at /home/poare/lqcd/pion_mass/output/su3_24_48_b6p10050_11716
+    - Job 11718: Running Phiala's code at p = {5, 0, 0}. Output will be at /home/poare/lqcd/pion_mass/output/playing_with_pions_output_p_5
+  - Especially check if the np.abs() that I'm using are affecting it at all. See if the values at nonzero momentum and nonzero $n_x$ are looking similarly-- they should definitely be different.
+- 2/2:
+  - Job 11783: Running cl3 dispersion with periodic boundary conditions bc = {1, 1, 1, 1} to see if that changes anything.
+  - Next up: Should probably make sure I'm doing the correct shifts. A real and even function will have a real Fourier transform, and the output should be real, so we should expect this function that we're transforming is even. However, correlation functions only even from the halfway point.
+  - Question for Phiala: Should the data have any imaginary components? Does that indicate that I should do the FT from a different base point?
+    - It's ok to have imaginary components as long as they're uncorrelated and suppressed.
+    - When debugging, try printing out individual data and bootstrapped data to see how it behaves. 
+- 2/3:
+  - Job 12053: Edited some code to run larger lattice configurations at /data/d10b/ensembles/isoClover/cl21_32_96_b6p1_m0p2800_m0p2450_mn3-ec/cfgs/3. Didn't work-- ran at too heavy quark mass (used m_s instead of m_light), so have to rerun.
+- 2/4:
+  - Job 12146: Running at actual quark masses. Now there's an issue with the effective mass not plateauing, we're back to the old problem and I don't know why.
+- 2/5: Editing some code to reflect what I was doing before I changed it to Phiala's. Make sure this doesn't break it.
+  - Job 12438 (50 configs) and 12578 (all configs): Running effective mass on cl3 with the new code.
+  - Job 12579: Running pion dispersion on cl3 with new code.
+- 2/6: Check on 12583 and 12586 once they're done, the first is eff mass and the second is pion dispersion.
+- 2/7: My code didn't work (as expected). However, 12583 (eff mass) has a really bad eff mass plot and looks wrong. Yet, the pion dispersion (12586) at least looks like the other code. It's still not the right shape, but it looks decent, and I need to try actually plotting it with units. Need to figure out why they look different, the code should be the same. Now I need to find the bug:
+  - Job 12650: This code is changing how the propagator is computed, so it's using the (prop * gamma * antiprop * gamma):trace() instead of qcd.dot(prop, prop).
+    - If this doesn't work, then try changing back to the gathering method while using qcd.dot to compute the twopt function. 
+    - Job 12651: Code is changed the same way, but running pion dispersion.
+    - UPDATE: Cancelled these jobs. I just had a bug in my jupyter notebook, my code looks like it gives me the same information that Phiala's code does.
+  - Job 12652: Running my modified new code on the large lattice configuration.
