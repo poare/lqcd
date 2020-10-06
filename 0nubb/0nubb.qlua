@@ -336,19 +336,22 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
               k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
     local qFTarg = L:Real(0)
     local mqFTarg = L:Real(0)
-    local qFT2arg = L:Real(0)    -- TODO figure out BCs: can we just take qFT^2, or do we need to use 2q + bvec in argument?
+    local mqFTarg_nobvec = L:Real(0)
+    local mqFT2arg = L:Real(0)    -- Likely no bvec on qFT2arg; if it looks really weird then add bvec to it.
     local k1FTarg = L:Real(0)
     local k2FTarg = L:Real(0)
     for mu = 0, #L - 1 do
       qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       mqFTarg = mqFTarg + L:Real(L:pcoord(mu)) * (-q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      qFT2arg = qFT2arg + L:Real(L:pcoord(mu)) * (2 * q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]
+      mqFT2arg = mqFT2arg - L:Real(L:pcoord(mu)) * (2 * q[mu + 1]) * 2 * math.pi / L[mu]
       k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
     local qFT = qFTarg:expi()
     local mqFT = mqFTarg:expi()
-    local qFT2 = qFT2arg:expi()
+    local mqFT_nobvec = mqFTarg_nobvec:expi()
+    local mqFT2_nobvec = mqFT2arg:expi()
     local k1FT = k1FTarg:expi()
     local k2FT = k2FTarg:expi()
 
@@ -396,8 +399,8 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
     for mu = 0, #L - 1 do
       -- local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
       -- local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
-      local GV = (mqFT * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
-      local GA = (mqFT * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
+      local GV = (mqFT_nobvec * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
+      local GA = (mqFT_nobvec * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
       local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
       h5_force_write(writer, op_path_V, GV)
@@ -413,7 +416,7 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
     local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
     local G = L_NPR:Complex(complex(0, 0))
     for m = 0, 15 do
-      local A_gamma = antiprop_k1 * (gamma{n=m} * S_k2)
+      local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
       for alpha = 0, Nd - 1 do
         print(alpha)
         for beta = 0, Nd - 1 do
@@ -423,7 +426,7 @@ function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, g
                 for b = 0, Nc - 1 do
                   for c = 0, Nc - 1 do
                     for d = 0, Nc - 1 do
-                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (qFT2 * (
+                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2_nobvec * (
                         A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum() / vol
                     end
