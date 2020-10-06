@@ -225,12 +225,13 @@ for i = 0, #L - 1 do
 end
 
 -- Paths to output file. Uncomment after 0 mode test
--- folder = string.format("/data/d10b/users/poare/npr_momfrac/output")
--- filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
--- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-folder = string.format("/data/d10b/users/poare/0nubb/output")
-out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
-filename = string.format("%s/npr_momfrac_output/cfg%d.h5", out_folder, cfgnum)
+folder = string.format("/data/d10b/users/poare/npr_momfrac/output")
+filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+-- FOR THE ZERO MODE TEST AGAINST RI/SMOM
+-- folder = string.format("/data/d10b/users/poare/0nubb/output")
+-- out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
+-- filename = string.format("%s/npr_momfrac_output/cfg%d.h5", out_folder, cfgnum)
 
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 

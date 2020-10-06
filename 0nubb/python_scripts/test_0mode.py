@@ -6,7 +6,8 @@ from analysis import *
 
 ################################## PARAMETERS #################################
 cfgbase = 'cl3_16_48_b6p1_m0p2450'
-job_num = 28509
+# job_num = 28509    # this is the original buggy one
+job_num = 28521
 data_dir1 = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_test0mode_' + str(job_num) + '/0nubb_output'
 data_dir2 = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_test0mode_' + str(job_num) + '/npr_momfrac_output'
 

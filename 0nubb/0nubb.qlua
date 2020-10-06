@@ -56,7 +56,7 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, vol, 
     local k2FTarg = L:Real(0)
     for mu = 0, #L - 1 do
       qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]
+      mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]      -- shouldn't have bvec in final momproj
       mqFTarg = mqFTarg + L:Real(L:pcoord(mu)) * (-q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
@@ -107,7 +107,7 @@ function compute_npr_currents_momsource(L, U, ferm_prop, k1_list, k2_list, vol, 
     printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
     printf("Propagator for momentum q written at path: %s\n", prop_path_q)
 
-    -- Vector and axial currents. TODO the only difference with RI'-MOM is adding bvec to the momentum projection-- try to take that out later
+    -- Vector and axial currents.
     for mu = 0, #L - 1 do
       -- local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
       -- local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
@@ -472,12 +472,14 @@ for i = 0, #L - 1 do
   vol = vol * L[i]
 end
 
--- Paths to output file. UNCOMMENT PATHS AFTER 0 MODE IS DEBUGGED
+-- Paths to output file.
 folder = "/data/d10b/users/poare/0nubb/output"
--- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
--- filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
-out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
-filename = string.format("%s/0nubb_output/cfg%d.h5", out_folder, cfgnum)
+out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+
+-- FOR TESTING 0 MODE AGAINST RI'-MOM
+-- out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
+-- filename = string.format("%s/0nubb_output/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
@@ -502,18 +504,18 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 print("Propagator object initialized.")
 
 -- momenta to compute Z(p) at
--- local k1_list_NPR = {}
--- local k2_list_NPR = {}
--- print("Initializing momenta.")
--- for m = -6, 6 do
---   local minusM = -m
---   k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
---   k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
---  end
+local k1_list_NPR = {}
+local k2_list_NPR = {}
+print("Initializing momenta.")
+for m = -6, 6 do
+  local minusM = -m
+  k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
+  k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
+ end
 
 -- FOR TESTING PURPOSES ONLY, MAKE SURE THIS AGREES WITH RI'-MOM AT MOMENTA 0
-local k1_list_NPR = {{0, 0, 0, 0}}
-local k2_list_NPR = {{0, 0, 0, 0}}
+-- local k1_list_NPR = {{0, 0, 0, 0}}
+-- local k2_list_NPR = {{0, 0, 0, 0}}
 
 print("Momenta initialized. Initializing Dirac matrices.")
 
