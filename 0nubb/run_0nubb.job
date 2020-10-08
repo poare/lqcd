@@ -28,6 +28,7 @@ EXE=qlua
 
 cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
 cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
+gpu=false
 dwf=true
 
 # whether to only compute current correlators, or to compute operator correlators as well
@@ -41,7 +42,7 @@ mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' dwf=${dwf} operators=${operators}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' dwf=${dwf} gpu=${gpu} operators=${operators}"
 export OMP_NUM_THREADS=6
 
 # for cfg in `seq 1000 10 1100`
