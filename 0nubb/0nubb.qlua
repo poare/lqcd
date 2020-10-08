@@ -35,7 +35,7 @@ function show_propagator(name, m)
     end
 
 function load_nersc(file_name, Lattice)
-  local U,msq;
+  local U,msg;
   U,msg = qcd.nersc.read_gauge(Lattice, file_name, {unitarity=1.0e-10})
   printf("HEADER of %q BEGIN\n", file_name)
   for i,v in pairs(msg) do
