@@ -570,7 +570,9 @@ print("Reading gauge file at: %s\n", gauge_file)
 local solver
 local U
 if dwf then
-  U = load_nersc(gauge_file, L)
+  -- U = load_nersc(gauge_file, L)
+  status, U, finfo, info = pcall(load_conf, L, gauge_file)
+  print(status)
   local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ms, 1.0)
   solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
 else
