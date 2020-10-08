@@ -34,16 +34,16 @@ function show_propagator(name, m)
       printf("\n")
     end
 
-  function load_nersc(file_name, Lattice)
-    local U,msq;
-    U,msg = qcd.nersc.read_gauge(Lattice, file_name, {unitarity=1.0e-10})
-    printf("HEADER of %q BEGIN\n", file_name)
-    for i,v in pairs(msg) do
-      printf("  %s = %s\n", i, tostring(v))
-    end
-    printf("END of %q HEADER\n", file_name)
-    return U
+function load_nersc(file_name, Lattice)
+  local U,msq;
+  U,msg = qcd.nersc.read_gauge(Lattice, file_name, {unitarity=1.0e-10})
+  printf("HEADER of %q BEGIN\n", file_name)
+  for i,v in pairs(msg) do
+    printf("  %s = %s\n", i, tostring(v))
   end
+  printf("END of %q HEADER\n", file_name)
+  return U
+end
 
 -- compute Green's functions for axial and vector currents, and save propagators as well.
 function compute_npr_currents_momsource(L, U, solver, k1_list, k2_list, vol, group, clover, writer, dwf)
@@ -570,9 +570,9 @@ print("Reading gauge file at: %s\n", gauge_file)
 local solver
 local U
 if dwf then
+  U = load_nersc(gauge_file, L)
   local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ms, 1.0)
   solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
-  U = load_nersc(gauge_file, L)
 else
   local csw = 1.2493
   local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
