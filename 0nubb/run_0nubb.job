@@ -22,13 +22,16 @@ module load qlua/20200107
 
 EXE=qlua
 
-cfgpath="/data/d10b/ensembles/isoClover/"
-cfgbase="cl3_16_48_b6p1_m0p2450"
+#cfgpath="/data/d10b/ensembles/isoClover/"
+#cfgbase="cl3_16_48_b6p1_m0p2450"
 #gpu=true
-gpu=false
+
+cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
+cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
+dwf=true
 
 # whether to only compute current correlators, or to compute operator correlators as well
-operators=false
+operators=true
 
 home=/home/poare/lqcd/0nubb
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
@@ -38,10 +41,11 @@ mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu} operators=${operators}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' dwf=${dwf} operators=${operators}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 1000 10 1100`
+# for cfg in `seq 1000 10 1100`
+for cfg in `seq 500 5 1000`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 done
