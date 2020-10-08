@@ -583,33 +583,24 @@ else
 end
 print("Solver object initialized.")
 
-if status then
-  -- project gauge configuration onto SU(3)
-  for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+-- project gauge configuration onto SU(3)
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
-  -- Open file writer
-  local hdf5params = { method = "phdf5" }
-  local writer = qcd.hdf5.Writer(filename, hdf5params)
+-- Open file writer
+local hdf5params = { method = "phdf5" }
+local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-  print("Gauge file read.")
-
-  if operators then
-    print("Computing vector / axial three point functions and all color-unmixed bilinears.")
-    -- compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
-    compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, dwf)
-  else
-    print("Computing vector / axial three point functions.")
-    -- compute_npr_currents_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
-    compute_npr_currents_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, dwf)
-  end
-
-  writer:close()
+if operators then
+  print("Computing vector / axial three point functions and all color-unmixed bilinears.")
+  -- compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
+  compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, dwf)
 else
-  printf("No gauge field configuration at %s.\n", gauge_file)
-  logs_dir = string.format("%s/lqcd/0nubb/logs/%s_%d", lqcd_dir, cfgbase, jobid)
-  os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
-  print(U)
+  print("Computing vector / axial three point functions.")
+  -- compute_npr_currents_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
+  compute_npr_currents_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, dwf)
 end
+
+writer:close()
 
 if gpu then
     qcd.quda.fini()
