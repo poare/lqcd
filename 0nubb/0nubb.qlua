@@ -155,7 +155,7 @@ end
  4. Three point function for operators O1, O2, O3, O1', O2' used in 0nubb
  NOTE: this is VERY slow and not practical; instead compute bilinears and Fierz them into the positive parity operators
 ]]
-function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, writer, gammaList)
+function compute_npr_momsource_mixed(L, U, solver, k1_list, k2_list, vol, writer, gammaList)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -196,9 +196,20 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, wri
     local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
 
     -- COMPUTE PROPAGATORS
-    local S_k1 = compute_propagator(U, ferm_prop, srck1)
-    local S_k2 = compute_propagator(U, ferm_prop, srck2)
-    local S_q = compute_propagator(U, ferm_prop, srcq)
+    local S_k1
+    local S_k2
+    local S_q
+    if dwf then
+      -- DOMAIN WALL FERMIONS
+      S_k1 = solver(srck1)
+      S_k2 = solver(srck2)
+      S_q = solver(srcq)
+    else
+      -- CLOVER FERMIONS
+      S_k1 = compute_propagator(U, solver, srck1)
+      S_k2 = compute_propagator(U, solver, srck2)
+      S_q = compute_propagator(U, solver, srcq)
+    end
 
     local mom4_prop_k1 = (k1FT * S_k1):sum()
     local mom4_prop_k2 = (k2FT * S_k2):sum()
@@ -342,7 +353,7 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, wri
 end
 
 -- compute all color-unmixed bilinears with all gamma matrices.
-function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, writer)
+function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writer)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
