@@ -35,10 +35,10 @@ function show_propagator(name, m)
     end
 
 function load_nersc(file_name, Lattice)
-  local U,msg;
-  U,msg = qcd.nersc.read_gauge(Lattice, file_name, {unitarity=1.0e-10})
+  local U, msg;
+  U, msg = qcd.nersc.read_gauge(Lattice, file_name)
   printf("HEADER of %q BEGIN\n", file_name)
-  for i,v in pairs(msg) do
+  for i, v in pairs(msg) do
     printf("  %s = %s\n", i, tostring(v))
   end
   printf("END of %q HEADER\n", file_name)
@@ -570,9 +570,9 @@ print("Reading gauge file at: %s\n", gauge_file)
 local solver
 local U
 if dwf then
-  -- U = load_nersc(gauge_file, L)
-  status, U, finfo, info = pcall(load_conf, L, gauge_file)
-  print(status)
+  -- status, U, finfo, info = pcall(load_conf, L, gauge_file)
+  -- print(status)
+  U = load_nersc(gauge_file, L)
   local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ms, 1.0)
   solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
 else
