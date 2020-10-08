@@ -48,7 +48,7 @@ end
 -- compute Green's functions for axial and vector currents, and save propagators as well.
 function compute_npr_currents_momsource(L, U, solver, k1_list, k2_list, vol, writer, dwf)
   local bvec = {0,0,0,0.5}
-  print("Computing through sink.")
+  print("Computing with momentum sources.")
 
   for kidx = 1, #k1_list do
     printf("p index: %d\n", kidx)
@@ -157,7 +157,7 @@ end
 ]]
 function compute_npr_momsource_mixed(L, U, solver, k1_list, k2_list, vol, writer, gammaList)
   local bvec = {0,0,0,0.5}
-  print("Computing through sink.")
+  print("Computing with momentum sources.")
 
   for kidx = 1, #k1_list do
     printf("p index: %d\n", kidx)
@@ -355,7 +355,7 @@ end
 -- compute all color-unmixed bilinears with all gamma matrices.
 function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writer)
   local bvec = {0,0,0,0.5}
-  print("Computing through sink.")
+  print("Computing with momentum sources.")
 
   for kidx = 1, #k1_list do
     printf("p index: %d\n", kidx)
@@ -406,6 +406,7 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
 
     -- COMPUTE PROPAGATORS
+    print("Inverting propagators.")
     local S_k1
     local S_k2
     local S_q
@@ -552,39 +553,6 @@ for m = -6, 6 do
 -- local k1_list_NPR = {{0, 0, 0, 0}}
 -- local k2_list_NPR = {{0, 0, 0, 0}}
 
-print("Momenta initialized. Initializing Dirac matrices.")
-
--- init list of Dirac matrices
---[[
-local PL = (gamma{n = 0} - gamma{mu = 5}) / 2
-local PR = (gamma{n = 0} + gamma{mu = 5}) / 2
-local gammaList = {PL, PR}
-for mu = 0, #L - 1 do
-  gammaList[#gammaList + 1] = gamma{mu = mu} * PL
-end
-for mu = 0, #L - 1 do
-  gammaList[#gammaList + 1] = gamma{mu = mu} * PR
-end
-print("Dirac matrices initialized")
-]]
-
--- CLOVER INVERTER WITH / WITHOUT GPU
---[[
-local csw = 1.2493    -- TODO change clover coefficient
-local clover
-if gpu then
-    qcd.quda.init(L)
-    clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
-    print("GPU Initialized.")
-else
-    clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
-    print("CPU being used.")
-end
-print("Clover object initialized.")
-local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
-print("Propagator object initialized.")
-]]
-
 -- local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 local gauge_file = string.format(cfgpath..cfgbase.."/ckpoint_lat.IEEE64BIG.%d", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
@@ -595,7 +563,7 @@ if dwf then
   -- status, U, finfo, info = pcall(load_conf, L, gauge_file)
   -- print(status)
   U = load_nersc(gauge_file, L)
-  local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ms, 1.0)
+  local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ml, 1.0)
   solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
 else
   local csw = 1.2493
@@ -614,11 +582,9 @@ local writer = qcd.hdf5.Writer(filename, hdf5params)
 
 if operators then
   print("Computing vector / axial three point functions and all color-unmixed bilinears.")
-  -- compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
   compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf)
 else
   print("Computing vector / axial three point functions.")
-  -- compute_npr_currents_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
   compute_npr_currents_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf)
 end
 
