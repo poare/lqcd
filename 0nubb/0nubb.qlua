@@ -588,8 +588,8 @@ end
 local solver
 local U
 if dwf then
+  U = load_nersc(gauge_file, L)
   if gpu then
-    U = load_nersc(gauge_file, L)
     solver = qcd.quda.solver(U,
                                {t_boundary = "ANTI_PERIODIC_T"},
                                {inv_type = "CG_INVERTER",
