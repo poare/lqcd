@@ -46,7 +46,7 @@ function load_nersc(file_name, Lattice)
 end
 
 -- compute Green's functions for axial and vector currents, and save propagators as well.
-function compute_npr_currents_momsource(L, U, solver, k1_list, k2_list, vol, group, clover, writer, dwf)
+function compute_npr_currents_momsource(L, U, solver, k1_list, k2_list, vol, writer, dwf)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -155,7 +155,7 @@ end
  4. Three point function for operators O1, O2, O3, O1', O2' used in 0nubb
  NOTE: this is VERY slow and not practical; instead compute bilinears and Fierz them into the positive parity operators
 ]]
-function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, group, clover, writer, gammaList)
+function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, writer, gammaList)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -342,7 +342,7 @@ function compute_npr_momsource_mixed(L, U, ferm_prop, k1_list, k2_list, vol, gro
 end
 
 -- compute all color-unmixed bilinears with all gamma matrices.
-function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, group, clover, writer)
+function compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list, k2_list, vol, writer)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -593,11 +593,11 @@ local writer = qcd.hdf5.Writer(filename, hdf5params)
 if operators then
   print("Computing vector / axial three point functions and all color-unmixed bilinears.")
   -- compute_npr_momsource_unmixed(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
-  compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, dwf)
+  compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf)
 else
   print("Computing vector / axial three point functions.")
   -- compute_npr_currents_momsource(L, U, ferm_prop, k1_list_NPR, k2_list_NPR, vol, group, clover, writer)
-  compute_npr_currents_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, group, clover, writer, dwf)
+  compute_npr_currents_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf)
 end
 
 writer:close()
