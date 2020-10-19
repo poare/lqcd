@@ -19,8 +19,8 @@ module load qlua/20200107
 
 EXE=qlua
 
-logs=/home/poare/lqcd/qlua_scripts/logs/gpu_tests
-mkdir ${logs}
+home=/home/poare/lqcd/qlua_scripts
+logs=${home}/logs/gpu_test
 
 export OMP_NUM_THREADS=6
 
