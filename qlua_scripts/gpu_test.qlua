@@ -34,7 +34,8 @@ ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 p = {1, 1, 1, 1}
 
 U = {}
-seed = os.time()
+-- seed = os.time()
+seed = 5
 d = 4    -- Number of dimensions?
 rands = make_seq_and_lat_rnds(seed, d)    -- {seq_rand, lat_rand}
 lat_rand = rands[2]
