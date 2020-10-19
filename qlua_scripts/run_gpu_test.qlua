@@ -1,0 +1,30 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=prop_gpu_test
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=devel
+
+set -x
+
+cd /home/poare/lqcd/mosaic
+
+bash
+module load openmpi/3.1.5
+# module load qlua
+module load qlua/20200107
+# module load qlua/20200107-gpu1080
+
+EXE=qlua
+
+logs=/home/poare/lqcd/qlua_scripts/logs/gpu_tests
+
+mkdir ${logs}
+mkdir ${logs}/no_output
+mkdir ${output}
+
+export OMP_NUM_THREADS=6
+
+mpirun -np 4 $EXE -e "jobid = ${SLURM_JOB_ID}" ${home}/npr_momfrac.qlua > ${logs}/job${SLURM_JOB_ID}.txt
