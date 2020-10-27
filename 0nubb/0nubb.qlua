@@ -527,17 +527,19 @@ else
 end
 
 -- Set parameters
-Lx = 24
-Lt = 64
-Ls = 16
+-- Lx = 24
+-- Lt = 64
+-- Ls = 16
+Lx = 16
+Lt = 48
 
--- beta = 6.1
--- mq = -0.2450
--- kappa = 1 / (2 * mq + 8)
-beta = 2.13
-M = 1.8
-ml = 0.005
-ms = 0.04
+beta = 6.1
+mq = -0.2450
+kappa = 1 / (2 * mq + 8)
+-- beta = 2.13
+-- M = 1.8
+-- ml = 0.005
+-- ms = 0.04
 
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
@@ -576,18 +578,17 @@ for m = -6, 6 do
 -- local k1_list_NPR = {{0, 0, 0, 0}}
 -- local k2_list_NPR = {{0, 0, 0, 0}}
 
--- local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-local gauge_file = string.format(cfgpath..cfgbase.."/ckpoint_lat.IEEE64BIG.%d", cfgnum)
-print("Reading gauge file at: %s\n", gauge_file)
-
+print("Initializing solver.")
 if gpu then
   print("Using GPU.")
   qcd.quda.init(L)
 end
 
+local gauge_file
 local solver
 local U
 if dwf then
+  gauge_file = string.format(cfgpath..cfgbase.."/ckpoint_lat.IEEE64BIG.%d", cfgnum)
   U = load_nersc(gauge_file, L)
   if gpu then
     solver = qcd.quda.solver(U,
@@ -615,9 +616,10 @@ else
       clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
   end
   solver = propagator.make_from_ferm(clover, 1e-20, 1000)
+  gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
   status, U, finfo, info = pcall(load_conf, L, gauge_file)
 end
-print("Solver object initialized.")
+print("Reading gauge file at: %s\n", gauge_file)
 
 -- project gauge configuration onto SU(3)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end

@@ -18,20 +18,22 @@ module load openmpi/3.1.5
 #module load qlua
 #module load qlua/20201002
 
-gpu=true
-module load qlua/20200107-gpu1080
-# gpu=false
-# module load qlua/20200107
+# gpu=true
+# module load qlua/20200107-gpu1080
+gpu=false
+module load qlua/20200107
 
 EXE=qlua
 
-#cfgpath="/data/d10b/ensembles/isoClover/"
-#cfgbase="cl3_16_48_b6p1_m0p2450"
-#gpu=true
+cfgpath="/data/d10b/ensembles/isoClover/"
+cfgbase="cl3_16_48_b6p1_m0p2450"
+dwf=false
 
-cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
-cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
-dwf=true
+# cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
+# cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
+# dwf=true
+
+#gpu=true
 operators=true
 
 home=/home/poare/lqcd/0nubb
@@ -45,8 +47,8 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' dwf=${dwf} gpu=${gpu} operators=${operators}"
 export OMP_NUM_THREADS=6
 
-# for cfg in `seq 1000 10 1100`
-for cfg in `seq 500 5 1000`
+# for cfg in `seq 500 5 1000`
+for cfg in `seq 1000 10 1040`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 done
