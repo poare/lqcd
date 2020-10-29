@@ -33,8 +33,8 @@ function make_seq_and_lat_rnds(seed, nd)
       pshiftTable[i+1] = pshift[i]
    end
    local latRnd = {random_seeds_serial(seqRnd, 1)[0], pshiftTable}
-   
-   return seqRnd, latRnd
+
+   return {seqRnd, latRnd}
 end
 
 function random_seeds(rng, n)
@@ -352,12 +352,12 @@ function APE_smear(U, A, N, accu0, imax0, axis0)
       end
       return w
    end
-   
-   local v = U 
+
+   local v = U
    for i = 1, N do
       v = ape_step(v)
    end
-   
+
    return v
 end
 
@@ -368,7 +368,7 @@ function Clover_term(U, i, j)
    local Sm = U[j+1]:adjoin() * U[i+1] * Ui
    local Sp = (Ui * (U[j+1] * Uj):adjoin()):shift(j, "from_backward")
    local Cf = (U[i+1] * Sp) + (Sm * U[i+1]:adjoin())
-   local Cb = (Sp * U[i+1]) + (U[i+1]:adjoin() * Sm) 
+   local Cb = (Sp * U[i+1]) + (U[i+1]:adjoin() * Sm)
    local CL = Cf + Cb:shift(i, "from_backward")
    return CL - CL:adjoin()
 end
