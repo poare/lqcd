@@ -105,7 +105,7 @@ prop = compute_propagator(U, ferm_prop, src)
 
 FTarg = L:Real(0)
 for mu = 0, #L - 1 do
-  FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+  FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
 end
 FT = FTarg:expi()
 
