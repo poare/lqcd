@@ -4,11 +4,56 @@ require "stdlib"
 require "lib/fermion"
 require "lib/clover_ferm"
 require "lib/group"
-require "lib/musing"
+-- require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
 
 require "lib/quda"
+
+function random_generator(lat, sseed, pshift)
+   local x = lat:Int(0)
+   local i
+   local ss = sseed or os.random()
+   for i = 0, #lat - 1 do
+      local xshift, xscale
+      if pshift then
+         xshift = pshift[i+1]
+      else
+         xshift = os.random()
+      end
+      x = x * lat[i] + xshift + lat:pcoord(i)
+   end
+   return lat:RandomState(ss, x)
+end
+
+function random_seeds_serial(rng, n)
+   local r = vector.int(n)
+   for i = 0, n - 1 do
+      r[i] = math.floor(rng:random_Real() * 1e9)
+   end
+   return r
+end
+
+function make_seq_and_lat_rnds(seed, nd)
+   local seqRnd = qcd.RandomState(seed, 0)
+   -- convert to table to not break interface
+   local pshift = random_seeds_serial(seqRnd, nd)
+   local pshiftTable = {}
+   for i = 0, nd-1 do
+      pshiftTable[i+1] = pshift[i]
+   end
+   local latRnd = {random_seeds_serial(seqRnd, 1)[0], pshiftTable}
+
+   -- return {seqRnd, latRnd}
+   return latRnd
+end
+
+function init_weak_field(L, latRnd, group, Nc, U)
+   for mu = 0, #L - 1 do
+      local A = group.randomAlgebra(random_generator(L, latRnd[1], latRnd[2]), Nc)
+      U[mu+1] = group.exp(A*complex(0,1))
+   end
+end
 
 -- Set parameters
 Lx = 2
@@ -37,8 +82,9 @@ U = {}
 seed = os.time()
 -- seed = 5
 d = 4    -- Number of dimensions?
-rands = make_seq_and_lat_rnds(seed, d)    -- {seq_rand, lat_rand}
-lat_rand = rands[2]
+-- rands = make_seq_and_lat_rnds(seed, d)    -- {seq_rand, lat_rand}
+-- lat_rand = rands[2]
+lat_rand = make_seq_and_lat_rnds(seed, d)
 init_weak_field(L, lat_rand, group, 3, U)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
