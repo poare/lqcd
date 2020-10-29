@@ -4,12 +4,13 @@ require "stdlib"
 require "lib/fermion"
 require "lib/clover_ferm"
 require "lib/group"
--- require "lib/musing"
+require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
 
 require "lib/quda"
 
+--[[
 function random_generator(lat, sseed, pshift)
    local x = lat:Int(0)
    local i
@@ -54,10 +55,11 @@ function init_weak_field(L, latRnd, group, Nc, U)
       U[mu+1] = group.exp(A*complex(0,1))
    end
 end
+]]
 
 -- Set parameters
-Lx = 2
-Lt = 4
+Lx = 16
+Lt = 48
 
 mq = -0.2450
 kappa = 1 / (2 * mq + 8)
@@ -79,6 +81,7 @@ ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 p = {1, 1, 1, 1}
 
 U = {}
+--[[
 seed = os.time()
 -- seed = 5
 d = 4    -- Number of dimensions?
@@ -86,6 +89,9 @@ d = 4    -- Number of dimensions?
 -- lat_rand = rands[2]
 lat_rand = make_seq_and_lat_rnds(seed, d)
 init_weak_field(L, lat_rand, group, 3, U)
+]]
+gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_240.lime"
+U = load_conf(L, gauge_file)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
 filename = string.format("/data/d10b/users/poare/misc/gpu_test/job%s.h5", jobid)
