@@ -5,6 +5,7 @@ import os
 from scipy.special import zeta
 import time
 import re
+import itertools
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
   # b is the boostrap index
@@ -22,6 +23,37 @@ gamma[2] = gamma[2] + np.array([[0,0,1j,0],[0,0,0,-1j],[-1j,0,0,0],[0,1j,0,0]])
 gamma[3] = gamma[3] + np.array([[0,0,1,0],[0,0,0,1],[1,0,0,0],[0,1,0,0]])
 gamma5 = np.dot(np.dot(np.dot(gamma[0], gamma[1]), gamma[2]), gamma[3])
 bvec = [0, 0, 0, .5]
+
+# initialize Dirac matrices
+gammaMu5 = np.array([gamma[mu] @ gamma5 for mu in range(4)])
+deltaD = np.eye(4)    # delta_{ij} in Dirac indices
+sigmaD = np.zeros((4, 4, 4, 4), dtype = np.complex64)               # sigma_{mu nu}
+gammaGamma = np.zeros((4, 4, 4, 4), dtype = np.complex64)           # gamma_mu gamma_nu
+for mu in range(4):
+    for nu in range(mu + 1, 4):
+        sigmaD[mu, nu, :, :] = (1 / 2) * (gamma[mu] @ gamma[nu] - gamma[nu] @ gamma[mu])
+        sigmaD[nu, mu, :, :] = -sigmaD[mu, nu, :, :]
+        gammaGamma[mu, nu, :, :] = gamma[mu] @ gamma[nu]
+        gammaGamma[nu, mu, :, :] = - gammaGamma[mu, nu, :, :]
+
+# tree level structures for the operators
+tree = np.zeros((5, 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
+for a, b in itertools.product(range(3), repeat = 2):
+    for alpha, beta, gam, sigma in itertools.product(range(4), repeat = 4):
+        tree[1, a, alpha, a, beta, b, gam, b, sigma] += 2 * (deltaD[alpha, beta] * deltaD[gam, sigma] + gamma5[alpha, beta] * gamma5[gam, sigma])
+        tree[1, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (deltaD[alpha, sigma] * deltaD[gam, beta] + gamma5[alpha, sigma] * gamma5[gam, beta])
+        tree[3, a, alpha, a, beta, b, gam, b, sigma] -= 2 * (deltaD[alpha, beta] * deltaD[gam, sigma] - gamma5[alpha, beta] * gamma5[gam, sigma])
+        tree[3, a, alpha, b, beta, b, gam, a, sigma] += 2 * (deltaD[alpha, sigma] * deltaD[gam, beta] - gamma5[alpha, sigma] * gamma5[gam, beta])
+        tree[4, a, alpha, a, beta, b, gam, b, sigma] -= (deltaD[alpha, beta] * deltaD[gam, sigma] + gamma5[alpha, beta] * gamma5[gam, sigma])
+        tree[4, a, alpha, b, beta, b, gam, a, sigma] += (deltaD[alpha, sigma] * deltaD[gam, beta] + gamma5[alpha, sigma] * gamma5[gam, beta])
+        for mu in range(4):
+            tree[0, a, alpha, a, beta, b, gam, b, sigma] += (gamma[mu, alpha, beta] * gamma[mu, gam, sigma] - gammaMu5[mu, alpha, beta] * gammaMu5[mu, gam, sigma])
+            tree[0, a, alpha, b, beta, b, gam, a, sigma] -= (gamma[mu, alpha, sigma] * gamma[mu, gam, beta] - gammaMu5[mu, alpha, sigma] * gammaMu5[mu, gam, beta])
+            tree[2, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gamma[mu, alpha, beta] * gamma[mu, gam, sigma] + gammaMu5[mu, alpha, beta] * gammaMu5[mu, gam, sigma])
+            tree[2, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gamma[mu, alpha, sigma] * gamma[mu, gam, beta] + gammaMu5[mu, alpha, sigma] * gammaMu5[mu, gam, beta])
+            for nu in range(mu + 1, 4):
+                tree[4, a, alpha, a, beta, b, gam, b, sigma] += (gammaGamma[mu, nu, alpha, beta] * gammaGamma[mu, nu, gam, sigma])
+                tree[4, a, alpha, b, beta, b, gam, a, sigma] -= (gammaGamma[mu, nu, alpha, sigma] * gammaGamma[mu, nu, gam, beta])
 
 L = 16
 T = 48
@@ -149,20 +181,12 @@ def amputate_threepoint(props_inv_L, props_inv_R, threepts):
 
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
 # momentum p2, so amputates with p1 on the left and p2 on the right
-def amputate_fourpoint(props_inv_k1, props_inv_k2, fourpoints):
+def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints):
     Gamma = np.zeros(fourpoints.shape, dtype = np.complex64)
     for b in range(n_boot):
-        Sinv_k1, Sinv_k2, G = props_inv_k1[b], props_inv_k2[b], fourpoints[b]
-        Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl', Sinv_k1, Sinv_k1, G, Sinv_k2, Sinv_k2)
+        Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], fourpoints[b]
+        Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl->aibjckdl', Sinv_L, Sinv_L, G, Sinv_R, Sinv_R)
     return Gamma
-
-# def quark_renorm(props_inv_q, k):
-#     q = np.sin(to_linear_momentum(k + bvec))
-#     Zq = np.zeros((n_boot), dtype = np.complex64)
-#     for b in range(n_boot):
-#         Sinv = props_inv_q[b]
-#         Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)]) / (12 * square(q))
-#     return Zq
 
 # q is the lattice momentum that should be passed in
 def quark_renorm(props_inv_q, q):
@@ -179,6 +203,32 @@ def adjoint(S):
 def antiprop(S):
     Sdagger = adjoint(S)
     return np.einsum('ij,zajbk,kl->zaibl', gamma5, Sdagger, gamma5)
+
+# key == 'gamma' or key == 'qslash' for the different schemes
+def projectors(scheme = 'gamma'):
+    P = np.zeros((5, 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
+    if scheme == 'gamma':
+        for a, b in itertools.product(range(3), repeat = 2):
+            for beta, alpha, sigma, gam in itertools.product(range(4), repeat = 4):
+                P[1, a, beta, a, alpha, b, sigma, b, gam] += deltaD[beta, alpha] * deltaD[sigma, gam] + gamma5[beta, alpha] * gamma5[sigma, gam]
+                P[3, a, beta, a, alpha, b, sigma, b, gam] += deltaD[beta, alpha] * deltaD[sigma, gam] - gamma5[beta, alpha] * gamma5[sigma, gam]
+                for mu in range(4):
+                    P[0, a, beta, a, alpha, b, sigma, b, gam] += gamma[mu, beta, alpha] * gamma[mu, sigma, gam] - gammaMu5[mu, beta, alpha] * gammaMu5[mu, sigma, gam]
+                    P[2, a, beta, a, alpha, b, sigma, b, gam] += gamma[mu, beta, alpha] * gamma[mu, sigma, gam] + gammaMu5[mu, beta, alpha] * gammaMu5[mu, sigma, gam]
+                    for nu in range(mu + 1, 4):
+                        P[4, a, beta, a, alpha, b, sigma, b, gam] += (1 / 2) * sigmaD[mu, nu, beta, alpha] * sigmaD[mu, nu, sigma, gam]
+    elif scheme == 'qslash':
+        for a, b in itertools.product(range(3), repeat = 2):
+            for beta, alpha, sigma, gam in itertools.product(range(4), repeat = 4):
+                # TODO
+                P = 0
+    return P
+
+# gets tree level projections in scheme == 'gamma' or scheme == 'qslash'
+def getF(scheme = 'gamma'):
+    P = projectors(scheme)
+    F = np.einsum('nbjaidlck,maibjckdl->mn', P, tree)
+    return F
 
 # Returns a in units of GeV^{-1}
 def fm_to_GeV(a):
