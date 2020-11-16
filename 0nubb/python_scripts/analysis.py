@@ -13,10 +13,14 @@ import itertools
   # c is a color index
   # s is a spinor index
 
+Nc = 3
+Nd = 4
+d = 4
+
 g = np.diag([1, 1, 1, 1])
 
-delta = np.identity(4, dtype = np.complex64)
-gamma = np.zeros((4,4,4),dtype=complex)
+delta = np.identity(Nd, dtype = np.complex64)
+gamma = np.zeros((d, Nd, Nd),dtype=complex)
 gamma[0] = gamma[0] + np.array([[0,0,0,1j],[0,0,1j,0],[0,-1j,0,0],[-1j,0,0,0]])
 gamma[1] = gamma[1] + np.array([[0,0,0,-1],[0,0,1,0],[0,1,0,0],[-1,0,0,0]])
 gamma[2] = gamma[2] + np.array([[0,0,1j,0],[0,0,0,-1j],[-1j,0,0,0],[0,1j,0,0]])
@@ -25,35 +29,32 @@ gamma5 = np.dot(np.dot(np.dot(gamma[0], gamma[1]), gamma[2]), gamma[3])
 bvec = [0, 0, 0, .5]
 
 # initialize Dirac matrices
-gammaMu5 = np.array([gamma[mu] @ gamma5 for mu in range(4)])
-deltaD = np.eye(4)    # delta_{ij} in Dirac indices
-sigmaD = np.zeros((4, 4, 4, 4), dtype = np.complex64)               # sigma_{mu nu}
-gammaGamma = np.zeros((4, 4, 4, 4), dtype = np.complex64)           # gamma_mu gamma_nu
-for mu in range(4):
-    for nu in range(mu + 1, 4):
+gammaMu5 = np.array([gamma[mu] @ gamma5 for mu in range(d)])
+sigmaD = np.zeros((Nd, Nd, Nd, Nd), dtype = np.complex64)               # sigma_{mu nu}
+gammaGamma = np.zeros((Nd, Nd, Nd, Nd), dtype = np.complex64)           # gamma_mu gamma_nu
+for mu in range(d):
+    for nu in range(mu + 1, d):
         sigmaD[mu, nu, :, :] = (1 / 2) * (gamma[mu] @ gamma[nu] - gamma[nu] @ gamma[mu])
         sigmaD[nu, mu, :, :] = -sigmaD[mu, nu, :, :]
         gammaGamma[mu, nu, :, :] = gamma[mu] @ gamma[nu]
         gammaGamma[nu, mu, :, :] = - gammaGamma[mu, nu, :, :]
 
 # tree level structures for the operators
-tree = np.zeros((5, 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
-for a, b in itertools.product(range(3), repeat = 2):
-    for alpha, beta, gam, sigma in itertools.product(range(4), repeat = 4):
-        tree[1, a, alpha, a, beta, b, gam, b, sigma] += 2 * (deltaD[alpha, beta] * deltaD[gam, sigma] + gamma5[alpha, beta] * gamma5[gam, sigma])
-        tree[1, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (deltaD[alpha, sigma] * deltaD[gam, beta] + gamma5[alpha, sigma] * gamma5[gam, beta])
-        tree[3, a, alpha, a, beta, b, gam, b, sigma] -= 2 * (deltaD[alpha, beta] * deltaD[gam, sigma] - gamma5[alpha, beta] * gamma5[gam, sigma])
-        tree[3, a, alpha, b, beta, b, gam, a, sigma] += 2 * (deltaD[alpha, sigma] * deltaD[gam, beta] - gamma5[alpha, sigma] * gamma5[gam, beta])
-        tree[4, a, alpha, a, beta, b, gam, b, sigma] -= (deltaD[alpha, beta] * deltaD[gam, sigma] + gamma5[alpha, beta] * gamma5[gam, sigma])
-        tree[4, a, alpha, b, beta, b, gam, a, sigma] += (deltaD[alpha, sigma] * deltaD[gam, beta] + gamma5[alpha, sigma] * gamma5[gam, beta])
-        for mu in range(4):
-            tree[0, a, alpha, a, beta, b, gam, b, sigma] += (gamma[mu, alpha, beta] * gamma[mu, gam, sigma] - gammaMu5[mu, alpha, beta] * gammaMu5[mu, gam, sigma])
-            tree[0, a, alpha, b, beta, b, gam, a, sigma] -= (gamma[mu, alpha, sigma] * gamma[mu, gam, beta] - gammaMu5[mu, alpha, sigma] * gammaMu5[mu, gam, beta])
-            tree[2, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gamma[mu, alpha, beta] * gamma[mu, gam, sigma] + gammaMu5[mu, alpha, beta] * gammaMu5[mu, gam, sigma])
-            tree[2, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gamma[mu, alpha, sigma] * gamma[mu, gam, beta] + gammaMu5[mu, alpha, sigma] * gammaMu5[mu, gam, beta])
-            for nu in range(mu + 1, 4):
-                tree[4, a, alpha, a, beta, b, gam, b, sigma] += (gammaGamma[mu, nu, alpha, beta] * gammaGamma[mu, nu, gam, sigma])
-                tree[4, a, alpha, b, beta, b, gam, a, sigma] -= (gammaGamma[mu, nu, alpha, sigma] * gammaGamma[mu, nu, gam, beta])
+tree = np.zeros((5, Nc, Nd, Nc, Nd, Nc, Nd, Nc, Nd), dtype = np.complex64)
+for a, b in itertools.product(range(Nc), repeat = 2):
+    for alpha, beta, gam, sigma in itertools.product(range(Nd), repeat = 4):
+        tree[2, a, alpha, a, beta, b, gam, b, sigma] += 2 * (delta[alpha, beta] * delta[gam, sigma] - gamma5[alpha, beta] * gamma5[gam, sigma])
+        tree[2, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (delta[alpha, sigma] * delta[gam, beta] - gamma5[alpha, sigma] * gamma5[gam, beta])
+        tree[3, a, alpha, a, beta, b, gam, b, sigma] += 2 * (delta[alpha, beta] * delta[gam, sigma] + gamma5[alpha, beta] * gamma5[gam, sigma])
+        tree[3, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (delta[alpha, sigma] * delta[gam, beta] + gamma5[alpha, sigma] * gamma5[gam, beta])
+        for mu in range(d):
+            tree[0, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gamma[mu, alpha, beta] * gamma[mu, gam, sigma] + gammaMu5[mu, alpha, beta] * gammaMu5[mu, gam, sigma])
+            tree[0, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gamma[mu, alpha, sigma] * gamma[mu, gam, beta] + gammaMu5[mu, alpha, sigma] * gammaMu5[mu, gam, beta])
+            tree[1, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gamma[mu, alpha, beta] * gamma[mu, gam, sigma] - gammaMu5[mu, alpha, beta] * gammaMu5[mu, gam, sigma])
+            tree[1, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gamma[mu, alpha, sigma] * gamma[mu, gam, beta] - gammaMu5[mu, alpha, sigma] * gammaMu5[mu, gam, beta])
+            for nu in range(mu + 1, d):
+                tree[4, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gammaGamma[mu, nu, alpha, beta] * gammaGamma[mu, nu, gam, sigma])
+                tree[4, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gammaGamma[mu, nu, alpha, sigma] * gammaGamma[mu, nu, gam, beta])
 
 L = 16
 T = 48
@@ -135,18 +136,18 @@ def readfiles(cfgs, q, op_renorm = True):
 
 # read in npr_momfrac format. Used for testing RI/sMOM RCs on RI'-MOM data.
 def readfiles_momfrac(cfgs, q):
-    props_k1 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
-    props_k2 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
-    props_q = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
-    GV = np.zeros((4, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
-    GA = np.zeros((4, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
-    GO = np.zeros((16, len(cfgs), 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
+    props_k1 = np.zeros((len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
+    props_k2 = np.zeros((len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
+    props_q = np.zeros((len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
+    GV = np.zeros((d, len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
+    GA = np.zeros((d, len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
+    GO = np.zeros((16, len(cfgs), Nc, Nd, Nc, Nd, Nc, Nd, Nc, Nd), dtype = np.complex64)
 
     for idx, file in enumerate(cfgs):
         f = h5py.File(file, 'r')
         qstr = klist_to_string(q, 'p')
         props_q[idx] = np.einsum('ijab->aibj', f['prop/' + qstr][()]) / vol
-        for mu in range(4):
+        for mu in range(d):
             GV[mu, idx] = np.einsum('ijab->aibj', f['GV' + str(mu + 1) + '/' + qstr][()]) / vol
             GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()]) / vol
     return props_q, GV, GA
@@ -193,7 +194,7 @@ def quark_renorm(props_inv_q, q):
     Zq = np.zeros((n_boot), dtype = np.complex64)
     for b in range(n_boot):
         Sinv = props_inv_q[b]
-        Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(4)]) / (12 * square(q))
+        Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(d)]) / (12 * square(q))
     return Zq
 
 # Returns the adjoint of a bootstrapped propagator object
@@ -204,29 +205,40 @@ def antiprop(S):
     Sdagger = adjoint(S)
     return np.einsum('ij,zajbk,kl->zaibl', gamma5, Sdagger, gamma5)
 
-# key == 'gamma' or key == 'qslash' for the different schemes
-def projectors(scheme = 'gamma'):
-    P = np.zeros((5, 3, 4, 3, 4, 3, 4, 3, 4), dtype = np.complex64)
+# key == 'gamma' or key == 'qslash' for the different schemes. If qslash, must enter q, p_1, and p_2
+# Along with getF(), seems to return the correct projectors which agree with the paper
+def projectors(scheme = 'gamma', q = 0, p1 = 0, p2 = 0):
+    P = np.zeros((5, Nc, Nd, Nc, Nd, Nc, Nd, Nc, Nd), dtype = np.complex64)
     if scheme == 'gamma':
-        for a, b in itertools.product(range(3), repeat = 2):
-            for beta, alpha, sigma, gam in itertools.product(range(4), repeat = 4):
-                P[1, a, beta, a, alpha, b, sigma, b, gam] += deltaD[beta, alpha] * deltaD[sigma, gam] + gamma5[beta, alpha] * gamma5[sigma, gam]
-                P[3, a, beta, a, alpha, b, sigma, b, gam] += deltaD[beta, alpha] * deltaD[sigma, gam] - gamma5[beta, alpha] * gamma5[sigma, gam]
-                for mu in range(4):
-                    P[0, a, beta, a, alpha, b, sigma, b, gam] += gamma[mu, beta, alpha] * gamma[mu, sigma, gam] - gammaMu5[mu, beta, alpha] * gammaMu5[mu, sigma, gam]
-                    P[2, a, beta, a, alpha, b, sigma, b, gam] += gamma[mu, beta, alpha] * gamma[mu, sigma, gam] + gammaMu5[mu, beta, alpha] * gammaMu5[mu, sigma, gam]
-                    for nu in range(mu + 1, 4):
+        for a, b in itertools.product(range(Nc), repeat = 2):
+            for beta, alpha, sigma, gam in itertools.product(range(Nd), repeat = 4):
+                P[2, a, beta, a, alpha, b, sigma, b, gam] += delta[beta, alpha] * delta[sigma, gam] - gamma5[beta, alpha] * gamma5[sigma, gam]
+                P[3, a, beta, a, alpha, b, sigma, b, gam] += delta[beta, alpha] * delta[sigma, gam] + gamma5[beta, alpha] * gamma5[sigma, gam]
+                for mu in range(d):
+                    P[0, a, beta, a, alpha, b, sigma, b, gam] += gamma[mu, beta, alpha] * gamma[mu, sigma, gam] + gammaMu5[mu, beta, alpha] * gammaMu5[mu, sigma, gam]
+                    P[1, a, beta, a, alpha, b, sigma, b, gam] += gamma[mu, beta, alpha] * gamma[mu, sigma, gam] - gammaMu5[mu, beta, alpha] * gammaMu5[mu, sigma, gam]
+                    for nu in range(d):
                         P[4, a, beta, a, alpha, b, sigma, b, gam] += (1 / 2) * sigmaD[mu, nu, beta, alpha] * sigmaD[mu, nu, sigma, gam]
     elif scheme == 'qslash':
-        for a, b in itertools.product(range(3), repeat = 2):
-            for beta, alpha, sigma, gam in itertools.product(range(4), repeat = 4):
-                # TODO
-                P = 0
+        qsq, p1sq, p2sq, qslash, p1p2 = square(q), square(p1), square(p2), slash(q), np.dot(p1, p2)
+        qslash5 = qslash @ gamma5
+        Pl = (delta - gamma5) / 2
+        psigmap = np.zeros((Nd, Nd), dtype = np.complex64)
+        for mu, nu in itertools.product(range(Nd), repeat = 2):
+            psigmap += p1[mu] * (sigmaD[mu, nu] @ Pl) * p2[nu]
+        for a, b in itertools.product(range(Nc), repeat = 2):
+            for beta, alpha, sigma, gam in itertools.product(range(Nd), repeat = 4):
+                P[0, a, beta, a, alpha, b, sigma, b, gam] += (1 / qsq) * (qslash[beta, alpha] * qslash[sigma, gam] + qslash5[beta, alpha] * qslash5[sigma, gam])
+                P[1, a, beta, a, alpha, b, sigma, b, gam] += (1 / qsq) * (qslash[beta, alpha] * qslash[sigma, gam] - qslash5[beta, alpha] * qslash5[sigma, gam])
+                P[2, a, beta, b, alpha, b, sigma, a, gam] += (1 / qsq) * (qslash[beta, alpha] * qslash[sigma, gam] - qslash5[beta, alpha] * qslash5[sigma, gam])
+                P[3, a, beta, b, alpha, b, sigma, a, gam] += (1 / (p1sq * p2sq - p1p2 * p1p2)) * (psigmap[beta, alpha] * psigmap[sigma, gam])
+                P[4, a, beta, a, alpha, b, sigma, b, gam] += (1 / (p1sq * p2sq - p1p2 * p1p2)) * (psigmap[beta, alpha] * psigmap[sigma, gam])
     return P
 
 # gets tree level projections in scheme == 'gamma' or scheme == 'qslash'
 def getF(scheme = 'gamma'):
-    P = projectors(scheme)
+    q, p1, p2 = to_linear_momentum([1, 1, 0, 0]), to_linear_momentum([-1, 0, 1, 0]), to_linear_momentum([0, 1, 1, 0])
+    P = projectors(scheme, q, p1, p2)
     F = np.einsum('nbjaidlck,maibjckdl->mn', P, tree)
     return F
 

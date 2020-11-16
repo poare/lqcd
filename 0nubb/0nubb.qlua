@@ -482,8 +482,9 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local Nc = S_k2:colors()
     local Nd = 4
     local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
-    local G = L_NPR:Complex(complex(0, 0))
+    local G
     for m = 0, 15 do
+      G = L_NPR:Complex(complex(0, 0))    -- BUG WAS HERE: accidentally didn't re-initialize G^(n) each time we looped.
       local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
       for alpha = 0, Nd - 1 do
         print(alpha)

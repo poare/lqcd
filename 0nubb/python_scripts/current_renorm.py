@@ -32,6 +32,7 @@ for idx, cfg in enumerate(cfgs):
     cfgs[idx] = data_dir + '/' + cfgs[idx]
 n_cfgs = len(cfgs)
 
+start = time.time()
 Zq = np.zeros((len(q_list), n_boot), dtype = np.complex64)
 ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
@@ -56,7 +57,9 @@ for q_idx, q in enumerate(q_list):
         qDotV, qDotA = qDotV + q_lat[mu] * GammaV[mu], qDotA + q_lat[mu] * GammaA[mu]
     ZV[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,ji->z', qDotV, qlat_slash)
     ZA[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,jk,ki->z', qDotA, gamma5, qlat_slash)
-    # print([12 * Zq[q_idx] / np.einsum('zaiaj,ji->z', GammaV[mu], gamma[mu]) for mu in range(4)])    # this is what I had in the RI'-MOM code; it's the same order of mag
+    
+    # Time per iteration
+    print('Elapsed time: ' + str(time.time() - start))
 
 
 ################################## SAVE DATA ##################################
