@@ -328,7 +328,7 @@ end
 
 -- Paths to output file.
 folder = "/data/d10b/users/poare/0nubb/output/tests"
-out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+out_folder = string.format("%s/%s_freefield_%d", folder, cfgbase, jobid)
 filename = string.format("%s/free_field.h5", out_folder)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
