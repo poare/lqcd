@@ -5,7 +5,7 @@
 #SBATCH --job-name=0nubb_npr
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
+#SBATCH --partition=long4
 #SBATCH -t 144:00:00
 
 set -x
@@ -18,10 +18,10 @@ module load openmpi/3.1.5
 #module load qlua
 #module load qlua/20201002
 
-# gpu=true
-# module load qlua/20200107-gpu1080
-gpu=false
-module load qlua/20200107
+gpu=true
+module load qlua/20200107-gpu1080
+#gpu=false
+#module load qlua/20200107
 
 EXE=qlua
 
@@ -48,7 +48,7 @@ parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}
 export OMP_NUM_THREADS=6
 
 # for cfg in `seq 500 5 1000`
-for cfg in `seq 1090 10 1120`
+for cfg in `seq 1080 10 1120`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 done
