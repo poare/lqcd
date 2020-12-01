@@ -495,9 +495,13 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
                 for b = 0, Nc - 1 do
                   for c = 0, Nc - 1 do
                     for d = 0, Nc - 1 do
-                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2_nobvec * (
+                      -- G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2_nobvec * (
+                      --   A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
+                      -- )) : sum() / vol
+                      -- TODO try without momentum projection to 2q
+                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (
                         A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
-                      )) : sum() / vol
+                      ) : sum() / vol
                     end
                   end
                 end
