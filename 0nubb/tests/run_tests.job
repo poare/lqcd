@@ -5,7 +5,7 @@
 #SBATCH --job-name=free_field_test
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long4
+#SBATCH --partition=prod4
 #SBATCH -t 144:00:00
 
 set -x
@@ -22,8 +22,6 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-cfgpath="/data/d10b/ensembles/isoClover/"
-cfgbase="cl3_16_48_b6p1_m0p2450"
 gpu=true
 dwf=false
 
@@ -31,13 +29,13 @@ dwf=false
 operators=true
 
 home=/home/poare/lqcd/0nubb
-logs=${home}/logs/tests/${cfgbase}_freefield_${SLURM_JOB_ID}
-output=/data/d10b/users/poare/0nubb/output/tests/${cfgbase}_freefield_${SLURM_JOB_ID}
+logs=${home}/logs/tests/freefield_${SLURM_JOB_ID}
+output=/data/d10b/users/poare/0nubb/output/tests/freefield_${SLURM_JOB_ID}
 
 mkdir ${logs}
 mkdir ${output}
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' dwf=${dwf} gpu=${gpu} operators=${operators}"
+parameters="jobid = ${SLURM_JOB_ID} dwf=${dwf} gpu=${gpu} operators=${operators}"
 export OMP_NUM_THREADS=6
 
 mpirun -np 4 $EXE -e "$parameters" ${home}/tests/free_field.qlua > ${logs}/0nubb_cfg${cfg}.txt

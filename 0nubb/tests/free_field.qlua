@@ -302,18 +302,12 @@ end
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
 
--- Read in input from bash script.
-if jobid and cfgpath and cfgbase then
-    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
-else
-    print("No jobid, cfgpath, cfgbase entered.")
-end
-
 -- Set parameters
-Lx = 16
-Lt = 48
+-- Lx = 16
+-- Lt = 48
+Lx = 4
+Lt = 4
 
-beta = 6.1
 mq = -0.2450
 kappa = 1 / (2 * mq + 8)
 
@@ -328,7 +322,7 @@ end
 
 -- Paths to output file.
 folder = "/data/d10b/users/poare/0nubb/output/tests"
-out_folder = string.format("%s/%s_freefield_%d", folder, cfgbase, jobid)
+out_folder = string.format("%s/freefield_%d", folder, jobid)
 filename = string.format("%s/free_field.h5", out_folder)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
@@ -337,14 +331,18 @@ local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 local bcs = {1, 1, 1, -1}
 
 -- momenta to compute Z(p) at
-local k1_list_NPR = {}
-local k2_list_NPR = {}
-print("Initializing momenta.")
-for m = -6, 6 do
-  local minusM = -m
-  k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
-  k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
- end
+-- local k1_list_NPR = {}
+-- local k2_list_NPR = {}
+-- print("Initializing momenta.")
+-- for m = -6, 6 do
+--   local minusM = -m
+--   k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
+--   k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
+--  end
+
+print("Running at one q value; run at more q once this works.")
+local k1_list_NPR = {{-1, 0, 1, 0}}
+local k2_list_NPR = {{0, 1, 1, 0}}
 
 print("Initializing solver.")
 if gpu then
