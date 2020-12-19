@@ -28,9 +28,13 @@ dwf=false
 # whether to only compute current correlators, or to compute operator correlators as well
 operators=true
 
+# test="free_field"
+# test="gauge_transform"
+test="free_field_props"
+
 home=/home/poare/lqcd/0nubb
-logs=${home}/logs/tests/freefield_${SLURM_JOB_ID}
-output=/data/d10b/users/poare/0nubb/output/tests/freefield_${SLURM_JOB_ID}
+logs=${home}/logs/tests/${test}_${SLURM_JOB_ID}
+output=/data/d10b/users/poare/0nubb/output/tests/${test}_${SLURM_JOB_ID}
 
 mkdir ${logs}
 mkdir ${output}
@@ -38,4 +42,4 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} dwf=${dwf} gpu=${gpu} operators=${operators}"
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "$parameters" ${home}/tests/free_field.qlua > ${logs}/0nubb_cfg${cfg}.txt
+mpirun -np 4 $EXE -e "$parameters" ${home}/tests/${test}.qlua > ${logs}/0nubb_cfg${cfg}.txt

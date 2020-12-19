@@ -165,26 +165,6 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
       end
     printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
               k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
-    local qFTarg = L:Real(0)
-    local mqFTarg = L:Real(0)
-    local mqFTarg_nobvec = L:Real(0)
-    local mqFT2arg = L:Real(0)    -- Likely no bvec on qFT2arg; if it looks really weird then add bvec to it.
-    local k1FTarg = L:Real(0)
-    local k2FTarg = L:Real(0)
-    for mu = 0, #L - 1 do
-      qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      mqFTarg = mqFTarg + L:Real(L:pcoord(mu)) * (-q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]
-      mqFT2arg = mqFT2arg - L:Real(L:pcoord(mu)) * (2 * q[mu + 1]) * 2 * math.pi / L[mu]
-      k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-    end
-    local qFT = qFTarg:expi()
-    local mqFT = mqFTarg:expi()
-    local mqFT_nobvec = mqFTarg_nobvec:expi()
-    local mqFT2_nobvec = mqFT2arg:expi()
-    local k1FT = k1FTarg:expi()
-    local k2FT = k2FTarg:expi()
 
     -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
     local L_vec = qcd.lattice{4}
@@ -227,73 +207,17 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
       S_q = compute_propagator(U, solver, srcq)
     end
 
-    local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
-    local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
-    local mom4_prop_q = (qFT * S_q):sum() / vol
-
-    -- local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
     local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
 
-    -- Write momentum projected propagator to file
-    local prop_path_k1 = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local prop_path_k2 = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local prop_path_q = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, prop_path_k1, mom4_prop_k1)
-    h5_force_write(writer, prop_path_k2, mom4_prop_k2)
-    h5_force_write(writer, prop_path_q, mom4_prop_q)
-    printf("Propagator for momentum k1 written at path: %s\n", prop_path_k1)
-    printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
-    printf("Propagator for momentum q written at path: %s\n", prop_path_q)
+    local Sk1_path = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local Sq_path = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local Sk2_path = string.format("antiprop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
 
-    -- Vector and axial currents.
-    for mu = 0, #L - 1 do
-      -- local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
-      -- local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
-      local GV = (mqFT_nobvec * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
-      local GA = (mqFT_nobvec * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
-      local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
-      local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
-      h5_force_write(writer, op_path_V, GV)
-      h5_force_write(writer, op_path_A, GA)
-      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
-      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
-    end
+    h5_force_write(writer, Sk1_path, S_k1)
+    h5_force_write(writer, Sq_path, S_q)
+    h5_force_write(writer, Sk2_path, antiprop_k2)
 
-    -- Get three point function for unprimed operators
-    print("Evaluating three point functions.")
-    local Nc = S_k2:colors()
-    local Nd = 4
-    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
-    local G
-    for m = 0, 15 do
-      G = L_NPR:Complex(complex(0, 0))    -- BUG WAS HERE: accidentally didn't re-initialize G^(n) each time we looped.
-      local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
-      for alpha = 0, Nd - 1 do
-        print(alpha)
-        for beta = 0, Nd - 1 do
-          for rho = 0, Nd - 1 do
-            for sigma = 0, Nd - 1 do
-              for a = 0, Nc - 1 do
-                for b = 0, Nc - 1 do
-                  for c = 0, Nc - 1 do
-                    for d = 0, Nc - 1 do
-                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2_nobvec * (
-                        A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
-                      )) : sum() / vol
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-      -- write to file here
-      local Gpath = string.format("Gn%d/q%d%d%d%d", m, q[1], q[2], q[3], q[4])
-      h5_force_write(writer, Gpath, G)
-      printf("Gn%d written at: %s", m, Gpath)
-    end
-    print("Done evaluating operators.")
+    print("Done.")
   end
 end
 
@@ -322,8 +246,8 @@ end
 
 -- Paths to output file.
 folder = "/data/d10b/users/poare/0nubb/output/tests"
-out_folder = string.format("%s/free_field_%d", folder, jobid)
-filename = string.format("%s/free_field.h5", out_folder)
+out_folder = string.format("%s/free_field_props_%d", folder, jobid)
+filename = string.format("%s/free_field_props.h5", out_folder)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
@@ -389,13 +313,7 @@ for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 local hdf5params = { method = "phdf5" }
 local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-if operators then
-  print("Computing vector / axial three point functions and all color-unmixed bilinears.")
-  compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf, gpu)
-else
-  print("Computing vector / axial three point functions.")
-  compute_npr_currents_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf, gpu)
-end
+compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf, gpu)
 
 writer:close()
 
