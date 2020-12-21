@@ -2,22 +2,23 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
-from analysis import *
+from test_utils import *
 
 ################################## PARAMETERS #################################
 cfgbase = 'cl3_16_48_b6p1_m0p2450'
-job_num = 29913
-data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
+job_num = 30429
+data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + 'freefield_' + str(job_num)
 
-L = 16
-T = 48
+L, T = 4, 4
 set_dimensions(L, T)
 
-k1_list = []
-k2_list = []
-for n in range(-6, 7):
-    k1_list.append([-n, 0, n, 0])
-    k2_list.append([0, n, n, 0])
+# k1_list = []
+# k2_list = []
+# for n in range(-6, 7):
+#     k1_list.append([-n, 0, n, 0])
+#     k2_list.append([0, n, n, 0])
+k1_list = [[-1, 0, 1, 0]]
+k2_list = [[0, 1, 1, 0]]
 k1_list = np.array(k1_list)
 k2_list = np.array(k2_list)
 q_list = k2_list - k1_list

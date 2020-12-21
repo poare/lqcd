@@ -2,7 +2,10 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
-from analysis import *
+from test_utils import *
+
+# TEST TO SEE IF THE NPR_MOMFRAC CODE SPITS OUT THE SAME ZQ, ZV, AND ZA AS THE 0NUBB CODE AT THE
+# q = 0.
 
 ################################## PARAMETERS #################################
 cfgbase = 'cl3_16_48_b6p1_m0p2450'

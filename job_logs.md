@@ -72,3 +72,11 @@ GAUGE FIXING JOBS
 28337 ||| Running vector and current renormalization. Analysis output isn't great; Zq matches the old Zq factors from RI'-MOM which is good, but ZV and ZA are much too small. Trying to debug now and seeing what part of the code the error is in ||| 9/28
 28357 ||| Rerunning and being a bit more careful about the momentum projection steps; I may have previously amputated with the wrong propagators ||| 9/30
 28357 ||| Same as before, but changing up the momenta a bit ||| 10/1
+28521 ||| Testing q = 0 RI/sMOM vs RI'-MOM. Potential bug fix: remove bvec from momentum projection ||| 10/5
+28528 ||| Bug potentially found by removing bvec from momentum projection. Running currents in RI/sMOM ||| 10/5
+29053 - 29055 (stored in 29053, BUG HERE) ||| Running 0nubb on cl3_16_48_b6p1_m0p2450 configuration to begin writing / testing the analysis code ||| 11/2
+29552 - 29554 ||| Same as before, but trying to fix the bug-- I believe it was in the computation of the Green's functions, I was summing them all up instead of creating separate ones ||| 11/16
+29913 - 29916 ||| Still trying to fix the bug, now no longer using e^{-2iqx} for the momentum projection (as in the paper) ||| 11/30
+
+TEST 0NUBB JOBS
+30457 ||| Running test script to check what is outputs ||| 12/20

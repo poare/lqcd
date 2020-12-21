@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
-from analysis import *
+from test_utils import *
 
 ################################## PARAMETERS #################################
 cfgbase = 'cl3_16_48_b6p1_m0p2450'

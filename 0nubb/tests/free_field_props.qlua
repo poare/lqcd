@@ -207,15 +207,15 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
       S_q = compute_propagator(U, solver, srcq)
     end
 
-    local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
+    -- local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
 
     local Sk1_path = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local Sk2_path = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
     local Sq_path = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local Sk2_path = string.format("antiprop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
 
     h5_force_write(writer, Sk1_path, S_k1)
+    h5_force_write(writer, Sk2_path, S_k2)
     h5_force_write(writer, Sq_path, S_q)
-    h5_force_write(writer, Sk2_path, antiprop_k2)
 
     print("Done.")
   end

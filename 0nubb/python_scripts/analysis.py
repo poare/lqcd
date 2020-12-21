@@ -134,24 +134,6 @@ def readfiles(cfgs, q, op_renorm = True):
                 GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
-# read in npr_momfrac format. Used for testing RI/sMOM RCs on RI'-MOM data.
-def readfiles_momfrac(cfgs, q):
-    props_k1 = np.zeros((len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
-    props_k2 = np.zeros((len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
-    props_q = np.zeros((len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
-    GV = np.zeros((d, len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
-    GA = np.zeros((d, len(cfgs), Nc, Nd, Nc, Nd), dtype = np.complex64)
-    GO = np.zeros((16, len(cfgs), Nc, Nd, Nc, Nd, Nc, Nd, Nc, Nd), dtype = np.complex64)
-
-    for idx, file in enumerate(cfgs):
-        f = h5py.File(file, 'r')
-        qstr = klist_to_string(q, 'p')
-        props_q[idx] = np.einsum('ijab->aibj', f['prop/' + qstr][()]) / vol
-        for mu in range(d):
-            GV[mu, idx] = np.einsum('ijab->aibj', f['GV' + str(mu + 1) + '/' + qstr][()]) / vol
-            GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()]) / vol
-    return props_q, GV, GA
-
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 1):
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
