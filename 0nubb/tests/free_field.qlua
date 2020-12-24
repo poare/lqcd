@@ -173,18 +173,18 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local k2FTarg = L:Real(0)
     for mu = 0, #L - 1 do
       qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      mqFTarg = mqFTarg + L:Real(L:pcoord(mu)) * (-q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]
       mqFT2arg = mqFT2arg - L:Real(L:pcoord(mu)) * (2 * q[mu + 1]) * 2 * math.pi / L[mu]
       k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
     end
     local qFT = qFTarg:expi()
-    local mqFT = mqFTarg:expi()
     local mqFT_nobvec = mqFTarg_nobvec:expi()
-    local mqFT2_nobvec = mqFT2arg:expi()
+    local mqFT2 = mqFT2arg:expi()
     local k1FT = k1FTarg:expi()
     local k2FT = k2FTarg:expi()
+
+    h5_force_write(writer, mqFT2, "mqFT2")  -- SAVE THE MOMENTUM PROJ FACTOR
 
     -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
     local L_vec = qcd.lattice{4}
@@ -266,8 +266,10 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
     local G
     for m = 0, 15 do
-      G = L_NPR:Complex(complex(0, 0))    -- BUG WAS HERE: accidentally didn't re-initialize G^(n) each time we looped.
+      G = L_NPR:Complex(complex(0, 0))
       local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
+      local gamma_path = string.format("Agamma%d", n)
+      h5_force_write(writer, A_gamma, gamma_path)   -- SAVE A_GAMMA TO SEE IF IT'S BUGGY.
       for alpha = 0, Nd - 1 do
         print(alpha)
         for beta = 0, Nd - 1 do
@@ -277,7 +279,7 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
                 for b = 0, Nc - 1 do
                   for c = 0, Nc - 1 do
                     for d = 0, Nc - 1 do
-                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2_nobvec * (
+                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2 * (
                         A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
                       )) : sum() / vol
                     end
