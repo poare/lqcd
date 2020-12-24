@@ -184,7 +184,7 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local k1FT = k1FTarg:expi()
     local k2FT = k2FTarg:expi()
 
-    h5_force_write(writer, mqFT2, "mqFT2")  -- SAVE THE MOMENTUM PROJ FACTOR
+    h5_force_write(writer, "mqFT2", mqFT2)  -- SAVE THE MOMENTUM PROJ FACTOR
 
     -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
     local L_vec = qcd.lattice{4}
