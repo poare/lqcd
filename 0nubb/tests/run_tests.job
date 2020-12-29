@@ -28,9 +28,9 @@ dwf=false
 # whether to only compute current correlators, or to compute operator correlators as well
 operators=true
 
-# test="free_field"
+test="free_field"
 # test="gauge_transform"
-test="free_field_props"
+# test="free_field_props"
 
 home=/home/poare/lqcd/0nubb
 logs=${home}/logs/tests/${test}_${SLURM_JOB_ID}

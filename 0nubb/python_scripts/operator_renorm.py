@@ -69,7 +69,9 @@ for q_idx, q in enumerate(q_list):
     SS = GammaO[0]
     PP = GammaO[15]
     VV = GammaO[1] + GammaO[2] + GammaO[4] + GammaO[8]
-    AA = GammaO[14] - GammaO[13] + GammaO[11] - GammaO[7]
+    # AA = GammaO[14] - GammaO[13] + GammaO[11] - GammaO[7]
+    # TT = GammaO[3] + GammaO[5] + GammaO[9] + GammaO[6] + GammaO[10] + GammaO[12]
+    AA = GammaO[14] + GammaO[13] + GammaO[11] + GammaO[7]
     TT = GammaO[3] + GammaO[5] + GammaO[9] + GammaO[6] + GammaO[10] + GammaO[12]
 
     # Get positive parity operator projections
