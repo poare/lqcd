@@ -52,17 +52,6 @@ Lx = 2
 Lt = 4
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 
-src = L:DiracPropagator()
-Nc = src:colors()
-for ic = 0, Nc - 1 do -- loop over color indices
-  for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
-    local dv = L:DiracFermion()
-    dv[{0, 0, 0, 0, c = ic, d = is}] = complex(ic, is)
-    src[{c = ic, d = is}] = dv
-  end
-end
-print("Point source at origin created.")
-
 do
   local r = L:Int(os.random())
   for i = 0, #L - 1 do
@@ -77,6 +66,20 @@ for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
 end
 show_color_mat(U[1][{0, 0, 0, 0}])
 print("Weak field initialized.")
+
+-- src = L:DiracPropagator()
+-- Nc = src:colors()
+-- for ic = 0, Nc - 1 do -- loop over color indices
+--   for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
+--     local dv = L:DiracFermion()
+--     dv[{0, 0, 0, 0, c = ic, d = is}] = complex(ic, is)
+--     src[{c = ic, d = is}] = dv
+--   end
+-- end
+-- print("Point source at origin created.")
+q = {1, 1, 0, 0}
+src = compute_spacetime_wall_source_antiperiodicBC(U, q)
+print("Wall source created at momentum (1, 1, 1, 1)")
 
 -- Parameters
 mq = -0.2450
