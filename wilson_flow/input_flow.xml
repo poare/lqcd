@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<chroma>
+
+<Param>
+    <InlineMeasurements>
+        
+        <elem>
+            <annotation>
+                WilsonFlow the gauge field
+            </annotation>
+            <Name>WILSON_FLOW</Name>
+            <Frequency>1</Frequency>
+            <Param>
+                <version>1</version>
+                <nstep>100</nstep>
+                <wtime>1.0</wtime>
+                <t_dir>3</t_dir>
+            </Param>
+            <NamedObject>
+                <gauge_in>default_gauge_field</gauge_in>
+                <gauge_out>wflow_gfield</gauge_out>
+            </NamedObject>
+        </elem>
+
+    <elem>
+      <annotation>
+        Write the flowed gauge field
+      </annotation>
+      <Name>QIO_WRITE_NAMED_OBJECT</Name>
+      <Frequency>1</Frequency>
+      <NamedObject>
+        <object_id>wflow_gfield</object_id>
+        <object_type>Multi1dLatticeColorMatrixD</object_type>
+      </NamedObject>
+      <File>
+        <file_name>/data/d05/pshanahan/CollinsSoper/ensembles/su3_32_64_b6p30168_flow/su3_32_64_b6p30168_flow.limeXXTRAJXX</file_name>
+        <file_volfmt>SINGLEFILE</file_volfmt>
+      </File>
+    </elem>        
+
+        
+    </InlineMeasurements>
+    <nrow>32 32 32 64</nrow>
+</Param>
+
+<RNG>
+    <Seed>
+        <elem>11</elem>
+        <elem>11</elem>
+        <elem>11</elem>
+        <elem>0</elem>
+    </Seed>
+</RNG>
+
+<Cfg>
+    <cfg_type>SCIDAC</cfg_type>
+    <cfg_file>/data/d05/pshanahan/CollinsSoper/ensembles/su3_32_64_b6p30168/su3_32_64_b6p30168.limeXXTRAJXX</cfg_file>
+</Cfg>
+</chroma>
+
+
+

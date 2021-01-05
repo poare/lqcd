@@ -7,17 +7,18 @@ import analysis
 cfgbase = 'cl3_16_48_b6p1_m0p2450'
 
 ################################# PARAMETERS ################################
-job_num = 23014
+job_num = 28390
 mom_list = []
-# for i in range(-6, 7):
+for i in range(-6, 7):
+    mom_list.append([i, i, 0, 0])
 #     for j in range(-6, 7):
 #         for l in range(-6, 7):
 #             for m in range(-6, 7):
-for i in range(6):
-    for j in range(6):
-        for l in range(6):
-            for m in range(6):
-                mom_list.append([i, j, l, m])
+# for i in range(6):
+#     for j in range(6):
+#         for l in range(6):
+#             for m in range(6):
+#                 mom_list.append([i, j, l, m])
 print('Number of total sink momenta: ' + str(len(mom_list)))
 #############################################################################
 # data_dir = './output/' + cfgbase + '_' + str(job_num)

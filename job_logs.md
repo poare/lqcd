@@ -80,3 +80,7 @@ GAUGE FIXING JOBS
 
 TEST 0NUBB JOBS
 30457 ||| Running test script to check what is outputs ||| 12/20
+30643 ||| Running free field on QLUA w/ a 4^4 lattice to see if the bug is fixed ||| 12/23
+ONCE THIS IS DONE RUNNING, FEED IT THOUGH TO SEE IF WE GET THE CORRECT TREE LEVEL VALUE. THEN DO THE SAME ON THE 16^3 X 48 LATTICE, AND IF THESE TESTS ALL WORK THEN USE ACTUAL CONFIGURATIONS.
+30661 ||| Something is wrong with the QLUA code, it's not matching up with the Python output for the 4^4 lattice. Running QLUA code again but extracting the FT factor and the A_gamma factor to see if either of those is the problem. If they all match, then the issue is with the tensor contraction.
+30792 ||| Running one last free field job with the 16^3 x 48 lattice to see if it works with the Python code. If it does, then we're done with testing and can revisit the clover configurations ||| 12/29

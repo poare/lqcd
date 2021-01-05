@@ -2,16 +2,17 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
-from analysis import *
+from utils import *
 
 ################################## PARAMETERS #################################
 cfgbase = 'cl3_16_48_b6p1_m0p2450'
-job_num = 29913
+job_num = 29552
 data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
 
 L = 16
 T = 48
-set_dimensions(L, T)
+# An.set_dimensions(L, T)
+L = Lattice(L, T)
 
 k1_list = []
 k2_list = []
@@ -32,7 +33,7 @@ for idx, cfg in enumerate(cfgs):
 n_cfgs = len(cfgs)
 
 scheme = 'gamma'                # scheme == 'gamma' or 'qslash'
-F = getF(scheme)                # tree level projections
+F = getF(L, scheme)                # tree level projections
 
 start = time.time()
 Zq = np.zeros((len(q_list), n_boot), dtype = np.complex64)
@@ -40,7 +41,8 @@ ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
-    q_lat = np.sin(to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
+    q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
+    # q_lat = np.sin(L.to_linear_momentum(q))
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
     GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
@@ -77,7 +79,7 @@ for q_idx, q in enumerate(q_list):
     # Get positive parity operator projections
     print('Projecting onto tree level vertex.')
     Gamma = [VV + AA, VV - AA, SS - PP, SS + PP, TT]
-    P = projectors(scheme, to_linear_momentum(q), to_linear_momentum(k1), to_linear_momentum(k2))
+    P = projectors(scheme, L.to_linear_momentum(q), L.to_linear_momentum(k1), L.to_linear_momentum(k2))
     Lambda = np.einsum('nbjaidlck,mzaibjckdl->zmn', P, Gamma)    # Lambda is n_boot x 5 x 5
     print('Lambda ~ ' + str(Lambda[0, :, :]))       # projected 4 pt function
     # Lambda_inv = np.array([np.linalg.inv(Lambda[b, :, :]) for b in range(n_boot)])

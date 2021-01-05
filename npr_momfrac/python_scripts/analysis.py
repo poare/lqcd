@@ -76,6 +76,9 @@ def pstring_to_list(pstring):
 def plist_to_string(p):
     return 'p' + str(p[0]) + str(p[1]) + str(p[2]) + str(p[3])
 
+def to_linear_momentum(k):
+    return [np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)]
+
 def to_lattice_momentum(k):
     # TODO should I add bvec to k? It's done like that in quark_renorm
     # return [np.complex64(2 * np.sin(np.pi * k[mu] / LL[mu])) for mu in range(4)]
@@ -186,7 +189,7 @@ def readfile(directory, dpath = '', pointsrc = False, op = 'O', sink_momenta = N
 # Bootstraps a set of propagator labelled by momentum. Will return a momentum
 # dictionary, and the value of each key will be [boot, cfg, c, s, c, s].
 def bootstrap(D, seed = 5):
-    weights = np.ones((len(D[list(D.keys())[0]])))
+    weights = np.ones((len(D[list(D.keys())[0]])))          # uniform weight for each configuration
     weights2=weights/float(np.sum(weights))
     samples = {}
     np.random.seed(5)
@@ -626,8 +629,8 @@ def current_analysis(directory, momenta, s = 5):
     ZV_list, ZA_list = [[], [], [], []], [[], [], [], []]    # NOTE [[]] * 4 MAKES THE SAME LIST 4 TIMES, NOT 4 SEPARATE ONES
     Zq_list = []
     GVB, GAB = gamma, np.array([np.dot(gamma[mu], gamma5) for mu in range(4)])
-    GammaV_B_inv = np.array([np.linalg.inv(x) for x in GVB])
-    GammaA_B_inv = np.array([np.linalg.inv(x) for x in GAB])
+    GammaV_B_inv = np.array([np.linalg.inv(x) for x in GVB])    # = gamma_mu
+    GammaA_B_inv = np.array([np.linalg.inv(x) for x in GAB])    # = gamma5 gamma_mu
     GVB_inv = [{p : GammaV_B_inv[mu] for p in momenta_str_list} for mu in range(4)]
     GAB_inv = [{p : GammaA_B_inv[mu] for p in momenta_str_list} for mu in range(4)]
     global mom_list

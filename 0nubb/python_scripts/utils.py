@@ -68,18 +68,56 @@ for a, b in itertools.product(range(Nc), repeat = 2):
                 tree[4, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gammaGamma[mu, nu, alpha, beta] * gammaGamma[mu, nu, gam, sigma])
                 tree[4, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gammaGamma[mu, nu, alpha, sigma] * gammaGamma[mu, nu, gam, beta])
 
-L = 16
-T = 48
-LL = [L, L, L, T]
-vol = (L ** 3) * T
+# L = 16
+# T = 48
+# LL = [L, L, L, T]
+# vol = (L ** 3) * T
+#
+# def set_dimensions(l, t):
+#     global L
+#     global T
+#     global LL
+#     L, T, vol = l, t, (l ** 3) * t
+#     LL = [l, l, l, t]
+#     return L, T, vol, LL
+#
+# def to_linear_momentum(k):
+#     return np.array([np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)])
+#
+# def to_lattice_momentum(k):
+#     return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / LL[mu])) for mu in range(4)])
+# # Converts a wavevector to an energy scale using ptwid. Lattice parameter is a = A femtometers.
+# # Shouldn't use this-- should use k_to_mu_p instead and convert at p^2 = mu^2
+# def k_to_mu_ptwid(k, A = .1167):
+#     aGeV = fm_to_GeV(A)
+#     return 2 / aGeV * np.sqrt(sum([np.sin(np.pi * k[mu] / LL[mu]) ** 2 for mu in range(4)]))
+#
+# def k_to_mu_p(k, A = .1167):
+#     aGeV = fm_to_GeV(A)
+#     return (2 * np.pi / aGeV) * np.sqrt(sum([(k[mu] / LL[mu]) ** 2 for mu in range(4)]))
 
-def set_dimensions(l, t):
-    global L
-    global T
-    global LL
-    L, T, vol = l, t, (l ** 3) * t
-    LL = [l, l, l, t]
-    return L, T, vol, LL
+# Saves the dimensions of a lattice.
+class Lattice:
+    def __init__(self, l, t):
+        self.L = l
+        self.T = t
+        self.LL = [l, l, l, t]
+        self.vol = (l ** 3) * t
+
+    def to_linear_momentum(self, k):
+        return np.array([np.complex64(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(Nd)])
+
+    def to_lattice_momentum(self, k):
+        return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / self.LL[mu])) for mu in range(Nd)])
+    # Converts a wavevector to an energy scale using ptwid. Lattice parameter is a = A femtometers.
+    # Shouldn't use this-- should use k_to_mu_p instead and convert at p^2 = mu^2
+    def k_to_mu_ptwid(self, k, A = .1167):
+        aGeV = fm_to_GeV(A)
+        return 2 / aGeV * np.sqrt(sum([np.sin(np.pi * k[mu] / self.LL[mu]) ** 2 for mu in range(4)]))
+
+    def k_to_mu_p(self, k, A = .1167):
+        aGeV = fm_to_GeV(A)
+        return (2 * np.pi / aGeV) * np.sqrt(sum([(k[mu] / self.LL[mu]) ** 2 for mu in range(4)]))
 
 n_boot = 50
 
@@ -99,13 +137,6 @@ def kstring_to_list(pstring, str):
 # str is the beginning of the string, ex klist_to_string([1, 2, 3, 4], 'k1') gives 'k1_1234'
 def klist_to_string(k, prefix):
     return prefix + str(k[0]) + str(k[1]) + str(k[2]) + str(k[3])
-
-def to_linear_momentum(k):
-    return np.array([np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)])
-
-def to_lattice_momentum(k):
-    # return np.array([np.complex64(2 * np.sin(np.pi * (k[mu] + bvec[mu]) / LL[mu])) for mu in range(4)])
-    return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / LL[mu])) for mu in range(4)])
 
 # squares a 4 vector.
 def square(k):
@@ -230,9 +261,10 @@ def projectors(scheme = 'gamma', q = 0, p1 = 0, p2 = 0):
                 P[4, a, beta, a, alpha, b, sigma, b, gam] += (1 / (p1sq * p2sq - p1p2 * p1p2)) * (psigmap[beta, alpha] * psigmap[sigma, gam])
     return P
 
-# gets tree level projections in scheme == 'gamma' or scheme == 'qslash'
-def getF(scheme = 'gamma'):
-    q, p1, p2 = to_linear_momentum([1, 1, 0, 0]), to_linear_momentum([-1, 0, 1, 0]), to_linear_momentum([0, 1, 1, 0])
+# gets tree level projections in scheme == 'gamma' or scheme == 'qslash'. Pass in a Lattice instance L so that
+# the function knows the lattice dimensions.
+def getF(L, scheme = 'gamma'):
+    q, p1, p2 = L.to_linear_momentum([1, 1, 0, 0]), L.to_linear_momentum([-1, 0, 1, 0]), L.to_linear_momentum([0, 1, 1, 0])
     P = projectors(scheme, q, p1, p2)
     F = np.einsum('nbjaidlck,maibjckdl->mn', P, tree)
     return F
@@ -240,16 +272,6 @@ def getF(scheme = 'gamma'):
 # Returns a in units of GeV^{-1}
 def fm_to_GeV(a):
     return a / .197327
-
-# Converts a wavevector to an energy scale using ptwid. Lattice parameter is a = A femtometers.
-# Shouldn't use this-- should use k_to_mu_p instead and convert at p^2 = mu^2
-def k_to_mu_ptwid(k, A = .1167):
-    aGeV = fm_to_GeV(A)
-    return 2 / aGeV * np.sqrt(sum([np.sin(np.pi * k[mu] / LL[mu]) ** 2 for mu in range(4)]))
-
-def k_to_mu_p(k, A = .1167):
-    aGeV = fm_to_GeV(A)
-    return (2 * np.pi / aGeV) * np.sqrt(sum([(k[mu] / L[mu]) ** 2 for mu in range(4)]))
 
 def load_data_h5(file):
     print('Loading ' + str(file) + '.')

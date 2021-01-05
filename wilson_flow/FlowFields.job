@@ -1,0 +1,90 @@
+#!/bin/bash
+
+#ulimit -c unlimited
+
+#SBATCH --job-name=wilson_flow
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=long
+
+set -x
+
+# run job
+
+bash
+# module load openmpi/3.1.5
+module load openmpi/2.1.1
+
+. /data/d10a/projects/pshanahan_CollinsSoper/ensembles/flow/env.sh
+
+#. /data/wombat/users/mlwagman/jit-llvm-nvptx/env.sh
+
+EXE=/data/d10b/wombat/users/mlwagman/jit-llvm-nvptx/install/sm_61_omp/chroma-double/bin/chroma
+
+
+#. /opt/intel/composer_xe_2013.1.117/bin/compilervars.sh intel64
+#. /opt/intel/impi/4.1.0.024/intel64/bin/mpivars.sh
+#export $LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/software/lib/:/data/old-home/phiala/install/chromaDeltaG/lib
+
+#export $LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/data/old-home/phiala/install/chromaDeltaG/lib
+
+GEOM="32 32 32 48"
+APRUN="mpirun -np 1"
+
+[ -x $EXE ] || exit 1
+
+cd $PBS_O_WORKDIR
+
+filelist=filelist
+donelist=donelist
+
+for ij in `seq 1 1100`;do
+
+flag=0
+for file in `cat ${filelist}`;do
+
+   grep -q ${file} ${donelist} || flag=1
+
+   if [ ${flag} -eq 1 ]; then
+
+      echo ${file} >> ${donelist}
+
+      break
+
+   fi
+
+done
+
+myin=xml/input_${file}.xml
+myout=xml/out_${file}.xml
+
+
+sed -e "s:XXTRAJXX:${file}:g" \
+    input_flow.xml > ${myin}
+
+
+${APRUN} ${EXE} -i ${myin} -o ${myout} -geom ${GEOM} 2>&1 | tee out/${file}.out.stdout
+
+
+
+#-------------------------------------------------------------------------------
+
+# check to see if finished
+
+
+flag=0
+for file_check in `cat ${filelist}`;do
+
+   grep -q ${file_check} ${donelist} || flag=1
+
+done
+
+
+if [ ${flag} -eq 0 ]; then
+   echo "  "
+   echo " filelist exhausted "
+   echo "  "
+   exit
+fi
+
+done

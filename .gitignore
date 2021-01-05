@@ -1,5 +1,8 @@
+.DS_Store
+
 qlua_scripts/bash_output
 qlua_scripts/logs
+misc/.ipynb_checkpoints
 
 pion_mass/logs
 pion_mass/output
@@ -7,6 +10,8 @@ pion_mass/bash_output
 pion_mass/old_scripts/old_logs
 pion_mass/old_scripts/old_output
 pion_mass/test_cfgs/logs
+pion_mass/.ipynb_checkpoints
+pion_mass/__pycache__
 
 npr_momfrac/logs
 npr_momfrac/output
@@ -17,6 +22,10 @@ npr_momfrac/testing/bash_output
 npr_momfrac/examples/logs
 npr_momfrac/examples/meas
 npr_momfrac/analysis_output
+npr_momfrac/old_scripts/.DS_Store
+npr_momfrac/python_scripts/.ipynb_checkpoints
+npr_momfrac/python_scripts/__pycache__
+npr_momfrac/old_scripts/.DS_Store
 
 gf/scripts/bash_output
 gf/logs
@@ -24,3 +33,8 @@ gf/testing
 
 0nubb/bash_output
 0nubb/logs
+0nubb/.DS_Store
+0nubb/python_scripts/__pycache__
+0nubb/python_scripts/.ipynb_checkpoints
+0nubb/python_scripts/tests/.ipynb_checkpoints
+0nubb/python_scripts/tests/__pycache__

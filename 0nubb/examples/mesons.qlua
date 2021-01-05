@@ -1,0 +1,79 @@
+--- Lua/QLUA modules
+require "qcd"
+require "quda"
+require "stdlib"
+
+nersc_io = require "io/nersc"
+require "hadron/sources"
+
+L = qcd.lattice{24,24,24,64}
+local V = L[0] * L[1] * L[2] * L[3]
+
+-- Initialize random state
+-- r = {}
+-- do
+--   r.x = os.random()
+--   local x = L:Int(r.x)
+--   for i = 0,#L-1 do
+--     r[i+1] = os.random()
+--     x = x * L[i] + L:pcoord(i) * r[i+1]
+--   end
+--   r.f = os.random()
+--   S = L:RandomState(r.f, x)
+-- end
+
+-- Random gauge field
+-- U = {}
+-- do
+--   for d = 1, #L do
+--     U[d] = toSUn(S:gaussian_ColorMatrix() * 0.4)
+--   end
+-- end
+
+-- Load stored gauge field
+local fname = "/data/wombat/users/djmurphy/Lattices/GaugeFixed/ckpoint_lat.gauge_fixed.1460"
+--local U,msg
+U,msg = qcd.nersc.read_gauge(L, fname, {unitary=1.0e-10})
+
+-- Create point source at origin
+-- local src = point_source(L, {0,0,0,0})
+
+-- Zero momentum wall source at origin
+local src = compute_wall_source(U, 0, {0,0,0,0})
+
+-- Random source
+--src = S:gaussian_DiracFermion()
+
+-- Create QUDA DWF solver
+printf("Initializing quda\n")
+qcd.quda.init(L)
+printf("Creating solver\n")
+local QS = qcd.quda.solver(U,
+                           {t_boundary = "ANTI_PERIODIC_T"},
+                           {inv_type = "CG_INVERTER",
+                            solve_type = "NORMEQ_PC_SOLVE",
+                            dslash_type = "DOMAIN_WALL_DSLASH",
+                            --m5 = -1.8,
+                            solution_type = "MATPC_SOLUTION",
+                            --Ls = 16,
+                            matpc_type = "MATPC_ODD_ODD",
+                            --max_iter = 5000,
+                            mass = 0.01
+                           })
+--local QS = qcd.quda.solver(U,
+--                           {t_boundary = "ANTI_PERIODIC_T"},
+--                           {clover_coeff = 1.23344 * 0.124235,
+--                            dslash_type = "CLOVER_WILSON_DSLASH",
+--                            kappa       = 0.124235,
+--                            tol         = 1.0e-12,
+--                            maxiter     = 10000,
+--                            verbosity   = "DEBUG_VERBOSE"
+--                           })
+printf("Starting inversion\n")
+local src,ipres = QS:solve(src)
+printf("QS solver iparams output:\n")
+printf("\t.iter = %d\n", ipres.iter)
+printf("\t.true_res = %g\n", ipres.true_res)
+printf("Cleaning up\n")
+QS:close()
+qcd.quda.fini(L)

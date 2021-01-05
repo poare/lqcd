@@ -2,15 +2,20 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
-from test_utils import *
+# from test_utils import *
+import time
+import itertools
+import test_utils
+from utils import *
 
 ################################## PARAMETERS #################################
-cfgbase = 'cl3_16_48_b6p1_m0p2450'
-job_num = 30429
-data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + 'freefield_' + str(job_num)
-
-L, T = 4, 4
-set_dimensions(L, T)
+job_num = 30792
+L, T = 16, 48
+# job_num = 30661
+# L, T = 4, 4
+data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_' + str(job_num)
+# An.set_dimensions(L, T)
+L = Lattice(L, T)
 
 # k1_list = []
 # k2_list = []
@@ -33,7 +38,7 @@ for idx, cfg in enumerate(cfgs):
 n_cfgs = len(cfgs)
 
 scheme = 'gamma'                # scheme == 'gamma' or 'qslash'
-F = getF(scheme)                # tree level projections
+F = getF(L, scheme)                # tree level projections
 
 start = time.time()
 Zq = np.zeros((len(q_list), n_boot), dtype = np.complex64)
@@ -41,10 +46,11 @@ ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
-    q_lat = np.sin(to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
+    q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
-    GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
+    GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), \
+        np.array([bootstrap(GO[n]) for n in range(16)])
     props_k1_inv, props_k2_inv, props_q_inv = invert_props(props_k1_b), invert_props(props_k2_b), invert_props(props_q_b)
     Zq[q_idx] = quark_renorm(props_q_inv, q_lat)
     GammaV, GammaA = np.zeros(GV_boot.shape, dtype = np.complex64), np.zeros(GA_boot.shape, dtype = np.complex64)
@@ -63,6 +69,7 @@ for q_idx, q in enumerate(q_list):
     print('ZA ~ ' + str(ZA[q_idx, 0]))
 
     # Amputate and get scalar / vector / pseudoscalar / axial / tensor green's functions from G^n
+    # print(GO[3, 0])
     GammaO = np.zeros(GO_boot.shape, dtype = np.complex64)
     for n in range(16):
         print('Amputating Green\'s function for n = ' + str(n) + '.')
@@ -70,13 +77,15 @@ for q_idx, q in enumerate(q_list):
     SS = GammaO[0]
     PP = GammaO[15]
     VV = GammaO[1] + GammaO[2] + GammaO[4] + GammaO[8]
-    AA = GammaO[14] - GammaO[13] + GammaO[11] - GammaO[7]
+    # AA = GammaO[14] - GammaO[13] + GammaO[11] - GammaO[7]
+    # TT = GammaO[3] + GammaO[5] + GammaO[9] + GammaO[6] + GammaO[10] + GammaO[12]
+    AA = GammaO[14] + GammaO[13] + GammaO[11] + GammaO[7]
     TT = GammaO[3] + GammaO[5] + GammaO[9] + GammaO[6] + GammaO[10] + GammaO[12]
 
     # Get positive parity operator projections
     print('Projecting onto tree level vertex.')
     Gamma = [VV + AA, VV - AA, SS - PP, SS + PP, TT]
-    P = projectors(scheme, to_linear_momentum(q), to_linear_momentum(k1), to_linear_momentum(k2))
+    P = projectors(scheme, L.to_linear_momentum(q), L.to_linear_momentum(k1), L.to_linear_momentum(k2))
     Lambda = np.einsum('nbjaidlck,mzaibjckdl->zmn', P, Gamma)    # Lambda is n_boot x 5 x 5
     print('Lambda ~ ' + str(Lambda[0, :, :]))       # projected 4 pt function
     # Lambda_inv = np.array([np.linalg.inv(Lambda[b, :, :]) for b in range(n_boot)])
@@ -91,7 +100,7 @@ for q_idx, q in enumerate(q_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/job' + str(job_num) + '/Z_' + scheme + '.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/tests/free_field_' + str(job_num) + '/Z_' + scheme + '.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV

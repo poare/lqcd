@@ -33,4 +33,3 @@ for cfg in `seq 100 10 650`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" /home/poare/lqcd/pion_mass/pion_mass.qlua > logs/${cfgbase}_${SLURM_JOB_ID}/cfg${cfg}.txt
 done
-

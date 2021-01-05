@@ -1,0 +1,18 @@
+--- @module nersc_io
+
+local nersc_io = {}
+
+require "stdlib"
+
+function nersc_io.load_nersc(file_name, Lattice)
+  local U,msq;
+  U,msg = qcd.nersc.read_gauge(Lattice, file_name, {unitarity=1.0e-10})
+  printf("HEADER of %q BEGIN\n", file_name)
+  for i,v in pairs(msg) do
+    printf("  %s = %s\n", i, tostring(v))
+  end
+  printf("END of %q HEADER\n", file_name)
+  return U
+end
+
+return nersc_io
