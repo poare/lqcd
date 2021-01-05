@@ -1,0 +1,132 @@
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+
+-- Utility functions
+Nc = 3
+
+function show_color_mat(U)
+  local Nc = U:colors()
+  for a = 0, Nc-1 do
+    for b = 0, Nc-1 do
+      local elt = U[{a=a,b=b}]
+      printf("%.6f %+.6f\t", elt:real(), elt:imag())
+    end
+    printf("\n")
+  end
+end
+
+function show_propagator(m)
+  local nc = m:colors()
+  for ci = 0, nc - 1 do
+    for cj = 0, nc - 1 do
+      for si = 0, qcd.Ns - 1 do
+        printf("U[%d,%d,%d,.] ", ci,cj,si)
+        for sj = 0, qcd.Ns - 1 do
+          local zv = m[{c=ci,d=si}]
+          local z = zv[{c=cj,d=sj}]
+          printf("  [%1.12e %1.12e]", z[{0, 0, 0, 0}]:real(), z[{0, 0, 0, 0}]:imag())
+        end
+        printf("\n")
+      end
+    end
+  end
+  printf("\n")
+end
+
+function toSUn(L, X)    -- Project a matrix onto SU(N)
+  local Y = (X - X:adjoin()) / 2    -- anti-hermitian part
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
+end
+
+function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
+  return toSUn(L, .1 * S:gaussian_ColorMatrix())
+end
+
+-- Initialize lattice, random weak field configuration, and point source
+Lx = 2
+Lt = 4
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+
+src = L:DiracPropagator()
+Nc = src:colors()
+for ic = 0, Nc - 1 do -- loop over color indices
+  for is = 0, qcd.Ns - 1 do  -- loop over spinor indices
+    local dv = L:DiracFermion()
+    dv[{0, 0, 0, 0, c = ic, d = is}] = complex(ic, is)
+    src[{c = ic, d = is}] = dv
+  end
+end
+print("Point source at origin created.")
+
+do
+  local r = L:Int(os.random())
+  for i = 0, #L - 1 do
+    r = r * L[i] + L:pcoord(i)
+  end
+  S = L:RandomState(os.random(), r)
+end
+
+U = {}
+for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
+  U[mu + 1] = weak_SUn(L, S)
+end
+show_color_mat(U[1][{0, 0, 0, 0}])
+print("Weak field initialized.")
+
+-- Clover fermions
+print("Clover fermions on CPU.")
+mq = -0.2450
+kappa = 1 / (2 * mq + 8)
+csw = 1
+bcs = {1, 1, 1, -1}
+
+clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+cl_solver = propagator.make_from_ferm(clover, 1e-20, 1000)
+S_clover = compute_propagator(U, cl_solver, src)
+show_propagator(S_clover)
+
+-- DWF inverter
+print("DWFs on CPU.")
+Ls = 2
+M = 1.8
+ml = 0.005
+
+DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ml, 1.0)
+dwf_solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
+S_dwf = dwf_solver(src)
+show_propagator(S_dwf)
+
+-- Initialize QUDA (must be done on a GPU)
+require "lib/quda"
+qcd.quda.init(L)
+
+-- QUDA Clover fermions
+print("Clover fermions with QUDA.")
+quda_clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+quda_cl_solver = propagator.make_from_ferm(quda_clover, 1e-20, 1000)
+S_quda_clover = compute_propagator(U, quda_cl_solver, src)
+show_propagator(S_quda_clover)
+
+-- QUDA DWFs
+print("DWFs with QUDA.")
+quda_dwf_solver = qcd.quda.solver(U,
+                           {t_boundary = "ANTI_PERIODIC_T"},
+                           {inv_type = "CG_INVERTER",
+                            solve_type = "NORMEQ_PC_SOLVE",
+                            dslash_type = "DOMAIN_WALL_DSLASH",
+                            m5 = -M,
+                            solution_type = "MATPC_SOLUTION",
+                            Ls = Ls,
+                            matpc_type = "MATPC_ODD_ODD",
+                            max_iter = 5000,
+                            mass = ml
+                           })
+S_quda_dwf = quda_dwf_solver:solve(src)
+show_propagator(S_quda_dwf)
+
+print("Done with script.")
