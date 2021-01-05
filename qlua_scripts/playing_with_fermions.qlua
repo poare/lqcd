@@ -78,55 +78,61 @@ end
 show_color_mat(U[1][{0, 0, 0, 0}])
 print("Weak field initialized.")
 
--- Clover fermions
-print("Clover fermions on CPU.")
+-- Parameters
 mq = -0.2450
 kappa = 1 / (2 * mq + 8)
-csw = 1
+csw = 1.2493
 bcs = {1, 1, 1, -1}
-
-clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
-cl_solver = propagator.make_from_ferm(clover, 1e-20, 1000)
-S_clover = compute_propagator(U, cl_solver, src)
-show_propagator(S_clover)
-
--- DWF inverter
-print("DWFs on CPU.")
 Ls = 2
 M = 1.8
 ml = 0.005
 
-DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ml, 1.0)
-dwf_solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
-S_dwf = dwf_solver(src)
-show_propagator(S_dwf)
+-- gpu = false    -- use for tests on computer
+if gpu then
+  -- Initialize QUDA (must be done on a GPU)
+  require "lib/quda"
+  print("Testing QUDA.")
+  qcd.quda.init(L)
 
--- Initialize QUDA (must be done on a GPU)
-require "lib/quda"
-qcd.quda.init(L)
+  -- Clover fermions
+  print("Clover fermions with QUDA.")
+  quda_clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+  quda_cl_solver = propagator.make_from_ferm(quda_clover, 1e-20, 1000)
+  S_quda_clover = compute_propagator(U, quda_cl_solver, src)
+  show_propagator(S_quda_clover)
 
--- QUDA Clover fermions
-print("Clover fermions with QUDA.")
-quda_clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
-quda_cl_solver = propagator.make_from_ferm(quda_clover, 1e-20, 1000)
-S_quda_clover = compute_propagator(U, quda_cl_solver, src)
-show_propagator(S_quda_clover)
+  -- DWF inverter
+  print("DWFs with QUDA.")
+  quda_dwf_solver = qcd.quda.solver(U,
+                             {t_boundary = "ANTI_PERIODIC_T"},
+                             {inv_type = "CG_INVERTER",
+                              solve_type = "NORMEQ_PC_SOLVE",
+                              dslash_type = "DOMAIN_WALL_DSLASH",
+                              m5 = -M,
+                              solution_type = "MATPC_SOLUTION",
+                              Ls = Ls,
+                              matpc_type = "MATPC_ODD_ODD",
+                              max_iter = 5000,
+                              mass = ml
+                             })
+  S_quda_dwf = quda_dwf_solver:solve(src)
+  show_propagator(S_quda_dwf)
+else
+  print("Running on CPU.")
 
--- QUDA DWFs
-print("DWFs with QUDA.")
-quda_dwf_solver = qcd.quda.solver(U,
-                           {t_boundary = "ANTI_PERIODIC_T"},
-                           {inv_type = "CG_INVERTER",
-                            solve_type = "NORMEQ_PC_SOLVE",
-                            dslash_type = "DOMAIN_WALL_DSLASH",
-                            m5 = -M,
-                            solution_type = "MATPC_SOLUTION",
-                            Ls = Ls,
-                            matpc_type = "MATPC_ODD_ODD",
-                            max_iter = 5000,
-                            mass = ml
-                           })
-S_quda_dwf = quda_dwf_solver:solve(src)
-show_propagator(S_quda_dwf)
+  -- Clover fermions
+  print("Clover fermions")
+  clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+  cl_solver = propagator.make_from_ferm(clover, 1e-20, 1000)
+  S_clover = compute_propagator(U, cl_solver, src)
+  show_propagator(S_clover)
+
+  -- DWF inverter
+  print("DWFs on CPU.")
+  DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ml, 1.0)
+  dwf_solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
+  S_dwf = dwf_solver(src)
+  show_propagator(S_dwf)
+end
 
 print("Done with script.")

@@ -5,7 +5,7 @@
 #SBATCH --job-name=quda_dwf_test
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=devel4
+#SBATCH --partition=devel
 
 set -x
 
@@ -22,9 +22,11 @@ module load qlua/20200107-gpu1080
 EXE=qlua
 #EXE=/opt/software/qlua-20200107-gpu2080
 
+gpu=false
+
 home=/home/poare/lqcd/qlua_scripts
 logs=${home}/logs/quda_dwf_test
 
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "jobid = ${SLURM_JOB_ID}" ${home}/playing_with_fermions.qlua > ${logs}/job${SLURM_JOB_ID}.txt
+mpirun -np 4 $EXE -e "jobid = ${SLURM_JOB_ID} gpu = ${gpu}" ${home}/playing_with_fermions.qlua > ${logs}/job${SLURM_JOB_ID}.txt
