@@ -103,6 +103,8 @@ if gpu then
   quda_cl_solver = propagator.make_from_ferm(quda_clover, 1e-20, 1000)
   S_quda_clover = compute_propagator(U, quda_cl_solver, src)
   show_propagator(S_quda_clover)
+  quda_cl_solver:close()    -- try to close propagator
+  -- quda_clover(U):close()
 
   -- DWF inverter
   print("DWFs with QUDA.")
