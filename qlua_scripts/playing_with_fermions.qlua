@@ -87,7 +87,8 @@ mq = -0.2450
 kappa = 1 / (2 * mq + 8)
 csw = 1.2493
 bcs = {1, 1, 1, -1}
-Ls = 4
+-- Ls = 4
+Ls = 8
 M = 1.8
 ml = 0.005
 
@@ -112,7 +113,7 @@ if gpu then
                              {inv_type = "CG_INVERTER",   -- some of these parameters need to be played with. Which ones are valid???
                               solve_type = "NORMEQ_PC_SOLVE",
                               dslash_type = "DOMAIN_WALL_DSLASH",
-                              -- m5 = -M,
+                              m5 = -M,
                               solution_type = "MATPC_SOLUTION",
                               -- Ls = Ls,
                               matpc_type = "MATPC_ODD_ODD",
