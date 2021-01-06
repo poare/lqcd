@@ -1,0 +1,350 @@
+require "lib/caching"
+require "lib/clover_ferm"
+require "lib/coords"
+require "lib/fermion"
+require "lib/group"
+require "lib/hmc_mosaic"
+require "lib/musing"
+require "lib/propagator"
+require "lib/strict"
+require "lib/unwrap"
+
+corr_reweight_action = {}
+
+local gamma5_2d = get_gamma5(2)
+
+-- TODO(gkanwar): Defer to code in propagator lib
+function compute_many_to_all_sequential(U, all_srcs, propagate)
+   local timer = create_timer('many_to_all')
+   printf("Begin sequential many-to-all.\n")
+   local all_prop = {}
+   for i,src in ipairs(all_srcs) do
+      local pt_src = compute_point_source(U, src)
+      local prop = propagate(pt_src)
+      -- TODO(gkanwar): BCs when shifting?
+      -- shift to put all prop srcs at (0,0) locally
+      for mu = 0,#src-1 do
+         for count = 1,src[mu+1] do
+            prop = prop:shift(mu, "from_forward")
+         end
+      end
+      all_prop[i] = prop
+   end
+   timer()
+   return all_prop
+end
+
+unwrap_2d = unwrap_2d_trivial
+
+local function get_corr_cumus(all_corrs, coarse_subset)
+   local L = all_corrs[1].lattice
+   local r_avg = 0
+   local r2_avg = 0
+   local uw_theta_avg = 0
+   local uw_theta2_avg = 0
+   for i,corr in ipairs(all_corrs) do
+      local log = corr:log()
+      r_avg = r_avg + log:real() / #all_corrs
+      r2_avg = r2_avg + (log:real()*log:real()) / #all_corrs
+      local uw_theta = unwrap_2d(log:imag())
+      uw_theta_avg = uw_theta_avg + uw_theta / #all_corrs
+      uw_theta2_avg = uw_theta2_avg - uw_theta*uw_theta / #all_corrs
+   end
+   r2_avg = (r2_avg - r_avg*r_avg) / 2
+   -- FORNOW:
+   -- uw_theta2_avg = (uw_theta2_avg - uw_theta_avg*uw_theta_avg) / 2
+   uw_theta2_avg = uw_theta2_avg / 2
+   -- restrict to non-zero subset
+   local coarse_r_avg = L:Real()
+   local coarse_r2_avg = L:Real()
+   local coarse_uw_theta2_avg = L:Real()
+   coarse_subset:where(function() coarse_r_avg:set(r_avg) end)
+   coarse_subset:where(function() coarse_r2_avg:set(r2_avg) end)
+   coarse_subset:where(function() coarse_uw_theta2_avg:set(uw_theta2_avg) end)
+   return coarse_r_avg, coarse_r2_avg, coarse_uw_theta2_avg
+end
+corr_reweight_action.get_corr_cumus = get_corr_cumus
+
+local function get_corr_cumu_estimate(all_corrs, coarse_subset)
+   local L = all_corrs[1].lattice
+   local r, r2, uw_theta2 = get_corr_cumus(all_corrs, coarse_subset)
+   local est = L:Real()
+   coarse_subset:where(function() est:set((r + r2 + uw_theta2):exp()) end)
+   return est
+end
+corr_reweight_action.get_corr_cumu_estimate = get_corr_cumu_estimate
+
+-- Derivative of cumulants evaluated at given src index, up to a factor of
+-- (1/C) dC / dA_mu^z which is computed outside.
+local function get_corr_cumu_derivs(all_corrs, src_index, coarse_subset)
+   local L = all_corrs[1].lattice
+   local r_deriv = L:Complex(1/#all_corrs)
+   local r_avg = L:Complex()
+   for i,corr in ipairs(all_corrs) do
+      local log = corr:log()
+      r_avg = r_avg + log:real() / #all_corrs
+   end
+   local uw_theta = unwrap_2d(all_corrs[src_index]:log():imag())
+   error("Need to update for uwtheta mean subtraction!") -- TODO
+   local uw_theta_sq_deriv = complex(0,1)*uw_theta / #all_corrs
+   local r2_deriv = (all_corrs[src_index]:log():real() - r_avg) / #all_corrs
+   -- restrict to non-zero subset
+   local coarse_r_deriv = L:Complex()
+   local coarse_r2_deriv = L:Complex()
+   local coarse_uw_theta_sq_deriv = L:Complex()
+   coarse_subset:where(function() coarse_r_deriv:set(r_deriv) end)
+   coarse_subset:where(function() coarse_r2_deriv:set(r2_deriv) end)
+   coarse_subset:where(function() coarse_uw_theta_sq_deriv:set(uw_theta_sq_deriv) end)
+   return coarse_r_deriv, coarse_r2_deriv, coarse_uw_theta_sq_deriv
+end
+
+   
+-- Use unwrapped variant of meson correlator with given src/sink gamma
+-- structures at time difference `reweight_dt` to reweight the probability
+-- density for gauge field sampling. `nthread` cores are used to parallelize
+-- all-to-all inversion.
+function corr_reweight_action.make_corr_reweight_clover_act(
+      get_ferm, eps, max_iter, L, srcs,
+      meson_src_gamma, meson_snk_gamma, wick_contractions, reweight_dt, nthread)
+   -- need both conn and disc coefficients for meson contractions
+   assert(wick_contractions.conn ~= nil and wick_contractions.disc ~= nil)
+   local clover_prop = propagator.make_from_ferm(get_ferm, eps, max_iter, false)
+   local t = {
+      name = "corr_reweight_clover",
+      get_ferm = get_ferm,
+      prop = clover_prop,
+      inner_act = fermion.make_twoflavor_act(get_ferm, eps, max_iter),
+      eps = eps,
+      max_iter = max_iter,
+      srcs = srcs,
+      meson_src_gamma = meson_src_gamma,
+      meson_snk_gamma = meson_snk_gamma,
+      wick_contractions = wick_contractions,
+      reweight_dt = reweight_dt,
+      nthread = nthread
+   }
+   local coarse_filter = L:Int(0)
+   for i,src in ipairs(srcs) do
+      coarse_filter[src] = 1
+   end
+   local coarse_subset = L:Subset(coarse_filter)
+
+   -- Unfortunately, need to cache this for force (is there a better way?)
+   local function compute_or_get_prop_many_to_all(U)
+      local all_props = caching.get(U, "prop_many_to_all")
+      local propagate = clover_prop.propagator(U)
+      if all_props == nil then
+         -- all_props = compute_many_to_all_parallel(U, srcs, kappa, csw, bcs, nthread)
+         all_props = compute_many_to_all_sequential(U, srcs, propagate)
+         caching.store(U, "prop_many_to_all", all_props)
+      end
+      return all_props
+   end
+
+   local function compute_or_get_corr_many_to_many(U)
+      local L = U[1].lattice
+      local many_to_many = caching.get(U, "corr_many_to_many")
+      if many_to_many == nil then
+         local all_props = compute_or_get_prop_many_to_all(U)
+         assert(#all_props == #srcs)
+         local conn = wick_contractions.conn ~= 0 and mesons.many_to_many(
+            all_props, coarse_subset, meson_src_gamma, meson_snk_gamma, gamma5_2d)
+         local disc = wick_contractions.disc ~= 0 and mesons.disc_many_to_many(
+            all_props, srcs, meson_src_gamma, meson_snk_gamma, gamma5_2d)
+         many_to_many = {}
+         for i = 1,#srcs do
+            local conn_piece = conn and
+               wick_contractions.conn*conn[i] or L:Complex()
+            assert(conn_piece ~= nil)
+            local disc_piece = disc and
+               wick_contractions.disc*disc[i] or L:Complex()
+            assert(disc_piece ~= nil)
+            many_to_many[i] = conn_piece + disc_piece
+         end
+         caching.store(U, "corr_many_to_many", many_to_many)
+      end
+      return many_to_many
+   end
+
+   -- Specific helper function to convert scalar prop -> lattice prop
+   -- local function promote_to_lattice_prop(prop, L)
+   --    local out = L:DiracPropagatorN(prop:colors())
+   --    local coords, inds = get_all(L)
+   --    for i,c in ipairs(coords) do
+   --       out[c] = prop
+   --    end
+   --    return out
+   -- end
+   
+   function t.initTraj(U, rndGen)
+      printf("initTraj computing many-to-many\n")
+      compute_or_get_corr_many_to_many(U) -- warm up cache
+      printf("initTraj done.\n")
+   end
+
+   function t.actionDensity(U)
+      local L = U[1].lattice
+      local corrs = compute_or_get_corr_many_to_many(U)
+      -- DEBUG:
+      -- t.corr0100 = corrs[1][{0,1}]
+      -- t.corr0110 = corrs[get_coord_index({1,0},L)+1][add_coord({-1,0}, {0,1}, L)]
+      -- t.prop0100 = compute_or_get_prop_many_to_all(U)[1][{0,1}]
+      -- local r, r2, uw_theta_sq = get_corr_cumus(corrs)
+      -- DEBUG:
+      -- t.r01 = r[{0,1}]
+      -- t.uw_theta_sq01 = uw_theta_sq[{0,1}]
+      local corr_cumu_estimate = get_corr_cumu_estimate(corrs, coarse_subset)
+      -- (r + r2 + uw_theta_sq):exp()
+      local t_dir = #L-1
+      local spatial_subsets = L:MultiSet(L[t_dir], L:pcoord(t_dir))
+      local mom_proj_cumu = corr_cumu_estimate:sum(spatial_subsets)
+      local mom_proj = {}
+      for i,corr in ipairs(corrs) do
+         for t = 0, L[t_dir]-1 do
+            local prev = 0
+            if mom_proj[t] ~= nil then prev = mom_proj[t] end
+            mom_proj[t] = prev + corr:real():sum(spatial_subsets)[t] / #corrs
+         end
+      end
+      for t = 0, L[t_dir]-1 do
+         printf("mom_proj_cumu[%d] = %1.6e\n", t, mom_proj_cumu[t])
+         printf("mom_proj[%d] = %1.6e\n", t, mom_proj[t])
+      end
+      local action = -math.log(mom_proj_cumu[reweight_dt])
+      printf("HMC phase unwrapped action: %1.6e\n", action)
+      -- Make uniform action "density" across the lattice
+      local V = 1
+      for mu = 0,#L-1 do V = V * L[mu] end
+      return L:Real(action / V)
+   end
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+
+   -- Compute sequential (connected) meson correlator deriv, with arbitrary
+   -- f(x+y; y) sequentially contracted in:
+   -- sum_{vec x} f_{x+y;y} d C_{x+y; y} / d A_mu^z =
+   --
+   --     - ReTr[ (Gamma_src M^-1_{y;p}) d M_{p,q} / d A_mu^z *
+   --            (M^-1_{q;x+y} Gamma_snk f_{x+y;y} M^-1_{x+y;y}) ]
+   --     - ReTr[ (M^-1_{y;x+y} Gamma_snk f_{x+y;y} M^-1_{x+y;p}) *
+   --            d M_{p,q} / d A_mu^z (M^-1_{q;y} Gamma_src) ] =
+   --
+   --     - ReTr[ (Gamma_src g5 M^-1dag_{p;y} g5) d M_{p,q} / d A_mu^z *
+   --            (M^-1_{q;x+y} Gamma_snk f_{x+y;y} M^-1_{x+y;y}) ]
+   --     - ReTr[ (g5 M^-1_{p;x+y} g5 Gamma_snk^dag f_^dag{x+y;y}
+   --              g5 M^-1_{x+y;y} g5)^dag *
+   --            d M_{p,q} / d A_mu^z * (M^-1_{q;y} Gamma_src) ]
+   -- prop_shifted is the propagator from src, shifted such that src -> origin.
+   -- f_shifted is f(x) == f(x+y; y).
+   local function seq_meson_corr_deriv(U, prop_shifted, src_coord, f_shifted)
+      local timer = create_timer('seq_meson_corr_deriv')
+      local Nc = U[1]:colors()
+      local ferm = get_ferm(U)
+      -- Unshift prop(x+y) = prop_shifted(x) and f(x+y) = f(x)
+      local prop = prop_shifted
+      local f = f_shifted
+      for mu = 0, #src_coord-1 do
+         for count = 1, src_coord[mu+1] do
+            prop = prop:shift(mu, "from_backward")
+            f = f:shift(mu, "from_backward")
+         end
+      end
+      local propagate = clover_prop.propagator(U)
+      -- Contruct lhs/rhs for each trace term
+      local lhs1 = meson_src_gamma * gamma{mu=5} * prop:adjoin() * gamma{mu=5}
+      local rhs1_pre = meson_snk_gamma * (f * prop)
+      local rhs1 = propagate(rhs1_pre)
+      local lhs2_pre = gamma{mu=5} * meson_snk_gamma:adjoin() * (f:conj() * (gamma{mu=5} * prop * gamma{mu=5}))
+      local lhs2 = (gamma{mu=5} * propagate(lhs2_pre)):adjoin()
+      local rhs2 = prop * meson_src_gamma
+      -- For each element of the trace, seq-invert and compute deriv element
+      local deriv = {}
+      for mu = 1, #U do deriv[mu] = L:ColorMatrixN(Nc) end
+      local Ns = 4
+      -- Assumes U(1)
+      assert(Nc == 1)
+      for d = 0,Ns-1 do
+         local lhs1_vec = lhs1:adjoin()[{d=d,c=0}]
+         local rhs1_vec = rhs1[{d=d,c=0}]
+         local deriv_term1 = ferm:deriv_D(lhs1_vec, rhs1_vec)
+         local lhs2_vec = lhs2:adjoin()[{d=d,c=0}]
+         local rhs2_vec = rhs2[{d=d,c=0}]
+         local deriv_term2 = ferm:deriv_D(lhs2_vec, rhs2_vec)
+         for mu = 1, #U do
+            deriv[mu] = deriv[mu] - deriv_term1[mu] - deriv_term2[mu]
+         end
+      end
+      timer()
+      return deriv
+   end
+   t.seq_meson_corr_deriv = seq_meson_corr_deriv
+
+   -- Compute disconnected meson correlator deriv (no seq. required), with
+   -- arbitrary f(x+y; y) contracted in:
+   -- TODO!
+
+   function t.force(U)
+      -- FORNOW: Ignore force -- do we see reasonable accept rates?
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      local F = {}
+      for mu = 1,#U do
+         F[mu] = L:ColorMatrixN(Nc)
+      end
+      return F
+      
+      -- local L_tslice = L:Subset{axis=#L-1, position=reweight_dt}
+      -- local props = compute_or_get_prop_many_to_all(U)
+      -- local corrs = compute_or_get_corr_many_to_many(U)
+      -- local corr_cumu_est = get_corr_cumu_estimate(corrs, coarse_subset)
+      -- local corr_cumu_est_momproj = L:Real()
+      -- L_tslice:where(function() corr_cumu_est_momproj:set(corr_cumu_est) end)
+      -- corr_cumu_est_momproj = corr_cumu_est_momproj:sum()
+      -- for i,src in ipairs(srcs) do
+      --    local r_deriv, r2_deriv, uw_theta_sq_deriv =
+      --       get_corr_cumu_derivs(corrs, i, coarse_subset)
+      --    local prop = props[i]
+      --    local f_R1 = L:Complex()
+      --    L_tslice:where(function()
+      --          f_R1:set(corr_cumu_est * r_deriv / corrs[i])
+      --    end)
+      --    local f_R2 = L:Complex()
+      --    L_tslice:where(function()
+      --          f_R2:set(corr_cumu_est * r2_deriv / corrs[i])
+      --    end)
+      --    local f_Theta2 = L:Complex()
+      --    L_tslice:where(function()
+      --          f_Theta2:set(corr_cumu_est * uw_theta_sq_deriv / corrs[i])
+      --    end)
+      --    local f = L:Complex()
+      --    L_tslice:where(function()
+      --          coarse_subset:where(function()
+      --                f:set(f_R1 + f_R2 + f_Theta2) end) end)
+      --    local Fi = seq_meson_corr_deriv(U, prop, src, f)
+      --    for mu = 1,#U do
+      --       F[mu] = F[mu] - Fi[mu] / (corr_cumu_est_momproj)
+      --    end
+      -- end
+      -- return F
+   end
+
+   return t
+end
+
+-- Helpers for param handling
+function corr_reweight_action.get_gamma(gamma_name)
+   if gamma_name == "Gamma-" then
+      return complex(1/math.sqrt(8),0)*(
+         gamma{mu=0}-complex(0,1)*gamma{mu=1})
+   elseif gamma_name == "Gamma+" then
+      return complex(1/math.sqrt(8),0)*(
+         gamma{mu=0}+complex(0,1)*gamma{mu=1})
+   elseif gamma_name == "Gamma0" then -- normalization?
+      return gamma{mu=0}
+   elseif gamma_name == "Gamma1" then -- normalization?
+      return gamma{mu=1}
+   else
+      error("Don't know gamma structure with name "..gamma_name)
+   end
+end

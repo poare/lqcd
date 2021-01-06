@@ -1,0 +1,262 @@
+require "stdlib" 
+
+local Nc = 3
+-- color-spin block weights: {uc, us, dc, ds, uc, us}
+local epsilonC = {}
+epsilonC[0 + 1*Nc + 2*Nc^2] = 1
+epsilonC[0 + 2*Nc + 1*Nc^2] = -1
+epsilonC[1 + 2*Nc + 0*Nc^2] = 1
+epsilonC[1 + 0*Nc + 2*Nc^2] = -1
+epsilonC[2 + 0*Nc + 1*Nc^2] = 1
+epsilonC[2 + 1*Nc + 0*Nc^2] = -1
+
+-- f = 1, flavor psibar, psi, psi
+adjoint_odd_all_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_odd_all_weights[nW+1] =  {c1,1-1,c2,3-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,2-1,c2,4-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,3-1,c2,1-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,4-1,c2,2-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,1-1,c2,1-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,2-1,c2,2-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,3-1,c2,3-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,4-1,c2,4-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,1-1,c2,3-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,2-1,c2,4-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,3-1,c2,1-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,4-1,c2,2-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,1-1,c2,1-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,2-1,c2,2-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,3-1,c2,3-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_all_weights[nW+1] =  {c1,4-1,c2,4-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+
+adjoint_even_all_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_even_all_weights[nW+1] =  {c1,1-1,c2,3-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,2-1,c2,4-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,3-1,c2,1-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,4-1,c2,2-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,1-1,c2,1-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,2-1,c2,2-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,3-1,c2,3-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,4-1,c2,4-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,1-1,c2,3-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,2-1,c2,4-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,3-1,c2,1-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,4-1,c2,2-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,1-1,c2,1-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,2-1,c2,2-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,3-1,c2,3-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_all_weights[nW+1] =  {c1,4-1,c2,4-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+
+
+
+-- (psibar g5 psi) (1+g4)/2 (1 - i g1 g2) psi
+adjoint_odd_1_up_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_odd_1_up_weights[nW+1] =  {c1,1-1,c2,3-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_1_up_weights[nW+1] =  {c1,2-1,c2,4-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_1_up_weights[nW+1] =  {c1,3-1,c2,1-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_1_up_weights[nW+1] =  {c1,4-1,c2,2-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar psi) g5 (1+g4)/2 (1 - i g1 g2) psi
+adjoint_odd_2_up_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_odd_2_up_weights[nW+1] =  {c1,1-1,c2,1-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_2_up_weights[nW+1] =  {c1,2-1,c2,2-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_2_up_weights[nW+1] =  {c1,3-1,c2,3-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_2_up_weights[nW+1] =  {c1,4-1,c2,4-1,c3,1-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar g5 psi) (1+g4)/2 (1 + i g1 g2) psi
+adjoint_odd_1_down_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_odd_1_down_weights[nW+1] =  {c1,1-1,c2,3-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_1_down_weights[nW+1] =  {c1,2-1,c2,4-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_1_down_weights[nW+1] =  {c1,3-1,c2,1-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_1_down_weights[nW+1] =  {c1,4-1,c2,2-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar psi) g5 (1+g4)/2 (1 + i g1 g2) psi
+adjoint_odd_2_down_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_odd_2_down_weights[nW+1] =  {c1,1-1,c2,1-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_2_down_weights[nW+1] =  {c1,2-1,c2,2-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_2_down_weights[nW+1] =  {c1,3-1,c2,3-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_odd_2_down_weights[nW+1] =  {c1,4-1,c2,4-1,c3,2-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar g5 psi) (1+g4)/2 (1 - i g1 g2) psi
+adjoint_even_1_up_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_even_1_up_weights[nW+1] =  {c1,1-1,c2,3-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_1_up_weights[nW+1] =  {c1,2-1,c2,4-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_1_up_weights[nW+1] =  {c1,3-1,c2,1-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_1_up_weights[nW+1] =  {c1,4-1,c2,2-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar psi) g5 (1+g4)/2 (1 - i g1 g2) psi
+adjoint_even_2_up_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_even_2_up_weights[nW+1] =  {c1,1-1,c2,1-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_2_up_weights[nW+1] =  {c1,2-1,c2,2-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_2_up_weights[nW+1] =  {c1,3-1,c2,3-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_2_up_weights[nW+1] =  {c1,4-1,c2,4-1,c3,3-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar g5 psi) (1+g4)/2 (1 + i g1 g2) psi
+adjoint_even_1_down_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_even_1_down_weights[nW+1] =  {c1,1-1,c2,3-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_1_down_weights[nW+1] =  {c1,2-1,c2,4-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_1_down_weights[nW+1] =  {c1,3-1,c2,1-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_1_down_weights[nW+1] =  {c1,4-1,c2,2-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- (psibar psi) g5 (1+g4)/2 (1 + i g1 g2) psi
+adjoint_even_2_down_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            adjoint_even_2_down_weights[nW+1] =  {c1,1-1,c2,1-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_2_down_weights[nW+1] =  {c1,2-1,c2,2-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_2_down_weights[nW+1] =  {c1,3-1,c2,3-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            adjoint_even_2_down_weights[nW+1] =  {c1,4-1,c2,4-1,c3,4-1, -2*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+
+printf("adjoint odd 1 up, %d weights\n", #adjoint_odd_1_up_weights)
+printf("adjoint odd 2 up, %d weights\n", #adjoint_odd_2_up_weights)
+printf("adjoint odd 1 down, %d weights\n", #adjoint_odd_1_down_weights)
+printf("adjoint odd 2 down, %d weights\n", #adjoint_odd_2_down_weights)
+printf("adjoint even 1 up, %d weights\n", #adjoint_even_1_up_weights)
+printf("adjoint even 2 up, %d weights\n", #adjoint_even_2_up_weights)
+printf("adjoint even 1 down, %d weights\n", #adjoint_even_1_down_weights)
+printf("adjoint even 2 down, %d weights\n", #adjoint_even_2_down_weights)

@@ -1,0 +1,817 @@
+-- Specific implementations for clover fermions
+
+require "lib/caching"
+require "lib/solver"
+require "lib/hmc_mosaic"
+
+clover_ferm = {}
+
+-- Each ferm impl should produce an object that provides:
+--   :D(psi)                     Apply D to psi
+--   :Dx(psi)                    Apply Dx to psi
+--   :mxm_solver(eps,max_iter)   Produce (D^dag D) solver
+--   :m_solver(eps,max_iter)     Produce D solver
+
+
+-- Make a fermion shift function that automagically handles given BCs
+-- TODO(gkanwar): Write a test isolating this dude
+local function make_ferm_shift(bcs)
+   return function(ferm, dir, sign)
+      local L = ferm.lattice
+      local shifted = ferm:shift(dir, sign)
+      if bcs[dir+1] == -1 then
+         local flip_pos = (sign == "from_forward" or sign == "to_backward") and L[dir]-1 or 0
+         L:Subset{axis=dir, position=flip_pos}:where(function() shifted:set(-shifted) end)
+      end
+      return shifted
+   end
+end
+clover_ferm.make_ferm_shift = make_ferm_shift
+
+-- Make a fermion shift function that automagically handles given BCs and shifts by N units
+-- If N > L[dir]/2, shift in opposite direction (make sure to account for signs correctly!)
+-- TODO(agrebe): Make sure this agrees with N applications of above method
+-- This gives the right final answer when used in the coarsening code, but it'd be good to have a separate test
+local function make_ferm_shift_N(bcs)
+   return function(ferm, dir, sign, N)
+      local timer = create_timer("shifting")
+      local L = ferm.lattice
+      local shifted = ferm
+      if N <= L[dir]/2 then
+         for i = 1, N do
+            shifted = shifted:shift(dir, sign)
+         end
+      else
+         local opposite_sign
+         if sign == "from_forward" then opposite_sign = "to_forward" end
+         if sign == "from_backward" then opposite_sign = "to_backward" end
+         if sign == "to_forward" then opposite_sign = "from_forward" end
+         if sign == "to_backward" then opposite_sign = "from_backward" end
+         for i = 1, L[dir]-N do
+            shifted = shifted:shift(dir, opposite_sign)
+         end
+      end
+      timer()
+      if bcs[dir+1] == -1 then
+         local subset
+         if (sign == "from_forward" or sign == "to_backward") then
+            subset = L:Subset(qcd.gt(L:pcoord(dir), L[dir]-N-1))
+         else
+            subset = L:Subset(qcd.lt(L:pcoord(dir), N))
+         end
+         local flip_pos = (sign == "from_forward" or sign == "to_backward") and L[dir]-1 or 0
+         subset:where(function() shifted:set(-shifted) end)
+      end
+      timer()
+      return shifted
+   end
+end
+clover_ferm.make_ferm_shift_N = make_ferm_shift_N
+
+-- Generic solver methods, given `self` with `self:D` and `self:Dx` defined
+-- as the appropriate matrix application functions with exposed `terms` option
+-- to select out the relevant parity slices at source/sink.
+local function init_x_psi(psi)
+   return psi
+end
+local function dispatch_solve(solver)
+   return function(ferm_or_prop)
+      local L = ferm_or_prop.lattice
+      local Nc = ferm_or_prop:colors()
+      -- HACK: detect lattice prop by trying to add ferm to it
+      -- fermion
+      if pcall(function() return ferm_or_prop + L:DiracFermionN(Nc) end) then
+         return solver(ferm_or_prop)
+      -- prop
+      else
+         local Ns = 4
+         local out = L:DiracPropagatorN(Nc)
+         for d = 0,Ns-1 do
+            for c = 0,Nc-1 do
+               out[{d=d,c=c}] = solver(ferm_or_prop[{d=d,c=c}])
+            end
+         end
+         return out
+      end
+   end
+end
+local function unprec_mxm_solver(self, eps, max_iter, verbose)
+   local function solverDxD(psi)
+      return self:Dx(self:D(psi))
+   end
+   return dispatch_solve(solver.CG(
+       solverDxD, eps, max_iter, init_x_psi, verbose))
+end
+local function unprec_m_solver(self, eps, max_iter, verbose)
+   local function solverDx(psi) return self:Dx(psi) end
+   local function solverD(psi) return self:D(psi) end
+   return dispatch_solve(solver.CGNE(
+       solverD, solverDx, eps, max_iter, init_x_psi, verbose))
+end
+local function eo_prec_m_solver(self, eps, max_iter, verbose)
+   local function makeD(orig_D)
+      local solverD = {}
+      function solverD.ee(psi) return orig_D(psi, {ee=true}) end
+      function solverD.oo(psi) return orig_D(psi, {oo=true}) end
+      function solverD.eo(psi) return orig_D(psi, {eo=true}) end
+      function solverD.oe(psi) return orig_D(psi, {oe=true}) end
+      local ee_inv
+      function solverD.ee_inv(psi)
+         if ee_inv == nil then
+            local L = psi.lattice
+            local Nc = psi:colors()
+            ee_inv = solver.blocked_CG_explicit(
+               solverD.ee, L, Nc, L:Subset("odd"), verbose)
+         end
+         local out = P_mul_D(ee_inv, psi)
+         return out
+      end
+      return solverD
+   end
+   -- Silly anonymous functions due to `self` param :(
+   local solverD = makeD(function(psi, terms) return self:D(psi, terms) end)
+   local solverDx = makeD(function(psi, terms) return self:Dx(psi, terms) end)
+   return dispatch_solve(solver.eo_prec_CGNE(
+       solverD, solverDx, eps, max_iter, init_x_psi, verbose))
+end
+
+-- kappa = (1/2) * 1/(Nd + mass)
+-- mass = 1/(2*kappa) - Nd
+local function kappa_to_mass(kappa, Nd)
+   return 1/(2*kappa) - Nd
+end
+
+-- DERIVATIVES
+local function color_outer_spin_inner(Nc, f1, f2, accum)
+   for a = 0, Nc-1 do
+      for b = 0, Nc-1 do
+         for d = 0,3 do
+            accum[{a=a,b=b}] = accum[{a=a,b=b}] + f1[{d=d,c=b}] * f2[{d=d,c=a}]
+         end
+      end
+   end
+end
+
+-- Combine all pieces needed to take deriv of link in the mu direction
+function clover_ferm.clover_deriv_loops(mu, U, zeta, psi)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   assert(1 <= mu and mu <= #U)
+   local F = L:ColorMatrixN(Nc, 0.0)
+
+   for nu = 1, #U do
+      if nu ~= mu then
+         local sigma_psi = gamma{mu=mu-1}*gamma{mu=nu-1}*psi
+         -- Build [zeta^dag]_b [sigma psi]_a - [(sigma psi)^dag]_b [zeta]_a block
+         local pf_block = L:ColorMatrixN(Nc, 0.0)
+         color_outer_spin_inner(Nc, zeta:conj(), sigma_psi, pf_block)
+         color_outer_spin_inner(Nc, sigma_psi:conj(), -zeta, pf_block)
+
+         local U_top = U[mu]:shift(nu-1, "from_forward")
+         local U_top_right = U[nu]:shift(mu-1, "from_forward")
+         local U_bot = U[mu]:shift(nu-1, "from_backward")
+         local U_bot_right = U[nu]:shift(nu-1, "from_backward"):shift(mu-1, "from_forward")
+         local U_bot_left = U[nu]:shift(nu-1, "from_backward")
+         local top_staple = U[nu] * U_top * U_top_right:adjoin()
+         local bot_staple = U[nu]:adjoin():shift(nu-1, "from_backward") * U_bot * U_bot_right
+         local top_right_staple = U[mu] * U_top_right * U_top:adjoin()
+         local bot_right_staple = U[mu] * U_bot_right:adjoin() * U_bot:adjoin()
+
+         local pf_block_mu = pf_block:shift(mu-1, "from_forward")
+         local pf_block_nu = pf_block:shift(nu-1, "from_forward")
+         local pf_block_mu_nu = pf_block_mu:shift(nu-1, "from_forward")
+
+         local pf_block_neg_nu = pf_block:adjoin():shift(nu-1, "from_backward")
+         local pf_block_neg_mu_nu = pf_block_neg_nu:shift(mu-1, "from_forward")
+
+         F = F + top_right_staple * U[nu]:adjoin() * pf_block
+         F = F + U[mu] * pf_block_mu * top_staple:adjoin()
+         F = F + U[mu] * U_top_right * pf_block_mu_nu * U_top:adjoin() * U[nu]:adjoin()
+         F = F + top_right_staple * pf_block_nu * U[nu]:adjoin()
+         F = F + bot_right_staple * pf_block_neg_nu * U_bot_left
+         F = F + bot_right_staple * U_bot_left * pf_block:adjoin()
+         F = F + U[mu] * pf_block_mu:adjoin() * bot_staple:adjoin()
+         F = F + U[mu] * U_bot_right:adjoin() * pf_block_neg_mu_nu * U_bot:adjoin() * U_bot_left
+      end
+   end
+   return F
+end
+
+function clover_ferm.D(self, psi)
+  local U = self.U
+  local kappa = self.kappa
+  local csw = self.csw
+  local bcs = self.bcs
+  local L = U[1].lattice
+  local Nc = U[1]:colors()
+  local F = {}
+
+  local ferm_shift = make_ferm_shift(bcs)
+
+  -- FORNOW, only handle pure Wilson case
+  -- TODO: Add support for clover term!
+  assert(csw <= 1e-10)
+
+  -- compute pieces of U applied to fermions that are needed for D and save these
+  local Dforward = {}
+  local Dbackward = {}
+  for mu = 1, #U do
+    Dforward[mu] = (1-gamma{mu=mu-1})*(U[mu]*ferm_shift(psi, mu-1, "from_forward"))
+    Dbackward[mu] = (1+gamma{mu=mu-1})*(ferm_shift(U[mu]:adjoin() * psi, mu-1, "from_backward"))
+  end
+
+  -- construct zeta = D(psi)
+  local zeta = psi / (2*kappa)
+  for mu = 1, #U do
+    zeta = zeta - (Dforward[mu] + Dbackward[mu])/2
+  end
+
+  return zeta
+end
+
+-- function to compute both D and deriv_D simultaneously
+-- This should be more efficient than doing them separately
+function clover_ferm.D_deriv_D(self, psi)
+  local U = self.U
+  local kappa = self.kappa
+  local csw = self.csw
+  local bcs = self.bcs
+  local L = U[1].lattice
+  local Nc = U[1]:colors()
+  local F = {}
+
+  local ferm_shift = make_ferm_shift(bcs)
+
+  -- FORNOW, only handle pure Wilson case
+  -- TODO: Add support for clover term!
+  assert(csw <= 1e-10)
+
+  -- compute pieces of U applied to fermions that are needed for D and save these
+  local Dforward = {}
+  local Dbackward = {}
+  for mu = 1, #U do
+    Dforward[mu] = (1-gamma{mu=mu-1})*(U[mu]*ferm_shift(psi, mu-1, "from_forward"))
+    Dbackward[mu] = (1+gamma{mu=mu-1})*(ferm_shift(U[mu]:adjoin() * psi, mu-1, "from_backward"))
+  end
+
+  -- construct zeta = D(psi)
+  local zeta = psi / (2*kappa)
+  for mu = 1, #U do
+    zeta = zeta - (Dforward[mu] + Dbackward[mu])/2
+  end
+
+  -- now compute deriv_D(psi)
+  for mu = 1, #U do
+    F[mu] = L:ColorMatrixN(Nc, 0.0)
+
+    local lhs1 = zeta
+    local lhs2 = ((1+gamma{mu=mu-1})*psi)
+		local rhs1 = Dforward[mu] -- avoid recomputing this
+    local rhs2 = U[mu]*(ferm_shift(zeta, mu-1, "from_forward"))
+
+    for d = 0,3 do
+			F[mu] = F[mu] + (L:ColorMatrixN(Nc, rhs1[{d=d}], lhs1[{d=d}]) + L:ColorMatrixN(Nc, rhs2[{d=d}], lhs2[{d=d}]))
+    end
+    F[mu] = -kappa/2 * F[mu]
+  end
+
+  -- Proj anti-Herm
+  for mu = 1, #U do
+    F[mu] = (F[mu] - F[mu]:adjoin()) / 2
+    -- TODO(gkanwar): Push this factor of 2 to the appropriate point
+    F[mu] = complex(0,2) * F[mu]
+    -- Rescale (allows matching Chroma or Clover conventions)
+    assert(self.rescale ~= nil and type(self.rescale) == "number")
+    F[mu] = self.rescale * F[mu]
+  end
+  return F
+end
+
+-- apply D_deriv_D to propagator of 12 Dirac fermions
+-- this only works if the rational approximation has 12 terms
+-- NOTE: This differs by a factor of -2 relative to previous versions (to cancel -2 in lib/fermion)
+function clover_ferm.D_deriv_D_prop(self, psi)
+  local U = self.U
+  local kappa = self.kappa
+  local csw = self.csw
+  local bcs = self.bcs
+  local L = U[1].lattice
+  local Nc = U[1]:colors()
+  local F = {}
+
+  local ferm_shift = make_ferm_shift(bcs)
+
+  -- FORNOW, only handle pure Wilson case
+  -- TODO: Add support for clover term!
+  assert(csw <= 1e-10)
+
+  -- compute pieces of U applied to fermions that are needed for D and save these
+  local Dforward = {}
+  local Dbackward = {}
+  for mu = 1, #U do
+    Dforward[mu] = (1-gamma{mu=mu-1})*(U[mu]*ferm_shift(psi, mu-1, "from_forward"))
+    Dbackward[mu] = (1+gamma{mu=mu-1})*(ferm_shift(U[mu]:adjoin() * psi, mu-1, "from_backward"))
+  end
+
+  -- construct zeta = D(psi)
+  local zeta = psi / (2*kappa)
+  for mu = 1, #U do
+    zeta = zeta - (Dforward[mu] + Dbackward[mu])/2
+  end
+
+  -- now compute deriv_D(psi)
+  for mu = 1, #U do
+
+    local lhs1 = zeta
+    local lhs2 = ((1+gamma{mu=mu-1})*psi)
+    local rhs1 = Dforward[mu] -- avoid recomputing this
+    local rhs2 = U[mu]*(ferm_shift(zeta, mu-1, "from_forward"))
+
+		F[mu] = (rhs1 * lhs1:adjoin() + rhs2 * lhs2:adjoin()):spintrace() * kappa
+  end
+
+  -- Proj anti-Herm
+  for mu = 1, #U do
+    F[mu] = (F[mu] - F[mu]:adjoin()) / 2
+    -- TODO(gkanwar): Push this factor of 2 to the appropriate point
+    F[mu] = complex(0,2) * F[mu]
+    -- Rescale (allows matching Chroma or Clover conventions)
+    assert(self.rescale ~= nil and type(self.rescale) == "number")
+    F[mu] = self.rescale * F[mu]
+  end
+  return F
+end
+
+
+--  Re zeta^dag [dD / dA_mu]_{ab} psi
+function clover_ferm.deriv_D(self, zeta, psi)
+   local U = self.U
+   local kappa = self.kappa
+   local csw = self.csw
+   local bcs = self.bcs
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local F = {}
+
+   -- Wilson piece
+   local ferm_shift = make_ferm_shift(bcs)
+   for mu = 1, #U do
+      F[mu] = L:ColorMatrixN(Nc,0.0)
+
+      local lhs1 = zeta
+      local lhs2 = psi
+      local rhs1 = (1-gamma{mu=mu-1})*(U[mu]*ferm_shift(psi, mu-1, "from_forward"))
+      local rhs2 = (1+gamma{mu=mu-1})*(U[mu]*ferm_shift(zeta, mu-1, "from_forward"))
+
+      -- outer product
+      for d = 0,3 do
+        F[mu] = F[mu] + (L:ColorMatrixN(Nc, rhs1[{d=d}], lhs1[{d=d}]) + L:ColorMatrixN(Nc, rhs2[{d=d}], lhs2[{d=d}]))
+      end
+
+      -- Factors of kappa and generator normalization
+      F[mu] = - (kappa/2) * F[mu]
+   end
+
+   -- Clover piece
+   if csw > 1e-10 then
+      for mu = 1, #U do
+         -- NOTE(gkanwar): Extra (1/2) due to the counterrotating bits
+         -- Should remove these and the (1/2) here.
+         F[mu] = F[mu] - 0.125 * kappa * csw *
+            clover_ferm.clover_deriv_loops(mu, U, zeta, psi) / 2
+      end
+   end
+
+   -- Proj anti-Herm
+   for mu = 1, #U do
+      F[mu] = (F[mu] - F[mu]:adjoin()) / 2
+      -- TODO(gkanwar): Push this factor of 2 to the appropriate point
+      F[mu] = complex(0,2) * F[mu]
+      -- Rescale (allows matching Chroma or Clover conventions)
+      assert(self.rescale ~= nil and type(self.rescale) == "number")
+      F[mu] = self.rescale * F[mu]
+   end
+   return F
+end
+
+
+--------------------------- Actual implementations -----------------------------
+-- Generic CPU implementation
+-- Helpers to determine subset to act on for diag and hopping terms
+local function get_diag_subset(terms)
+   if terms.ee and terms.oo then
+      return "all"
+   elseif terms.ee then
+      return "even"
+   elseif terms.oo then
+      return "odd"
+   else
+      return "none"
+   end
+end
+local function get_hopping_subset(terms)
+   if terms.eo and terms.oe then
+      return "all"
+   elseif terms.eo then
+      return "even"
+   elseif terms.oe then
+      return "odd"
+   else
+      return "none"
+   end
+end
+function clover_ferm.cpu_generic(kappa, csw, bcs, flags)
+   return function(U)
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      local ferm_shift = make_ferm_shift(bcs)
+
+      -- Handle optional flags
+      flags = flags or {}
+      local eoprec = (flags.eoprec ~= nil) and flags.eoprec or false
+      local rescale = (flags.rescale ~= nil) and flags.rescale or
+         (#L + kappa_to_mass(kappa, #L)) -- default Chroma scaling
+
+      local t = {
+         U = U,
+         kappa = kappa,
+         csw = csw,
+         bcs = bcs,
+         flags = flags,
+         rescale = rescale,
+         deriv_D = clover_ferm.deriv_D,
+				 D_deriv_D = clover_ferm.D_deriv_D,
+				 D_deriv_D_prop = clover_ferm.D_deriv_D_prop
+      }
+
+      local function generic_clover_D(psi, sign, terms)
+         -- Determine subsets ahead of time
+         local diag_subset = get_diag_subset(terms)
+         local hopping_subset = get_hopping_subset(terms)
+
+         local out = L:DiracFermionN(Nc)
+         -- Mass term
+         if diag_subset ~= "none" then
+            L:Subset(diag_subset):where(function() out:set(psi) end)
+         end
+
+         -- Hopping term
+         if hopping_subset ~= "none" then
+            for mu = 0, #U-1 do
+               local fwd = (1-sign*gamma{mu=mu})*(
+                  U[mu+1]*ferm_shift(psi, mu, "from_forward"))
+               local bwd = (1+sign*gamma{mu=mu})*(
+                  ferm_shift(U[mu+1]:adjoin() * psi, mu, "from_backward"))
+               L:Subset(hopping_subset):where(
+                  function() out:set(out - kappa*(fwd+bwd)) end)
+            end
+         end
+
+         -- Clover term
+         if diag_subset ~= "none" and csw ~= 0.0 then
+            for mu = 1, #U do
+               for nu = mu+1, #U do
+                  -- Grab Fmunu from cache if available
+                  local Fmunu_tag = string.format('F_%d_%d', mu, nu)
+                  local Fmunu = caching.get(U, Fmunu_tag)
+                  if Fmunu == nil then
+                     -- Make upper/lower staples
+                     local top_left_staple = take_links_in_path(U, {nu, -mu, -nu})
+                     local bot_right_staple = take_links_in_path(U, {-nu, mu, nu})
+                     Fmunu =
+                        U[mu] * top_left_staple:shift(mu-1, "from_forward") +
+                        top_left_staple * U[mu]:shift(mu-1, "from_backward")
+                     Fmunu = Fmunu +
+                        bot_right_staple * U[mu]:adjoin() +
+                        (U[mu]:adjoin() * bot_right_staple):shift(mu-1, "from_backward")
+                     Fmunu = (1/4) * (1/2) * (Fmunu - Fmunu:adjoin())
+                     caching.store(U, Fmunu_tag, Fmunu) -- save in cache
+                  end
+                  local sigma = gamma{mu=mu-1}*gamma{mu=nu-1} -- AS happens on multiply
+                  L:Subset(diag_subset):where(function()
+                        out:set(out - kappa*csw*(sigma*(Fmunu*psi))) end)
+               end
+            end
+         end
+         return t.rescale * out
+      end
+      t.D = function(self, psi, terms)
+         terms = terms or {ee=true, oo=true, eo=true, oe=true}
+         return generic_clover_D(psi, 1, terms)
+      end
+      t.Dx = function(self, psi, terms)
+         terms = terms or {ee=true, oo=true, eo=true, oe=true}
+         return generic_clover_D(psi, -1, terms)
+      end
+      t.mxm_solver = unprec_mxm_solver
+      t.m_solver = eoprec and eo_prec_m_solver or unprec_m_solver
+      return t
+   end
+end
+
+
+-- CPU implementation in qcd.Clover
+-- TODO(gkanwar): Why does the usual mxm_solver not invert correctly?
+function clover_ferm.cpu_4d_nc3(kappa, csw, bcs, flags)
+   -- Handle optional flags
+   flags = flags or {}
+   local Nd = #bcs
+   local rescale = (flags.rescale ~= nil) and flags.rescale or
+      (Nd + kappa_to_mass(kappa, Nd)) -- default Chroma scaling
+   return function(U)
+      local t = {
+         U = U,
+         kappa = kappa,
+         csw = csw,
+         bcs = bcs,
+         flags = flags,
+         rescale = rescale,
+         clov = qcd.Clover(U, kappa, csw, bcs),
+         deriv_D = clover_ferm.deriv_D,
+				 D_deriv_D = clover_ferm.D_deriv_D,
+				 D_deriv_D_prop = clover_ferm.D_deriv_D_prop
+      }
+      t.D = function(self, psi)
+         return self.rescale * self.clov:D(psi)
+      end
+      t.Dx = function(self, psi)
+         return self.rescale * self.clov:Dx(psi)
+      end
+      t.mxm_solver = function(self, eps, max_iter)
+         local solver = self.clov:solver(eps^2, max_iter)
+         return function(psi)
+            local tmp = gamma{mu=5}*solver(gamma{mu=5}*psi)
+            return solver(tmp) / (self.rescale^2)
+         end
+      end
+      t.m_solver = function(self, eps, max_iter)
+         local clov_solver = self.clov:solver(eps^2, max_iter)
+         return function(psi)
+            return clov_solver(psi) / self.rescale
+         end
+      end
+      return t
+   end
+end
+
+
+-- GPU implementation of solver + CPU dslash
+local quda_solver_handle = nil -- track old solver so we can close if new needed
+function clover_ferm.quda_4d_nc3(kappa, csw, bcs, flags)
+   flags = flags or {}
+   local Nd = #bcs
+   for d = 1, #bcs-1 do
+      assert(bcs[d] == 1) -- only last dim allowed anti-periodic
+   end
+   local t_boundary = (bcs[#bcs] == -1) and "ANTI_PERIODIC_T" or "PERIODIC_T"
+   local cpu_impl = clover_ferm.cpu_4d_nc3(kappa, csw, bcs, flags)
+   local rescale = (flags.rescale ~= nil) and flags.rescale or
+         (Nd + kappa_to_mass(kappa, Nd)) -- default Chroma scaling
+
+   return function(U)
+      local t = {
+         U = U,
+         kappa = kappa,
+         csw = csw,
+         bcs = bcs,
+         cpu_impl = cpu_impl(U),
+         --D = clover_ferm.D,
+         deriv_D = clover_ferm.deriv_D,
+				 D_deriv_D = clover_ferm.D_deriv_D,
+				 D_deriv_D_prop = clover_ferm.D_deriv_D_prop,
+         rescale = rescale
+      }
+      -- Delegate operator application to CPU
+      t.D = function(self, psi) return self.cpu_impl:D(psi) end
+      t.Dx = function(self, psi) return self.cpu_impl:Dx(psi) end
+
+      local function make_and_store_solver(eps, max_iter)
+         -- need to hold handle because can only make one solver instance in QUDA
+         if quda_solver_handle ~= nil then
+            quda_solver_handle:close()
+         end
+         local quda_solver = qcd.quda.solver(
+            U,
+            {t_boundary = t_boundary},
+            {clover_coeff = csw*kappa,
+             dslash_type = "CLOVER_WILSON_DSLASH",
+             kappa = kappa,
+             tol = eps,
+             maxiter = max_iter,
+             inv_type = "CG_INVERTER",       -- Use these args for point inversion
+             solve_type = "NORMOP_SOLVE"     -- Use these args for point inversion
+          })
+         quda_solver_handle = quda_solver
+         return quda_solver
+      end
+
+      -- TODO(gkanwar): Real mxm solver in QUDA?
+      t.mxm_solver = function(self, eps, max_iter)
+         local quda_solver = make_and_store_solver(eps, max_iter)
+         return function(psi)
+            local timer = create_timer('CLOVER QUDA')
+            local tmp = gamma{mu=5}*quda_solver:solve(gamma{mu=5}*psi)
+            local sol = quda_solver:solve(tmp)
+            timer()
+            return sol/t.rescale^2
+         end
+      end
+      t.m_solver = function(self, eps, max_iter)    -- This is the solver that gets called, goes into make_and_store_solver
+         local quda_solver = make_and_store_solver(eps, max_iter)
+         return function(psi) return quda_solver:solve(psi)/t.rescale end
+      end
+      return t
+   end
+end
+
+-- quda multigrid inverter
+-- TODO: Add option for nonzero clover piece
+function clover_ferm.quda_mg_4d_nc3(kappa, csw, bcs, flags)
+   require "lib/multigrid-GPU-solver"
+   assert(csw < 1e-9)
+   flags = flags or {}
+   local Nd = #bcs
+   for d = 1, #bcs-1 do
+      assert(bcs[d] == 1) -- only last dim allowed anti-periodic
+   end
+   local t_boundary = (bcs[#bcs] == -1) and "ANTI_PERIODIC_T" or "PERIODIC_T"
+   -- NOTE: MG qlua not built against qcd.Clover - must use generic CPU implementation
+   local cpu_impl = clover_ferm.cpu_generic(kappa, csw, bcs, flags)
+   local rescale = 1 -- already accounted for in MG solver
+
+   return function(U)
+      local t = {
+         U = U,
+         kappa = kappa,
+         csw = csw,
+         bcs = bcs,
+         cpu_impl = cpu_impl(U),
+         deriv_D = clover_ferm.deriv_D,
+				 D_deriv_D = clover_ferm.D_deriv_D,
+				 D_deriv_D_prop = clover_ferm.D_deriv_D_prop,
+         rescale = rescale
+      }
+      -- Delegate operator application to CPU
+      t.D = function(self, psi) return self.cpu_impl:D(psi) end
+      t.Dx = function(self, psi) return self.cpu_impl:Dx(psi) end
+
+      local function make_and_store_solver(eps, max_iter)
+         -- need to hold handle because can only make one solver instance in QUDA
+         if quda_solver_handle ~= nil then
+            quda_solver_handle:close()
+         end
+         local quda_solver = create_solver(U, csw, kappa, false)
+         quda_solver_handle = quda_solver
+         return quda_solver
+      end
+      -- TODO(gkanwar): Real mxm solver in QUDA?
+      t.mxm_solver = function(self, eps, max_iter)
+         local quda_solver = make_and_store_solver(eps, max_iter)
+         return function(psi)
+            local timer = create_timer('CLOVER QUDA')
+            local tmp = gamma{mu=5}*quda_solver:solve(gamma{mu=5}*psi)
+            local sol = quda_solver:solve(tmp)
+            timer()
+            return sol/t.rescale^2
+         end
+      end
+      t.m_solver = function(self, eps, max_iter)
+         local quda_solver = make_and_store_solver(eps, max_iter)
+         return function(psi) return quda_solver:solve(psi)/t.rescale end
+      end
+      return t
+   end
+end
+
+-- SK CPU implementation
+function clover_ferm.sk_cpu_generic(kappa, csw, bcs, tM, tE, flags)
+   -- Handle optional flags
+   local Nd = #bcs
+   flags = flags or {}
+   local eoprec = (flags.eoprec ~= nil) and flags.eoprec or false
+   local rescale = (flags.rescale ~= nil) and flags.rescale or
+      (Nd + kappa_to_mass(kappa, Nd)) -- default Chroma scaling
+
+   return function(U)
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      local ferm_shift = make_ferm_shift(bcs)
+
+      local t = {
+         kappa = kappa,
+         csw = csw,
+         bcs = bcs,
+         tM = tM,
+         tE = tE,
+         rescale = rescale,
+         flags = flags
+      }
+
+      local function generic_clover_D(psi, sign, terms)
+         -- Determine subsets ahead of time
+         local diag_subset = get_diag_subset(terms)
+         local hopping_subset = get_hopping_subset(terms)
+         local t_dir = #L-1
+         local r0M = complex(1,0)
+         -- SK phases
+         local function get_sets(L)
+            assert(L[t_dir] == 2*tM + tE)
+            local M1set = L:Subset(qcd.lt(L:pcoord(t_dir),tM));
+            local E1set = L:Subset(qcd.lt(L:pcoord(t_dir),tM + tE/2) * qcd.gt(L:pcoord(t_dir),tM - 1));
+            local M2set = L:Subset(qcd.lt(L:pcoord(t_dir),2*tM + tE/2) * qcd.gt(L:pcoord(t_dir),tM + tE/2 - 1));
+            local E2set = L:Subset(qcd.gt(L:pcoord(t_dir),2*tM + tE/2 - 1));
+            return M1set, E1set, M2set, E2set
+         end
+         local function get_sk_phases(L)
+            local M1set, E1set, M2set, E2set = get_sets(L)
+            -- hopping V signs
+            -- -i[0, tM - 1], [tM, tM + tE/2 - 1], i[tM + tE/2, 2tM + tE/2 - 1], [2tM + tE/2, 2tM + tE - 1]
+            local sk_V_mask = L:Complex(1)
+            E1set:where(function () sk_V_mask:set(L:Complex(1)) end);
+            E2set:where(function () sk_V_mask:set(L:Complex(1)) end);
+            M1set:where(function () sk_V_mask:set(L:Complex(complex(0,-sign))) end);
+            M2set:where(function () sk_V_mask:set(L:Complex(complex(0,sign))) end);
+            -- hopping K signs
+            -- [0, tM - 1], [tM, tM + tE/2 - 1], [tM + tE/2, 2tM + tE/2 - 1], [2tM + tE/2, 2tM + tE - 1]
+            local sk_K_mask = L:Complex(1)
+            E1set:where(function () sk_K_mask:set(L:Complex(1)) end);
+            E2set:where(function () sk_K_mask:set(L:Complex(1)) end);
+            M1set:where(function () sk_K_mask:set(L:Complex(1)) end);
+            M2set:where(function () sk_K_mask:set(L:Complex(1)) end);
+            return sk_K_mask, sk_V_mask
+         end
+         local function get_sk_mass_term(L)
+            local M1set, E1set, M2set, E2set = get_sets(L)
+            local sk_V_mask = L:Complex(1)
+            local mq = 1/(2*kappa) - #L
+            E1set:where(function () sk_V_mask:set(L:Complex((mq+#L-1-r0M)/(mq+#L))) end);
+            E2set:where(function () sk_V_mask:set(L:Complex((mq+#L-1-r0M)/(mq+#L))) end);
+            M1set:where(function () sk_V_mask:set(L:Complex(complex(0,-sign))) end);
+            M2set:where(function () sk_V_mask:set(L:Complex(complex(0,sign))) end);
+            return sk_V_mask
+         end
+         local sk_K_phases, sk_V_phases = get_sk_phases(L)
+         local sk_mass_phases = get_sk_mass_term(L)
+
+         local out = L:DiracFermionN(Nc)
+         -- Mass term
+         if diag_subset ~= "none" then
+            L:Subset(diag_subset):where(function() out:set(sk_mass_phases*psi) end)
+         end
+
+         -- Hopping term
+         if hopping_subset ~= "none" then
+            local term = L:DiracFermionN(Nc)
+            for mu = 0, #U-2 do
+               local fwd = (1-sign*gamma{mu=mu})*(U[mu+1]*ferm_shift(sk_V_phases * psi, mu, "from_forward"))
+               local bwd = (1+sign*gamma{mu=mu})*(ferm_shift(U[mu+1]:adjoin() * sk_V_phases * psi, mu, "from_backward"))
+               term = term + sk_V_phases*(fwd + bwd)
+            end
+            local tfwd = (complex(0,-sign)*r0M-sign*gamma{mu=t_dir})*(U[t_dir+1]*ferm_shift(psi, t_dir, "from_forward"))
+            local tbwd = (complex(0,-sign)*r0M+sign*gamma{mu=t_dir})*(ferm_shift(U[t_dir+1]:adjoin() * psi, t_dir, "from_backward"))
+            term = term + sk_K_phases*(tfwd + tbwd)
+            L:Subset(hopping_subset):where( function() out:set(out - kappa*term) end)
+         end
+
+         -- Clover term (TODO!!!)
+         if diag_subset ~= "none" and csw ~= 0.0 then
+            assert(false)
+            for mu = 1, #U do
+               for nu = mu+1, #U do
+                  -- Grab Fmunu from cache if available
+                  local Fmunu_tag = string.format('F_%d_%d', mu, nu)
+                  local Fmunu = caching.get(U, Fmunu_tag)
+                  if Fmunu == nil then
+                     -- Make upper/lower staples
+                     local top_left_staple = take_links_in_path(U, {nu, -mu, -nu})
+                     local bot_right_staple = take_links_in_path(U, {-nu, mu, nu})
+                     Fmunu =
+                        U[mu] * top_left_staple:shift(mu-1, "from_forward") +
+                        top_left_staple * U[mu]:shift(mu-1, "from_backward")
+                     Fmunu = Fmunu +
+                        bot_right_staple * U[mu]:adjoin() +
+                        (U[mu]:adjoin() * bot_right_staple):shift(mu-1, "from_backward")
+                     Fmunu = (1/4) * (1/2) * (Fmunu - Fmunu:adjoin())
+                     caching.store(U, Fmunu_tag, Fmunu) -- save in cache
+                  end
+                  local sigma = gamma{mu=mu-1}*gamma{mu=nu-1} -- AS happens on multiply
+                  L:Subset(diag_subset):where(function()
+                        out:set(out - kappa*csw*(sigma*(Fmunu*psi))) end)
+               end
+            end
+         end
+         return rescale * out
+      end
+      t.D = function(self, psi, terms)
+         terms = terms or {ee=true, oo=true, eo=true, oe=true}
+         return generic_clover_D(psi, 1, terms)
+      end
+      t.Dx = function(self, psi, terms)
+         terms = terms or {ee=true, oo=true, eo=true, oe=true}
+         return generic_clover_D(psi, -1, terms)
+      end
+      t.mxm_solver = unprec_mxm_solver
+      t.m_solver = eoprec and eo_prec_m_solver or unprec_m_solver
+      return t
+   end
+end

@@ -1,0 +1,9 @@
+-- Unified interface to grab the gauge group based on Nc.
+-- NOTE: If we ever implement further special case group operations, this can
+-- handle the special-case dispatching.
+
+require "lib/u-1"
+require "lib/su-n"
+
+group = {}
+function group.get(Nc) return (Nc == 1) and U1 or SUn end

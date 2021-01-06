@@ -1,0 +1,21 @@
+require "lib/group"
+require "lib/gauge"
+
+gradient_flow = {}
+
+-- Wilson plaquette action flow
+function gradient_flow.wflow(U, n_step, eps)
+   local dim = #U
+   local Nc = U[1]:colors()
+   local g = group.get(Nc)
+   for i = 0, n_step-1 do
+      local Omega = gauge.plaq1.force(U)
+      -- nonlinearity (check factors of 2?)
+      local new_U = {}
+      for d = 1, dim do
+         new_U[d] = g.exp(eps * g.toAlgebra(Omega[d])) * U[d]
+      end
+      U = new_U
+   end
+   return U
+end

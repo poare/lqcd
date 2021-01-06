@@ -1,0 +1,760 @@
+-- calculate the glueball mass
+
+require "stdlib"
+require "lib/su-n"
+require "lib/hmc"
+require "lib/hmc_mosaic"
+require "lib/gauge"
+require "lib/musing"
+require "lib/r_ratio"
+
+-- a leaf is a plaquette defined by two axes (positive or negative)
+
+glueball = {}
+
+function addElt(list, elt)
+   local newList = {unpack(list)}
+   newList[#list + 1] = elt
+   return newList
+end
+
+function glueball.tadpoleImproved(U, u0)
+   local Utilde = {}
+   for dim = 1, #U do Utilde[dim] = U[dim] / u0 end
+   return Utilde
+end
+
+-- allow a leaf to index a table
+local function plaqKey(leaf, nDim)
+    local axis1 = leaf[1]
+    local axis2 = leaf[2]
+    local key = 2*axis1[1] + ((axis1[2]>0 and 1) or 0) + 
+        2*nDim * (2*axis2[1] + ((axis2[2]>0 and 1) or 0))
+    return key
+end
+
+-- associate a plaquette with every leaf
+function glueball.getPlaqs(U)
+    local t = #U - 1
+    local plaq = {}
+    for mu = 0, t - 1 do
+        for nu = mu+1, t - 1 do
+            -- calculate plaquette from different starting corners
+            local Unup = U[nu+1]:shift(mu, "from_forward")
+            local Umupx = U[mu+1]:shift(nu, "from_forward"):adjoin()
+            local Sl = U[nu+1]:adjoin() * U[mu+1] * Unup
+            local C01 = Sl * Umupx  -- at (0,1)
+            local C11 = Umupx * Sl  -- at (1,1)
+            local Su = Unup * Umupx * U[nu+1]:adjoin()
+            local C00 = U[mu+1] * Su -- at (0,0)
+            local C10 = Su * U[mu+1] -- at (1,0)
+            -- shift to clover leaf positions
+            -- TODO(gkanwar): Should these be "from" instead of "to"?
+            C10 = C10:shift(mu, "to_forward")
+            C01 = C01:shift(nu, "to_forward")
+            C11 = C11:shift(mu, "to_forward"):shift(nu, "to_forward")
+            -- associate with leaves
+            plaq[plaqKey({{mu,1},{nu,1}},#U)] = C00
+            plaq[plaqKey({{nu,1},{mu,1}},#U)] = C00:adjoin()
+            plaq[plaqKey({{nu,1},{mu,-1}},#U)] = C10
+            plaq[plaqKey({{mu,-1},{nu,1}},#U)] = C10:adjoin()
+            plaq[plaqKey({{mu,-1},{nu,-1}},#U)] = C11
+            plaq[plaqKey({{nu,-1},{mu,-1}},#U)] = C11:adjoin()
+            plaq[plaqKey({{nu,-1},{mu,1}},#U)] = C01
+            plaq[plaqKey({{mu,1},{nu,-1}},#U)] = C01:adjoin()
+        end
+    end
+    return plaq
+end
+
+-- calculates the loops at every lattice site with the given PC projection
+function glueball.leafLoops(L, LT, loops, P, C, Nc)
+    local t = #L - 1
+    local n = #loops
+    -- get parity flipped loops
+    local Ploops = {}
+    for i,leaves in ipairs(loops) do
+        local Pleaves = {}
+        for j, leaf in ipairs(leaves) do
+            local ax1 = leaf[1]
+            local ax2 = leaf[2]
+            Pleaves[j] = {{ax1[1], -ax1[2]}, {ax2[1], -ax2[2]}}
+        end
+        Ploops[i] = Pleaves
+    end
+    local p = (P>0 and 1) or -1
+    -- calculate spatial volume
+    local VL3 = 1
+    for mu = 0, t - 1 do VL3 = VL3 * L[mu] end
+    -- define spatial gather object
+    local xGthr = qcd.gather(LT, L, {L:pcoord(t)})
+    -- define leaf loop calculator
+    local function run(plaqs)
+        local vec = {}
+        for i = 1, n do
+            -- get each loop orientation and the corresponding parity flipped orientation
+            local leaves = loops[i]
+            local Pleaves = Ploops[i]
+            -- calculate loops and parity flipped loops
+
+            local loop = Nc == nil
+               and L:ColorMatrix(complex(1,0))
+               or L:ColorMatrixN(Nc, complex(1,0))
+            for j,leaf in ipairs(leaves) do loop = loop * plaqs[plaqKey(leaf,#L)] end
+            local Ploop = Nc == nil
+               and L:ColorMatrix(complex(1,0))
+               or L:ColorMatrixN(Nc, complex(1,0))
+            for j,leaf in ipairs(Pleaves) do Ploop = Ploop * plaqs[plaqKey(leaf,#L)] end
+            -- project to correct P and C
+            if C > 0 then
+                vec[i] = xGthr:add(0.5*(loop:trace():real() + p * Ploop:trace():real())) / VL3
+            else
+                vec[i] = xGthr:add(0.5*(loop:trace():imag() + p * Ploop:trace():imag())) / VL3
+            end
+        end
+        return vec
+    end
+    return run
+end
+
+-- project to irrep
+function glueball.projIrrep(loops, irrep)
+    local irrepSum = 0
+    for i = 1, #loops do
+        irrepSum = irrepSum + loops[i] * irrep[i]
+    end
+    return irrepSum
+end
+
+-- define shapes and all relevant PC = ++ orientations
+local plaq = {
+    {{{0, 1}, {1, 1}}},
+    {{{1, 1}, {0,-1}}},
+    {{{1, 1}, {2, 1}}},
+    {{{2, 1}, {1,-1}}},
+    {{{2, 1}, {0, 1}}},
+    {{{0, 1}, {2,-1}}}
+}
+function glueball.get_plaq(Nd)
+   local plaq = {}
+   for mu = 0, Nd-2 do
+      for nu = mu+1, Nd-2 do
+         -- postive rotating clover in mu,nu plane
+         plaq[#plaq+1] = {{{mu, 1}, {nu, 1}}}
+         plaq[#plaq+1] = {{{nu, 1}, {mu, -1}}}
+         plaq[#plaq+1] = {{{mu, -1}, {nu, -1}}}
+         plaq[#plaq+1] = {{{nu, -1}, {mu, 1}}}
+      end
+   end
+   return plaq
+end
+
+local rect = {
+    {{{0, 1}, {1, 1}}, {{1, 1}, {0,-1}}},
+    {{{1, 1}, {0,-1}}, {{0,-1}, {1,-1}}},
+    {{{1, 1}, {2, 1}}, {{2, 1}, {1,-1}}},
+    {{{2, 1}, {1,-1}}, {{1,-1}, {2,-1}}},
+    {{{2, 1}, {0, 1}}, {{0, 1}, {2,-1}}},
+    {{{0, 1}, {2,-1}}, {{2,-1}, {0,-1}}}
+}
+glueball.rect = rect
+
+local chair = {
+    {{{0, 1}, {2, 1}}, {{2, 1}, {1, 1}}},
+    {{{1, 1}, {2, 1}}, {{2, 1}, {0,-1}}},
+    {{{0,-1}, {2, 1}}, {{2, 1}, {1,-1}}},
+    {{{1,-1}, {2, 1}}, {{2, 1}, {0, 1}}},
+    {{{1, 1}, {0, 1}}, {{0, 1}, {2, 1}}},
+    {{{2, 1}, {0, 1}}, {{0, 1}, {1,-1}}},
+    {{{1,-1}, {0, 1}}, {{0, 1}, {2,-1}}},
+    {{{2,-1}, {0, 1}}, {{0, 1}, {1, 1}}},
+    {{{2, 1}, {1, 1}}, {{1, 1}, {0, 1}}},
+    {{{0, 1}, {1, 1}}, {{1, 1}, {2,-1}}},
+    {{{2,-1}, {1, 1}}, {{1, 1}, {0,-1}}},
+    {{{0,-1}, {1, 1}}, {{1, 1}, {2, 1}}}
+}
+glueball.chair = chair
+
+local twChair = {
+    {{{0, 1}, {1, 1}}, {{1, 1}, {2, 1}}, {{2, 1}, {0, 1}}},
+    {{{1, 1}, {0,-1}}, {{0,-1}, {2, 1}}, {{2, 1}, {1, 1}}},
+    {{{0,-1}, {1,-1}}, {{1,-1}, {2, 1}}, {{2, 1}, {0,-1}}},
+    {{{1,-1}, {0, 1}}, {{0, 1}, {2, 1}}, {{2, 1}, {1,-1}}}
+}
+glueball.twChair = twChair
+
+local eight = {
+    {{{0, 1}, {1, 1}}, {{0,-1}, {1,-1}}},
+    {{{1, 1}, {0,-1}}, {{1,-1}, {0, 1}}},
+    {{{1, 1}, {2, 1}}, {{1,-1}, {2,-1}}},
+    {{{2, 1}, {1,-1}}, {{2,-1}, {1, 1}}},
+    {{{2, 1}, {0, 1}}, {{2,-1}, {0,-1}}},
+    {{{0, 1}, {2,-1}}, {{0,-1}, {2, 1}}}
+}
+glueball.eight = eight
+
+-- define coefficients for projecting to 
+local sqrt2 = math.sqrt(2)
+local sqrt3 = math.sqrt(3)
+local sqrt6 = math.sqrt(6)
+
+local plaqA1 = {1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6}
+local plaqE_1 = {1/sqrt3, 1/sqrt3, -1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3)}
+local plaqE_2 = {0, 0, 1/2, 1/2, -1/2, -1/2}
+local plaqT2_1 = {1/sqrt2, -1/sqrt2, 0, 0, 0, 0}
+local plaqT2_2 = {0, 0, 1/sqrt2, -1/sqrt2, 0, 0}
+local plaqT2_3 = {0, 0, 0, 0, 1/sqrt2, -1/sqrt2}
+
+local rectA1 = {1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6}
+local rectA2 = {1/sqrt6, -1/sqrt6, 1/sqrt6, -1/sqrt6, 1/sqrt6, -1/sqrt6}
+local rectE1_1 = {1/sqrt3, 1/sqrt3, -1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3)}
+local rectE1_2 = {0, 0, 1/2, 1/2, -1/1, -1/2}
+local rectE2_1 = {1/sqrt3, -1/sqrt3, -1/(2*sqrt3), 1/(2*sqrt3), -1/(2*sqrt3), 1/(2*sqrt3)}
+local rectE1_2 = {0, 0, 1/2, -1/2, -1/1, 1/2}
+
+local chairA1 = {1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3),
+            1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3)}
+local chairE_1 = {1/sqrt6, 1/sqrt6, -1/(2*sqrt6), -1/(2*sqrt6), -1/(2*sqrt6), -1/(2*sqrt6),
+            -1/(2*sqrt6), -1/(2*sqrt6), -1/(2*sqrt6), -1/(2*sqrt6), -1/(2*sqrt6), -1/(2*sqrt6)}
+local chairE_2 = {0, 0, 0, 0, 1/(2*sqrt2), 1/(2*sqrt2),
+            1/(2*sqrt2), 1/(2*sqrt2), -1/(2*sqrt2), -1/(2*sqrt2), -1/(2*sqrt2), -1/(2*sqrt2)}
+local chairT21_1 = {1/(2*sqrt3), -1/(2*sqrt3), 1/(2*sqrt3), -1/(2*sqrt3), 1/(2*sqrt3), -1/(2*sqrt3),
+            -1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), 1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3)}
+local chairT21_2 = {-1/sqrt6, 0, 1/sqrt6, 0, -1/sqrt6, 0, 0, 1/sqrt6, -1/sqrt6, 1/sqrt6, 0, 0}
+local chairT21_3 = {0, 1/sqrt6, 0, -1/sqrt6, 0, -1/sqrt6, 1/sqrt6, 0, 0, 0, -1/sqrt6, 1/sqrt6}
+
+local twChairA1 = {1/2, 1/2, 1/2, 1/2}
+local twChairT2_1 = {1/2, -1/2, 1/2, -1/2}
+local twChairT2_2 = {1/sqrt2, 0, -1/sqrt2, 0}
+local twChairT2_3 = {0, 1/sqrt2, 0, -1/sqrt2}
+
+local eightA1 = {1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6, 1/sqrt6}
+local eightE_1 = {1/sqrt3, 1/sqrt3, -1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3), -1/(2*sqrt3)}
+local eightE_2 = {0, 0, 1/2, 1/2, -1/2, -1/2}
+local eightT2_1 = {1/sqrt2, -1/sqrt2, 0, 0, 0, 0}
+local eightT2_2 = {0, 0, 1/sqrt2, -1/sqrt2, 0, 0}
+local eightT2_3 = {0, 0, 0, 0, 1/sqrt2, -1/sqrt2}
+
+-- define A1 VEVs
+local plaqA1VEV = {}
+plaqA1VEV[string.format("%.2f", 3.0)] = 7.258
+local rectA1VEV = {}
+rectA1VEV[string.format("%.2f", 3.0)] = 3.19
+local chairA1VEV = {}
+chairA1VEV[string.format("%.2f", 3.0)] = 2.256
+local twChairA1VEV = {}
+twChairA1VEV[string.format("%.2f", 3.0)] = 11.47
+local eightA1VEV = {}
+eightA1VEV[string.format("%.2f", 3.0)] = 7.104
+
+local function smearer(L, Nlvl, accu, imax)
+    local t = #L - 1
+    local boundary1 = hmc_mosaic.Boundaries(L, Nlvl, {1,1,1,1})
+    local function run(U, lambda)
+        local smeared
+        -- perform first smearing and reset boundaries
+        smeared = APE_smear(U, lambda, 1, accu, imax, t)
+        for mu = 1, #U do boundary1[mu]:where( function () smeared[mu]:set(U[mu]) end ) end
+        -- perfrom second smearing and reset boundaries
+        smeared = APE_smear(smeared, lambda, 1, accu, imax, t)
+        for mu = 1, #U do boundary1[mu]:where( function () smeared[mu]:set(U[mu]) end ) end
+        return smeared
+    end
+    return run
+end
+
+local function fuzzer(L, Nlvl, accu, imax)
+    local t = #L - 1
+    local boundary2 = hmc_mosaic.Boundaries(L, Nlvl, {2,2,2,2})
+    local function fuzz(U, lambda)
+        local fuzzed = {}
+        for mu = 0, #U - 1 do
+            if mu ~= axis then
+                local longLink = U[mu+1] * U[mu+1]:shift(mu, "from_forward")
+                local longStaples = L:ColorMatrix()
+                for nu = 0, #U - 1 do
+                    if nu ~= mu then
+                        -- construct L pieces
+                        local Unup = U[nu+1]:shift(mu, "from_forward")
+                        local Umup = U[mu+1]:shift(nu, "from_forward")
+                        local nu_mu = U[nu+1] * Umup
+                        local mu_nux = Umup * Unup:adjoin()
+                        local nux_mu = U[nu+1]:adjoin() * U[mu+1]
+                        local mu_nu = U[mu+1] * Unup
+                        -- create long staples
+                        local upper = nu_mu * mu_nux:shift(mu, "from_forward")
+                        local lower = nux_mu * mu_nu:shift(mu, "from_forward")
+                        -- summ over staples
+                        longStaples = upper + lower:shift(nu, "from_backward")
+                    end
+                end
+                longLink = longLink + lambda * longStaples
+                fuzzed[mu+1] = longLink:proj(accu, imax)
+            else
+                fuzzed[mu+1] = U[mu+1]
+            end
+        end
+        return fuzzed
+    end
+    local function run(U, lambda, axxu, imax)
+        local fuzzed
+        fuzzed = fuzz(U, lambda, accu, imax)
+        for mu = 1, #U do boundary2[mu]:where( function () fuzzed[mu]:set(U[mu]) end ) end
+        return fuzzed
+    end
+    return run
+end
+
+-- assumes A & B are lists of LT reals (over inner configs)
+function glueball.correlator(L, Nlvl)
+    local t = #L - 1
+    -- calculate number of subregions and subregion size
+    local NsubrgnT
+    if Nlvl[t+1] == 0 then NsubrgnT = 1
+    else NsubrgnT = Nlvl[t+1] end
+    local lvl_sizeT = L[t]/NsubrgnT
+    -- define coarse temporal lattice
+    local crsLT = qcd.lattice{NsubrgnT}
+    -- define correlator calculator
+    local function run(A, B, T)
+        local nCnfg = #A
+        local LT = A[1].lattice
+        -- consider all possible translations in time
+        local corrSum = 0
+        local count = 0
+        for shift = 0, lvl_sizeT - 1 do
+            local crsSctr0 = qcd.scatter(crsLT, LT, {crsLT:pcoord(0) * lvl_sizeT + shift})
+            local crsSctrT = qcd.scatter(crsLT, LT, {(crsLT:pcoord(0) * lvl_sizeT + shift + T) % L[t]})
+            local i0 = math.floor(shift / lvl_sizeT) + 1
+            local iT = math.floor((shift + T) / lvl_sizeT) + 1
+            if i0 == iT then
+                -- NOTE(gkanwar): Removed for now
+                -- local AB = crsSctrT(A[1]) * crsSctr0(B[1])
+                -- for n = 2, nCnfg do
+                --     AB = AB + crsSctrT(A[n]) * crsSctr0(B[n])
+                -- end
+                -- corrSum = corrSum + AB:sum() / nCnfg
+            else
+                local An = crsSctrT(A[1])
+                -- TODO(gkanwar): Is this the correct update to scatter?
+                -- local Bn = crsSctrT(B[1])
+                local Bn = crsSctr0(B[1])
+                for n = 2, nCnfg do
+                    An = An + crsSctrT(A[n])
+                    -- Bn = Bn + crsSctrT(B[n])
+                    Bn = Bn + crsSctr0(B[n])
+                end
+                corrSum = corrSum + (An * Bn):sum() -- / nCnfg^2
+                count = count + 1
+            end
+        end
+        -- NOTE(gkanwar): Added
+        corrSum = corrSum / count
+        return corrSum / L[t]
+    end
+    return run
+end
+
+function run_A1PP_24x24_corr(i0, Nc, Lx, Lt, beta, u0, n1, Nlvl, tag)
+    local timer = create_timer('static qqbar')
+    -- where to read cfgs
+    local cfgbase = string.format("su%d_d4_w_b%.2f_u%.3f_%d_%d", Nc, beta, u0, Lx, Lt)
+    local cfghdf5 = string.format("cfgs/"..cfgbase.."/"..cfgbase.."_cfg_%d.h5", i0)
+    local cfgbaseh5 = string.format(cfgbase.."/cfg/%d", i0)
+    local hdf5params = { method = "phdf5" }
+    -- build lattice
+    local L = qcd.lattice{Lx, Lx, Lx, Lt}
+    local LT = qcd.lattice{Lt}
+    -- define leaf loops
+    local plaqPP = glueball.leafLoops(L, LT, plaq, 1, 1)
+    local rectPP = glueball.leafLoops(L, LT, rect, 1, 1)
+    local chairPP = glueball.leafLoops(L, LT, chair, 1, 1)
+    local twChairPP = glueball.leafLoops(L, LT, twChair, 1, 1)
+    local eightPP = glueball.leafLoops(L, LT, eight, 1, 1)
+    -- define smearers / fuzzers
+    local smear2 = smearer(L, Nlvl, 1e-9, 1000)
+    local fuzz = fuzzer(L, Nlvl, 1e-9, 1000)
+    -- create correlator calculator
+    local corr = glueball.correlator(L, Nlvl)
+    -- gauge field
+    local U = {}
+    local sn
+    local fsn
+    -- read cfgs and measure all the temporal Wilson lines
+    local phi = {}
+    local nMeas = (n1+1)
+    --for i0 = 0, n0 - 1 do
+    local name = string.format(cfghdf5, i0)
+    -- read outermost gauge field
+    local h5_reader = qcd.hdf5.Reader(name, hdf5params)
+    for mu = 0, #L - 1 do
+        U[mu+1] = h5_reader:read(string.format(cfgbaseh5,i0).."/mu"..tostring(mu), {lattice=L})
+    end
+    printf("N0 = %d \n", i0)
+    sn = smear2(U, 0.1)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(sn, u0))
+    phi[1] = {glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)]}
+    phi[7] = {glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)]}
+    phi[13] = {glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)]}
+    phi[19] = {glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)]}
+    fsn = fuzz(sn, 0.5)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(fsn, u0))
+    phi[4] = {glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)]}
+    phi[10] = {glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)]}
+    phi[16] = {glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)]}
+    phi[22] = {glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)]}
+    sn = smear2(sn, 0.1)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(sn, u0))
+    phi[2] = {glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)]}
+    phi[8] = {glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)]}
+    phi[14] = {glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)]}
+    phi[20] = {glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)]}
+    fsn = fuzz(sn, 0.5)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(fsn, u0))
+    phi[5] = {glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)]}
+    phi[11] = {glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)]}
+    phi[17] = {glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)]}
+    phi[23] = {glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)]}
+    sn = smear2(sn, 0.1)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(sn, u0))
+    phi[3] = {glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)]}
+    phi[9] = {glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)]}
+    phi[15] = {glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)]}
+    phi[21] = {glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)]}
+    fsn = fuzz(sn, 0.5)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(fsn, u0))
+    phi[6] = {glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)]}
+    phi[12] = {glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)]}
+    phi[18] = {glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)]}
+    phi[24] = {glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)]}
+    -- read multilevel gauge fields
+    for i1 = 0, n1 - 1 do
+        for mu = 0, #L - 1 do
+            U[mu+1] = h5_reader:read(string.format(cfgbaseh5,i0).."/"..tostring(i1).."/mu"..tostring(mu), {lattice=L})
+        end
+        -- measure temporal line in each subregion
+        printf("N0 = %d, N1 = %d \n", i0, i1)
+
+        sn = smear2(U, 0.1)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(sn, u0))
+        table.insert(phi[1], glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[7], glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[13], glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[19], glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)])
+
+        fsn = fuzz(sn, 0.5)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(fsn, u0))
+        table.insert(phi[4], glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[10], glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[16], glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[22], glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)])
+
+        sn = smear2(sn, 0.1)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(sn, u0))
+        table.insert(phi[2], glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[8], glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[14], glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[20], glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)])
+
+        fsn = fuzz(sn, 0.5)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(fsn, u0))
+        table.insert(phi[5], glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[11], glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[17], glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[23], glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)])
+
+        sn = smear2(sn, 0.1)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(sn, u0))
+        table.insert(phi[3], glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[9], glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[15], glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[21], glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)])
+
+        fsn = fuzz(sn, 0.5)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(fsn, u0))
+        table.insert(phi[6], glueball.projIrrep(plaqPP(plaqs), plaqA1) - plaqA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[12], glueball.projIrrep(rectPP(plaqs), rectA1) - rectA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[18], glueball.projIrrep(chairPP(plaqs), chairA1) - chairA1VEV[string.format("%.2f", beta)])
+        table.insert(phi[24], glueball.projIrrep(twChairPP(plaqs), twChairA1) - twChairA1VEV[string.format("%.2f", beta)])
+    end
+    local C = {}; for T = 1, Lt do C[T] = matrix.real{24, 24} end
+    for i = 0, 24 - 1 do
+        for j = 0, 24 - 1 do
+            for T = 0, Lt - 1 do
+                C[T+1][{i,j}] = corr(phi[i+1], phi[j+1], T)
+            end
+        end
+    end
+    h5_reader:close()
+    -- where to write measurements
+    os.execute("mkdir -p meas/"..cfgbase)
+    local meashdf5 = string.format("meas/"..cfgbase.."/"..cfgbase..tag.."%_d.h5", i0)
+    local measbaseh5 = cfgbase.."/cfg/meas/"
+    local outname = string.format(meashdf5, i0)
+    local h5_writer = qcd.hdf5.Writer(outname, hdf5params)
+    -- write results to hdf5
+    for T = 0, Lt - 1 do
+    	h5_writer:write(measbaseh5.."C"..tostring(T), C[T+1])
+    end
+    -- write results
+    h5_writer:close()
+
+    timer()
+    printf("# DONE\n")
+end
+
+function run_A1PP_24x24_corr_stat(n0, Nc, Lx, Lt, beta, u0, Nlvl, tag)
+    local timer = create_timer('static qqbar')
+    -- where to read cfgs
+    local cfgbase = string.format("su%d_d4_w_b%.2f_u%.3f_%d_%d", Nc, beta, u0, Lx, Lt)
+    local hdf5params = { method = "phdf5" }
+    -- keep track of data
+    local CTs = {}; for T = 1, Lt do CTs[T] = {} end
+    -- keep track of sums
+    local CTAv = {}; for T = 1, Lt do CTAv[T] = matrix.real{24, 24} end
+    for n = 0, n0 - 1 do
+        local meashdf5 = string.format("meas/"..cfgbase.."/"..cfgbase..tag.."_%d.h5", n)
+        local measbaseh5 = cfgbase.."/cfg/meas/"
+        local name = string.format(meashdf5, n)
+        -- read data
+        local h5_reader = qcd.hdf5.Reader(name, hdf5params)
+        for T = 0, Lt - 1 do
+            local CT = h5_reader:read(measbaseh5.."C"..tostring(T))
+            CTAv[T+1] = CTAv[T+1] + CT
+            table.insert(CTs[T+1], CT)
+        end
+        h5_reader:close()
+    end
+    -- calculate averages
+    for T = 0, Lt - 1 do
+    	CTAv[T+1] = CTAv[T+1] / n0
+    end
+    -- calculate standard deviations
+    local CTStd = {}; for T = 1, Lt do CTStd[T] = matrix.real{24, 24} end
+    for n = 0, n0 - 1 do
+    	for T = 0, Lt - 1 do
+    	    local err = (CTs[T+1][n+1] - CTAv[T+1])
+    	    CTStd[T+1] = CTStd[T+1] + err*err
+    	end
+    end
+    for i = 0, 24 - 1 do
+        for j = 0, 24 - 1 do
+            for T = 0, Lt - 1 do
+                CTStd[T+1][{i,j}] = math.sqrt(CTStd[T+1][{i,j}] / (n0 * (n0 - 1)))
+            end
+        end
+    end
+    -- print results
+    for T = 0, Lt - 1 do
+        for i = 0, 24 - 1 do
+            for j = 0, 24 - 1 do
+                printf(string.format("C"..tostring(T).."[%d,%d] = ",i,j)..tostring(CTAv[T+1][{i,j}])..
+                    " +/- "..tostring(CTStd[T+1][{i,j}]).."\n")
+                printf("\n\n")
+            end
+        end
+    end
+    -- print in mathematica format
+    for T = 0, Lt - 1 do
+        printf("C"..tostring(T).." = {\n")
+        printf("{%.1f", tostring(CTAv[T+1][{0,0}]))
+        for j = 1, 24 - 1 do
+            printf(",%.1f", tostring(CTAv[T+1][{0,j}]))
+        end
+        printf("}")
+        for i = 1, 24 - 1 do
+            printf(",\n{%.1f", tostring(CTAv[T+1][{i,0}]))
+            for j = 1, 24 - 1 do
+                printf(",%.1f", tostring(CTAv[T+1][{i,j}]))
+            end
+            printf("}")
+        end
+        printf("\n}")
+        printf("\n\n")
+    end
+
+    timer()
+    printf("# DONE\n")
+end
+
+function run_A1_VEV(i0, Nc, Lx, Lt, beta, u0, n1, Nlvl, tag)
+    local timer = create_timer('static qqbar')
+    -- where to read cfgs
+    local cfgbase = string.format("su%d_d4_w_b%.2f_u%.3f_%d_%d", Nc, beta, u0, Lx, Lt)
+    local cfghdf5 = string.format("cfgs/"..cfgbase.."/"..cfgbase.."_cfg_%d.h5", i0)
+    local cfgbaseh5 = string.format(cfgbase.."/cfg/%d", i0)
+    local hdf5params = { method = "phdf5" }
+    -- build lattice
+    local L = qcd.lattice{Lx, Lx, Lx, Lt}
+    local LT = qcd.lattice{Lt}
+    -- define leaf loops
+    local plaqPP = glueball.leafLoops(L, LT, plaq, 1, 1)
+    local rectPP = glueball.leafLoops(L, LT, rect, 1, 1)
+    local chairPP = glueball.leafLoops(L, LT, chair, 1, 1)
+    local twChairPP = glueball.leafLoops(L, LT, twChair, 1, 1)
+    local eightPP = glueball.leafLoops(L, LT, eight, 1, 1)
+    -- gauge field
+    local U = {}
+    local plaqs
+    -- read cfgs and measure all the temporal Wilson lines
+    local nMeas = (n1+1)
+    --for i0 = 0, n0 - 1 do
+    local plaqSum = 0
+    local rectSum = 0
+    local chairSum = 0
+    local twChairSum = 0
+    local eightSum = 0
+    local name = string.format(cfghdf5, i0)
+    -- read outermost gauge field
+    local h5_reader = qcd.hdf5.Reader(name, hdf5params)
+    for mu = 0, #L - 1 do
+        U[mu+1] = h5_reader:read(string.format(cfgbaseh5,i0).."/mu"..tostring(mu), {lattice=L})
+    end
+    printf("N0 = %d \n", i0)
+    plaqs = glueball.getPlaqs(glueball.tadpoleImproved(U, u0))
+    plaqSum = plaqSum + glueball.projIrrep(plaqPP(plaqs), plaqA1):sum() / Lt
+    rectSum = rectSum + glueball.projIrrep(rectPP(plaqs), rectA1):sum() / Lt
+    chairSum = chairSum + glueball.projIrrep(rectPP(plaqs), chairA1):sum() / Lt
+    twChairSum = twChairSum + glueball.projIrrep(twChairPP(plaqs), twChairA1):sum() / Lt
+    eightSum = eightSum + glueball.projIrrep(eightPP(plaqs), eightA1):sum() / Lt
+    -- read multilevel gauge fields
+    for i1 = 0, n1 - 1 do
+        for mu = 0, #L - 1 do
+            U[mu+1] = h5_reader:read(string.format(cfgbaseh5,i0).."/"..tostring(i1).."/mu"..tostring(mu), {lattice=L})
+        end
+        -- measure temporal line in each subregion
+        printf("N0 = %d, N1 = %d \n", i0, i1)
+        plaqs = glueball.getPlaqs(glueball.tadpoleImproved(U, u0))
+        plaqSum = plaqSum + glueball.projIrrep(plaqPP(plaqs), plaqA1):sum() / Lt
+        rectSum = rectSum + glueball.projIrrep(rectPP(plaqs), rectA1):sum() / Lt
+        chairSum = chairSum + glueball.projIrrep(rectPP(plaqs), chairA1):sum() / Lt
+        twChairSum = twChairSum + glueball.projIrrep(twChairPP(plaqs), twChairA1):sum() / Lt
+        eightSum = eightSum + glueball.projIrrep(eightPP(plaqs), eightA1):sum() / Lt
+    end
+    h5_reader:close()
+    -- average sums
+    plaqSum = plaqSum / nMeas
+    rectSum = rectSum / nMeas
+    chairSum = chairSum / nMeas
+    twChairSum = twChairSum / nMeas
+    eightSum = eightSum / nMeas
+    -- where to write measurements
+    os.execute("mkdir -p meas/"..cfgbase)
+    local meashdf5 = string.format("meas/"..cfgbase.."/"..cfgbase..tag.."_%d.h5", i0)
+    local measbaseh5 = cfgbase.."/cfg/meas/"
+    local plaqA1_h5 = measbaseh5.."plaqA1"
+    local rectA1_h5 = measbaseh5.."rectA1"
+    local chairA1_h5 = measbaseh5.."chairA1"
+    local twChairA1_h5 = measbaseh5.."twChairA1"
+    local eightA1_h5 = measbaseh5.."eightA1"
+    local outname = string.format(meashdf5, i0)
+    local h5_writer = qcd.hdf5.Writer(outname, hdf5params)
+    -- print results
+    printf("plaq A1:    "..tostring(plaqSum).."\n")
+    h5_writer:write(plaqA1_h5, plaqSum)
+
+    printf("rect A1:    "..tostring(rectSum).."\n")
+    h5_writer:write(rectA1_h5, rectSum)
+
+    printf("chair A1:   "..tostring(chairSum).."\n")
+    h5_writer:write(chairA1_h5, chairSum)
+
+    printf("twChair A1: "..tostring(twChairSum).."\n")
+    h5_writer:write(twChairA1_h5, twChairSum)
+
+    printf("eight A1:   "..tostring(eightSum).."\n")
+    h5_writer:write(eightA1_h5, eightSum)
+    -- write results
+    h5_writer:close()
+
+    timer()
+    printf("# DONE\n")
+end
+
+-- assumes n0 outer configurations have been calculated already
+function run_A1_VEV_stat(n0, Nc, Lx, Lt, beta, u0, Nlvl, tag)
+    local timer = create_timer('static qqbar')
+    -- where to read cfgs
+    local cfgbase = string.format("su%d_d4_w_b%.2f_u%.3f_%d_%d", Nc, beta, u0, Lx, Lt)
+    local hdf5params = { method = "phdf5" }
+    -- keep track of data
+    local plaqs = {}
+    local rects = {}
+    local chairs = {}
+    local twChairs = {}
+    local eights = {}
+    -- keep track of sums
+    local plaqAv = 0
+    local rectAv = 0
+    local chairAv = 0
+    local twChairAv = 0
+    local eightAv = 0
+    for n = 0, n0 - 1 do
+        local meashdf5 = string.format("meas/"..cfgbase.."/"..cfgbase..tag.."_%d.h5", n)
+        local measbaseh5 = cfgbase.."/cfg/meas/"
+        local plaqA1_h5 = measbaseh5.."plaqA1"
+        local rectA1_h5 = measbaseh5.."rectA1"
+        local chairA1_h5 = measbaseh5.."chairA1"
+        local twChairA1_h5 = measbaseh5.."twChairA1"
+        local eightA1_h5 = measbaseh5.."eightA1"
+        local name = string.format(meashdf5, n)
+        -- read data
+        local h5_reader = qcd.hdf5.Reader(name, hdf5params)
+
+        local plaq = h5_reader:read(plaqA1_h5)
+        plaqAv = plaqAv + plaq
+        table.insert(plaqs, plaq)
+
+        local rect = h5_reader:read(rectA1_h5)
+        rectAv = rectAv + rect
+        table.insert(rects, rect)
+
+        local chair = h5_reader:read(chairA1_h5)
+        chairAv = chairAv + chair
+        table.insert(chairs, chair)
+
+        local twChair = h5_reader:read(twChairA1_h5)
+        twChairAv = twChairAv + twChair
+        table.insert(twChairs, twChair)
+
+        local eight = h5_reader:read(eightA1_h5)
+        eightAv = eightAv + eight
+        table.insert(eights, eight)
+
+        h5_reader:close()
+    end
+    -- calculate averages
+    plaqAv = plaqAv / n0
+    rectAv = rectAv / n0
+    chairAv = chairAv / n0
+    twChairAv = twChairAv / n0
+    eightAv = eightAv / n0
+    -- calculate standard deviations
+    local plaqStd = 0
+    local rectStd = 0
+    local chairStd = 0
+    local twChairStd = 0
+    local eightStd = 0
+    for n = 0, n0 - 1 do
+        plaqStd = plaqStd + (plaqs[n+1] - plaqAv)^2
+        rectStd = rectStd + (rects[n+1] - rectAv)^2
+        chairStd = plaqStd + (plaqs[n+1] - plaqAv)^2
+        twChairStd = twChairStd + (twChairs[n+1] - twChairAv)^2
+        eightStd = plaqStd + (plaqs[n+1] - plaqAv)^2
+    end
+    plaqStd = math.sqrt(plaqStd / (n0 * (n0 - 1)))
+    rectStd = math.sqrt(rectStd / (n0 * (n0 - 1)))
+    chairStd = math.sqrt(chairStd / (n0 * (n0 - 1)))
+    twChairStd = math.sqrt(twChairStd / (n0 * (n0 - 1)))
+    eightStd = math.sqrt(eightStd / (n0 * (n0 - 1)))
+    -- print results
+    printf("plaq A1:    "..tostring(plaqAv).." +/- "..tostring(plaqStd).."\n")
+    printf("rect A1:    "..tostring(rectAv).." +/- "..tostring(rectStd).."\n")
+    printf("chair A1:   "..tostring(chairAv).." +/- "..tostring(chairStd).."\n")
+    printf("twChair A1: "..tostring(twChairAv).." +/- "..tostring(twChairStd).."\n")
+    printf("eight A1:   "..tostring(eightAv).." +/- "..tostring(eightStd).."\n")
+
+    timer()
+    printf("# DONE\n")
+end
+

@@ -1,0 +1,378 @@
+#!/usr/bin/env qlua
+
+-- calculates transfer matrix ratios for temporal boundaries
+
+r_ratio = {}
+
+function addElt(list, elt)
+   local newList = {unpack(list)}
+   newList[#list + 1] = elt
+   return newList
+end
+
+function maskT2(U)
+   local newU = {}
+   for d = 1, #U - 1 do newU[d] = U[d] end
+   return newU
+end
+
+-- assumes only temporal boundaries
+function r_ratio.LinkBoundaries(L, Lt2, Nlvl, nu, level)
+   local t = #L - 1
+   local lvl_size = {}; lvl_size[t+1] = L[t]/Nlvl[t+1]
+   local notboundary
+   local boundary_sites
+   if nu == t then
+      if level == 2 then
+         boundary_sites = L:Subset(L:Int(0))
+      else
+         notboundary = (L:pcoord(t) % lvl_size[t+1])
+         boundary_sites = L:Subset(qcd.ne(notboundary, L[t]-1))
+      end
+   elseif nu == t+1 then
+      boundary_sites = Lt2:Subset(Lt2:Int(0))
+   else
+      if level == 2 then
+         notboundary = L:pcoord(t) % lvl_size[t+1]
+         boundary_sites = L:Subset(qcd.eq(notboundary, 0))
+      elseif level == 1 then
+         notboundary = (L:pcoord(t) % lvl_size[t+1])
+         boundary_sites = L:Subset(qcd.ne(notboundary, L[t]-1))
+      else
+         boundary_sites = L:Subset("all")
+      end
+   end
+   return boundary_sites
+end
+
+-- assumes only temporal boundaries
+function r_ratio.LinkNoBoundaries(L, Lt2, Nlvl, nu, level)
+   local t = #L - 1
+   local lvl_size = {}; lvl_size[t+1] = L[t]/Nlvl[t+1]
+   local notboundary
+   local notboundary_sites
+   if nu == t then
+      if level == 2 then
+         notboundary_sites = L:Subset("all")
+      else
+         notboundary = (L:pcoord(t) % lvl_size[t+1])
+         notboundary_sites = L:Subset(qcd.eq(notboundary, L[t]-1))
+      end
+   elseif nu == t+1 then
+      notboundary_sites = Lt2:Subset("all")
+   else
+      if level == 2 then
+         notboundary = L:pcoord(t) % lvl_size[t+1]
+         notboundary_sites = L:Subset(qcd.ne(notboundary, 0))
+      elseif level == 1 then
+         notboundary = (L:pcoord(t) % lvl_size[t+1])
+         notboundary_sites = L:Subset(qcd.eq(notboundary, L[t]-1))
+      else
+         notboundary_sites = L:Subset(L:Int(0))
+      end
+   end
+   return notboundary_sites
+end
+
+-- assumes only temporal boundaries
+function r_ratio.transferRatio(hmc, tau, steps, Ntraj, Ntherm, N0, N1, N2, L, Nlvl)
+   local t = #L - 1
+   local t2 = #L
+   -- define coarse lattice
+   local Nsubrgn = {}
+   for mu = 0, #L - 1 do
+      if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+      else Nsubrgn[mu+1] = Nlvl[mu+1] end
+   end
+   local crsL = qcd.lattice(Nsubrgn)
+   -- define Lt2
+   local dimTs = {}
+   for mu = 0, t - 1 do dimTs[mu+1] = L[mu] end
+   local Lt2 = qcd.lattice(addElt(dimTs, Nlvl[t+1]))
+   -- get gather/scatter object2
+   local crsGS = r_ratio.CoarseGatherScatter(L, Lt2, crsL, Nlvl)
+   local crsT2Gthr = crsGS["gatherT2"]
+   local lvl_size = crsGS["lvl_size"]
+   -- calculate L^3
+   local Vspc = 1
+   for mu = 0, t - 1 do Vspc = Vspc * L[mu] end
+   -- create modified action scatters
+   local Iy0 = {}; local Ixd = {}; local IP = {}
+   for mu = 0, t - 1 do
+      Iy0[mu+1] = Lt2:pcoord(mu)
+      Ixd[mu+1] = Lt2:pcoord(mu)
+      IP[mu+1] = (Lt2[mu] - Lt2:pcoord(mu)) % Lt2[mu]
+   end
+   Iy0[t+1] = (Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]-1
+   Ixd[t+1] = ((Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]) % L[t]
+   IP[t+1] = ((Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]) % L[t]
+   local y0Sctr = qcd.scatter(Lt2, L, Iy0)
+   local xdSctr = qcd.scatter(Lt2, L, Ixd)
+   local PSctr = qcd.scatter(Lt2, L, IP)
+   -- calculate additional action modification
+   local function O(U, b, r)
+      local O = Lt2:Real(0.0)
+      local Ut2 = U[t2+1]
+      local Ut = y0Sctr(U[t+1])
+      -- collect plaquettes
+      for mu = 0, t - 1 do
+         local Ut2F = Ut2:shift(mu, "from_forward")
+         local UtF = Ut:shift(mu, "from_forward")
+         local Uy0 = y0Sctr(U[mu+1])
+         local Uxd = xdSctr(U[mu+1])
+         local UP = PSctr(U[mu+1]):shift(mu, "to_forward")
+         O = O + (Ut * Uxd * UtF:adjoin() * Uy0:adjoin()
+               - Ut2 * UP:adjoin() * Ut2F:adjoin() * Uy0:adjoin()):trace():real()
+      end
+      return (b(t) / Nc) * (-1 / Vspc) * crsT2Gtr:add(O)
+   end
+   -- set up 3 level integrators
+   local traj0 = hmc(tau, steps, L, Lt2, crsL, Nlvl, 0)
+   local traj1 = hmc(tau, steps, L, Lt2, crsL, Nlvl, 1)
+   local traj2 = hmc(tau, steps, L, Lt2, crsL, Nlvl, 2)
+   local function genConfig(H, U, r, level)
+      if level == 2 then
+         for i = 1, Ntraj do U, log = traj2(H, U, r + 0.5/Vspc) end
+      elseif level == 1 then
+         for i = 1, Ntraj do U, log = traj1(H, U, r + 0.5/Vspc) end
+      else
+         for i = 1, Ntraj do U, log = traj0(H, U, r + 0.5/Vspc) end
+      end
+      return U
+   end
+   local function run(H, xU)
+      local U = {}
+      -- copy old links
+      for mu = 0, t do U[mu+1] = L:ColorMatrix(); U[mu+1]:set(xU[mu+1]) end
+      -- add 2nd temporal links by copying original temporal links
+      U[t2+1] = y0Sctr(xU[t+1])
+      -- calculate Rbar's
+      local R = crsL:Real(1.0)
+      for k = 1, Vspc do
+         local r = -0.5 + (k - 0.5) / Vspc
+         -- thermalize gauge configurations
+         printf("thermalizing with r = %10.6f\n", r)
+         for j = 1, Ntherm do
+            U = genConfig(H, U, r, 2)
+         end
+         printf("performing 3-level integration\n")
+         local O2 = crsL:Real(0.0)
+         for n2 = 1, N2 do
+            local O1 = crsL:Real(0.0)
+            for n1 = 1, N1 do
+               local O0 = crsL:Real(0.0)
+               for n0 = 1, N0 do
+                  O0 = O0 + O(U, H.b(1,1), 0.0)
+                  U = genConfig(H, U, r, 0)
+               end
+               O1 = O1 + O0 / N0
+               U = genConfig(H, U, r, 1)
+            end
+            O2 = O2 + O1 / N1
+            U = genConfig(H, U, r, 2)
+         end
+         R = R * O2 / N2
+      end
+      return R
+   end
+   return run
+end
+
+function r_ratio.CoarseGatherScatter(L, Lt2, crsL, Nlvl)
+   local t = #L - 1
+   local lvl_size = {}
+   for mu = 0, t do
+      if Nlvl[mu+1] == 0 then lvl_size[mu+1] = L[mu]
+      else lvl_size[mu+1] = L[mu]/Nlvl[mu+1] end
+   end
+   local I = {}
+   for mu = 0, t do I[mu+1] = L:pcoord(mu) / lvl_size[mu+1] end
+   local crsGS = {}
+   crsGS["gather"] = qcd.gather(crsL, L, I)
+   crsGS["scatter"] = qcd.scatter(L, crsL, I)
+
+   local It2 = {}
+   for mu = 0, t - 1 do It2[mu+1] = Lt2:pcoord(mu) / lvl_size[mu+1] end
+   It2[t+1] = Lt2:pcoord(t)
+   crsGS["gatherT2"] = qcd.gather(crsL, Lt2, It2)
+   crsGS["scatterT2"] = qcd.scatter(Lt2, crsL, It2)
+
+   crsGS["lvl_size"] = lvl_size
+   return crsGS
+end
+
+-- implicity assumes temporal boundaries only
+function r_ratio.CoarseAcceptReject(traj, tau, steps, L, Lt2, crsL, Nlvl, level)
+   local t = #L - 1
+   local t2 = #L
+   -- get gather/scatter object2
+   local crsGS = r_ratio.CoarseGatherScatter(L, Lt2, crsL, Nlvl)
+   local crsGthr = crsGS["gather"]
+   local crsSctr = crsGS["scatter"]
+   local crsT2Gthr = crsGS["gatherT2"]
+   local crsT2Sctr = crsGS["scatterT2"]
+   local lvl_size = crsGS["lvl_size"]
+   -- create modified action scatters
+   local Iy0 = {}; local Ixd = {}; local IP = {}
+   for mu = 0, t - 1 do
+      Iy0[mu+1] = Lt2:pcoord(mu)
+      Ixd[mu+1] = Lt2:pcoord(mu)
+      IP[mu+1] = (Lt2[mu] - Lt2:pcoord(mu)) % Lt2[mu]
+   end
+   Iy0[t+1] = (Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]-1
+   Ixd[t+1] = ((Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]) % L[t]
+   IP[t+1] = ((Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]) % L[t]
+   local y0Sctr = qcd.scatter(Lt2, L, Iy0)
+   local xdSctr = qcd.scatter(Lt2, L, Ixd)
+   local PSctr = qcd.scatter(Lt2, L, IP)
+   -- calculate additional action modification
+   local function modS(U, b, r)
+      local Nc = U[1]:colors()
+      local S = Lt2:Real(0.0)
+      local Ut2 = U[t2+1]
+      local Ut = y0Sctr(U[t+1])
+      -- collect plaquettes
+      for mu = 0, t - 1 do
+         local Ut2F = Ut2:shift(mu, "from_forward")
+         local UtF = Ut:shift(mu, "from_forward")
+         local Uy0 = y0Sctr(U[mu+1])
+         local Uxd = xdSctr(U[mu+1])
+         local UP = PSctr(U[mu+1]):shift(mu, "to_forward")
+         S = S + (Ut * Uxd * UtF:adjoin() * Uy0:adjoin()
+               - Ut2 * UP:adjoin() * Ut2F:adjoin() * Uy0:adjoin()):trace():real()
+      end
+      return (b / Nc) * (0.5 - r) * S
+   end
+   -- function to run one trajectory
+   local trajRun = traj(tau, steps, L, Lt2, Nlvl, level)
+   local function run(H, U, r)
+      local R = H.newMomentum(U)
+      -- evolve trajectory
+      local X, P = trajRun(H, U, R, r)
+      -- create new gauge field
+      local U_new = {}  
+      for mu = 0, t do
+         U_new[mu+1] = L:ColorMatrix(); U_new[mu+1]:set(U[mu+1])
+      end
+      U_new[t2+1] = Lt2:ColorMatrix(); U_new[t2+1]:set(U[t2+1])
+      -- calculate the accept/reject probability of each subregion
+      local deltaH = H.lattDelta({x = maskT2(U), p = maskT2(R), t = 0.0}, {x = maskT2(X), p = maskT2(P), t = tau})
+      local deltaCrs = crsGthr:add(deltaH)
+      -- add modifications to action
+      deltaCrs = deltaCrs + 0.5 * crsT2Gthr:add(qcd.dot(P[t2+1],P[t2+1]):real() - qcd.dot(R[t2+1],R[t2+1]):real())
+      deltaCrs = deltaCrs + crsT2Gthr:add(modS(X, H.b(1,1)(0), r) - modS(U, H.b(1,1)(0), r))
+      -- calculate acceptance probability
+      local prob = (-deltaCrs):exp()
+      -- generate a random number in [0,1] for every coarse lattice point
+      -- TODO: replace this with an H function that has crsL:Random_Real() built in
+      local rand = H.latRandom(crsL)
+      -- accept/reject subregions w/ coarse gather
+      local accept = qcd.lt(rand,prob)
+      for mu = 0, t do
+         L:Subset(crsSctr(accept)):where( function () U_new[mu+1]:set(X[mu+1]) end )
+      end
+      Lt2:Subset(crsT2Sctr(accept)):where( function () U_new[t2+1]:set(X[t2+1]) end )
+      -- local fullUr, fullstat = hmc_mosaic.accept(H, {x = U, p = R, t = 0.0}, {x = X, p = P, t = tau})
+      -- printf("original deltaH %f \n", fullstat.deltaH)
+      -- fullUr, fullstat = hmc_mosaic.accept(H, {x = U, p = R, t = 0.0}, {x = U_new, p = P_new, t = tau})
+      -- printf("mosaic deltaH %f \n", fullstat.deltaH)
+      -- new gauge field complete
+      return U_new, fullstat
+   end
+   return run
+end
+
+-- assumes only temporal boundaries
+-- also assumes plaquette action
+function r_ratio.trajLeapFrog(tau, steps, L, Lt2, Nlvl, level)
+   local t = #L - 1
+   local t2 = #L
+   local lvl_size = {}; lvl_size[t+1] = L[t]/Nlvl[t+1]
+   local notboundary_links = {}; local boundary_links = {}
+   for mu = 0, t2 do
+      notboundary_links[mu+1] = r_ratio.LinkNoBoundaries(L, Lt2, Nlvl, mu, level)
+      boundary_links[mu+1] = r_ratio.LinkBoundaries(L, Lt2, Nlvl, mu, level)
+   end
+   -- create modified action scatters
+   local Iy0 = {}; local IP = {}
+   for mu = 0, t - 1 do
+      Iy0[mu+1] = Lt2:pcoord(mu)
+      IP[mu+1] = (Lt2[mu] - Lt2:pcoord(mu)) % Lt2[mu]
+   end
+   Iy0[t+1] = (Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]-1
+   IP[t+1] = ((Lt2:pcoord(t) * lvl_size[t+1]) + lvl_size[t+1]) % L[t]
+   local y0Sctr = qcd.scatter(Lt2, L, Iy0)
+   local PSctr = qcd.scatter(Lt2, L, IP)
+   -- modify force for modified action
+   local function modifyF(F, U, b, t, r)
+      local t = #L - 1
+      local lvl_size = {}; lvl_size[t+1] = L[t]/Nlvl[t+1]
+      local Nc = U[1]:colors()
+      -- modify temporal force at time-slice y0
+      local y0 = L:pcoord(t) % lvl_size[t+1]
+      L:Subset(qcd.eq(y0, L[t]-1)):where( function () F[t+1]:set(F[t+1] * (0.5 + r)) end )
+      -- calculate second temporal force
+      local Ft2 = Lt2:ColorMatrix(0.0)
+      local Ut2 = U[t2+1]
+      -- collect staples
+      for mu = 0, t - 1 do
+         local Ut2F = Ut2:shift(mu, "from_forward")
+         local Ut2B = Ut2:shift(mu, "to_forward")
+         local Uy0 = y0Sctr(U[mu+1])
+         local Uy0B = Uy0:shift(mu, "to_forward")
+         local UP = PSctr(U[mu+1])
+         local UPF = UP:shift(mu, "to_forward")
+         Ft2 = Ft2 + UPF:adjoin() * Ut2F:adjoin() * Uy0:adjoin()
+                   + UP * Ut2B:adjoin() * Uy0B
+      end
+      -- multiply in the final link and fenagle into force term
+      Ft2 = Ut2 * Ft2
+      Ft2 = Ft2 - Ft2:adjoin()
+      F[t2+1] = complex(0,-1/(2*Nc)) * b(t) * Ft2
+      return F
+   end
+   local dt = tau / steps
+   local function tHMC(k)
+      return k * tau / steps
+   end
+   local function runVV(H,xU,xR,r)
+      local i
+      local X = {}
+      local P = {}
+      local Xwb = {}
+      local Pwb = {}
+      for mu = 0, t do
+         X[mu+1] = L:ColorMatrix(complex(0,0))
+         P[mu+1] = L:ColorMatrix(complex(0,0))
+      end
+      X[t2+1] = Lt2:ColorMatrix(complex(0,0))
+      P[t2+1] = Lt2:ColorMatrix(complex(0,0))
+      -- insert original boundary into new gauge field
+      for mu = 1, #xR do boundary_links[mu]:where( function () P[mu]:set(xR[mu]) end ) end
+      for mu = 1, #xU do boundary_links[mu]:where( function () X[mu]:set(xU[mu]) end ) end
+      -- first step
+      Xwb = H.updateX(xR, xU, tHMC(0), tHMC(0.5))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(xR[mu]) end ) end
+      -- more steps
+      for i = 2, steps do
+         Pwb = H.updatePwithF(P, X, tHMC(i-1.5), tHMC(1), modifyF(H.getForce(maskT2(X), tHMC(i-1.5)), X, H.b(1,1), tHMC(i-1.5), r))
+         for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+         Xwb = H.updateX(P, X, tHMC(i-1.5), tHMC(1))
+         for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      end
+      Pwb = H.updatePwithF(P, X, tHMC(steps-0.5), tHMC(1), modifyF(H.getForce(maskT2(X), tHMC(steps-0.5)), X, H.b(1,1), tHMC(steps-0.5), r))
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+      Xwb = H.updateX(P, X, tHMC(steps-0.5), tHMC(0.5))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+--      hmc_mosaic.printfield(X, L, "X")
+--      hmc_mosaic.printfield(H.toGroup(X), L, "ProjectedX")
+      return H.toGroup(X), P
+      --      return X, P
+      end
+   return runVV
+end
+
+function r_ratio.leapfrog(tau, steps, L, Lt2, crsL, Nlvl, level)
+   return r_ratio.CoarseAcceptReject(r_ratio.trajLeapFrog, tau, steps, L, Lt2, crsL, Nlvl, level)
+end

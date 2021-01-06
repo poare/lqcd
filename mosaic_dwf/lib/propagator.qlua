@@ -1,0 +1,1006 @@
+-- Measurement code to compute and save propagators
+
+require "lib/cfg_names"
+require "lib/coords"
+require "lib/group"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/musing"
+require "lib/strict"
+require "lib/stout-smear"
+require "lib/toAdjoint2"
+
+propagator = {}
+
+-- Wrap a ferm implementation into propagator, translating U into the
+-- appropriate representation for the matter field.
+function propagator.make_from_ferm(get_ferm, eps, max_iter, adj)
+   local t = {
+      get_ferm = get_ferm
+   }
+   function t.propagator(U)
+      if adj then
+         U = toSO3(U)
+      end
+      return get_ferm(U):m_solver(eps, max_iter)
+   end
+   return t
+end
+
+function compute_point_source(U, coord)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = 4
+   local src = L:DiracPropagatorN(Nc)
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local full_index = table_copy(coord)
+         full_index.d = s
+         full_index.c = c
+         local dv = L:DiracFermionN(Nc)
+         dv[full_index] = complex(1,0)
+         src[{c=c,d=s}] = dv
+      end
+   end
+   return src
+end
+
+-- compute point source on every time slice at a given spatial point
+function compute_many_point_sources(U, spatial_coord)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = 4
+   local Nt = L[3]
+   local src = L:DiracPropagatorN(Nc)
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local dv = L:DiracFermionN(Nc)
+         for t = 0, Nt-1 do
+            local full_index = table_copy(spatial_coord)
+            full_index[4] = t
+            full_index.d = s
+            full_index.c = c
+            dv[full_index] = complex(1,0)
+         end
+         src[{c=c,d=s}] = dv
+      end
+   end
+   return src
+end
+
+-- Compute wall source
+function compute_spacetime_wall_source_periodicBC(U, p)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = 4
+   local src = L:DiracPropagatorN(Nc)
+   -- build FT factor
+   local FTarg = L:Real(0)
+   for mu = 0, #p - 1 do
+      FTarg = FTarg - L:Real(L:pcoord(mu)) * p[mu+1] * 2*math.pi/L[mu]
+   end
+   local FT = FTarg:expi() 
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local dv = L:DiracFermionN(Nc)
+         dv[{c=c,d=s}] = L:Complex(1)
+         src[{c=c,d=s}] = FT * dv
+      end
+   end
+   return src
+end
+
+function compute_spacetime_wall_source_antiperiodicBC(U, p)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = 4
+   local bcvec = {0,0,0,0.5}
+   local src = L:DiracPropagatorN(Nc)
+   -- build FT factor
+   local FTarg = L:Real(0)
+   for mu = 0, #p - 1 do
+      FTarg = FTarg - L:Real(L:pcoord(mu)) * (p[mu+1]+bcvec[mu+1]) * 2*math.pi/L[mu]
+   end
+   local FT = FTarg:expi() 
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local dv = L:DiracFermionN(Nc)
+         dv[{c=c,d=s}] = L:Complex(1)
+         src[{c=c,d=s}] = FT * dv
+      end
+   end
+   return src
+end
+
+
+-- Compute wall source
+function compute_wall_source(U, tsrc, p)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = 4
+   local src = L:DiracPropagatorN(Nc)
+   -- build FT factor
+   local FTarg = L:Real(0)
+   for mu = 0, #L - 2 do
+      FTarg = FTarg - L:Real(L:pcoord(mu)) * p[mu+1] * 2*math.pi/L[mu]
+   end
+   local FT = FTarg:expi() 
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local dv = L:DiracFermionN(Nc)
+         L:Subset{axis=3, position=tsrc}:where(function() dv:set(L:DiracFermion(L:Complex(complex(1,0)), {c=c, d=s})) end)
+         src[{c=c,d=s}] = FT * dv
+      end
+   end
+   return src
+end
+
+-- momentum smearing, following https://arxiv.org/pdf/1602.05525.pdf
+-- gaussian width related to epsilons by sqrt(n_smear 2 eps/(1 + 2 (D-1) eps))
+-- usual gaussian smearing corresponds to p={0,...,0}
+function smear_ferm(U, psi, eps, n_smear, bcs, p)
+   local smear_timer = create_timer("fermion smearing")
+   local L = U[1].lattice
+   local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+   -- construct Laplacian
+   local D2psi = psi
+   for n = 1, n_smear do
+      for j = 0, #L-2 do
+         local FTarg = L:Real(1) * p[j+1] * 2*math.pi/L[j]
+         local FTf = FTarg:expi() 
+         local FTb = (-FTarg):expi() 
+         D2psi = D2psi + eps * ( FTf * U[j+1] * ferm_shift(D2psi, j, "from_forward") + FTb * ferm_shift(U[j+1]:adjoin() * D2psi, j, "from_backward") )
+      end
+      D2psi = D2psi/(1+2*eps*(#L - 1))
+   end
+   smear_timer()
+   return D2psi
+end
+
+-- Compute source from propagator sink after multiplying by operator
+function compute_sequential_source(U, prop, op)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = 4 -- Qlua uses 4-spinors everywhere for now
+   -- local Ns = #U
+   local src = L:DiracPropagatorN(Nc)
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local full_index = table_copy(coord)
+         full_index.d = s
+         full_index.c = c
+         local dv = L:DiracFermionN(Nc)
+         dv[full_index] = op*prop[{c=c,d=s}]
+         src[{c=c,d=s}] = dv
+      end
+   end
+   return src
+end
+
+-- Scalar Zn noise source for Hutchinson trace (spacetime only)
+-- Returned sources are orthogonal in expectation, such that
+--     E[psi^dag_{x} X_{aix;bjy} psi_{y}] = X_{xy} delta_{xy} = Tr[X]_{ai;bj}.
+function compute_scalar_noise_source(L, Nc, S, n)
+   local i = (S:random_Real() * n):floor()
+   local scalar_src = (2*math.pi*i/n):expi()
+   local src = L:DiracFermionN(Nc)
+   local Ns = 4
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         src[{c=c,d=s}] = scalar_src
+      end
+   end
+   return src
+end
+-- Full Zn noise source for Hutchinson trace (all indices)
+-- Returned sources are orthogonal in expectation, such that
+--     E[psi^dag_{aix} X_{aix;bjy} psi_{bjy}] =
+--       X_{aix;bjy} delta_{ab} delta_{ij} delta_{xy} = Tr[X].
+function compute_full_noise_source(L, Nc, S, n)
+   local src = L:DiracFermionN(Nc)
+   local Ns = 4
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local i = (S:random_Real() * n):floor()
+         src[{c=c,d=s}] = (2*math.pi*i/n):expi()
+      end
+   end
+   return src
+end
+
+-- Compute full spin-color propagator from src
+function compute_propagator(U, ferm_prop, src, skip_verification)
+   local prop_timer = create_timer("propagator computation")
+   skip_verification = false or skip_verification
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local propagate = ferm_prop.propagator(U)
+   prop_timer()
+   local prop = L:DiracPropagatorN(Nc)
+   prop_timer()
+   local ferm = ferm_prop.get_ferm(U)
+   prop_timer()
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local sc_tag = string.format('s = %d, c = %d', s, c)
+         printf("Inverting %s\n", sc_tag)
+         local invert_timer = create_timer(sc_tag)
+         
+         local src_comp = L:DiracFermionN(Nc)
+         src_comp = src[{c=c,d=s}]
+         prop[{c=c,d=s}] = propagate(src_comp)
+
+         invert_timer()
+
+         if not skip_verification then
+            local b2 = prop[{c=c,d=s}]:norm2()
+            local r2 = (ferm:D(prop[{c=c,d=s}]) - src_comp):norm2()
+            printf("|D*prop - src|^2: %.2e\n", r2)
+            printf("|D*prop - src|^2/|src|^2: %.2e\n", r2/b2)
+            invert_timer()
+         end
+      end
+   end
+   prop_timer()
+   return prop
+end
+
+function compute_propagator_fast(U, ferm, propagate, src, skip_verification)
+   local prop_timer = create_timer("propagator computation")
+   skip_verification = false or skip_verification
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local prop = L:DiracPropagatorN(Nc)
+   prop_timer()
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local sc_tag = string.format('s = %d, c = %d', s, c)
+         printf("Inverting %s\n", sc_tag)
+         local invert_timer = create_timer(sc_tag)
+         
+         local src_comp = L:DiracFermionN(Nc)
+         src_comp = src[{c=c,d=s}]
+         prop[{c=c,d=s}] = propagate(src_comp)
+
+         invert_timer()
+
+         if not skip_verification then
+            local b2 = prop[{c=c,d=s}]:norm2()
+            local r2 = (ferm:D(prop[{c=c,d=s}]) - src_comp):norm2()
+            printf("|D*prop - src|^2: %.2e\n", r2)
+            printf("|D*prop - src|^2/|src|^2: %.2e\n", r2/b2)
+            invert_timer()
+         end
+      end
+   end
+   prop_timer()
+   return prop
+end
+
+-- Compute full spin-color propagators on coarse grid of spatial points for
+-- given timeslice
+function compute_coarse_all_to_all_propagator(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps, n_smear, bcs,
+      p_smear, src_t)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   local all_props = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      -- make point source
+      printf("computing source %s\n", make_coord_name(ri))
+      local src = compute_point_source(U_smear, ri)
+      -- smear source
+      src = smear_ferm(U_smear, src, eps, n_smear, bcs, p_smear)
+      -- make prop
+      local prop = compute_propagator(U, ferm_prop, src)
+      -- smear sink
+      prop = smear_ferm(U_smear, prop, eps, n_smear, bcs, p_smear)
+      -- shift src_t to origin
+      local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+      for tp = 0, src_t - 1 do
+         prop = ferm_shift(prop, #L-1, "from_forward")
+      end
+      all_props[i+1] = prop
+   end
+   return all_props
+end
+
+-- Save to hdf5 full spin-color propagators on coarse grid of points
+function save_coarse_all_to_all_propagator(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps, n_smear,
+      bcs, p_smear, src_t, h5_writer, prop_name)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      local full_prop_name = prop_name
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      for mu = 0, #L - 2 do
+         full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+      end
+      full_prop_name = full_prop_name..tostring(ri[#L])
+      -- make point source
+      printf("computing source %s\n", make_coord_name(ri))
+      local src = compute_point_source(U_smear, ri)
+      -- smear source
+      src = smear_ferm(U_smear, src, eps, n_smear, bcs, p_smear)
+      -- make prop
+      local prop = compute_propagator(U, ferm_prop, src)
+      -- smear sink
+      prop = smear_ferm(U_smear, prop, eps, n_smear, bcs, p_smear)
+      -- shift src_t to origin
+      local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+      for tp = 0, src_t - 1 do
+         prop = ferm_shift(prop, #L-1, "from_forward")
+      end
+      -- save prop
+      printf("saving prop "..full_prop_name.."\n")
+      h5_force_write(h5_writer, full_prop_name, prop)
+   end
+   h5_writer:close()
+end
+
+-- Save to hdf5 full spin-color propagators on coarse grid of points for adjoint fermions
+-- TODO: merge this into previous routine
+function save_coarse_all_to_all_propagator_adjoint(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps, n_smear,
+      bcs, p_smear, src_t, h5_writer, prop_name)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+	 U = toSO3(U)
+	 U_smear = toSO3(U_smear)
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      local full_prop_name = prop_name
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      for mu = 0, #L - 2 do
+         full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+      end
+      full_prop_name = full_prop_name..tostring(ri[#L])
+      -- make point source
+      printf("computing source %s\n", make_coord_name(ri))
+      local src = compute_point_source(U_smear, ri)
+      -- smear source
+      src = smear_ferm(U_smear, src, eps, n_smear, bcs, p_smear)
+      -- make prop
+      local prop = compute_propagator(U, ferm_prop, src)
+      -- smear sink
+      prop = smear_ferm(U_smear, prop, eps, n_smear, bcs, p_smear)
+      -- shift src_t to origin
+      local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+      for tp = 0, src_t - 1 do
+         prop = ferm_shift(prop, #L-1, "from_forward")
+      end
+      -- save prop
+      printf("saving prop "..full_prop_name.."\n")
+      h5_force_write(h5_writer, full_prop_name, prop)
+   end
+   h5_writer:close()
+end
+
+-- Compute full spin-color propagators on coarse grid of spatial points for given timeslice
+function compute_coarse_all_to_coarse_all_propagator(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps,
+      n_smear, bcs, p_smear, src_t)
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   local all_props = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      -- make point source
+      printf("computing source %s\n", make_coord_name(ri))
+      local src = compute_point_source(U_smear, ri)
+      -- smear source
+      src = smear_ferm(U_smear, src, eps, n_smear, bcs, p_smear)
+      -- make prop
+      local prop = compute_propagator(U, ferm_prop, src)
+      -- smear sink
+      prop = smear_ferm(U_smear, prop, eps, n_smear, bcs, p_smear)
+      -- shift src_t to origin
+      local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+      for tp = 0, src_t - 1 do
+         prop = ferm_shift(prop, #L-1, "from_forward")
+         printf("shifting\n")
+      end
+--      local B1_G1g_r1_MA = compute_proton_MA_up_correlator(prop, prop)
+--      local p = {0,0,0}
+--      local proton_mom_MA_up = momentum_project(B1_G1g_r1_MA, p)
+--      for t = 0, #proton_mom_MA_up - 1 do
+--         printf("%s px %d py %d pz %d t %d %15.8e %15.8e\n", "Proton MA up:", p[1], p[2], p[3], t, proton_mom_MA_up[t]:real(), proton_mom_MA_up[t]:imag())
+--      end
+      -- store prop
+      all_props[i+1] = coarse_scatter(prop)
+   end
+   return all_props
+end
+
+-- Save full spin-color propagators on coarse grid of spatial points for given timeslice
+function save_coarse_all_to_coarse_all_propagator(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps, n_smear,
+      bcs, p_smear, src_t, h5_writer, prop_name, skip_verification)
+   local setup_timer = create_timer("setup")
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   local all_props = {}
+   -- build coarse lattice
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   -- link smear gauge field
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   setup_timer()
+   local propagate = ferm_prop.propagator(U)
+   local ferm = ferm_prop.get_ferm(U)
+   setup_timer()
+   -- loop over source locations
+   for i = 0, VL - 1 do
+      local timer = create_timer("coarsening")
+      local ri = {}
+      local imod = i
+      local full_prop_name = prop_name
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      for mu = 0, #L - 2 do
+         full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+      end
+      full_prop_name = full_prop_name..tostring(ri[#L])
+      -- make point source
+      printf("computing source %s\n", make_coord_name(ri))
+      timer()
+      local src = compute_point_source(U_smear, ri)
+      -- smear source
+      src = smear_ferm(U_smear, src, eps, n_smear, bcs, p_smear)
+      -- make prop
+      timer()
+      local prop = compute_propagator_fast(U, ferm, propagate, src, skip_verification)
+      print("finished computing propagator")
+      timer()
+      -- smear sink
+      prop = smear_ferm(U_smear, prop, eps, n_smear, bcs, p_smear)
+      timer()
+      -- shift src_t to origin
+      local ferm_shift = clover_ferm.make_ferm_shift(bcs)
+      for tp = 0, src_t - 1 do
+         prop = ferm_shift(prop, #L-1, "from_forward")
+      end
+      timer()
+      -- save prop
+      printf("saving prop "..full_prop_name.."\n")
+      h5_force_write(h5_writer, full_prop_name, coarse_scatter(prop))
+      timer()
+--      local B1_G1g_r1_MA = compute_proton_MA_up_correlator(prop, prop)
+--      local p = {0,0,0}
+--      local proton_mom_MA_up = momentum_project(B1_G1g_r1_MA, p)
+--      for t = 0, #proton_mom_MA_up - 1 do
+--         printf("%s px %d py %d pz %d t %d %15.8e %15.8e\n", "Proton MA up:", p[1], p[2], p[3], t, proton_mom_MA_up[t]:real(), proton_mom_MA_up[t]:imag())
+--      end
+   end
+   h5_writer:close()
+end
+
+-- smeared-point propagators (done in efficient manner to smear all timeslices at once)
+function save_coarse_all_to_coarse_all_propagator_SP(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps, n_smear,
+      bcs, p_smear, h5_writer, prop_name, skip_verification)
+   local setup_timer = create_timer("setup")
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   local all_props = {}
+   -- build coarse lattice
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   -- link smear gauge field
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   setup_timer()
+   local propagate = ferm_prop.propagator(U)
+   local ferm = ferm_prop.get_ferm(U)
+   setup_timer()
+   -- loop over source locations
+   for i = 0, VL - 1 do
+      local timer = create_timer("coarsening")
+      local ri = {}
+      local imod = i
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      -- at this point, ri only has spatial indices
+      -- make point sources
+      printf("computing sources %s\n", make_coord_name(ri))
+      local sources = compute_many_point_sources(U_smear, ri)
+      -- smear source
+      sources = smear_ferm(U_smear, sources, eps, n_smear, bcs, p_smear)
+      timer()
+
+      -- now loop over src_t from 0 to Lt and compute all propagators
+      for src_t = 0, L[#L-1]-1 do
+         ri[#L] = src_t
+         local full_prop_name = prop_name
+         for mu = 0, #L - 2 do
+            full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+         end
+         full_prop_name = full_prop_name..tostring(ri[#L])
+         timer()
+         -- take the time slice we're interested in
+         local src = L:DiracPropagator()
+         L:Subset{axis=#L-1, position=src_t}:where(function()
+            src:set(sources)
+         end)
+         -- make prop
+         timer()
+         local prop = compute_propagator_fast(U, ferm, propagate, src, skip_verification)
+         print("finished computing propagator")
+         timer()
+         -- shift src_t to origin
+         --TODO: Can we improve speed here?  This takes ~1 sec (comparable to all 12 inversions)
+         local ferm_shift = clover_ferm.make_ferm_shift_N(bcs)
+         prop = ferm_shift(prop, #L-1, "from_forward", src_t)
+--         for tp = 0, src_t - 1 do
+--            prop = ferm_shift(prop, #L-1, "from_forward")
+--         end
+         timer()
+         -- save prop
+         printf("saving prop "..full_prop_name.."\n")
+         h5_force_write(h5_writer, full_prop_name, coarse_scatter(prop))
+         timer()
+      end
+   end
+   h5_writer:close()
+end
+
+-- smeared-smeared and smeared-point propagators (done in efficient manner to smear all timeslices at once)
+function save_coarse_all_to_coarse_all_propagator_SS_SP(
+      U, ferm_prop, coarse_fac, link_rho, link_n_smear, eps, n_smear,
+      bcs, p_smear, h5_writer_SS, h5_writer_SP, prop_name, skip_verification, adj)
+   local setup_timer = create_timer("setup")
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local Ns = #U
+   local VL = 1
+   local coarse_size = {}
+   local all_props = {}
+   -- build coarse lattice
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("computing coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   printf("gauge link smearing, %dD, rho = %f, n_smear = %d\n",
+          #L-1, link_rho, link_n_smear)
+   printf("fermion wavefunction smearing, %dD, eps = %f, n_smear = %d, p_smear = %s\n",
+          #L-1, eps, n_smear, make_coord_name(p_smear))
+   -- link smear gauge field
+   local U_smear = stout_smear_full(U, link_rho, link_n_smear, #L-1)
+   -- convert to SO(3) AFTER smearing
+   if adj then
+      U = toSO3(U)
+      U_smear = toSO3(U_smear)
+   end
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   setup_timer()
+   local propagate = ferm_prop.propagator(U)
+   local ferm = ferm_prop.get_ferm(U)
+   setup_timer()
+   -- loop over source locations
+   for i = 0, VL - 1 do
+      local timer = create_timer("coarsening")
+      local ri = {}
+      local imod = i
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      -- at this point, ri only has spatial indices
+      -- make point sources
+      printf("computing sources %s\n", make_coord_name(ri))
+      local sources = compute_many_point_sources(U_smear, ri)
+      -- smear source
+      sources = smear_ferm(U_smear, sources, eps, n_smear, bcs, p_smear)
+      timer()
+
+      -- now loop over src_t from 0 to Lt and compute all propagators
+      for src_t = 0, L[#L-1]-1 do
+         ri[#L] = src_t
+         local full_prop_name = prop_name
+         for mu = 0, #L - 2 do
+            full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+         end
+         full_prop_name = full_prop_name..tostring(ri[#L])
+         timer()
+         -- take the time slice we're interested in
+         local src = L:DiracPropagator()
+         L:Subset{axis=#L-1, position=src_t}:where(function()
+            src:set(sources)
+         end)
+         -- make prop
+         timer()
+         local prop = compute_propagator_fast(U, ferm, propagate, src, skip_verification)
+         print("finished computing propagator")
+         timer()
+         -- shift src_t to origin
+         local ferm_shift = clover_ferm.make_ferm_shift_N(bcs)
+         local shifted_prop = ferm_shift(prop, #L-1, "from_forward", src_t)
+         timer()
+         -- save prop
+         printf("saving prop "..full_prop_name.."\n")
+         h5_force_write(h5_writer_SP, full_prop_name, coarse_scatter(shifted_prop))
+         -- smear propagator at sink
+         prop = smear_ferm(U_smear, prop, eps, n_smear, bcs, p_smear)
+         print("finished sink smearing")
+         timer()
+         -- shift src_t to origin
+         local ferm_shift = clover_ferm.make_ferm_shift_N(bcs)
+         shifted_prop = ferm_shift(prop, #L-1, "from_forward", src_t)
+         timer()
+         -- save prop
+         printf("saving prop "..full_prop_name.."\n")
+         h5_force_write(h5_writer_SS, full_prop_name, coarse_scatter(shifted_prop))
+         timer()
+      end
+   end
+   h5_writer_SS:close()
+   h5_writer_SP:close()
+end
+
+-- Read to hdf5 full spin-color propagators on coarse grid of points
+function read_coarse_all_to_all_propagator(L, coarse_fac, src_t, h5_reader, prop_name)
+   local ca2a_prop = {}
+   local VL = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("reading coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      local full_prop_name = prop_name
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      for mu = 0, #L - 2 do
+         full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+      end
+      full_prop_name = full_prop_name..tostring(ri[#L])
+      -- read prop 
+      printf("reading prop "..full_prop_name.."\n")
+      ca2a_prop[i+1] = h5_reader:read(path, {lattice=L})
+   end
+   return ca2a_prop
+end
+
+-- Read to hdf5 coarse spin-color propagators on coarse grid of points
+function read_coarse_all_to_coarse_all_propagator(L, coarse_fac, src_t, h5_reader, prop_name)
+   local ca2a_prop = {}
+   local VL = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   printf("reading coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      local full_prop_name = prop_name
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      for mu = 0, #L - 2 do
+         full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+      end
+      full_prop_name = full_prop_name..tostring(ri[#L])
+      -- read prop 
+      printf("reading prop "..full_prop_name.."\n")
+      ca2a_prop[i+1] = h5_reader:read(full_prop_name, {lattice=L_coarse})
+   end
+   return ca2a_prop
+end
+
+function coarsen_coarse_all_to_all_propagator(L, coarse_fac, src_t, h5_reader, h5_writer, prop_name)
+   local prop
+   local VL = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      VL = VL * coarse_size[mu+1]
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+	 local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   printf("reading coarse "..tostring(L_coarse).." "..tostring(VL).." sources \n")
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      local full_prop_name = prop_name
+      for mu = #L - 2, 0, -1 do
+         ri[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      ri[#L] = src_t
+      for mu = 0, #L - 2 do
+         full_prop_name = full_prop_name..tostring(ri[mu+1].."/")
+      end
+      full_prop_name = full_prop_name..tostring(ri[#L])
+      -- read prop
+      printf("reading prop "..full_prop_name.."\n")
+      prop = h5_reader:read(full_prop_name, {lattice=L})
+			h5_force_write(h5_writer, full_prop_name, coarse_scatter(prop))
+   end
+end
+
+-- Momentum project
+function momentum_project(corr, p)
+   local L = corr.lattice
+   local Lt = L[#L-1]
+   local FTarg = L:Real(0)
+   for mu = 0, #L - 2 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2*math.pi/L[mu]
+   end
+   local FT = FTarg:expi() 
+   local mom_corr = (FT*corr):sum(L:MultiSet(Lt, L:pcoord(#L-1)))
+   return mom_corr
+end
+
+-- Momentum project ish
+function coarse_momentum_project(corr, p, coarse_fac)
+   local L = corr.lattice
+   local Lt = L[#L-1]
+   -- full momentum projection
+   local FTarg = L:Real(0)
+   for mu = 0, #L - 2 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2*math.pi/L[mu]
+   end
+   local FT = FTarg:expi() 
+   -- construct coarse lattice
+   local coarseLl = {}
+   coarseLl[#L] = Lt
+   for mu = 0, #L - 2 do
+      coarseLl[mu+1] = L[mu]/coarse_fac
+   end
+   local coarseL = qcd.lattice(coarseLl)
+   -- project correlator and momentum to coarse lattice
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = coarseL:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = coarseL:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(coarseL, L, coarseI)
+   local coarse_corr = coarse_scatter(corr)
+   local coarse_FT = coarse_scatter(FT)
+   -- coarsely momentum project
+   local mom_corr = (coarse_FT*coarse_corr):sum(
+      coarseL:MultiSet(Lt, coarseL:pcoord(#L-1)))
+   return mom_corr
+end
+
+function coarse_momentum_project_coarseobj(L, coarse_corr, p, coarse_fac)
+   local Lt = L[#L-1]
+   local coarseL = coarse_corr.lattice 
+   -- full momentum projection
+   local FTarg = L:Real(0)
+   for mu = 0, #L - 2 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * p[mu+1] * 2*math.pi/L[mu]
+   end
+   local FT = FTarg:expi() 
+   -- project correlator and momentum to coarse lattice
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = coarseL:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = coarseL:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(coarseL, L, coarseI)
+   local coarse_FT = coarse_scatter(FT)
+   -- coarsely momentum project
+   local mom_corr = (coarse_FT*coarse_corr):sum(
+      coarseL:MultiSet(Lt, coarseL:pcoord(#L-1)))
+   return mom_corr
+end
+
+
+-- Build a meson correlator
+function compute_meson_correlator(prop1, prop2, Gamma)
+   local a_prop = gamma{mu=5} * prop2 * gamma{mu=5}
+   local qq = qcd.dot(a_prop, gamma{n=Gamma} * prop1 * gamma{n=Gamma})
+   return qq
+end
+
+-- Build a proton correlator
+function compute_proton_MA_up_correlator(d, u)
+  local S =  gamma{mu=0} * gamma{mu=2} * (1 + gamma{mu=3}) / 2
+  local T =  (1 - gamma{mu=0}*gamma{mu=1}*complex(0,1)) * (1 + gamma{mu=3}) / 2
+  local a2 = T * u
+  local a3 = qcd.quarkContract13(d * S, S * u)
+  return (a2:spintrace() * a3:spintrace() + (a2 * a3):spintrace()):trace()
+end
+
+function compute_proton_MA_down_correlator(d, u)
+  local S =  gamma{mu=0} * gamma{mu=2} * (1 + gamma{mu=3}) / 2
+  local T =  (1 - gamma{mu=0}*gamma{mu=1}*complex(0,1)) * (1 - gamma{mu=3}) / 2
+  local a2 = T * u
+  local a3 = qcd.quarkContract13(d * S, S * u)
+  return (a2:spintrace() * a3:spintrace() + (a2 * a3):spintrace()):trace()
+end
+
+function compute_proton_MA_correlator(d, u)
+  local S =  gamma{mu=0} * gamma{mu=2} * (1 + gamma{mu=3}) / 2
+  local T =  (1 - gamma{mu=0}*gamma{mu=1}*complex(0,1)) / 2
+  local a2 = T * u
+  local a3 = qcd.quarkContract13(d * S, S * u)
+  return (a2:spintrace() * a3:spintrace() + (a2 * a3):spintrace()):trace()
+end
+
+-- Build a different proton correlator
+function compute_proton_QM_up_correlator(d, u)
+  local S =  gamma{mu=0} * gamma{mu=2} 
+  local T =  (1 - gamma{mu=0}*gamma{mu=1}*complex(0,1)) * (1 + gamma{mu=3}) / 2
+  local a2 = T * u
+  local a3 = qcd.quarkContract13(d * S, S * u)
+  return (a2:spintrace() * a3:spintrace() + (a2 * a3):spintrace()):trace()
+end
+
+function compute_proton_QM_down_correlator(d, u)
+  local S =  gamma{mu=0} * gamma{mu=2} 
+  local T =  (1 - gamma{mu=0}*gamma{mu=1}*complex(0,1)) * (1 - gamma{mu=3}) / 2
+  local a2 = T * u
+  local a3 = qcd.quarkContract13(d * S, S * u)
+  return (a2:spintrace() * a3:spintrace() + (a2 * a3):spintrace()):trace()
+end
+
+function compute_proton_QM_correlator(d, u)
+  local S =  gamma{mu=0} * gamma{mu=2} 
+  local T =  (1 - gamma{mu=0}*gamma{mu=1}*complex(0,1)) / 2
+  local a2 = T * u
+  local a3 = qcd.quarkContract13(d * S, S * u)
+  return (a2:spintrace() * a3:spintrace() + (a2 * a3):spintrace()):trace()
+end

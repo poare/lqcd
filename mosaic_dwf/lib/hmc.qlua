@@ -1,0 +1,120 @@
+#!/usr/bin/env qlua
+
+-- Generic HMC structure, without an understanding of multilevel
+
+require "lib/action"
+
+hmc = {action = action.act}
+
+-- Stochastically accept the new configuration, given the action H
+function hmc.accept(H, old, new)
+   local U = old.x
+   local X
+   X = H.toGroup(new.x)
+   local dP, dK, oldH, newH = H.delta(old, new)
+   local dH = dP + dK
+   local stat = { dP = dP, dK = dK, deltaH = dP+dK,
+                  oldH = oldH, newH = newH, changed = 0 }
+   if stat.deltaH < 0 then
+      U = X
+      stat.changed = 1
+      stat.prob = 1
+   else
+      local p = H.seqRandom()
+      stat.prob = math.exp(-stat.deltaH)
+      if p < stat.prob then
+         stat.changed = 1
+         U = X
+      end
+   end
+   return U, stat
+end
+
+-- Produce function that evolves single trajectory parameterized by length
+-- `tau` and `steps` discrete steps.
+function hmc.Evolve(traj, tau, steps)
+   local function run(H, U)
+      H.initTraj(U)
+      local R = H.newMomentum(U)
+      local X, P = traj(tau, steps)(H, U, R)
+      return X, P, R
+   end
+   return run
+end
+
+-- Produce function that evolves and accepts/rejects trajectory.
+function hmc.AcceptReject(traj, tau, steps)
+   local evolve = hmc.Evolve(traj, tau, steps)
+   local function run(H, U)
+      local X, P, R = evolve(H, U)
+      return hmc.accept(H, {x = U, p = R, t = 0.0}, {x = X, p = P, t = tau})
+   end
+   return run
+end
+
+
+-- Trajectories accepting (tau, steps) and producing functions of
+-- (H, U, R) that evolve the trajectory.
+function hmc.trajLeapfrog(tau, steps)
+   local dt = tau / steps
+   local function t(k)
+      return k * tau / steps
+   end
+   local function runVV(H,xU,xR)
+      local i
+      local X = H.updateX(xR, xU, t(0), t(0.5))
+      local P = xR
+      for i = 2, steps do
+         P = H.updateP(P, X, t(i-1.5), t(1))
+         X = H.updateX(P, X, t(i-1.5), t(1))
+      end
+      P = H.updateP(P, X, t(steps-0.5), t(1))
+      X = H.updateX(P, X, t(steps-0.5), t(0.5))
+      return X, P
+   end
+   return runVV
+end
+
+local function genericOmelyan(zeta, tau, steps)
+   local dt = tau / steps
+   local function t(k)
+      return k * tau / steps
+   end
+   local function run(H, xU, xR)
+      local i
+      local X = xU
+      local P = xR
+      X = H.updateX(P, X, t(0), t(zeta))
+      for i = 1, steps - 1 do
+         P = H.updateP(P, X, t(i-1+zeta), t(0.5))
+         X = H.updateX(P, X, t(i-1+0.5), t(1-2*zeta))
+         P = H.updateP(P, X, t(i-zeta), t(0.5))
+         X = H.updateX(P, X, t(i), t(2*zeta))
+      end
+      P = H.updateP(P, X, t(steps-1+zeta), t(0.5))
+      X = H.updateX(P, X, t(steps-1+0.5), t(1-2*zeta))
+      P = H.updateP(P, X, t(steps-zeta), t(0.5))
+      X = H.updateX(P, X, t(steps), t(zeta))
+      return X, P
+   end
+   return run
+end
+function hmc.trajOmelyanQP(tau, steps)
+   return genericOmelyan(0.193183327503783574, tau, steps)
+end
+function hmc.trajOmelyanQ(tau, steps)
+   return genericOmelyan(0.211324865405187118, tau, steps)
+end
+function hmc.trajOmelyanP(tau, steps)
+   return genericOmelyan(1.0/6.0, tau, steps)
+end
+
+
+
+-- Full integrators using above trajectories
+function hmc.leapfrog(tau, steps)
+   return hmc.AcceptReject(hmc.trajLeapfrog, tau, steps)
+end
+function hmc.omelyanQP(tau, steps)
+   return hmc.AcceptReject(hmc.trajOmelyanQP, tau, steps)
+end

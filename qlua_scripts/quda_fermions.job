@@ -9,7 +9,7 @@
 
 set -x
 
-cd /home/poare/lqcd/mosaic
+cd /home/poare/lqcd/mosaic_dwf
 
 bash
 module load openmpi/3.1.5

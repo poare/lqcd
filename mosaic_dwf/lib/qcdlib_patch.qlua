@@ -1,0 +1,2 @@
+-- Patch for undeclared global table in qcdlib.
+qcdLib = {}

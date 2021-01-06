@@ -1,0 +1,186 @@
+require "stdlib"
+
+-- This is the generalized adjoint conversion code to go from fundamental group -> adjoint group and adjoint algebra -> fundamental algebra
+-- Here we reuse some of the function names for convenience but the code is different
+-- We support Nc = 2 and 3 here
+
+-- This contains both the SU(2) -> SO(3) conversion and the so(3) to su(2) conversion functions.
+
+-- Note: This method uses the one on page 1 of the Overleaf document, which was easier to implement but requires matrix exponentiation.  If we later optimize for efficiency, the method described on page 2 might be faster, but since this step is probably much faster than the inversions, this probably isn't important.
+
+-- store the fundamental and adjoint matrices so that these can be accessed globally
+-- these should be normalized so that the squares have trace 2
+function fundMatrices(L, Nc)
+  local S = {}
+  local s1, s2, s3
+	-- first three matrices are the same for Nc = 2 and Nc = 3
+	s1=qcd.ColorMatrixN(Nc)
+	s1[{a=0,b=1}]=complex(1,0)
+	s1[{a=1,b=0}]=complex(1,0)
+
+	s2=qcd.ColorMatrixN(Nc)
+	s2[{a=0,b=1}]=complex(0,-1)
+	s2[{a=1,b=0}]=complex(0,1)
+
+	s3=qcd.ColorMatrixN(Nc)
+	s3[{a=0,b=0}]=complex(1,0)
+	s3[{a=1,b=1}]=complex(-1,0)
+
+	-- upgrade these constant matrices to lattice-valued matrices (inefficient but apparently necessary for matrix-matrix multiplication in qlua)
+	S[1]=L:ColorMatrix(s1)
+	S[2]=L:ColorMatrix(s2)
+	S[3]=L:ColorMatrix(s3)
+
+  if Nc == 2 then
+		return S
+  elseif Nc == 3 then
+    local s4, s5, s6, s7, s8
+    -- define the rest of the Gell-Mann matrices
+    s4=qcd.ColorMatrixN(Nc)
+    s4[{a=0,b=2}]=complex(1,0)
+    s4[{a=2,b=0}]=complex(1,0)
+
+    s5=qcd.ColorMatrixN(Nc)
+    s5[{a=0,b=2}]=complex(0,-1)
+    s5[{a=2,b=0}]=complex(0,1)
+
+    s6=qcd.ColorMatrixN(Nc)
+    s6[{a=1,b=2}]=complex(1,0)
+    s6[{a=2,b=1}]=complex(1,0)
+
+    s7=qcd.ColorMatrixN(Nc)
+    s7[{a=1,b=2}]=complex(0,-1)
+    s7[{a=2,b=1}]=complex(0,1)
+
+    s8=qcd.ColorMatrixN(Nc)
+    s8[{a=0,b=0}]=complex(1/math.sqrt(3),0)
+    s8[{a=1,b=1}]=complex(1/math.sqrt(3),0)
+    s8[{a=2,b=2}]=complex(-2/math.sqrt(3),0)
+    
+    -- upgrade the rest to lattice-valued matrices
+    S[4] = L:ColorMatrix(s4)
+    S[5] = L:ColorMatrix(s5)
+    S[6] = L:ColorMatrix(s6)
+    S[7] = L:ColorMatrix(s7)
+    S[8] = L:ColorMatrix(s8)
+
+    return S
+  else 
+    print("ERROR: This code requires Nc = 2 or 3")
+    assert(false) -- should terminate code
+  end
+end
+
+function adjMatrices(L, Nc)
+  local T = {}
+  -- store the structure constants (determined by anticommutation relations of fundamentals)
+  -- ideally, we could derive these by actually anti-commuting fundamentals
+  -- we can do that in the next iteration of the code to make things super general
+  -- the matrices T_k will be given by (T_k)_ij = (T_i)_jk = -i * f_ijk
+  -- also we need to make sure that we have all permutations of the structure constants
+  -- TODO: see if there's a more intelligent way to do this
+  local f = {}
+  for i = 1, 8 do
+    f[i] = {}
+    for j = 1, 8 do
+      f[i][j] = {}
+      for k = 1, 8 do
+        f[i][j][k] = 0
+      end
+    end
+  end
+  -- store some values from Wikipedia (https://en.wikipedia.org/wiki/Structure_constants)
+  f[1][2][3] = 1
+  f[1][4][7] = 1/2
+  f[1][5][6] = -1/2
+  f[2][4][6] = 1/2
+  f[2][5][7] = 1/2
+  f[3][4][5] = 1/2
+  f[3][6][7] = -1/2
+  f[4][5][8] = math.sqrt(3)/2
+  f[6][7][8] = math.sqrt(3)/2
+  
+  -- look at cases i < j < k and copy these values (with appropriate signs) to the rest of f
+  for i = 1, 6 do
+    for j = (i+1), 7 do
+      for k = (j+1), 8 do
+        f[j][k][i] = f[i][j][k]
+        f[k][i][j] = f[i][j][k]
+        f[i][k][j] = -f[i][j][k]
+        f[j][i][k] = -f[i][j][k]
+        f[k][j][i] = -f[i][j][k]
+      end
+    end
+  end
+
+  local nAdj = Nc * Nc - 1
+  for i = 1, nAdj do
+    local t = qcd.ColorMatrixN(nAdj)
+    for j = 1, nAdj do
+      for k = 1, nAdj do
+        t[{a=(j-1),b=(k-1)}] = complex(0, -f[i][j][k])
+      end
+    end
+    T[i] = L:ColorMatrix(t)
+  end
+  return T
+end
+
+-- fundamental -> adjoint conversion
+function toSO3(U)
+	local L=U[1].lattice
+  local Nc = U[1]:colors()
+  local S = fundMatrices(L, Nc)
+
+	-- get the number of dimensions in U
+	local nd = #U
+
+	-- now loop over dimensions so that we can pick out each index of U
+	local i, j, k, V
+	local W = {}
+  local nAdj = Nc * Nc - 1
+	for i = 1, nd do
+		V=U[i]
+    W[i] = L:ColorMatrix(qcd.ColorMatrixN(nAdj)) -- create (Nc^2 - 1)x(Nc^2 - 1) adjoint matrix
+    for j = 1, nAdj do
+      for k = 1, nAdj do
+        -- create matrix with 1 in the (i,j) position
+        local t, T, x
+        t = qcd.ColorMatrixN(nAdj)
+        t[{a=(j-1),b=(k-1)}] = complex(1,0)
+        T = L:ColorMatrix(t)
+
+        -- compute scalar field corresponding to the value of the (i,j) entry
+        x = (U[i] * S[k] * U[i]:adjoin() * S[j]):trace()/2
+        W[i] = W[i] + x*T
+      end
+    end
+	end
+	return W
+end
+
+
+-- This function takes in the components of F one at a time (i.e. the loop over components of F must be called outside of the call to this function)
+-- The second argument is the number of components in the original representation (i.e. should we use 2- or 3-component matrices to store our fundamental su(2) algebra)
+-- Change: nComp is now deprecated parameter and should be removed from the rest of the code.  We will infer the number of colors from the dimension of F (sqrt(dim(F) + 1)) and then return the result in that matrix.  Storing things in larger matrices will no longer be supported.
+function tosu2(F, nComp)
+  local L, s1, s2, s3, S1, S2, S3, t1, t2, t3, T1, T2, T3, a1, a2, a3, G
+  L=F.lattice
+  local str = tostring(F)
+  -- str will now be QDP:ColorMatrixN(memory location), where N is the number of 'colors' in the adjoint representation
+  -- we want to set Nc = sqrt(N + 1)
+  local index = string.find(str, "%(")
+  local substr = string.sub(str, 16, index-1) -- this will return anything after "QCD:ColorMatrix" (15 characters) before the parenthesis
+  local nAdj = tonumber(substr)
+  local Nc = math.sqrt(nAdj + 1)
+  local S = fundMatrices(L, Nc)
+  local T = adjMatrices(L, Nc)
+
+  local G = L:ColorMatrix(qcd.ColorMatrixN(Nc))
+  for i = 1, nAdj do
+    -- I think adjoint matrices are normalized to have trace Nc (verify this!)
+    local a = (T[i]*F):trace()/Nc
+    G = G + (a/2)*S[i]
+  end
+  return G
+end

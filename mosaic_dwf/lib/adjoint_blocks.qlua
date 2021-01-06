@@ -1,0 +1,429 @@
+-- Measurement code to compute and save baryon blocks 
+require "lib/cfg_names"
+require "lib/coords"
+require "lib/group"
+require "lib/fermion"
+require "lib/musing"
+require "lib/baryon_blocks"
+
+-- build hadronic correlator from coarsely momentum projected hadronic blocks at source and sink
+function compute_coarse_all_to_all_adjoint(L, L_mom, prop_indiv, src_weights, snk_weights, snk_p, src_p, coarse_fac)
+   local contract_timer = create_timer("compute hadron")
+   local Lt = L[#L-1]
+   local Nc = prop_indiv[1][1]:colors()
+   local L_coarse = prop_indiv[1][1].lattice
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu)
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local mom_I = {L_coarse:pcoord(#L-1)}
+   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   printf("Computing all to all correlator, coarse "..tostring(L_coarse).."\n")
+   local src_mom_name = make_coord_name(src_p)
+   local snk_mom_name = make_coord_name(snk_p)
+   printf("Src momenta "..src_mom_name.."\n")
+   printf("Snk momenta "..snk_mom_name.."\n")
+   printf("%d src weights \n", #src_weights)
+   printf("%d snk weights \n", #snk_weights)
+   local prop = {}
+   -- scatter to same lattice
+   for t=0, Lt-1 do
+      local coarse_scatter = qcd.scatter(L_coarse, prop_indiv[t+1][1].lattice, coarseI)
+      prop[t+1] = {}
+      for prop_num=1, #prop_indiv[1] do
+         prop[t+1][prop_num] = coarse_scatter(convert_to_Dirac_basis(prop_indiv[t+1][prop_num]))
+      end
+   end
+   -- number of src points to average over
+   local num_coarse_moms = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      num_coarse_moms = num_coarse_moms * coarse_size[mu+1]
+   end
+   coarse_size[#L] = 1
+   -- compute list of src coarse Fourier transform factors and disco prop
+   local disco_prop = L_coarse:DiracPropagatorN(Nc)
+   local all_FT_list = {}
+   local x_coarse_list = {}
+   for npsrc = 0, num_coarse_moms - 1 do
+      local xb = {}
+      local x_coarse = {}
+      local imod = npsrc
+      for mu = #L - 2, 0, -1 do
+         xb[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         x_coarse[mu+1] = imod % L_coarse[mu]
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      x_coarse_list[npsrc + 1] = x_coarse
+      local src_FT_arg = 0 
+      for mu = 0, #L - 2 do
+         src_FT_arg = src_FT_arg + xb[mu+1]*src_p[mu+1]
+      end
+      all_FT_list[npsrc + 1] = complex(math.cos(src_FT_arg), math.sin(src_FT_arg))
+      -- disco prop elements for all t
+      for t=0, Lt-1 do
+         x_coarse[#L] = t
+         disco_prop[x_coarse] = prop[t+1][npsrc + 1][x_coarse]
+      end
+   end
+   -- snk FT
+   local snk_FT_arg = L:Real(0)
+   for mu = 0, #L - 2 do
+      snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * snk_p[mu+1]
+   end
+   local snk_FT_fine = snk_FT_arg:expi() 
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   local snk_FT = coarse_scatter(snk_FT_fine)
+   -- loop over src/snk color-spin components with non-zero weight
+   local correlator = L_mom:Complex(0) 
+   for src_weight_num = 1, #src_weights do
+      printf("Src weight %d / %d \n",src_weight_num,#src_weights)
+      local src_weight = src_weights[src_weight_num]
+      for snk_weight_num = 1, #snk_weights do
+         local snk_weight = snk_weights[snk_weight_num]
+         local this_weight = src_weight[#src_weight] * snk_weight[#snk_weight]
+         -- loop over src times
+         for tsrc = 0, Lt-1 do
+            -- momentum project block at src
+            for nsrcpt = 0, num_coarse_moms - 1 do
+               local this_prop = prop[tsrc+1][nsrcpt+1]
+               --local this_prop = coarse_scatter(prop[tsrc+1][nsrcpt+1])
+               local this_anti_prop = gamma{mu=5} * this_prop:adjoin() * gamma{mu=5}
+               local src_coord = x_coarse_list[nsrcpt+1]
+               src_coord[#L] = tsrc
+               local src_disco_prop = disco_prop[src_coord]
+               local snk_disco_prop = disco_prop
+               for tp = 1, tsrc do 
+                  snk_disco_prop = snk_disco_prop:shift(#L-1, "from_forward") 
+               end
+               -- connected terms
+               local term_1 = this_weight * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[1],d=src_weight[2]}] * this_anti_prop[{c=src_weight[3],d=src_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[5],d=src_weight[6]}]
+               local term_2 = -1 * this_weight * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[1],d=src_weight[2]}] * this_anti_prop[{c=src_weight[3],d=src_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[5],d=src_weight[6]}]
+               -- disconnected terms (note these all vanish in free field where color diagonal & spin diagonal in Dirac basis)
+               local term_3 = -1 * this_weight * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[1],d=src_weight[2]}] * snk_disco_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * src_disco_prop[{c=src_weight[3],d=src_weight[4]}][{c=src_weight[5],d=src_weight[6]}]
+
+               local term_4 = this_weight * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[1],d=src_weight[2]}] * snk_disco_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=snk_weight[1],d=snk_weight[2]}] * src_disco_prop[{c=src_weight[3],d=src_weight[4]}][{c=src_weight[5],d=src_weight[6]}]
+
+               local term_5 = this_weight * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[5],d=src_weight[6]}] * snk_disco_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * src_disco_prop[{c=src_weight[3],d=src_weight[4]}][{c=src_weight[1],d=src_weight[2]}]
+
+               local term_6 = -1 * this_weight * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[5],d=src_weight[6]}] * snk_disco_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=snk_weight[1],d=snk_weight[2]}] * src_disco_prop[{c=src_weight[3],d=src_weight[4]}][{c=src_weight[1],d=src_weight[2]}]
+               -- total
+               local block_term = term_1 + term_2 + term_3 + term_4 + term_5 + term_6
+               -- momentum project block at snk
+               correlator = correlator + coarse_mom_proj_gather:add(all_FT_list[nsrcpt+1] * snk_FT * block_term)
+            end
+         end
+      end
+      contract_timer()
+   end
+   contract_timer()
+
+   return correlator 
+end
+
+function compute_coarse_all_to_all_adjoint_connected(L, L_mom, prop_indiv, src_weights, snk_weights, snk_p, src_p, coarse_fac)
+   local contract_timer = create_timer("compute hadron")
+   local Lt = L[#L-1]
+   local Nc = prop_indiv[1][1]:colors()
+   local L_coarse = prop_indiv[1][1].lattice
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu)
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local mom_I = {L_coarse:pcoord(#L-1)}
+   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   printf("Computing all to all correlator, coarse "..tostring(L_coarse).."\n")
+   local src_mom_name = make_coord_name(src_p)
+   local snk_mom_name = make_coord_name(snk_p)
+   printf("Src momenta "..src_mom_name.."\n")
+   printf("Snk momenta "..snk_mom_name.."\n")
+   printf("%d src weights \n", #src_weights)
+   printf("%d snk weights \n", #snk_weights)
+   local prop = {}
+   -- scatter to same lattice
+   for t=0, Lt-1 do
+      local coarse_scatter = qcd.scatter(L_coarse, prop_indiv[t+1][1].lattice, coarseI)
+      prop[t+1] = {}
+      for prop_num=1, #prop_indiv[1] do
+         prop[t+1][prop_num] = coarse_scatter(convert_to_Dirac_basis(prop_indiv[t+1][prop_num]))
+      end
+   end
+   -- number of src points to average over
+   local num_coarse_moms = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      num_coarse_moms = num_coarse_moms * coarse_size[mu+1]
+   end
+   coarse_size[#L] = 1
+   -- compute list of src coarse Fourier transform factors and disco prop
+   local all_FT_list = {}
+   local x_coarse_list = {}
+   for npsrc = 0, num_coarse_moms - 1 do
+      local xb = {}
+      local x_coarse = {}
+      local imod = npsrc
+      for mu = #L - 2, 0, -1 do
+         xb[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         x_coarse[mu+1] = imod % L_coarse[mu]
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      x_coarse_list[npsrc + 1] = x_coarse
+      local src_FT_arg = 0 
+      for mu = 0, #L - 2 do
+         src_FT_arg = src_FT_arg + xb[mu+1]*src_p[mu+1]
+      end
+      all_FT_list[npsrc + 1] = complex(math.cos(src_FT_arg), math.sin(src_FT_arg))
+   end
+   -- snk FT
+   local snk_FT_arg = L:Real(0)
+   for mu = 0, #L - 2 do
+      snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * snk_p[mu+1]
+   end
+   local snk_FT_fine = snk_FT_arg:expi() 
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   local snk_FT = coarse_scatter(snk_FT_fine)
+   -- loop over src/snk color-spin components with non-zero weight
+   local correlator = L_mom:Complex(0) 
+   for src_weight_num = 1, #src_weights do
+      printf("Src weight %d / %d \n",src_weight_num,#src_weights)
+      local src_weight = src_weights[src_weight_num]
+      for snk_weight_num = 1, #snk_weights do
+         printf("Snk weight %d / %d \n",snk_weight_num,#snk_weights)
+         local snk_weight = snk_weights[snk_weight_num]
+         local this_weight = src_weight[#src_weight] * snk_weight[#snk_weight]
+         -- loop over src times
+         for tsrc = 0, Lt-1 do
+            -- momentum project block at src
+            for nsrcpt = 0, num_coarse_moms - 1 do
+               local this_prop = prop[tsrc+1][nsrcpt+1]
+               --local this_prop = coarse_scatter(prop[tsrc+1][nsrcpt+1])
+               -- conjugate by DIRAC gamma_5 matrix (equal to +/- gamma_4 in DeGrand-Rossi basis)
+               local this_anti_prop = gamma{mu=3} * this_prop:adjoin() * gamma{mu=3}
+               -- connected terms
+--               local term_1 = this_weight * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[1],d=src_weight[2]}] * this_anti_prop[{c=src_weight[3],d=src_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[5],d=src_weight[6]}]
+--               local term_2 = -1 * this_weight * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[1],d=src_weight[2]}] * this_anti_prop[{c=src_weight[3],d=src_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[5],d=src_weight[6]}]
+               local term_1 = this_weight * this_prop[{c=src_weight[1],d=src_weight[2]}][{c=snk_weight[5],d=snk_weight[6]}] * this_anti_prop[{c=src_weight[3],d=src_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=src_weight[5],d=src_weight[6]}][{c=snk_weight[3],d=snk_weight[4]}]
+               local term_2 = -1 * this_weight * this_prop[{c=src_weight[1],d=src_weight[2]}][{c=snk_weight[3],d=snk_weight[4]}] * this_anti_prop[{c=src_weight[3],d=src_weight[4]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=src_weight[5],d=src_weight[6]}][{c=snk_weight[5],d=snk_weight[6]}]
+               local block_term = term_1 + term_2
+               -- momentum project block at snk
+               correlator = correlator + coarse_mom_proj_gather:add(all_FT_list[nsrcpt+1] * snk_FT * block_term)
+            end
+         end
+      end
+      contract_timer()
+   end
+   contract_timer()
+
+   return correlator 
+end
+
+function compute_point_to_all_adjoint_connected(L, L_mom, prop, src_weights, snk_weights, snk_p, src_p)
+   local contract_timer = create_timer("compute hadron")
+   local Lt = L[#L-1]
+   local Nc = prop:colors()
+   -- local coarseI = {}
+   -- for mu = 0, #L - 2 do
+   --    coarseI[mu+1] = L_coarse:pcoord(mu)
+   -- end
+   -- coarseI[#L] = L_coarse:pcoord(#L-1)
+   -- local mom_I = {L_coarse:pcoord(#L-1)}
+   local mom_I = {L:pcoord(#L-1)}
+   -- local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   local mom_proj_gather = qcd.gather(L_mom, L, mom_I)
+   -- printf("Computing all to all correlator, coarse "..tostring(L_coarse).."\n")
+   local src_mom_name = make_coord_name(src_p)
+   local snk_mom_name = make_coord_name(snk_p)
+   printf("Src momenta "..src_mom_name.."\n")
+   printf("Snk momenta "..snk_mom_name.."\n")
+   printf("%d src weights \n", #src_weights)
+   printf("%d snk weights \n", #snk_weights)
+   -- local prop = {}
+   -- scatter to same lattice
+   -- for t=0, Lt-1 do
+   --    local coarse_scatter = qcd.scatter(L_coarse, prop_indiv[t+1][1].lattice, coarseI)
+   --    prop[t+1] = {}
+   --    for prop_num=1, #prop_indiv[1] do
+   --       prop[t+1][prop_num] = coarse_scatter(convert_to_Dirac_basis(prop_indiv[t+1][prop_num]))
+   --    end
+   -- end
+   -- number of src points to average over
+   -- local num_coarse_moms = 1
+   -- local coarse_size = {}
+   -- for mu = 0, #L - 2 do
+   --    coarse_size[mu+1] = L[mu] / coarse_fac
+   --    num_coarse_moms = num_coarse_moms * coarse_size[mu+1]
+   -- end
+   -- coarse_size[#L] = 1
+   -- compute list of src coarse Fourier transform factors and disco prop
+   -- local all_FT_list = {}
+   -- local x_coarse_list = {}
+   -- for npsrc = 0, num_coarse_moms - 1 do
+   --    local xb = {}
+   --    local x_coarse = {}
+   --    local imod = npsrc
+   --    for mu = #L - 2, 0, -1 do
+   --       xb[mu+1] = coarse_fac * (imod % L_coarse[mu])
+   --       x_coarse[mu+1] = imod % L_coarse[mu]
+   --       imod = math.floor(coarse_fac * imod / L[mu])
+   --    end
+   --    x_coarse_list[npsrc + 1] = x_coarse
+   --    local src_FT_arg = 0 
+   --    for mu = 0, #L - 2 do
+   --       src_FT_arg = src_FT_arg + xb[mu+1]*src_p[mu+1]
+   --    end
+   --    all_FT_list[npsrc + 1] = complex(math.cos(src_FT_arg), math.sin(src_FT_arg))
+   -- end
+   -- snk FT
+   local snk_FT_arg = L:Real(0)
+   for mu = 0, #L - 2 do
+      snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * snk_p[mu+1]
+   end
+   local snk_FT_fine = snk_FT_arg:expi() 
+   -- local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   -- local snk_FT = coarse_scatter(snk_FT_fine)
+   local snk_FT = snk_FT_fine
+   -- loop over src/snk color-spin components with non-zero weight
+   local correlator = L_mom:Complex(0) 
+   local this_prop = prop
+   --local this_prop = coarse_scatter(prop[tsrc+1][nsrcpt+1])
+   local this_anti_prop = gamma{mu=5} * this_prop:adjoin() * gamma{mu=5}
+   for src_weight_num = 1, #src_weights do
+      printf("Src weight %d / %d \n",src_weight_num,#src_weights)
+      local src_weight = src_weights[src_weight_num]
+      for snk_weight_num = 1, #snk_weights do
+         local snk_weight = snk_weights[snk_weight_num]
+         local this_weight = src_weight[#src_weight] * snk_weight[#snk_weight]
+         -- connected terms
+         local term_1 = -1 * this_weight * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[5],d=src_weight[6]}] * this_anti_prop[{c=src_weight[1],d=src_weight[2]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[3],d=src_weight[4]}]
+         local term_2 = this_weight * this_prop[{c=snk_weight[3],d=snk_weight[4]}][{c=src_weight[5],d=src_weight[6]}] * this_anti_prop[{c=src_weight[1],d=src_weight[2]}][{c=snk_weight[1],d=snk_weight[2]}] * this_prop[{c=snk_weight[5],d=snk_weight[6]}][{c=src_weight[3],d=src_weight[4]}]
+         local block_term = term_1 + term_2
+         -- momentum project block at snk
+         correlator = correlator + mom_proj_gather:add(snk_FT * block_term)
+         -- -- loop over src times
+         -- for tsrc = 0, Lt-1 do
+         --    -- momentum project block at src
+         --    for nsrcpt = 0, num_coarse_moms - 1 do
+         --    end
+         -- end
+      end
+      contract_timer()
+   end
+   contract_timer()
+
+   return correlator 
+end
+
+function compute_coarse_all_to_all_adjoint_disco(L, L_mom, prop_indiv, src_weights, snk_weights, snk_p, src_p, coarse_fac)
+   local contract_timer = create_timer("compute hadron")
+   local Lt = L[#L-1]
+   local Nc = prop_indiv[1][1]:colors()
+   local L_coarse = prop_indiv[1][1].lattice
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu)
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local mom_I = {L_coarse:pcoord(#L-1)}
+   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   printf("Computing all to all correlator, coarse "..tostring(L_coarse).."\n")
+   local src_mom_name = make_coord_name(src_p)
+   local snk_mom_name = make_coord_name(snk_p)
+   printf("Src momenta "..src_mom_name.."\n")
+   printf("Snk momenta "..snk_mom_name.."\n")
+   printf("%d src weights \n", #src_weights)
+   printf("%d snk weights \n", #snk_weights)
+   local prop = {}
+   -- scatter to same lattice
+   for t=0, Lt-1 do
+      local coarse_scatter = qcd.scatter(L_coarse, prop_indiv[t+1][1].lattice, coarseI)
+      prop[t+1] = {}
+      for prop_num=1, #prop_indiv[1] do
+         prop[t+1][prop_num] = coarse_scatter(convert_to_Dirac_basis(prop_indiv[t+1][prop_num]))
+      end
+   end
+   -- number of src points to average over
+   local num_coarse_moms = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      num_coarse_moms = num_coarse_moms * coarse_size[mu+1]
+   end
+   coarse_size[#L] = 1
+   -- compute list of src coarse Fourier transform factors and disco prop
+   local disco_prop = L_coarse:DiracPropagatorN(Nc)
+   local all_FT_list = {}
+   local x_coarse_list = {}
+   for npsrc = 0, num_coarse_moms - 1 do
+      local xb = {}
+      local x_coarse = {}
+      local imod = npsrc
+      for mu = #L - 2, 0, -1 do
+         xb[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         x_coarse[mu+1] = imod % L_coarse[mu]
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      x_coarse_list[npsrc + 1] = x_coarse
+      local src_FT_arg = 0 
+      for mu = 0, #L - 2 do
+         src_FT_arg = src_FT_arg + xb[mu+1]*src_p[mu+1]
+      end
+      all_FT_list[npsrc + 1] = complex(math.cos(src_FT_arg), math.sin(src_FT_arg))
+      -- disco prop elements for all t
+      x_coarse = table_copy(x_coarse)
+      local y_coarse = table_copy(x_coarse)
+      y_coarse[#L] = 0
+      for t=0, Lt-1 do
+         x_coarse[#L] = t
+         disco_prop[x_coarse] = prop[t+1][npsrc + 1][y_coarse]
+      end
+   end
+   -- snk FT
+   local snk_FT_arg = L:Real(0)
+   for mu = 0, #L - 2 do
+      snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * snk_p[mu+1]
+   end
+   local snk_FT_fine = snk_FT_arg:expi() 
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   local snk_FT = coarse_scatter(snk_FT_fine)
+
+   local composite_source = L_coarse:DiracFermion() -- source composite fermion
+   local composite_sink = L_coarse:DiracFermion() -- sink composite fermion
+   for src_weight_num = 1, #src_weights do
+      printf("Src weight %d / %d \n",src_weight_num,#src_weights)
+      local src_weight = src_weights[src_weight_num]
+      local this_weight = src_weight[#src_weight]
+      composite_source[{c=src_weight[3],d=src_weight[4]}] = composite_source[{c=src_weight[3],d=src_weight[4]}] + this_weight * disco_prop[{c=src_weight[5],d=src_weight[6]}][{c=src_weight[1],d=src_weight[2]}]
+      composite_sink[{c=src_weight[3],d=src_weight[4]}] = composite_sink[{c=src_weight[3],d=src_weight[4]}] + this_weight * disco_prop[{c=src_weight[1],d=src_weight[2]}][{c=src_weight[5],d=src_weight[6]}]
+   end
+   show_ferm(composite_source[{0,0,0,0}])
+   show_ferm(composite_sink[{0,0,0,0}])
+   
+   -- contract the source and sink with the propagator that goes between them
+   local correlator = L_mom:Complex(0)
+   for tsrc = 0, Lt-1 do
+      for nsrcpt = 0, num_coarse_moms - 1 do
+         local this_prop = prop[tsrc+1][nsrcpt+1]
+         local src_coord = table_copy(x_coarse_list[nsrcpt+1])
+         src_coord[#src_coord+1] = tsrc
+         local temp = L_coarse:DiracFermion()
+         for c = 0, 2 do
+            for d = 0, 3 do
+               temp = temp + this_prop[{c=c,d=d}] * composite_source[src_coord][{c=c,d=d}]
+            end
+         end
+         local shifted_sink = composite_sink
+         for tp = 1, tsrc do 
+            shifted_sink = shifted_sink:shift(#L-1, "from_forward")  --TODO: Think about whether this is right
+         end
+
+         local correlator_term = qcd.dot(shifted_sink:conj(), temp)
+         correlator = correlator + coarse_mom_proj_gather:add(all_FT_list[nsrcpt+1] * snk_FT * correlator_term)
+      end
+   end
+   return correlator
+end
+

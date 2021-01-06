@@ -1,0 +1,243 @@
+require "lib/gl"
+require "lib/hmc_mosaic"
+require "lib/gl_sk"
+
+gauge_sk = {}
+
+-- operations
+--   .initTraj(U)         do nothing
+--   .actionDensity(U)    -1/2 tr(pl + pl^+)
+--   .action(U)           -1/2Nc sum tr(pl+pl^+)
+--   .force(U)            -i/2Nc (pl - pl+)
+--   .count(U)            number of loops on a lattice
+
+-- schwinger keldysh contour 
+-- L = {x1, x2, x3, x0}
+-- gmunu = {+,+,+,-}
+-- x0 : [0, tM - 1], [tM, tM + tE/2 - 1], [tM + tE/2, 2tM + tE/2 - 1], [2tM + tE/2, 2tM + tE - 1]
+
+local function trivialInitTraj(U, rndGen) end
+
+
+function gauge_sk.make_sym_xy(part, tM, tE)
+   assert(tE % 2 == 0)
+   local t = {name = part, initTraj = trivialInitTraj}
+   local function get_sets(L)
+      local t_dir = #L-1
+      assert(L[t_dir] == 2*tM + tE)
+      local M1set = L:Subset(qcd.lt(L:pcoord(t_dir),tM));
+      local E1set = L:Subset(qcd.lt(L:pcoord(t_dir),tM + tE/2) * qcd.gt(L:pcoord(t_dir),tM - 1));
+      local M2set = L:Subset(qcd.lt(L:pcoord(t_dir),2*tM + tE/2) * qcd.gt(L:pcoord(t_dir),tM + tE/2 - 1));
+      local E2set = L:Subset(qcd.gt(L:pcoord(t_dir),2*tM + tE/2 - 1));
+      return M1set, E1set, M2set, E2set
+   end
+   function t.get_sk_phases(L)
+      local M1set, E1set, M2set, E2set = get_sets(L)
+      -- V signs
+      -- -i[0, tM - 1], [tM, tM + tE/2 - 1], i[tM + tE/2, 2tM + tE/2 - 1], [2tM + tE/2, 2tM + tE - 1]
+      local sk_V_mask = L:Complex(1)
+      E1set:where(function () sk_V_mask:set(L:Complex(1)) end);
+      E2set:where(function () sk_V_mask:set(L:Complex(1)) end);
+      M1set:where(function () sk_V_mask:set(L:Complex(complex(0,-1))) end);
+      M2set:where(function () sk_V_mask:set(L:Complex(complex(0,1))) end);
+      -- K signs
+      -- i[0, tM - 1], [tM, tM + tE/2 - 1], -i[tM + tE/2, 2tM + tE/2 - 1], [2tM + tE/2, 2tM + tE - 1]
+      local sk_K_mask = L:Complex(1)
+      E1set:where(function () sk_K_mask:set(L:Complex(1)) end);
+      E2set:where(function () sk_K_mask:set(L:Complex(1)) end);
+      M1set:where(function () sk_K_mask:set(L:Complex(complex(0,1))) end);
+      M2set:where(function () sk_K_mask:set(L:Complex(complex(0,-1))) end);
+      return sk_K_mask, sk_V_mask
+   end
+   function t.get_sk_m_mask(L)
+      local M1set, E1set, M2set, E2set = get_sets(L)
+      local sk_V_mask = L:Complex(1)
+      E1set:where(function () sk_V_mask:set(L:Complex(0)) end);
+      E2set:where(function () sk_V_mask:set(L:Complex(0)) end);
+      local sk_K_mask = L:Complex(1)
+      E1set:where(function () sk_K_mask:set(L:Complex(0)) end);
+      E2set:where(function () sk_K_mask:set(L:Complex(0)) end);
+      return sk_K_mask, sk_V_mask
+   end
+   function t.get_sk_e_mask(L)
+      local M1set, E1set, M2set, E2set = get_sets(L)
+      local sk_V_mask = L:Complex(1)
+      M1set:where(function () sk_V_mask:set(L:Complex(0)) end);
+      M2set:where(function () sk_V_mask:set(L:Complex(0)) end);
+      local sk_K_mask = L:Complex(1)
+      M1set:where(function () sk_K_mask:set(L:Complex(0)) end);
+      M2set:where(function () sk_K_mask:set(L:Complex(0)) end);
+      return sk_K_mask, sk_V_mask
+   end
+   -- -1/2Nc tr(pl + pl^+)
+   function t.actionDensity(U)
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      local sk_K_phases, sk_V_phases = t.get_sk_phases(L)
+      local x, y
+      local v = U[1].lattice:Real(0.0)
+      local dim = #U
+      local t_dir = #U - 1
+      for y = 0, dim - 1 do
+         if y ~= t_dir then
+            v = v + sk_K_phases*(- (1/Nc)*(gl.action[part](U,t_dir,y)))
+         end
+      end
+      for x = 0, dim - 1 do
+         for y = x + 1, dim - 1 do
+            if x ~= t_dir and y ~= t_dir then
+               v = v + sk_V_phases*(- (1/Nc)*(gl.action[part](U,x,y)))
+            end
+         end
+      end
+      -- S_E + <S_M^2> / 2
+      local vE = v:real()
+      local vM = v:imag()
+      local vM2 = vM*vM
+      local cumuM = (1/2)*vM2
+      local vsk = vE + cumuM
+      return vsk
+   end
+   -- -1/2Nc sum(tr(pl + pl^+))
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+   -- function t.count(U)
+   --    local v = gl_sk.count[part]
+   --    local L = U[1].lattice
+   --    local x, y
+   --    local i, w
+   --    for i = 0, #L - 1 do
+   --       v = v * L[i]
+   --    end
+   --    w = 0
+   --    for x = 0, #L - 1 do
+   --       for y = x + 1, #L - 1 do
+   --          w = w + v
+   --       end
+   --    end
+   --    return w
+   -- end
+   -- -i/2Nc (pl - pl+)
+   function t.force(U)
+      local x, y
+      local Nc = U[1]:colors()
+      local L = U[1].lattice
+      local dim = #U
+      local F = {}
+      local t_dir = #U-1
+      -- Euclidean part
+      do
+         local sk_EK_mask, sk_EV_mask = t.get_sk_e_mask(L)
+         local Fx = L:ColorMatrixN(Nc,0.0)
+         for y = 0, dim - 1 do
+            if y ~= t_dir then
+               local F0yup, F0ydown = gl_sk.force[part].dx(U,t_dir,y)
+               Fx = Fx + sk_EK_mask*(F0yup + F0ydown)
+            end
+         end
+         Fx = Fx - Fx:adjoin()
+         F[t_dir + 1] = complex(0,-1/(2*Nc)) * Fx
+         for x = 0, dim - 1 do
+            if x ~= t_dir then
+               local Fx = L:ColorMatrixN(Nc,0.0)
+               local Fx0up, Fx0down = gl_sk.force[part].dx(U,x,t_dir)
+               Fx = Fx + sk_EK_mask*Fx0up
+               Fx = Fx + sk_EK_mask:shift(t_dir,"from_backward")*Fx0down
+               for y = 0, dim - 1 do
+                  if not (x == y) and y ~= t_dir then
+                     Fx = Fx + sk_EV_mask*(gl.force[part].dx(U,x,y))
+                  end
+               end
+               Fx = Fx - Fx:adjoin()
+               F[x + 1] = complex(0,-1/(2*Nc)) * Fx
+            end
+         end
+      end
+      -- Minkowski part
+      do
+         local sk_K_phases, sk_V_phases = t.get_sk_phases(L)
+         local sk_MK_mask, sk_MV_mask = t.get_sk_m_mask(L)
+         local v = U[1].lattice:Real(0.0)
+         for y = 0, dim - 1 do
+            if y ~= t_dir then
+               v = v + sk_K_phases*(- (1/Nc)*(gl.action[part](U,t_dir,y)))
+            end
+         end
+         for x = 0, dim - 1 do
+            for y = x + 1, dim - 1 do
+               if x ~= t_dir and y ~= t_dir then
+                  v = v + sk_V_phases*(- (1/Nc)*(gl.action[part](U,x,y)))
+               end
+            end
+         end
+         local vM = v:imag()
+         local Fx = L:ColorMatrixN(Nc,0.0)
+         for y = 0, dim - 1 do
+            if y ~= t_dir then
+               local F0yup, F0ydown
+               F0yup, F0ydown = gl_sk.force[part].dx(U,t_dir,y)
+               Fx = Fx + complex(0,-1) * sk_K_phases * (vM*F0yup + vM:shift(y, "from_backward")*F0ydown)
+            end
+         end
+         Fx = Fx - Fx:adjoin()
+         F[t_dir + 1] = F[t_dir + 1] + complex(0,-1/(2*Nc)) * Fx
+         for x = 0, dim - 1 do
+            if x ~= t_dir then
+               local Fx = L:ColorMatrixN(Nc,0.0)
+               local Fx0up, Fx0down = gl_sk.force[part].dx(U,x,t_dir)
+               Fx = Fx + complex(0,-1) * sk_K_phases * vM*Fx0up
+               Fx = Fx + complex(0,-1) * (sk_K_phases*vM):shift(t_dir,"from_backward")*Fx0down
+               for y = 0, dim - 1 do
+                  if not (x == y) and y ~= t_dir then
+                     local Fxyup, Fxydown = gl_sk.force[part].dx(U,x,y)
+                     Fx = Fx + complex(0,-1) * sk_V_phases * vM*Fxyup
+                     Fx = Fx + complex(0,-1) * (sk_V_phases*vM):shift(y,"from_backward")*Fxydown
+                  end
+               end
+               Fx = Fx - Fx:adjoin()
+               F[x + 1] = F[x + 1] + complex(0,-1/(2*Nc)) * Fx
+            end
+         end
+      end
+      return F
+   end
+   -- reweighting factor density
+   function t.actionDensityRW(U)
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      local sk_K_phases, sk_V_phases = t.get_sk_phases(L)
+      local x, y
+      local v = U[1].lattice:Real(0.0)
+      local dim = #U
+      local t_dir = #U - 1
+      for y = 0, dim - 1 do
+         if y ~= t_dir then
+            v = v + sk_K_phases*(- (1/Nc)*(gl.action[part](U,t_dir,y)))
+         end
+      end
+      for x = 0, dim - 1 do
+         for y = x + 1, dim - 1 do
+            if x ~= t_dir and y ~= t_dir then
+               v = v + sk_V_phases*(- (1/Nc)*(gl.action[part](U,x,y)))
+            end
+         end
+      end
+      -- L_M - L_M^2 / 2
+      local vE = v:real()
+      local vM = v:imag()
+      local vM2 = vM*vM
+      local cumuM = (1/2)*vM2
+      local Srwsk = complex(0,1)*vM + cumuM
+      return Srwsk
+   end
+   function t.RW(U)
+      local actionRW = t.actionDensityRW(U):sum()
+      return actionRW:exp() 
+   end
+   return t
+end
+
+function gauge_sk.plaq1(tM, tE) 
+   return gauge_sk.make_sym_xy("plaq1", tM, tE)
+end
