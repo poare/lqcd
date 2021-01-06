@@ -48,7 +48,7 @@ parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}
 export OMP_NUM_THREADS=6
 
 # for cfg in `seq 500 5 1000`
-for cfg in `seq 1080 10 1120`
+for cfg in `seq 1120 10 1150`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 done
