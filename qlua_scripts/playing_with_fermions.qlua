@@ -114,6 +114,7 @@ if gpu then
                               solve_type = "NORMEQ_PC_SOLVE",
                               dslash_type = "DOMAIN_WALL_DSLASH",
                               -- m5 = -M,
+                              m5 = M,       -- m5 is the problem for some reason-- maybe it has to be positive?
                               solution_type = "MATPC_SOLUTION",
                               Ls = Ls,
                               matpc_type = "MATPC_ODD_ODD",
