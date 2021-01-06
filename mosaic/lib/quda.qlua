@@ -106,7 +106,7 @@ do
          lattice:Subset{axis=3, position=lattice[3]-1}:where(function () U4:set(-V4) end)
          V4 = U4
       end
-      iparams = _quda.InvertParam()
+      iparams = _quda.InvertParam()       -- InvertParam is a QudaInvertParam_s in quda.h
       iparams.clover_cpu_prec           = "DOUBLE_PRECISION"
       iparams.clover_cuda_prec          = "DOUBLE_PRECISION"
       iparams.clover_cuda_prec_sloppy   = "HALF_PRECISION"
@@ -137,6 +137,10 @@ do
        (ipx.dslash_type == "TWISTED_CLOVER_DSLASH")) then
          _quda.loadCloverQuda(iparams)
          has_clover = true
+      elseif ipx.dslash_type == "DOMAIN_WALL_DSLASH" then
+         _quda.loadCloverQuda(iparams)
+         has_clover = false
+         -- TODO FILL IN
       end
       solver = obj
       return obj

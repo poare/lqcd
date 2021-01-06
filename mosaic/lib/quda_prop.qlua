@@ -4,6 +4,18 @@ require "lib/toAdjoint2"
 require "lib/quda"
 
 -- code to construct a GPU (QUDA-based) solver for propagators
+-- EDIT THIS AND QUDA.QLUA TO ADD IN SUPPORT FOR DWF
+-- I can include this file locally once I edit it. Will need to include extra parameters like m5 and Ls
+-- Take the inverter and set iparams.m5 = m5, iparams.Ls = Ls, and then ipx.dslash_type == "QUDA_MOBIUS_DWF_DSLASH"
+-- Follow the parameters in ~/quda/lib/invert_test.cpp
+-- May need to change sources/qquda.c, add a line to get a m5 and Ls inverter
+-- Then practice building QLUA with QUDA on wombat-- make sure I can do that first before doing anything else because I don't want to break it. Andrew has instructions somewhere on how to build it
+  -- go into build folder and then run make TARGET=linux-gcc on the cluster?
+  -- To build from source: clone build directory, run update command, then run make TARGET=whatever target I want. May need to specify export flags
+-- make a propagator, prop = GPU_DWF_prop(...), then do prop:solve()
+function GPU_DWF_prop(U, kappa, m5)
+  return 0
+end
 
  function GPU_prop(U, csw, kappa, adj)
    if adj then U = toSO3(U) end
@@ -48,4 +60,3 @@ require "lib/quda"
     end
     return solver
   end
-

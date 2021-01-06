@@ -616,7 +616,7 @@ function clover_ferm.quda_4d_nc3(kappa, csw, bcs, flags)
             return sol/t.rescale^2
          end
       end
-      t.m_solver = function(self, eps, max_iter)
+      t.m_solver = function(self, eps, max_iter)    -- This is the solver that gets called, goes into make_and_store_solver
          local quda_solver = make_and_store_solver(eps, max_iter)
          return function(psi) return quda_solver:solve(psi)/t.rescale end
       end
