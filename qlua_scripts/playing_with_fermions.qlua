@@ -5,6 +5,7 @@ require "lib/group"
 require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
+require "lib/quda"
 
 -- Utility functions
 Nc = 3
@@ -93,7 +94,6 @@ ml = 0.005
 -- gpu = false    -- use for tests on computer
 if gpu then
   -- Initialize QUDA (must be done on a GPU)
-  require "lib/quda"
   print("Testing QUDA.")
   qcd.quda.init(L)
 
