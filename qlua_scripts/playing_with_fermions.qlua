@@ -116,7 +116,7 @@ if gpu then
                               solution_type = "MATPC_SOLUTION",
                               -- Ls = Ls,
                               matpc_type = "MATPC_ODD_ODD",
-                              -- max_iter = 5000,
+                              max_iter = 5000,
                               mass = ml
                              })
   S_quda_dwf = quda_dwf_solver:solve(src)
