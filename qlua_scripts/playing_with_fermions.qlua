@@ -113,9 +113,9 @@ if gpu then
                              {inv_type = "CG_INVERTER",   -- some of these parameters need to be played with. Which ones are valid???
                               solve_type = "NORMEQ_PC_SOLVE",
                               dslash_type = "DOMAIN_WALL_DSLASH",
-                              m5 = -M,
+                              -- m5 = -M,
                               solution_type = "MATPC_SOLUTION",
-                              -- Ls = Ls,
+                              Ls = Ls,
                               matpc_type = "MATPC_ODD_ODD",
                               max_iter = 5000,
                               mass = ml
