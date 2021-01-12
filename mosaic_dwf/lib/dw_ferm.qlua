@@ -25,7 +25,7 @@ function dw_ferm.quda_4d_nc3(M5, LS, ml, bcs, flags)
    -- local cpu_impl = clover_ferm.cpu_4d_nc3(kappa, csw, bcs, flags)
    -- local rescale = (flags.rescale ~= nil) and flags.rescale or
    --       (Nd + kappa_to_mass(kappa, Nd)) -- default Chroma scaling
-
+   print("Inside dw_ferm")
    return function(U)
       local t = {
          U = U,
@@ -57,9 +57,9 @@ function dw_ferm.quda_4d_nc3(M5, LS, ml, bcs, flags)
              m5 = M5,
              Ls = LS,
              mass = ml,
-             solve_type = "NORMEQ_PC_SOLVE",
-             inv_type = "CG_INVERTER",
-             matpc_type = "MATPC_ODD_ODD"
+             solve_type = "NORMOP_SOLVE",
+             inv_type = "CG_INVERTER"
+             --matpc_type = "MATPC_ODD_ODD"
           })
          quda_solver_handle = quda_solver
          return quda_solver
