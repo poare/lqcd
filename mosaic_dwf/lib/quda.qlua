@@ -130,15 +130,19 @@ do
       iparams.use_init_guess            = "USE_INIT_GUESS_NO"
       iparams.verbosity                 = "SILENT"
       for i,v in pairs(ipx) do
+         print(i)
+         print(v)
          iparams[i] = v
       end
+      print("Params loaded")
       _quda.loadGaugeQuda({U[1],U[2],U[3],V4}, gparams)
       if ((ipx.dslash_type == "CLOVER_WILSON_DSLASH") or
        (ipx.dslash_type == "TWISTED_CLOVER_DSLASH")) then
          _quda.loadCloverQuda(iparams)
          has_clover = true
       elseif ipx.dslash_type == "DOMAIN_WALL_DSLASH" then
-         _quda.loadCloverQuda(iparams)
+         --_quda.loadCloverQuda(iparams)
+
          has_clover = false
          -- TODO FILL IN
       end
