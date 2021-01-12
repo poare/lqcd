@@ -1,0 +1,85 @@
+-- Specific implementations for domain wall fermions. Mostly copied from clover_ferm.qlua
+-- and modified.
+
+require "lib/caching"
+require "lib/solver"
+require "lib/hmc_mosaic"
+
+dw_ferm = {}
+
+-- Each ferm impl should produce an object that provides:
+--   :D(psi)                     Apply D to psi
+--   :Dx(psi)                    Apply Dx to psi
+--   :mxm_solver(eps,max_iter)   Produce (D^dag D) solver
+--   :m_solver(eps,max_iter)     Produce D solver
+
+-- GPU implementation of solver + CPU dslash
+local quda_solver_handle = nil -- track old solver so we can close if new needed
+function dw_ferm.quda_4d_nc3(M5, LS, ml, bcs, flags)
+   flags = flags or {}
+   local Nd = #bcs
+   for d = 1, #bcs-1 do
+      assert(bcs[d] == 1) -- only last dim allowed anti-periodic
+   end
+   local t_boundary = (bcs[#bcs] == -1) and "ANTI_PERIODIC_T" or "PERIODIC_T"
+   -- local cpu_impl = clover_ferm.cpu_4d_nc3(kappa, csw, bcs, flags)
+   -- local rescale = (flags.rescale ~= nil) and flags.rescale or
+   --       (Nd + kappa_to_mass(kappa, Nd)) -- default Chroma scaling
+
+   return function(U)
+      local t = {
+         U = U,
+         m5 = M5,
+         Ls = LS,
+         bcs = bcs
+         -- cpu_impl = cpu_impl(U),
+         --D = clover_ferm.D,
+         -- deriv_D = clover_ferm.deriv_D,
+			-- 	 D_deriv_D = clover_ferm.D_deriv_D,
+			-- 	 D_deriv_D_prop = clover_ferm.D_deriv_D_prop,
+         -- rescale = rescale
+      }
+      -- Delegate operator application to CPU. TODO
+      -- t.D = function(self, psi) return self.cpu_impl:D(psi) end
+      -- t.Dx = function(self, psi) return self.cpu_impl:Dx(psi) end
+
+      local function make_and_store_solver(eps, max_iter)
+         -- need to hold handle because can only make one solver instance in QUDA
+         if quda_solver_handle ~= nil then
+            quda_solver_handle:close()
+         end
+         local quda_solver = qcd.quda.solver(
+            U,
+            {t_boundary = t_boundary},
+            {dslash_type = "DOMAIN_WALL_DSLASH",
+             tol = eps,
+             maxiter = max_iter,
+             m5 = M5,
+             Ls = LS,
+             mass = ml,
+             solve_type = "NORMEQ_PC_SOLVE",
+             inv_type = "CG_INVERTER",
+             matpc_type = "MATPC_ODD_ODD"
+          })
+         quda_solver_handle = quda_solver
+         return quda_solver
+      end
+
+      -- TODO(gkanwar): Real mxm solver in QUDA?
+      t.mxm_solver = function(self, eps, max_iter)
+         local quda_solver = make_and_store_solver(eps, max_iter)
+         return function(psi)
+            local timer = create_timer('DWF QUDA')
+            local tmp = gamma{mu=5}*quda_solver:solve(gamma{mu=5}*psi)
+            local sol = quda_solver:solve(tmp)
+            timer()
+            return sol --/t.rescale^2
+         end
+      end
+      t.m_solver = function(self, eps, max_iter)    -- This is the solver that gets called, goes into make_and_store_solver
+         local quda_solver = make_and_store_solver(eps, max_iter)
+         return function(psi) return quda_solver:solve(psi) end --/t.rescale end
+      end
+      return t
+   end
+end
