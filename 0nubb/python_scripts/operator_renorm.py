@@ -9,10 +9,10 @@ cfgbase = 'cl3_16_48_b6p1_m0p2450'
 job_num = 29552
 data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
 
-L = 16
-T = 48
+l = 16
+t = 48
 # An.set_dimensions(L, T)
-L = Lattice(L, T)
+L = Lattice(l, t)
 
 k1_list = []
 k2_list = []

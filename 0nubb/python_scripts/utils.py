@@ -1,11 +1,12 @@
 import numpy as np
-from scipy.optimize import root
 import h5py
 import os
 from scipy.special import zeta
 import time
 import re
 import itertools
+import io
+from scipy import optimize
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
   # b is the boostrap index
@@ -178,15 +179,95 @@ def readfiles(cfgs, q, op_renorm = True):
                 GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
+# Read an Npt function in David's format
+def read_Npt(folder, stem, fnums, N, n_t):
+    files = [folder + '/' + stem + '.' + str(fnum) for fnum in fnums]
+    if N == 2:
+        Cnpt = np.zeros((len(fnums), n_t, n_t), dtype = np.complex64)
+    else:
+        Cnpt = np.zeros((len(fnums), 24, n_t, n_t, n_t), dtype = np.complex64)   # for raw readout without operator structures
+        # Cnpt = np.zeros((len(fnums), 5, n_t, n_t, n_t), dtype = np.complex64)   # for non time-averaged data
+        # Cnpt = np.zeros((len(fnums), 5, n_t, n_t), dtype = np.complex64)     # for time averaged data
+    for f_idx, file in enumerate(files):
+        print(file)
+        with io.open(file, 'r', encoding = 'windows-1252') as f:    # encoding catches ASCII characters
+            lines = [line.rstrip() for line in f]
+        for l in lines:
+            # print(l)
+            x = l.split()
+            if N == 2:
+                tsrc, tsnk = int(x[0]), int(x[1])
+                entry = np.complex(float(x[2]), float(x[3]))
+                Cnpt[f_idx, tsrc, tsnk] = entry
+            else:           # read 3-pt contraction structure
+                # read out non time-averaged data, without constructing the appropriate operator structures in this function.
+                try:
+                    tminus, tx, tplus = int(x[0]), int(x[1]), int(x[2])
+                    start = 3               # first index with an actual entry
+                    for op_idx in range(24):
+                        Cnpt[f_idx, op_idx, tminus, tx, tplus] = np.complex(float(x[start + 2 * op_idx]), float(x[start + 2 * op_idx + 1]))
+                except (ValueError, UnicodeDecodeError) as e:
+                    print('Error: File ' + str(file) + ' at index (' + str(tminus) + ','  + str(tx) + ', ' + str(tplus) + '), op_idx = ' + str(op_idx))
+                    print(e)
+    return Cnpt
+
+# C should be an array of size [num_files, T] where T is the lattice temporal extent.
+# Folder is a function of two arguments which returns how to add them, (A + B)
+# for sym and (A - B) for antisym
+def fold(C, T, folder = np.sum):
+    folded = np.zeros((C.shape[0], T // 2 + 1), dtype = np.complex64)
+    folded[:, 0] = C[:, 0]
+    for t in range(T // 2):
+        # print((t + 1, T - (t + 1)))
+        folded[:, t + 1] = folder(C[:, t + 1], C[:, T - (t + 1)]) / 2
+    return folded
+
+# data should be an array of size (n_boot, T) and fit_region gives the times to fit at
+def fit_constant(fit_region, data):
+    if type(fit_region) != np.ndarray:
+        fit_region = np.array([x for x in fit_region])
+    num_boots = n_boot
+    if len(data.shape) == 1:        # if data only has one dimension, add an axis
+        data = np.expand_dims(data, axis = 0)
+        num_boots = 1
+    sigma_fit = np.std(data[:, fit_region], axis = 0)
+    c_fit = np.zeros((n_boot), dtype = np.float64)
+    for i in range(num_boots):
+        data_fit = data[i, fit_region]
+        x0 = [1]          # guess to start at
+        # chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 )        # if we aren't allowed to use the error
+        chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
+        out = optimize.minimize(chi2, x0, args=(data_fit, sigma_fit), method = 'Powell')
+        c_fit[i] = out['x']
+
+    # # try with least squares regression in scipy.optimize
+    # fitfunc = lambda c, x: c[0]
+    # errfunc = lambda c, x, y, err: (y - fitfunc(c, x)) / err
+    # c_init = [0.0]
+    # out = optimize.leastsq(errfunc, c_init, args=(fit_region, data_fit, sigma_fit), full_output=1)
+    # c, cov = out[0], out[1]
+    # sigma = np.sqrt(cov[0, 0])
+
+    # # try with np.polyfit-- gives about the same as scipy.curve_fit, neither of them propagate uncertainty on the data points
+    # c, cov = np.polyfit(fit_region, data_fit, 0, w = 1 / sigma_fit, cov = True)
+    # sigma = np.sqrt(cov[0, 0])
+
+    c, sigma = np.mean(c_fit), np.std(c_fit)
+
+    return c, sigma
+
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
-def bootstrap(S, seed = 1):
+def bootstrap(S, seed = 10, weights = None):
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
-    np.random.seed(seed)
     bootshape = [n_boot]
     bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
     samples = np.zeros(bootshape, dtype = np.complex64)
+    if weights == None:
+        weights = np.ones((num_configs))
+    weights2 = weights / float(np.sum(weights))
+    np.random.seed(seed)
     for boot_id in range(n_boot):
-        cfg_ids = np.random.choice(num_configs, size = num_configs, replace = True)
+        cfg_ids = np.random.choice(num_configs, p = weights2, size = num_configs, replace = True)
         samples[boot_id] = np.mean(S[cfg_ids], axis = 0)
     return samples
 
