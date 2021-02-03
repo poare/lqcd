@@ -121,6 +121,7 @@ class Lattice:
         return (2 * np.pi / aGeV) * np.sqrt(sum([(k[mu] / self.LL[mu]) ** 2 for mu in range(4)]))
 
 n_boot = 50
+# n_boot = 100
 
 def kstring_to_list(pstring, str):
     def get_momenta(x):
@@ -222,22 +223,22 @@ def fold(C, T, folder = np.sum):
         folded[:, t + 1] = folder(C[:, t + 1], C[:, T - (t + 1)]) / 2
     return folded
 
-# data should be an array of size (n_boot, T) and fit_region gives the times to fit at
+# data should be an array of size (n_fits, T) and fit_region gives the times to fit at
 def fit_constant(fit_region, data):
     if type(fit_region) != np.ndarray:
         fit_region = np.array([x for x in fit_region])
-    num_boots = n_boot
     if len(data.shape) == 1:        # if data only has one dimension, add an axis
         data = np.expand_dims(data, axis = 0)
-        num_boots = 1
-    sigma_fit = np.std(data[:, fit_region], axis = 0)
-    c_fit = np.zeros((n_boot), dtype = np.float64)
-    for i in range(num_boots):
+    n_fits = data.shape[0]
+    # sigma_fit = np.std(data[:, fit_region], axis = 0)
+    c_fit = np.zeros((n_fits), dtype = np.float64)
+    for i in range(n_fits):
         data_fit = data[i, fit_region]
         x0 = [1]          # guess to start at
-        # chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 )        # if we aren't allowed to use the error
-        chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
-        out = optimize.minimize(chi2, x0, args=(data_fit, sigma_fit), method = 'Powell')
+        leastsq = lambda x, data : np.sum((data - x[0]) ** 2)        # if we aren't allowed to use the error, do least squares
+        out = optimize.minimize(leastsq, x0, args=(data_fit), method = 'Powell')
+        # chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
+        # out = optimize.minimize(leastsq, x0, args=(data_fit, sigma_fit), method = 'Powell')
         c_fit[i] = out['x']
 
     # # try with least squares regression in scipy.optimize
@@ -252,16 +253,28 @@ def fit_constant(fit_region, data):
     # c, cov = np.polyfit(fit_region, data_fit, 0, w = 1 / sigma_fit, cov = True)
     # sigma = np.sqrt(cov[0, 0])
 
-    c, sigma = np.mean(c_fit), np.std(c_fit)
+    # c, sigma = np.mean(c_fit), np.std(c_fit)
+    # return c, sigma
 
-    return c, sigma
+    return c_fit
+
+# Generate fake ensemble of data with mean mu and std sigma
+def gen_fake_ensemble(val, n_samples):
+    import random
+    fake_data = np.zeros((n_samples), dtype = np.float64)
+    mu, sigma = val[0], val[1]
+    for i in range(n_samples):
+        # fake_data[i] = random.gauss(mu, sigma / np.sqrt(n_samples - 1))
+        fake_data[i] = random.gauss(mu, sigma)
+    return fake_data
+
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
-def bootstrap(S, seed = 10, weights = None):
+def bootstrap(S, seed = 10, weights = None, data_type = np.complex64):
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
     bootshape = [n_boot]
     bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
-    samples = np.zeros(bootshape, dtype = np.complex64)
+    samples = np.zeros(bootshape, dtype = data_type)
     if weights == None:
         weights = np.ones((num_configs))
     weights2 = weights / float(np.sum(weights))

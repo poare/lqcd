@@ -12,11 +12,11 @@ from utils import *
 Pi_Pi = '/Users/theoares/Pi_Pi/'
 
 # Choose lattice to run analysis on and initialize parameters
-# config = '24I/ml_0p01'
+config = '24I/ml_0p01'
 # config = '24I/ml_0p005'
 # config = '32I/ml0p008'
 # config = '32I/ml0p006'
-config = '32I/ml0p004'
+# config = '32I/ml0p004'
 
 resultsA = Pi_Pi + config + '/resultsA'
 resultsA_tavg = resultsA + '.tavg'
@@ -63,11 +63,11 @@ L = Lattice(l, t)
 filenums = [i for i in range(tmin, tmax + 1, dt)]
 n_ops = 5
 
-# If you need to remove a specific file because of input problems, uncomment this code
-err_idx = int((840 - tmin) / dt)
-print(err_idx)
-print(filenums[err_idx])
-del filenums[err_idx]
+# If you need to remove a specific file because of input problems, edit this code
+if config == '32I/ml0p004':
+    print('Deleting configuration 840')
+    err_idx = int((840 - tmin) / dt)
+    del filenums[err_idx]
 
 ################################################################################
 ############################# TWO POINT ANALYSIS ###############################
@@ -80,8 +80,8 @@ fold_fn = np.add if (stem_2pt == 'pion-00WW' or stem_2pt == 'pion-00WP') else np
 C2_fold = fold(C2_tavg, L.T, fold_fn)            # fold about midpoint. Might not need this for the 3pt analysis
 
 pi_masses = np.genfromtxt(Pi_Pi + config + '/fits/results/fit_params/mpi_jacks.dat')
-# If you need to remove a specific line at err_idx, uncomment this line
-pi_masses = np.delete(pi_masses, err_idx)
+if config == '32I/ml0p004':
+    pi_masses = np.delete(pi_masses, err_idx)
 
 C2_neg_mode = np.zeros(C2_tavg.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
 for t in range(L.T):
