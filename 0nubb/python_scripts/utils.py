@@ -6,6 +6,7 @@ import time
 import re
 import itertools
 import io
+import random
 from scipy import optimize
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
@@ -229,17 +230,19 @@ def fit_constant(fit_region, data):
         fit_region = np.array([x for x in fit_region])
     if len(data.shape) == 1:        # if data only has one dimension, add an axis
         data = np.expand_dims(data, axis = 0)
-    n_fits = data.shape[0]
-    # sigma_fit = np.std(data[:, fit_region], axis = 0)
-    c_fit = np.zeros((n_fits), dtype = np.float64)
-    for i in range(n_fits):
+    sigma_fit = np.std(data[:, fit_region], axis = 0)
+    # sigma_fit = np.std(data[:, fit_region], axis = 0, ddof = 1)
+    c_fit = np.zeros((n_boot), dtype = np.float64)
+    # cov = np.zeros((n_boot, n_boot), dtype = np.float64)
+    for i in range(n_boot):
         data_fit = data[i, fit_region]
         x0 = [1]          # guess to start at
-        leastsq = lambda x, data : np.sum((data - x[0]) ** 2)        # if we aren't allowed to use the error, do least squares
-        out = optimize.minimize(leastsq, x0, args=(data_fit), method = 'Powell')
-        # chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
-        # out = optimize.minimize(leastsq, x0, args=(data_fit, sigma_fit), method = 'Powell')
+        # leastsq = lambda x, data : np.sum((data - x[0]) ** 2)        # if we aren't allowed to use the error, do least squares
+        # out = optimize.minimize(leastsq, x0, args=(data_fit), method = 'Powell')
+        chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
+        out = optimize.minimize(chi2, x0, args=(data_fit, sigma_fit), method = 'Powell')
         c_fit[i] = out['x']
+        # cov_{ij} = 1/2 * D_i D_j chi^2
 
     # # try with least squares regression in scipy.optimize
     # fitfunc = lambda c, x: c[0]
@@ -256,18 +259,79 @@ def fit_constant(fit_region, data):
     # c, sigma = np.mean(c_fit), np.std(c_fit)
     # return c, sigma
 
-    return c_fit
+    return c_fit#, cov
 
 # Generate fake ensemble of data with mean mu and std sigma
-def gen_fake_ensemble(val, n_samples):
-    import random
+def gen_fake_ensemble(val, n_samples, n_ens = 5, s = 20):
+    random.seed(s)
     fake_data = np.zeros((n_samples), dtype = np.float64)
-    mu, sigma = val[0], val[1]
+    # generate fake data in each ensemble with total std sigma: since we're treating each ensemble
+    # independently and add their variances in quadrature, each ensemble should have std = sigma / sqrt(N_ens)
+    mu, sigma = val[0], val[1] / np.sqrt(n_ens)
     for i in range(n_samples):
-        # fake_data[i] = random.gauss(mu, sigma / np.sqrt(n_samples - 1))
         fake_data[i] = random.gauss(mu, sigma)
     return fake_data
 
+# BOOTSTRAP OBJECT: should be an array of size (n_ens, n_boot)
+class Superboot:
+
+    def __init__(self, n_ens, nb = n_boot):
+        self.n_ens = n_ens
+        self.boots = np.zeros((n_ens, n_boot), dtype = np.float64)
+        self.avg = 0
+        self.n_boot = nb
+        self.card = nb * n_ens    # total cardinality
+
+    def gen_ensemble(self, data, axis):
+        self.avg = np.mean(data)
+        for e in range(self.n_ens):
+            if e == axis:
+                self.boots[e] = data
+            else:
+                self.boots[e] = self.avg
+        return self
+
+    def gen_fake_ensemble(self, mean, sigma, s = 20):
+        random.seed(s)
+        self.avg = mean
+        ens_sig = sigma / np.sqrt(self.n_ens)
+        for e in range(self.n_ens):
+            self.boots[e, b] = random.gauss(mean, ens_sig)
+        return self
+
+    def compute_mean(self):
+        self.mean = np.sum(self.boots) / self.card
+        return self.mean
+
+    def compute_std(self):
+        vars = np.std(self.boots, axis = 1, ddof = 1) ** 2    # TODO may need to change ddof
+        self.std = np.sqrt(np.sum(vars))
+        return self.std
+
+    def __add__(self, other):
+        sum = Superboot(self.n_ens, self.n_boot)
+        sum.boots = self.boots + other.boots
+        sum.compute_mean()
+        sum.compute_std()
+        return sum
+
+    def __mul__(self, other):
+        prod = Superboot(self.n_ens, self.n_boot)
+        prod.boots = self.boots * other.boots
+        prod.compute_mean()
+        prod.compute_std()
+        return prod
+
+# X should be a list of length n_ens, containing arrays of shape (n_ops, n_samples[ens_idx]). Averages over ensemble and boot indices (superboot indices)
+def superboot_mean(X):
+    N = len(X)
+    return sum([np.mean(X[i], axis = 1) for i in range(N)]) / N
+
+# Compute sigma^2 for each ensemble, then add in quadrature
+def superboot_std(X):
+    N = len(X)
+    var = sum([np.std(X[i], axis = 1)**2 for i in range(N)])
+    return np.sqrt(var)
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 10, weights = None, data_type = np.complex64):
