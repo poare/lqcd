@@ -182,7 +182,7 @@ def readfiles(cfgs, q, op_renorm = True):
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
 # Read an Npt function in David's format
-def read_Npt(folder, stem, fnums, N, n_t):
+def read_Npt(folder, stem, fnums, N, n_t, start_idx = 2):
     files = [folder + '/' + stem + '.' + str(fnum) for fnum in fnums]
     if N == 2:
         Cnpt = np.zeros((len(fnums), n_t, n_t), dtype = np.complex64)
@@ -199,7 +199,8 @@ def read_Npt(folder, stem, fnums, N, n_t):
             x = l.split()
             if N == 2:
                 tsrc, tsnk = int(x[0]), int(x[1])
-                entry = np.complex(float(x[2]), float(x[3]))
+                # entry = np.complex(float(x[2]), float(x[3]))
+                entry = np.complex(float(x[start_idx]), float(x[start_idx + 1]))
                 Cnpt[f_idx, tsrc, tsnk] = entry
             else:           # read 3-pt contraction structure
                 # read out non time-averaged data, without constructing the appropriate operator structures in this function.
@@ -216,58 +217,62 @@ def read_Npt(folder, stem, fnums, N, n_t):
 # C should be an array of size [num_files, T] where T is the lattice temporal extent.
 # Folder is a function of two arguments which returns how to add them, (A + B)
 # for sym and (A - B) for antisym
-def fold(C, T, folder = np.sum):
-    folded = np.zeros((C.shape[0], T // 2 + 1), dtype = np.complex64)
+def fold(C, T, folder = np.add):
+    # folded = np.zeros((C.shape[0], T // 2 + 1), dtype = np.complex64)
+    folded = np.zeros((C.shape[0], T // 2 + 1), dtype = np.float64)
     folded[:, 0] = C[:, 0]
     for t in range(T // 2):
-        # print((t + 1, T - (t + 1)))
         folded[:, t + 1] = folder(C[:, t + 1], C[:, T - (t + 1)]) / 2
     return folded
 
 # data should be an array of size (n_fits, T) and fit_region gives the times to fit at
-def fit_constant(fit_region, data):
+def fit_constant(fit_region, data, nfits = n_boot):
     if type(fit_region) != np.ndarray:
         fit_region = np.array([x for x in fit_region])
     if len(data.shape) == 1:        # if data only has one dimension, add an axis
         data = np.expand_dims(data, axis = 0)
     sigma_fit = np.std(data[:, fit_region], axis = 0)
     # sigma_fit = np.std(data[:, fit_region], axis = 0, ddof = 1)
-    c_fit = np.zeros((n_boot), dtype = np.float64)
+    c_fit = np.zeros((nfits), dtype = np.float64)
     # cov = np.zeros((n_boot, n_boot), dtype = np.float64)
-    for i in range(n_boot):
+    chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
+    for i in range(nfits):
         data_fit = data[i, fit_region]
         x0 = [1]          # guess to start at
         # leastsq = lambda x, data : np.sum((data - x[0]) ** 2)        # if we aren't allowed to use the error, do least squares
         # out = optimize.minimize(leastsq, x0, args=(data_fit), method = 'Powell')
-        chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
         out = optimize.minimize(chi2, x0, args=(data_fit, sigma_fit), method = 'Powell')
         c_fit[i] = out['x']
         # cov_{ij} = 1/2 * D_i D_j chi^2
+    # return the total chi^2 and dof for the fit. Get chi^2 by using mean values for all the fits.
+    c_mu = np.mean(c_fit)
+    data_mu = np.mean(data, axis = 0)
+    chi2_mu = chi2([c_mu], data_mu[fit_region], sigma_fit)
+    ndof = len(fit_region) - 1    # since we're just fitting a constant, n_params = 1
+    return c_fit, chi2_mu, ndof
 
-    # # try with least squares regression in scipy.optimize
-    # fitfunc = lambda c, x: c[0]
-    # errfunc = lambda c, x, y, err: (y - fitfunc(c, x)) / err
-    # c_init = [0.0]
-    # out = optimize.leastsq(errfunc, c_init, args=(fit_region, data_fit, sigma_fit), full_output=1)
-    # c, cov = out[0], out[1]
-    # sigma = np.sqrt(cov[0, 0])
+# VarPro code
 
-    # # try with np.polyfit-- gives about the same as scipy.curve_fit, neither of them propagate uncertainty on the data points
-    # c, cov = np.polyfit(fit_region, data_fit, 0, w = 1 / sigma_fit, cov = True)
-    # sigma = np.sqrt(cov[0, 0])
+# Ab = A(b) should already be evaluated of size N_data x N_params, z should be a vector of size N_data
+def ahat(Ab, z):
+    #return np.sum(Ab * z) / np.sum(Ab * Ab)
+    return (np.transpose(Ab) @ z) / np.sum(Ab * Ab)
 
-    # c, sigma = np.mean(c_fit), np.std(c_fit)
-    # return c, sigma
+# m is a N_params length vector, A should be a function which returns a N_data x N_params matrix,
+# z a vector of size N_data
+def chi2_varpro(m, A, z):
+    Ab = A(m)
+    # ahatb = np.array([ahat(Ab, z)])
+    ahatb = ahat(Ab, z)
+    return np.sum((Ab @ ahatb - z) ** 2)
 
-    return c_fit#, cov
-
-# Generate fake ensemble of data with mean mu and std sigma
-def gen_fake_ensemble(val, n_samples, n_ens = 5, s = 20):
+# Generate fake ensemble of data with mean mu and std sigma for one ensemble
+def gen_fake_ensemble(val, n_samples = n_boot, s = 20):
     random.seed(s)
     fake_data = np.zeros((n_samples), dtype = np.float64)
     # generate fake data in each ensemble with total std sigma: since we're treating each ensemble
     # independently and add their variances in quadrature, each ensemble should have std = sigma / sqrt(N_ens)
-    mu, sigma = val[0], val[1] / np.sqrt(n_ens)
+    mu, sigma = val[0], val[1]
     for i in range(n_samples):
         fake_data[i] = random.gauss(mu, sigma)
     return fake_data
@@ -275,52 +280,109 @@ def gen_fake_ensemble(val, n_samples, n_ens = 5, s = 20):
 # BOOTSTRAP OBJECT: should be an array of size (n_ens, n_boot)
 class Superboot:
 
+    # self.avg = approximate average over the active ensemble (so over n_boot values)-- this is demonstrated
+    # most clearly with populating the fake ensemble, where self.avg is the mu used to get a sample.
+    # self.mean = average over the entire ensemble (so average over card parameters), this is the actual sample mean
     def __init__(self, n_ens, nb = n_boot):
         self.n_ens = n_ens
         self.boots = np.zeros((n_ens, n_boot), dtype = np.float64)
-        self.avg = 0
+        self.avg = 0           # avg
+        self.mean = 0
+        self.std = 0
         self.n_boot = nb
-        self.card = nb * n_ens    # total cardinality
+        self.cardinal = nb * n_ens    # total cardinality
 
-    def gen_ensemble(self, data, axis):
+    # populates ensemble with data on axis (size of data should be n_boots) and avg elsewhere.
+    def populate_ensemble(self, data, axis):
         self.avg = np.mean(data)
         for e in range(self.n_ens):
             if e == axis:
                 self.boots[e] = data
             else:
                 self.boots[e] = self.avg
+        self.compute_mean()
+        self.compute_std()
         return self
 
     def gen_fake_ensemble(self, mean, sigma, s = 20):
         random.seed(s)
-        self.avg = mean
         ens_sig = sigma / np.sqrt(self.n_ens)
+        self.avg = mean
         for e in range(self.n_ens):
-            self.boots[e, b] = random.gauss(mean, ens_sig)
+            for b in range(self.n_boot):
+                self.boots[e, b] = random.gauss(mean, ens_sig)
+        self.compute_mean()
+        self.compute_std()
         return self
 
+    # generates a fake ensemble along one axis. This should only be used for testing, i.e. for replicating the stats on David's data.
+    def gen_fake_ensemble_axis(self, mean, sigma, axis, s = 20):
+        random.seed(s)
+        self.avg = mean
+        fake_data = [random.gauss(mean, sigma) for i in range(self.n_boot)]
+        self.populate_ensemble(fake_data, axis)
+        self.compute_mean()
+        self.compute_std()
+        return self
+
+    # mean is the average over all values, not just the active ensemble.
     def compute_mean(self):
-        self.mean = np.sum(self.boots) / self.card
+        self.mean = np.sum(self.boots) / self.cardinal
         return self.mean
 
     def compute_std(self):
-        vars = np.std(self.boots, axis = 1, ddof = 1) ** 2    # TODO may need to change ddof
+        vars = np.std(self.boots, axis = 1, ddof = 1) ** 2
         self.std = np.sqrt(np.sum(vars))
         return self.std
 
     def __add__(self, other):
         sum = Superboot(self.n_ens, self.n_boot)
         sum.boots = self.boots + other.boots
+        sum.avg = self.avg + other.avg
         sum.compute_mean()
         sum.compute_std()
         return sum
 
+    def __sub__(self, other):
+        diff = Superboot(self.n_ens, self.n_boot)
+        diff.boots = self.boots - other.boots
+        diff.avg = self.avg - other.avg
+        diff.compute_mean()
+        diff.compute_std()
+        return diff
+
     def __mul__(self, other):
         prod = Superboot(self.n_ens, self.n_boot)
         prod.boots = self.boots * other.boots
+        prod.avg = self.avg * other.avg
         prod.compute_mean()
         prod.compute_std()
         return prod
+
+    def __truediv__(self, other):
+        quotient = Superboot(self.n_ens, self.n_boot)
+        quotient.boots = self.boots / other.boots
+        quotient.avg = self.avg / other.avg
+        quotient.compute_mean()
+        quotient.compute_std()
+        return quotient
+
+    def __pow__(self, x):
+        exp = Superboot(self.n_ens, self.n_boot)
+        exp.boots = self.boots ** x
+        exp.avg = self.avg ** x
+        exp.compute_mean()
+        exp.compute_std()
+        return exp
+
+    def scale(self, c):
+        scaled = Superboot(self.n_ens, self.n_boot)
+        scaled.boots = self.boots * c
+        scaled.avg = self.avg * c
+        scaled.compute_mean()
+        scaled.compute_std()
+        return scaled
+
 
 # X should be a list of length n_ens, containing arrays of shape (n_ops, n_samples[ens_idx]). Averages over ensemble and boot indices (superboot indices)
 def superboot_mean(X):
@@ -332,6 +394,28 @@ def superboot_std(X):
     N = len(X)
     var = sum([np.std(X[i], axis = 1)**2 for i in range(N)])
     return np.sqrt(var)
+
+def get_effective_mass(ensemble_avg):
+    ratios = np.abs(ensemble_avg / np.roll(ensemble_avg, shift = -1, axis = 1))[:, :-1]
+    m_eff_ensemble = np.log(ratios)
+    return m_eff_ensemble
+
+# Returns the mean and standard deviation of cosh corrected effective mass ensemble.
+# def get_cosh_effective_mass(ensemble_avg, TT):
+def get_cosh_effective_mass(ensemble_avg):
+    TT = ensemble_avg.shape[1]
+    ratios = np.abs(ensemble_avg / np.roll(ensemble_avg, shift = -1, axis = 1))[:, :-1]
+    m_eff_ensemble = np.log(ratios)
+    cosh_m_eff_ensemble = np.zeros(ratios.shape, dtype = np.float64)
+    for ens_idx in range(ratios.shape[0]):
+        for t in range(ratios.shape[1]):
+            m = optimize.root(lambda m : ratios[ens_idx, t] - np.cosh(m * (t - TT / 2)) / np.cosh(m * (t + 1 - TT / 2)), \
+                         m_eff_ensemble[ens_idx, t])
+            cosh_m_eff_ensemble[ens_idx, t] = m.x
+    return cosh_m_eff_ensemble
+    # m_cosh = np.mean(cosh_m_eff_ensemble, axis = 0)
+    # sigma = np.std(cosh_m_eff_ensemble, axis = 0, ddof = 1)
+    # return m_cosh, sigma
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 10, weights = None, data_type = np.complex64):

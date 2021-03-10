@@ -12,11 +12,11 @@ from utils import *
 Pi_Pi = '/Users/theoares/Pi_Pi/'
 
 # Choose lattice to run analysis on and initialize parameters
-config = '24I/ml_0p01'
+# config = '24I/ml_0p01'
 # config = '24I/ml_0p005'
 # config = '32I/ml0p008'
 # config = '32I/ml0p006'
-# config = '32I/ml0p004'
+config = '32I/ml0p004'
 
 resultsA = Pi_Pi + config + '/resultsA'
 resultsA_tavg = resultsA + '.tavg'
@@ -74,18 +74,61 @@ if config == '32I/ml0p004':
 ################################################################################
 print('2 point')
 stem_2pt = 'pion-00WW'          # <PP> correlator with wall sources
+# I need 'pion-00WP' and 'fp-00WP' as well to extract fpi
 C2pt = read_Npt(resultsA, stem_2pt, filenums, 2, L.T)
 C2_tavg = np.mean(C2pt, axis = 1)               # t avg over first (source) time-- Should equal what's in resultsA.tavg directory
-fold_fn = np.add if (stem_2pt == 'pion-00WW' or stem_2pt == 'pion-00WP') else np.subtract
-C2_fold = fold(C2_tavg, L.T, fold_fn)            # fold about midpoint. Might not need this for the 3pt analysis
+print('2pt shape before bootstrap: ' + str(C2_tavg.shape))
+C2_boot = bootstrap(C2_tavg, data_type = np.complex64)
+# fold_fn = np.add if (stem_2pt == 'pion-00WW' or stem_2pt == 'pion-00WP') else np.subtract
+# C2_fold = fold(C2_tavg, L.T, fold_fn)            # fold about midpoint. Might not need this for the 3pt analysis
 
-pi_masses = np.genfromtxt(Pi_Pi + config + '/fits/results/fit_params/mpi_jacks.dat')
-if config == '32I/ml0p004':
-    pi_masses = np.delete(pi_masses, err_idx)
+# Extract pion mass. pi_masses should contain bootstrapped fit results for mpi
+m_eff = get_cosh_effective_mass(C2_boot)
+meff_fit_range = range(10, 25)
+mpi_boot = fit_constant(meff_fit_range, m_eff)
+mpi_mu = np.mean(mpi_boot)
+mpi_sigma = np.std(mpi_boot, ddof = 1)
+print('Pion mass = ' + str(mpi_mu) + ' \\pm ' + str(mpi_sigma))
+# # Old code: just used David's pion mass results. Don't do this, it's jackknifed
+# pi_masses = np.genfromtxt(Pi_Pi + config + '/fits/results/fit_params/mpi_jacks.dat')
+# if config == '32I/ml0p004':
+#     pi_masses = np.delete(pi_masses, err_idx
 
-C2_neg_mode = np.zeros(C2_tavg.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
+# pion_out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + config + '/2pt_output.h5'
+# f2pt = h5py.File(pion_out_path, 'w')
+# f2pt['L'], f2pt['T'] = L.L, L.T
+# f2pt['ml'], f2pt['ms'] = ml, ms
+# f2pt['pi_mass'] = mpi_boot
+# f2pt['fpi'] = fpi
+# f2pt.close()
+
+# C2_neg_mode = np.zeros(C2_tavg.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
+# for t in range(L.T):
+#     C2_neg_mode[:, t] = C2_tavg[:, t] - (1/2) * C2_tavg[:, L.T // 2] * np.exp(pi_masses[:] * (t - L.T // 2))
+C2_neg_mode = np.zeros(C2_boot.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
 for t in range(L.T):
-    C2_neg_mode[:, t] = C2_tavg[:, t] - (1/2) * C2_tavg[:, L.T // 2] * np.exp(pi_masses[:] * (t - L.T // 2))
+    C2_neg_mode[:, t] = C2_boot[:, t] - (1/2) * C2_boot[:, L.T // 2] * np.exp(mpi_boot[:] * (t - L.T // 2))
+
+# TODO do other stems!
+other_stems = ['pion-00WP', 'fp-00WP']
+C2_stem_boot = {}
+for stem in other_stems:
+    print('Reading 2pt from ' + stem)
+    C2pt_stem = read_Npt(resultsA, stem, filenums, 2, L.T)
+    C2_tavg_stem = np.mean(C2pt_stem, axis = 1)               # t avg over first (source) time-- Should equal what's in resultsA.tavg directory
+    C2_stem_boot[stem] = bootstrap(C2_tavg_stem, data_type = np.complex64)
+
+# Correlators for A and curly A are in the same file-- looks like data is (Re[A], Im[A], Re[curlyA], Im[curlyA])
+dwf_stem = 'za_' + str(ml)
+print('Reading 2pt from ' + dwf_stem + ' at first position')
+C2pt_A = read_Npt(resultsA, dwf_stem, filenums, 2, L.T)
+C2_tavg_A = np.mean(C2pt_A, axis = 1)
+C2_A_boot = bootstrap(C2_tavg_A, data_type = np.complex64)
+
+print('Reading 2pt from ' + dwf_stem + ' at second position')
+C2pt_curlyA = read_Npt(resultsA, dwf_stem, filenums, 2, L.T, start_idx = 4)
+C2_tavg_curlyA = np.mean(C2pt_curlyA, axis = 1)
+C2_curlyA_boot = bootstrap(C2_tavg_curlyA, data_type = np.complex64)
 
 ################################################################################
 ############################ THREE POINT ANALYSIS ##############################
@@ -94,11 +137,11 @@ for t in range(L.T):
 print('3 point')
 stem_3pt = 'pion_0vbb_4quark'
 C3pt = read_Npt(resultsA, stem_3pt, filenums, 3, L.T)
-# C3pt = read_Npt(resultsA_tavg, stem_3pt, filenums, 3, L.T)        # if we want to use t avged readin
+print('3pt shape before bootstrap: ' + str(C3pt.shape))
+C3pt = bootstrap(C3pt, data_type = np.complex64)
 
 # time average
-# n_rows = 5                # if we do contract into operator structures when reading in
-n_files = C3pt.shape[0]
+# n_files = C3pt.shape[0]   # Should just be n_boot
 n_rows = 24               # if we don't contract immediately
 # C3pt_tavg = np.zeros((n_rows, L.T, L.T), dtype = np.complex64)    # (tx, |t+ - t-|)
 tavg_shape = C3pt.shape[:-1]             # (n_files, n_rows, L.T, L.T)
@@ -176,26 +219,38 @@ print("Constructed operator contractions")
 # construct R ratio. Cnpt -> (CFG, op_idx, tplus, tminus) where (tminus, tx, tplus) is how the columns in the
 # original file were read off. tminus is identified with the separation time sep in david's code, and tplus
 # is the time t in his code.
-# R = np.zeros((n_files, n_ops, L.T // 2), dtype = np.complex64)
-R = np.zeros((n_files, n_ops, L.T, L.T), dtype = np.complex64)
-for fidx in range(n_files):
+# R = np.zeros((n_files, n_ops, L.T, L.T), dtype = np.complex64)
+R = np.zeros((n_boot, n_ops, L.T, L.T), dtype = np.complex64)
+# for fidx in range(n_files):
+for bidx in range(n_boot):
     for i in range(n_ops):
         # for t in range(L.T // 2):
         #     R[fidx, i, t] = 2 * pi_masses[fidx] * Cnpt[fidx, i, t, 2 * t] / C2_neg_mode[fidx, 2 * t]
         for t, delta in itertools.product(range(L.T), repeat = 2):
-            R[fidx, i, t, delta] = 2 * pi_masses[fidx] * Cnpt[fidx, i, t, delta] / C2_neg_mode[fidx, delta]
+            R[bidx, i, t, delta] = 2 * mpi_boot[bidx] * Cnpt[bidx, i, t, delta] / C2_neg_mode[bidx, delta]
+
+raise Exception
 
 # Write three point functions here
 # add 'nomult' to the path if we aren't multiplying the operators by -2 or -4
-f3pt_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + config + '/3pt_output.h5'
+f3pt_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + config + '/SD_output.h5'
 f3pt = h5py.File(f3pt_path, 'w')
 f3pt['L'], f3pt['T'] = L.L, L.T
 f3pt['ml'], f3pt['ms'] = ml, ms
-f3pt['C2pt'] = C2_tavg
-f3pt['C3pt'] = C3pt_tavg
+# f3pt['C2pt'] = C2_boot
+f3pt['C3pt'] = C3pt_tavg    # TODO these will all be bootstrapped now
 f3pt['C3pt_ref'] = C3pt_refl
 f3pt['Cnpt'] = Cnpt
 f3pt['R'] = R
+f3pt['mpi'] = mpi_boot
+
+f3pt[stem_2pt] = C2_boot
+for stem in other_stems:
+    f3pt[stem] = C2_stem_boot[stem]
+
+f3pt['za_A'] = C2_A_boot
+f3pt['za_curlyA'] = C2_curlyA_boot
+
 f3pt.close()
 
 print('File saved at: ' + f3pt_path)
