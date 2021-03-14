@@ -211,9 +211,6 @@ for i = 0, #L - 1 do
 end
 
 -- Paths to output file.
--- folder = "/data/d10b/users/poare/0nubb/output"
--- out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-out_folder = "/home/poare/lqcd/0nubb/tests/runtime_test/output"
 filename = string.format("%s/job%d.h5", out_folder, jobid)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 

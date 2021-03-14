@@ -22,19 +22,16 @@ module load qlua/20200107
 
 EXE=qlua
 
-# whether to only compute current correlators, or to compute operator correlators as well
-operators=true
-
 test="runtime_test"
 home=/home/poare/lqcd/0nubb
-logs=${home}/logs/tests/${test}/logs
-output=/data/d10b/users/poare/0nubb/output/tests/${test}
+logs=${home}/tests/${test}/logs
+output=${home}/tests/${test}/output
 
 # cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
 cfgpath="/home/poare/lqcd/0nubb/tests/runtime_test/configs/"
 cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
 cfg=1200
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' cfgnum = '${cfg}'"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' cfgnum = '${cfg}' out_folder = ${output}"
 export OMP_NUM_THREADS=6
 
 mpirun -np 4 $EXE -e "$parameters" ${home}/tests/${test}/${test}.qlua > ${logs}/job${SLURM_JOB_ID}.txt
