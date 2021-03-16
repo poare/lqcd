@@ -29,7 +29,7 @@ output=${home}/tests/${test}/output
 # cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
 cfg=1200
 # parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' cfgnum = ${cfg} out_folder = ${output}"
-parameters="jobid = ${SLURM_JOB_ID} cfgnum = ${cfg} out_folder = ${output}"
+parameters="jobid=${SLURM_JOB_ID} cfgnum=${cfg} out_folder='${output}'"
 export OMP_NUM_THREADS=6
 
 mpirun -np 4 $EXE -e "$parameters" ${home}/tests/${test}/${test}.qlua > ${logs}/job${SLURM_JOB_ID}.txt
