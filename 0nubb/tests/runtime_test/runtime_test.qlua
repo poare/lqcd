@@ -224,12 +224,13 @@ print("Initializing momenta.")
 local k1_list_NPR = { {-1, 0, 1, 0} }
 local k2_list_NPR = { {0, 1, 1, 0} }
 
-print("Initializing solver.")
 local gauge_file = string.format(cfgpath..cfgbase.."/ckpoint_lat.IEEE64BIG.%d", cfgnum)
+print("Reading gauge file at: %s\n", gauge_file)
 local U = load_nersc(gauge_file, L)
+
+print("Initializing solver.")
 local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ml, 1.0)
 local solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
-print("Reading gauge file at: %s\n", gauge_file)
 
 -- project gauge configuration onto SU(3)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
