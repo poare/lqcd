@@ -24,7 +24,7 @@ home=/home/poare/lqcd/0nubb/tests/runtime_test
 test="runtime_test"
 logs=${home}/logs
 output=${home}/output
-cfgpath=${home}/configs
+cfgpath=${home}/configs/
 
 # cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
 # cfgpath="'${home}'/configs/"
