@@ -1,0 +1,144 @@
+require "stdlib"
+
+-- This is the generalized adjoint conversion code to go from fundamental group -> adjoint group and adjoint algebra -> fundamental algebra
+-- Here we reuse some of the function names for convenience but the code is different
+-- We support all Nc here (which means we can't hard-code anything in)
+
+-- This contains both the SU(2) -> SO(3) conversion and the so(3) to su(2) conversion functions.
+
+-- store the fundamental and adjoint matrices so that these can be accessed globally
+-- these should be normalized so that the squares have trace 2
+
+-- produce the fundamental and adjoint matrices as matrix-valued (not lattice-valued) objects
+-- For the fundamental matrices, we need a completely general way of doing this.  Fortunately, we don't need a nice representation
+-- (i.e. we don't need any antisymmetry properties), although it would be nice if the trace has a nice form)
+-- We can take all off-diagonal matrices to be (1, 1) or (-i, i) on the entries spanning the diagonal
+-- And, for the on-diagonal entries, we take (1, -1), (1, 1, -2), (1, 1, 1, -3), etc., with the correct normalization
+
+function fundMatrices1(Nc)
+  local s = {}
+  -- do off-diagonal matrices first
+  -- for each pair of off-diagonal entries, add the (1, 1) and (-i, i) matrices
+  for i = 0, Nc-1 do
+    for j = i+1, Nc-1 do
+      local temp1 = qcd.ColorMatrixN(Nc)
+      temp1[{a=i,b=j}]=complex(1,0)
+      temp1[{a=j,b=i}]=complex(1,0)
+
+      local temp2 = qcd.ColorMatrixN(Nc)
+      temp2[{a=i,b=j}]=complex(0,-1)
+      temp2[{a=j,b=i}]=complex(0,1)
+      table.insert(s, temp1)
+      table.insert(s, temp2)
+    end
+  end
+
+  -- now do diagonal matrices
+  for i = 1, Nc - 1 do
+    local temp = qcd.ColorMatrixN(Nc)
+    local norm = math.sqrt(i * (i+1)/2)   -- norm of (1, 1, ..., -i) (divide by this)
+    for j = 0, i-1 do
+      temp[{a=j,b=j}] = complex(1/norm, 0)
+    end
+    temp[{a=i,b=i}] = complex(-i/norm, 0)
+    table.insert(s, temp)
+  end
+  return s
+end
+
+-- upgrade the matrices to lattice-valued objects
+function fundMatrices(L, Nc)
+  local S = {}
+  local s = fundMatrices1(Nc)
+  for i = 1, #s do
+    table.insert(S, L:ColorMatrix(s[i]))
+  end
+  return S
+end
+
+function adjMatrices1(Nc)
+  local nAdj = Nc * Nc - 1
+  local s = fundMatrices1(Nc)
+  local t = {}
+  -- We obtain the entries in t via (t_i)_jk = -i * f_ijk = -1/4 * Tr[(s_i s_j - s_j s_i) s_k], where s_i are fundamental matrices
+  -- There's probably some simplification we can do if we assume some symmetry properties, but it's probably better not to
+  for i = 1, nAdj do
+    t[i] = qcd.ColorMatrixN(nAdj)
+    for j = 1, nAdj do
+      for k = 1, nAdj do
+        t[i][{a=(j-1),b=(k-1)}] = -1/4 * ((s[i] * s[j] - s[j] * s[i]) * s[k]):trace()
+      end
+    end
+  end
+  return t
+end
+
+-- upgrade the matrices to lattice-valued objects
+function adjMatrices(L, Nc)
+  local T = {}
+  local t = adjMatrices1(Nc)
+  for i = 1, #t do
+    table.insert(T, L:ColorMatrix(t[i]))
+  end
+  return T
+end
+
+
+-- fundamental -> adjoint conversion
+function toSO3(U)
+	local L=U[1].lattice
+  local Nc = U[1]:colors()
+  local S = fundMatrices(L, Nc)
+
+	-- get the number of dimensions in U
+	local nd = #U
+
+	-- now loop over dimensions so that we can pick out each index of U
+	local i, j, k, V
+	local W = {}
+  local nAdj = Nc * Nc - 1
+	for i = 1, nd do
+		V=U[i]
+    W[i] = L:ColorMatrix(qcd.ColorMatrixN(nAdj)) -- create (Nc^2 - 1)x(Nc^2 - 1) adjoint matrix
+    for j = 1, nAdj do
+      for k = 1, nAdj do
+        -- create matrix with 1 in the (i,j) position
+        local t, T, x
+        t = qcd.ColorMatrixN(nAdj)
+        t[{a=(j-1),b=(k-1)}] = complex(1,0)
+        T = L:ColorMatrix(t)
+
+        -- compute scalar field corresponding to the value of the (i,j) entry
+        x = (U[i] * S[k] * U[i]:adjoin() * S[j]):trace()/2
+        W[i] = W[i] + x*T
+      end
+    end
+	end
+	return W
+end
+
+-- adjoint -> fundamental conversion
+-- This function takes in the components of F one at a time (i.e. the loop over components of F must be called outside of the call to this function)
+-- The second argument is the number of components in the original representation (i.e. should we use 2- or 3-component matrices to store our fundamental su(2) algebra)
+-- Change: nComp is now deprecated parameter and should be removed from the rest of the code.  We will infer the number of colors from the dimension of F (sqrt(dim(F) + 1)) and then return the result in that matrix.  Storing things in larger matrices will no longer be supported.
+function tosu2(F, nComp)
+  local L, s1, s2, s3, S1, S2, S3, t1, t2, t3, T1, T2, T3, a1, a2, a3, G
+  L=F.lattice
+  local str = tostring(F)
+  -- str will now be QDP:ColorMatrixN(memory location), where N is the number of 'colors' in the adjoint representation
+  -- we want to set Nc = sqrt(N + 1)
+  local index = string.find(str, "%(")
+  local substr = string.sub(str, 16, index-1) -- this will return anything after "QCD:ColorMatrix" (15 characters) before the parenthesis
+  local nAdj = tonumber(substr)
+  local Nc = math.sqrt(nAdj + 1)
+  local S = fundMatrices(L, Nc)
+  local T = adjMatrices(L, Nc)
+
+  local G = L:ColorMatrix(qcd.ColorMatrixN(Nc))
+  for i = 1, nAdj do
+    -- I think adjoint matrices are normalized to have trace Nc (verify this!)
+    local a = (T[i]*F):trace()/Nc
+    G = G + (a/2)*S[i]
+  end
+  return G
+end

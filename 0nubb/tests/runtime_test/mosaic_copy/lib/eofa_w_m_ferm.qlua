@@ -1,0 +1,234 @@
+-- Implementations for W+m fermion term
+
+require "lib/caching"
+require "lib/solver"
+require "lib/hmc_mosaic"
+
+eofa_w_m_ferm = {}
+
+-- Each ferm impl should produce an object that provides:
+--   :D(psi)                     Apply D to psi
+--   :Dx(psi)                    Apply Dx to psi
+--   :mxm_solver(eps,max_iter)   Produce (D^dag D) solver
+--   :m_solver(eps,max_iter)     Produce D solver
+
+
+-- TODO: move some common functions to lib
+
+-- Generic solver methods, given `self` with `self:D` and `self:Dx` defined
+-- as the appropriate matrix application functions with exposed `terms` option
+-- to select out the relevant parity slices at source/sink.
+local function init_x_psi(psi)
+   return psi
+end
+local function dispatch_solve(solver)
+   return function(ferm_or_prop)
+      local L = ferm_or_prop.lattice
+      local Nc = ferm_or_prop:colors()
+      -- HACK: detect lattice prop by trying to add ferm to it
+      -- fermion
+      if pcall(function() return ferm_or_prop + L:DiracFermionN(Nc) end) then
+         return solver(ferm_or_prop)
+      -- prop
+      else
+         local Ns = 4
+         local out = L:DiracPropagatorN(Nc)
+         for d = 0,Ns-1 do
+            for c = 0,Nc-1 do
+               out[{d=d,c=c}] = solver(ferm_or_prop[{d=d,c=c}])
+            end
+         end
+         return out
+      end
+   end
+end
+local function unprec_mxm_solver(self, eps, max_iter, verbose)
+   local function solverDxD(psi)
+      return self:Dx(self:D(psi))
+   end
+   return dispatch_solve(solver.CG(
+       solverDxD, eps, max_iter, init_x_psi, verbose))
+end
+local function unprec_m_solver(self, eps, max_iter, verbose)
+   local function solverDx(psi) return self:Dx(psi) end
+   local function solverD(psi) return self:D(psi) end
+   return dispatch_solve(solver.CGNE(
+       solverD, solverDx, eps, max_iter, init_x_psi, verbose))
+end
+local function eo_prec_m_solver(self, eps, max_iter, verbose)
+   local function makeD(orig_D)
+      local solverD = {}
+      function solverD.ee(psi) return orig_D(psi, {ee=true}) end
+      function solverD.oo(psi) return orig_D(psi, {oo=true}) end
+      function solverD.eo(psi) return orig_D(psi, {eo=true}) end
+      function solverD.oe(psi) return orig_D(psi, {oe=true}) end
+      local ee_inv
+      function solverD.ee_inv(psi)
+         if ee_inv == nil then
+            local L = psi.lattice
+            local Nc = psi:colors()
+            ee_inv = solver.blocked_CG_explicit(
+               solverD.ee, L, Nc, L:Subset("odd"), verbose)
+         end
+         local out = P_mul_D(ee_inv, psi)
+         return out
+      end
+      return solverD
+   end
+   -- Silly anonymous functions due to `self` param :(
+   local solverD = makeD(function(psi, terms) return self:D(psi, terms) end)
+   local solverDx = makeD(function(psi, terms) return self:Dx(psi, terms) end)
+   return dispatch_solve(solver.eo_prec_CGNE(
+       solverD, solverDx, eps, max_iter, init_x_psi, verbose))
+end
+
+-- kappa = (1/2) * 1/(Nd + mass)
+-- mass = 1/(2*kappa) - Nd
+local function kappa_to_mass(kappa, Nd)
+   return 1/(2*kappa) - Nd
+end
+
+-- DERIVATIVES
+local function color_outer_spin_inner(Nc, f1, f2, accum)
+   for a = 0, Nc-1 do
+      for b = 0, Nc-1 do
+         for d = 0,3 do
+            accum[{a=a,b=b}] = accum[{a=a,b=b}] + f1[{d=d,c=b}] * f2[{d=d,c=a}]
+         end
+      end
+   end
+end
+
+--  Re zeta^dag [dD / dA_mu]_{ab} psi
+function eofa_w_m_ferm.deriv_D(self, zeta, psi)
+   local U = self.U
+   local kappa = self.kappa
+   local csw = self.csw
+   local bcs = self.bcs
+   local L = U[1].lattice
+   local Nc = U[1]:colors()
+   local F = {}
+
+   -- Wilson piece
+   local ferm_shift = make_ferm_shift(bcs)
+   for mu = 1, #U do
+      F[mu] = L:ColorMatrixN(Nc,0.0)
+      
+      local lhs1 = zeta:conj()
+      local lhs2 = psi:conj()
+      local rhs1 = (1-gamma{mu=mu-1})*(U[mu]*ferm_shift(psi, mu-1, "from_forward"))
+      local rhs2 = (1+gamma{mu=mu-1})*(U[mu]*ferm_shift(zeta, mu-1, "from_forward"))
+      
+      -- outer product explicitly (is there a better way?)
+      for a = 0,Nc-1 do
+         for b = 0,Nc-1 do
+            for d = 0,3 do -- Dirac spin
+               F[mu][{a=a,b=b}] = F[mu][{a=a,b=b}] +
+                  lhs1[{d=d,c=b}] * rhs1[{d=d,c=a}] +
+                  lhs2[{d=d,c=b}] * rhs2[{d=d,c=a}]
+            end
+         end
+      end
+      -- Factors of kappa and generator normalization
+      F[mu] = - (kappa/2) * F[mu]
+   end
+
+   -- Proj anti-Herm
+   for mu = 1, #U do
+      F[mu] = (F[mu] - F[mu]:adjoin()) / 2
+      -- TODO(gkanwar): Push this factor of 2 to the appropriate point
+      F[mu] = complex(0,2) * F[mu]
+      -- Rescale (allows matching Chroma or Clover conventions)
+      assert(self.rescale ~= nil and type(self.rescale) == "number")
+      F[mu] = self.rescale * F[mu]
+   end
+   return F
+end
+
+
+--------------------------- Actual implementations -----------------------------
+-- Generic CPU implementation
+-- Helpers to determine subset to act on for diag and hopping terms
+local function get_diag_subset(terms)
+   if terms.ee and terms.oo then
+      return "all"
+   elseif terms.ee then
+      return "even"
+   elseif terms.oo then
+      return "odd"
+   else
+      return "none"
+   end
+end
+local function get_hopping_subset(terms)
+   if terms.eo and terms.oe then
+      return "all"
+   elseif terms.eo then
+      return "even"
+   elseif terms.oe then
+      return "odd"
+   else
+      return "none"
+   end
+end
+function eofa_w_m_ferm.cpu_generic(kappa, csw, bcs, flags)
+   return function(U)
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      local ferm_shift = make_ferm_shift(bcs)
+
+      -- Handle optional flags
+      flags = flags or {}
+      local eoprec = (flags.eoprec ~= nil) and flags.eoprec or false
+      local rescale = (flags.rescale ~= nil) and flags.rescale or
+         (#L + kappa_to_mass(kappa, #L)) -- default Chroma scaling
+      
+      local t = {
+         U = U,
+         kappa = kappa,
+         csw = csw,
+         bcs = bcs,
+         flags = flags,
+         rescale = rescale,
+         deriv_D = eofa_w_m_ferm.deriv_D
+      }
+      
+      local function generic_w_m_D(psi, sign, terms)
+         -- Determine subsets ahead of time
+         local diag_subset = get_diag_subset(terms)
+         local hopping_subset = get_hopping_subset(terms)
+         
+         local out = L:DiracFermionN(Nc)
+         -- Mass term
+         if diag_subset ~= "none" then
+            L:Subset(diag_subset):where(function() out:set(psi) end)
+         end
+
+         -- TODO(gkanwar): Update hopping term to be W+m
+         -- Hopping term
+         if hopping_subset ~= "none" then
+            for mu = 0, #U-1 do
+               local fwd = (1-sign*gamma{mu=mu})*(
+                  U[mu+1]*ferm_shift(psi, mu, "from_forward"))
+               local bwd = (1+sign*gamma{mu=mu})*(
+                  ferm_shift(U[mu+1]:adjoin() * psi, mu, "from_backward"))
+               L:Subset(hopping_subset):where(
+                  function() out:set(out - kappa*(fwd+bwd)) end)
+            end
+         end
+         
+         return t.rescale * out
+      end
+      t.D = function(self, psi, terms)
+         terms = terms or {ee=true, oo=true, eo=true, oe=true}
+         return generic_w_m_D(psi, 1, terms)
+      end
+      t.Dx = function(self, psi, terms)
+         terms = terms or {ee=true, oo=true, eo=true, oe=true}
+         return generic_w_m_D(psi, -1, terms)
+      end
+      t.mxm_solver = unprec_mxm_solver
+      t.m_solver = eoprec and eo_prec_m_solver or unprec_m_solver
+      return t
+   end
+end

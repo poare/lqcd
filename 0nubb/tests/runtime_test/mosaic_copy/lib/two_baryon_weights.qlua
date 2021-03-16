@@ -1,0 +1,288 @@
+require "stdlib"
+require "lib/baryon_weights"
+
+local Nc = 3
+-- color-spin block weights: {uc, us, dc, ds, uc, us}
+local epsilonC = {}
+epsilonC[0 + 1*Nc + 2*Nc^2] = 1
+epsilonC[0 + 2*Nc + 1*Nc^2] = -1
+epsilonC[1 + 2*Nc + 0*Nc^2] = 1
+epsilonC[1 + 0*Nc + 2*Nc^2] = -1
+epsilonC[2 + 0*Nc + 1*Nc^2] = 1
+epsilonC[2 + 1*Nc + 0*Nc^2] = -1
+
+-- B = 2
+B2_I2_flavor = {{1,3,4,6},{2,5}}
+B2_I0_flavor = {{1,3,5},{2,4,6}}
+B2_Im2_flavor = {{2,5},{1,3,4,6}}
+
+
+-- dinucleon, with identical quarks
+local nW = 0
+B2_A1g_weights = {}
+for nB1W = 1, #B1_G1g_r1_weights do
+   for nB2W = 1, #B1_G1g_r1_weights do
+      B2_A1g_weights[nW+1] = {B1_G1g_r1_weights[nB1W][1], B1_G1g_r1_weights[nB1W][2], B1_G1g_r1_weights[nB1W][3], B1_G1g_r1_weights[nB1W][4], B1_G1g_r1_weights[nB1W][5], B1_G1g_r1_weights[nB1W][6], B1_G1g_r2_weights[nB2W][1], B1_G1g_r2_weights[nB2W][2], B1_G1g_r2_weights[nB2W][3], B1_G1g_r2_weights[nB2W][4], B1_G1g_r2_weights[nB2W][5], B1_G1g_r2_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r1_weights[nB1W][7]*B1_G1g_r2_weights[nB2W][7]}
+      nW = nW + 1
+      B2_A1g_weights[nW+1] = {B1_G1g_r2_weights[nB1W][1], B1_G1g_r2_weights[nB1W][2], B1_G1g_r2_weights[nB1W][3], B1_G1g_r2_weights[nB1W][4], B1_G1g_r2_weights[nB1W][5], B1_G1g_r2_weights[nB1W][6], B1_G1g_r1_weights[nB2W][1], B1_G1g_r1_weights[nB2W][2], B1_G1g_r1_weights[nB2W][3], B1_G1g_r1_weights[nB2W][4], B1_G1g_r1_weights[nB2W][5], B1_G1g_r1_weights[nB2W][6], (-1/math.sqrt(2))*B1_G1g_r2_weights[nB1W][7]*B1_G1g_r1_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- dinucleon, MS representation
+local nW = 0
+B2_A1g_MS_weights = {}
+for nB1W = 1, #B1_G1g_r1_MS_weights do
+   for nB2W = 1, #B1_G1g_r1_MS_weights do
+      B2_A1g_MS_weights[nW+1] = {B1_G1g_r1_MS_weights[nB1W][1], B1_G1g_r1_MS_weights[nB1W][2], B1_G1g_r1_MS_weights[nB1W][3], B1_G1g_r1_MS_weights[nB1W][4], B1_G1g_r1_MS_weights[nB1W][5], B1_G1g_r1_MS_weights[nB1W][6], B1_G1g_r2_MS_weights[nB2W][1], B1_G1g_r2_MS_weights[nB2W][2], B1_G1g_r2_MS_weights[nB2W][3], B1_G1g_r2_MS_weights[nB2W][4], B1_G1g_r2_MS_weights[nB2W][5], B1_G1g_r2_MS_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r1_MS_weights[nB1W][7]*B1_G1g_r2_MS_weights[nB2W][7]}
+      nW = nW + 1
+      B2_A1g_MS_weights[nW+1] = {B1_G1g_r2_MS_weights[nB1W][1], B1_G1g_r2_MS_weights[nB1W][2], B1_G1g_r2_MS_weights[nB1W][3], B1_G1g_r2_MS_weights[nB1W][4], B1_G1g_r2_MS_weights[nB1W][5], B1_G1g_r2_MS_weights[nB1W][6], B1_G1g_r1_MS_weights[nB2W][1], B1_G1g_r1_MS_weights[nB2W][2], B1_G1g_r1_MS_weights[nB2W][3], B1_G1g_r1_MS_weights[nB2W][4], B1_G1g_r1_MS_weights[nB2W][5], B1_G1g_r1_MS_weights[nB2W][6], (-1/math.sqrt(2))*B1_G1g_r2_MS_weights[nB1W][7]*B1_G1g_r1_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- dinucleon, MA representation
+local nW = 0
+B2_A1g_MA_weights = {}
+for nB1W = 1, #B1_G1g_r1_MA_weights do
+   for nB2W = 1, #B1_G1g_r1_MA_weights do
+      B2_A1g_MA_weights[nW+1] = {B1_G1g_r1_MA_weights[nB1W][1], B1_G1g_r1_MA_weights[nB1W][2], B1_G1g_r1_MA_weights[nB1W][3], B1_G1g_r1_MA_weights[nB1W][4], B1_G1g_r1_MA_weights[nB1W][5], B1_G1g_r1_MA_weights[nB1W][6], B1_G1g_r2_MA_weights[nB2W][1], B1_G1g_r2_MA_weights[nB2W][2], B1_G1g_r2_MA_weights[nB2W][3], B1_G1g_r2_MA_weights[nB2W][4], B1_G1g_r2_MA_weights[nB2W][5], B1_G1g_r2_MA_weights[nB2W][6], (-1/math.sqrt(2))*B1_G1g_r1_MA_weights[nB1W][7]*B1_G1g_r2_MA_weights[nB2W][7]}
+      nW = nW + 1
+      B2_A1g_MA_weights[nW+1] = {B1_G1g_r2_MA_weights[nB1W][1], B1_G1g_r2_MA_weights[nB1W][2], B1_G1g_r2_MA_weights[nB1W][3], B1_G1g_r2_MA_weights[nB1W][4], B1_G1g_r2_MA_weights[nB1W][5], B1_G1g_r2_MA_weights[nB1W][6], B1_G1g_r1_MA_weights[nB2W][1], B1_G1g_r1_MA_weights[nB2W][2], B1_G1g_r1_MA_weights[nB2W][3], B1_G1g_r1_MA_weights[nB2W][4], B1_G1g_r1_MA_weights[nB2W][5], B1_G1g_r1_MA_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r2_MA_weights[nB1W][7]*B1_G1g_r1_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+
+-- deuteron, with identical quarks representation up
+local nW = 0
+B2_T1g_r1_weights = {}
+for nB1W = 1, #B1_G1g_r1_weights do
+   for nB2W = 1, #B1_G1g_r1_weights do
+      B2_T1g_r1_weights[nW+1] = {B1_G1g_r1_weights[nB1W][1], B1_G1g_r1_weights[nB1W][2], B1_G1g_r1_weights[nB1W][3], B1_G1g_r1_weights[nB1W][4], B1_G1g_r1_weights[nB1W][5], B1_G1g_r1_weights[nB1W][6], B1_G1g_r1_weights[nB2W][1], B1_G1g_r1_weights[nB2W][2], B1_G1g_r1_weights[nB2W][3], B1_G1g_r1_weights[nB2W][4], B1_G1g_r1_weights[nB2W][5], B1_G1g_r1_weights[nB2W][6], B1_G1g_r1_weights[nB1W][7]*B1_G1g_r1_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, with identical quarks representation zero
+local nW = 0
+B2_T1g_r2_weights = {}
+for nB1W = 1, #B1_G1g_r1_weights do
+   for nB2W = 1, #B1_G1g_r1_weights do
+      B2_T1g_r2_weights[nW+1] = {B1_G1g_r1_weights[nB1W][1], B1_G1g_r1_weights[nB1W][2], B1_G1g_r1_weights[nB1W][3], B1_G1g_r1_weights[nB1W][4], B1_G1g_r1_weights[nB1W][5], B1_G1g_r1_weights[nB1W][6], B1_G1g_r2_weights[nB2W][1], B1_G1g_r2_weights[nB2W][2], B1_G1g_r2_weights[nB2W][3], B1_G1g_r2_weights[nB2W][4], B1_G1g_r2_weights[nB2W][5], B1_G1g_r2_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r1_weights[nB1W][7]*B1_G1g_r2_weights[nB2W][7]}
+      nW = nW + 1
+      B2_T1g_r2_weights[nW+1] = {B1_G1g_r2_weights[nB1W][1], B1_G1g_r2_weights[nB1W][2], B1_G1g_r2_weights[nB1W][3], B1_G1g_r2_weights[nB1W][4], B1_G1g_r2_weights[nB1W][5], B1_G1g_r2_weights[nB1W][6], B1_G1g_r1_weights[nB2W][1], B1_G1g_r1_weights[nB2W][2], B1_G1g_r1_weights[nB2W][3], B1_G1g_r1_weights[nB2W][4], B1_G1g_r1_weights[nB2W][5], B1_G1g_r1_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r2_weights[nB1W][7]*B1_G1g_r1_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, with identical quarks representation down
+local nW = 0
+B2_T1g_r3_weights = {}
+for nB1W = 1, #B1_G1g_r1_weights do
+   for nB2W = 1, #B1_G1g_r1_weights do
+      B2_T1g_r3_weights[nW+1] = {B1_G1g_r2_weights[nB1W][1], B1_G1g_r2_weights[nB1W][2], B1_G1g_r2_weights[nB1W][3], B1_G1g_r2_weights[nB1W][4], B1_G1g_r2_weights[nB1W][5], B1_G1g_r2_weights[nB1W][6], B1_G1g_r2_weights[nB2W][1], B1_G1g_r2_weights[nB2W][2], B1_G1g_r2_weights[nB2W][3], B1_G1g_r2_weights[nB2W][4], B1_G1g_r2_weights[nB2W][5], B1_G1g_r2_weights[nB2W][6], B1_G1g_r2_weights[nB1W][7]*B1_G1g_r2_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, MS representation up
+local nW = 0
+B2_T1g_r1_MS_weights = {}
+for nB1W = 1, #B1_G1g_r1_MS_weights do
+   for nB2W = 1, #B1_G1g_r1_MS_weights do
+      B2_T1g_r1_MS_weights[nW+1] = {B1_G1g_r1_MS_weights[nB1W][1], B1_G1g_r1_MS_weights[nB1W][2], B1_G1g_r1_MS_weights[nB1W][3], B1_G1g_r1_MS_weights[nB1W][4], B1_G1g_r1_MS_weights[nB1W][5], B1_G1g_r1_MS_weights[nB1W][6], B1_G1g_r1_MS_weights[nB2W][1], B1_G1g_r1_MS_weights[nB2W][2], B1_G1g_r1_MS_weights[nB2W][3], B1_G1g_r1_MS_weights[nB2W][4], B1_G1g_r1_MS_weights[nB2W][5], B1_G1g_r1_MS_weights[nB2W][6], B1_G1g_r1_MS_weights[nB1W][7]*B1_G1g_r1_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, MS representation zero
+local nW = 0
+B2_T1g_r2_MS_weights = {}
+for nB1W = 1, #B1_G1g_r1_MS_weights do
+   for nB2W = 1, #B1_G1g_r1_MS_weights do
+      B2_T1g_r2_MS_weights[nW+1] = {B1_G1g_r1_MS_weights[nB1W][1], B1_G1g_r1_MS_weights[nB1W][2], B1_G1g_r1_MS_weights[nB1W][3], B1_G1g_r1_MS_weights[nB1W][4], B1_G1g_r1_MS_weights[nB1W][5], B1_G1g_r1_MS_weights[nB1W][6], B1_G1g_r2_MS_weights[nB2W][1], B1_G1g_r2_MS_weights[nB2W][2], B1_G1g_r2_MS_weights[nB2W][3], B1_G1g_r2_MS_weights[nB2W][4], B1_G1g_r2_MS_weights[nB2W][5], B1_G1g_r2_MS_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r1_MS_weights[nB1W][7]*B1_G1g_r2_MS_weights[nB2W][7]}
+      nW = nW + 1
+      B2_T1g_r2_MS_weights[nW+1] = {B1_G1g_r2_MS_weights[nB1W][1], B1_G1g_r2_MS_weights[nB1W][2], B1_G1g_r2_MS_weights[nB1W][3], B1_G1g_r2_MS_weights[nB1W][4], B1_G1g_r2_MS_weights[nB1W][5], B1_G1g_r2_MS_weights[nB1W][6], B1_G1g_r1_MS_weights[nB2W][1], B1_G1g_r1_MS_weights[nB2W][2], B1_G1g_r1_MS_weights[nB2W][3], B1_G1g_r1_MS_weights[nB2W][4], B1_G1g_r1_MS_weights[nB2W][5], B1_G1g_r1_MS_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r2_MS_weights[nB1W][7]*B1_G1g_r1_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, MS representation down
+local nW = 0
+B2_T1g_r3_MS_weights = {}
+for nB1W = 1, #B1_G1g_r1_MS_weights do
+   for nB2W = 1, #B1_G1g_r1_MS_weights do
+      B2_T1g_r3_MS_weights[nW+1] = {B1_G1g_r2_MS_weights[nB1W][1], B1_G1g_r2_MS_weights[nB1W][2], B1_G1g_r2_MS_weights[nB1W][3], B1_G1g_r2_MS_weights[nB1W][4], B1_G1g_r2_MS_weights[nB1W][5], B1_G1g_r2_MS_weights[nB1W][6], B1_G1g_r2_MS_weights[nB2W][1], B1_G1g_r2_MS_weights[nB2W][2], B1_G1g_r2_MS_weights[nB2W][3], B1_G1g_r2_MS_weights[nB2W][4], B1_G1g_r2_MS_weights[nB2W][5], B1_G1g_r2_MS_weights[nB2W][6], B1_G1g_r2_MS_weights[nB1W][7]*B1_G1g_r2_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, MA representation up
+local nW = 0
+B2_T1g_r1_MA_weights = {}
+for nB1W = 1, #B1_G1g_r1_MA_weights do
+   for nB2W = 1, #B1_G1g_r1_MA_weights do
+      B2_T1g_r1_MA_weights[nW+1] = {B1_G1g_r1_MA_weights[nB1W][1], B1_G1g_r1_MA_weights[nB1W][2], B1_G1g_r1_MA_weights[nB1W][3], B1_G1g_r1_MA_weights[nB1W][4], B1_G1g_r1_MA_weights[nB1W][5], B1_G1g_r1_MA_weights[nB1W][6], B1_G1g_r1_MA_weights[nB2W][1], B1_G1g_r1_MA_weights[nB2W][2], B1_G1g_r1_MA_weights[nB2W][3], B1_G1g_r1_MA_weights[nB2W][4], B1_G1g_r1_MA_weights[nB2W][5], B1_G1g_r1_MA_weights[nB2W][6], B1_G1g_r1_MA_weights[nB1W][7]*B1_G1g_r1_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, MA representation zero
+local nW = 0
+B2_T1g_r2_MA_weights = {}
+for nB1W = 1, #B1_G1g_r1_MA_weights do
+   for nB2W = 1, #B1_G1g_r1_MA_weights do
+      B2_T1g_r2_MA_weights[nW+1] = {B1_G1g_r1_MA_weights[nB1W][1], B1_G1g_r1_MA_weights[nB1W][2], B1_G1g_r1_MA_weights[nB1W][3], B1_G1g_r1_MA_weights[nB1W][4], B1_G1g_r1_MA_weights[nB1W][5], B1_G1g_r1_MA_weights[nB1W][6], B1_G1g_r2_MA_weights[nB2W][1], B1_G1g_r2_MA_weights[nB2W][2], B1_G1g_r2_MA_weights[nB2W][3], B1_G1g_r2_MA_weights[nB2W][4], B1_G1g_r2_MA_weights[nB2W][5], B1_G1g_r2_MA_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r1_MA_weights[nB1W][7]*B1_G1g_r2_MA_weights[nB2W][7]}
+      nW = nW + 1
+      B2_T1g_r2_MA_weights[nW+1] = {B1_G1g_r2_MA_weights[nB1W][1], B1_G1g_r2_MA_weights[nB1W][2], B1_G1g_r2_MA_weights[nB1W][3], B1_G1g_r2_MA_weights[nB1W][4], B1_G1g_r2_MA_weights[nB1W][5], B1_G1g_r2_MA_weights[nB1W][6], B1_G1g_r1_MA_weights[nB2W][1], B1_G1g_r1_MA_weights[nB2W][2], B1_G1g_r1_MA_weights[nB2W][3], B1_G1g_r1_MA_weights[nB2W][4], B1_G1g_r1_MA_weights[nB2W][5], B1_G1g_r1_MA_weights[nB2W][6], (1/math.sqrt(2))*B1_G1g_r2_MA_weights[nB1W][7]*B1_G1g_r1_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- deuteron, MA representation down
+local nW = 0
+B2_T1g_r3_MA_weights = {}
+for nB1W = 1, #B1_G1g_r1_MA_weights do
+   for nB2W = 1, #B1_G1g_r1_MA_weights do
+      B2_T1g_r3_MA_weights[nW+1] = {B1_G1g_r2_MA_weights[nB1W][1], B1_G1g_r2_MA_weights[nB1W][2], B1_G1g_r2_MA_weights[nB1W][3], B1_G1g_r2_MA_weights[nB1W][4], B1_G1g_r2_MA_weights[nB1W][5], B1_G1g_r2_MA_weights[nB1W][6], B1_G1g_r2_MA_weights[nB2W][1], B1_G1g_r2_MA_weights[nB2W][2], B1_G1g_r2_MA_weights[nB2W][3], B1_G1g_r2_MA_weights[nB2W][4], B1_G1g_r2_MA_weights[nB2W][5], B1_G1g_r2_MA_weights[nB2W][6], B1_G1g_r2_MA_weights[nB1W][7]*B1_G1g_r2_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+
+-- negative parity dinucleon, with identical quarks
+local nW = 0
+B2_A1u_weights = {}
+for nB1W = 1, #B1_G1u_r1_weights do
+   for nB2W = 1, #B1_G1u_r1_weights do
+      B2_A1u_weights[nW+1] = {B1_G1u_r1_weights[nB1W][1], B1_G1u_r1_weights[nB1W][2], B1_G1u_r1_weights[nB1W][3], B1_G1u_r1_weights[nB1W][4], B1_G1u_r1_weights[nB1W][5], B1_G1u_r1_weights[nB1W][6], B1_G1u_r2_weights[nB2W][1], B1_G1u_r2_weights[nB2W][2], B1_G1u_r2_weights[nB2W][3], B1_G1u_r2_weights[nB2W][4], B1_G1u_r2_weights[nB2W][5], B1_G1u_r2_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r1_weights[nB1W][7]*B1_G1u_r2_weights[nB2W][7]}
+      nW = nW + 1
+      B2_A1u_weights[nW+1] = {B1_G1u_r2_weights[nB1W][1], B1_G1u_r2_weights[nB1W][2], B1_G1u_r2_weights[nB1W][3], B1_G1u_r2_weights[nB1W][4], B1_G1u_r2_weights[nB1W][5], B1_G1u_r2_weights[nB1W][6], B1_G1u_r1_weights[nB2W][1], B1_G1u_r1_weights[nB2W][2], B1_G1u_r1_weights[nB2W][3], B1_G1u_r1_weights[nB2W][4], B1_G1u_r1_weights[nB2W][5], B1_G1u_r1_weights[nB2W][6], (-1/math.sqrt(2))*B1_G1u_r2_weights[nB1W][7]*B1_G1u_r1_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity dinucleon, MS representation
+local nW = 0
+B2_A1u_MS_weights = {}
+for nB1W = 1, #B1_G1u_r1_MS_weights do
+   for nB2W = 1, #B1_G1u_r1_MS_weights do
+      B2_A1u_MS_weights[nW+1] = {B1_G1u_r1_MS_weights[nB1W][1], B1_G1u_r1_MS_weights[nB1W][2], B1_G1u_r1_MS_weights[nB1W][3], B1_G1u_r1_MS_weights[nB1W][4], B1_G1u_r1_MS_weights[nB1W][5], B1_G1u_r1_MS_weights[nB1W][6], B1_G1u_r2_MS_weights[nB2W][1], B1_G1u_r2_MS_weights[nB2W][2], B1_G1u_r2_MS_weights[nB2W][3], B1_G1u_r2_MS_weights[nB2W][4], B1_G1u_r2_MS_weights[nB2W][5], B1_G1u_r2_MS_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r1_MS_weights[nB1W][7]*B1_G1u_r2_MS_weights[nB2W][7]}
+      nW = nW + 1
+      B2_A1u_MS_weights[nW+1] = {B1_G1u_r2_MS_weights[nB1W][1], B1_G1u_r2_MS_weights[nB1W][2], B1_G1u_r2_MS_weights[nB1W][3], B1_G1u_r2_MS_weights[nB1W][4], B1_G1u_r2_MS_weights[nB1W][5], B1_G1u_r2_MS_weights[nB1W][6], B1_G1u_r1_MS_weights[nB2W][1], B1_G1u_r1_MS_weights[nB2W][2], B1_G1u_r1_MS_weights[nB2W][3], B1_G1u_r1_MS_weights[nB2W][4], B1_G1u_r1_MS_weights[nB2W][5], B1_G1u_r1_MS_weights[nB2W][6], (-1/math.sqrt(2))*B1_G1u_r2_MS_weights[nB1W][7]*B1_G1u_r1_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity dinucleon, MA representation
+local nW = 0
+B2_A1u_MA_weights = {}
+for nB1W = 1, #B1_G1u_r1_MA_weights do
+   for nB2W = 1, #B1_G1u_r1_MA_weights do
+      B2_A1u_MA_weights[nW+1] = {B1_G1u_r1_MA_weights[nB1W][1], B1_G1u_r1_MA_weights[nB1W][2], B1_G1u_r1_MA_weights[nB1W][3], B1_G1u_r1_MA_weights[nB1W][4], B1_G1u_r1_MA_weights[nB1W][5], B1_G1u_r1_MA_weights[nB1W][6], B1_G1u_r2_MA_weights[nB2W][1], B1_G1u_r2_MA_weights[nB2W][2], B1_G1u_r2_MA_weights[nB2W][3], B1_G1u_r2_MA_weights[nB2W][4], B1_G1u_r2_MA_weights[nB2W][5], B1_G1u_r2_MA_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r1_MA_weights[nB1W][7]*B1_G1u_r2_MA_weights[nB2W][7]}
+      nW = nW + 1
+      B2_A1u_MA_weights[nW+1] = {B1_G1u_r2_MA_weights[nB1W][1], B1_G1u_r2_MA_weights[nB1W][2], B1_G1u_r2_MA_weights[nB1W][3], B1_G1u_r2_MA_weights[nB1W][4], B1_G1u_r2_MA_weights[nB1W][5], B1_G1u_r2_MA_weights[nB1W][6], B1_G1u_r1_MA_weights[nB2W][1], B1_G1u_r1_MA_weights[nB2W][2], B1_G1u_r1_MA_weights[nB2W][3], B1_G1u_r1_MA_weights[nB2W][4], B1_G1u_r1_MA_weights[nB2W][5], B1_G1u_r1_MA_weights[nB2W][6], (-1/math.sqrt(2))*B1_G1u_r2_MA_weights[nB1W][7]*B1_G1u_r1_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+
+-- negative parity deuteron, with identical quarks representation up
+local nW = 0
+B2_T1u_r1_weights = {}
+for nB1W = 1, #B1_G1u_r1_weights do
+   for nB2W = 1, #B1_G1u_r1_weights do
+      B2_T1u_r1_weights[nW+1] = {B1_G1u_r1_weights[nB1W][1], B1_G1u_r1_weights[nB1W][2], B1_G1u_r1_weights[nB1W][3], B1_G1u_r1_weights[nB1W][4], B1_G1u_r1_weights[nB1W][5], B1_G1u_r1_weights[nB1W][6], B1_G1u_r1_weights[nB2W][1], B1_G1u_r1_weights[nB2W][2], B1_G1u_r1_weights[nB2W][3], B1_G1u_r1_weights[nB2W][4], B1_G1u_r1_weights[nB2W][5], B1_G1u_r1_weights[nB2W][6], B1_G1u_r1_weights[nB1W][7]*B1_G1u_r1_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, with identical quarks representation zero
+local nW = 0
+B2_T1u_r2_weights = {}
+for nB1W = 1, #B1_G1u_r1_weights do
+   for nB2W = 1, #B1_G1u_r1_weights do
+      B2_T1u_r2_weights[nW+1] = {B1_G1u_r1_weights[nB1W][1], B1_G1u_r1_weights[nB1W][2], B1_G1u_r1_weights[nB1W][3], B1_G1u_r1_weights[nB1W][4], B1_G1u_r1_weights[nB1W][5], B1_G1u_r1_weights[nB1W][6], B1_G1u_r2_weights[nB2W][1], B1_G1u_r2_weights[nB2W][2], B1_G1u_r2_weights[nB2W][3], B1_G1u_r2_weights[nB2W][4], B1_G1u_r2_weights[nB2W][5], B1_G1u_r2_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r1_weights[nB1W][7]*B1_G1u_r2_weights[nB2W][7]}
+      nW = nW + 1
+      B2_T1u_r2_weights[nW+1] = {B1_G1u_r2_weights[nB1W][1], B1_G1u_r2_weights[nB1W][2], B1_G1u_r2_weights[nB1W][3], B1_G1u_r2_weights[nB1W][4], B1_G1u_r2_weights[nB1W][5], B1_G1u_r2_weights[nB1W][6], B1_G1u_r1_weights[nB2W][1], B1_G1u_r1_weights[nB2W][2], B1_G1u_r1_weights[nB2W][3], B1_G1u_r1_weights[nB2W][4], B1_G1u_r1_weights[nB2W][5], B1_G1u_r1_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r2_weights[nB1W][7]*B1_G1u_r1_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, with identical quarks representation down
+local nW = 0
+B2_T1u_r3_weights = {}
+for nB1W = 1, #B1_G1u_r1_weights do
+   for nB2W = 1, #B1_G1u_r1_weights do
+      B2_T1u_r3_weights[nW+1] = {B1_G1u_r2_weights[nB1W][1], B1_G1u_r2_weights[nB1W][2], B1_G1u_r2_weights[nB1W][3], B1_G1u_r2_weights[nB1W][4], B1_G1u_r2_weights[nB1W][5], B1_G1u_r2_weights[nB1W][6], B1_G1u_r2_weights[nB2W][1], B1_G1u_r2_weights[nB2W][2], B1_G1u_r2_weights[nB2W][3], B1_G1u_r2_weights[nB2W][4], B1_G1u_r2_weights[nB2W][5], B1_G1u_r2_weights[nB2W][6], B1_G1u_r2_weights[nB1W][7]*B1_G1u_r2_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, MS representation up
+local nW = 0
+B2_T1u_r1_MS_weights = {}
+for nB1W = 1, #B1_G1u_r1_MS_weights do
+   for nB2W = 1, #B1_G1u_r1_MS_weights do
+      B2_T1u_r1_MS_weights[nW+1] = {B1_G1u_r1_MS_weights[nB1W][1], B1_G1u_r1_MS_weights[nB1W][2], B1_G1u_r1_MS_weights[nB1W][3], B1_G1u_r1_MS_weights[nB1W][4], B1_G1u_r1_MS_weights[nB1W][5], B1_G1u_r1_MS_weights[nB1W][6], B1_G1u_r1_MS_weights[nB2W][1], B1_G1u_r1_MS_weights[nB2W][2], B1_G1u_r1_MS_weights[nB2W][3], B1_G1u_r1_MS_weights[nB2W][4], B1_G1u_r1_MS_weights[nB2W][5], B1_G1u_r1_MS_weights[nB2W][6], B1_G1u_r1_MS_weights[nB1W][7]*B1_G1u_r1_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, MS representation zero
+local nW = 0
+B2_T1u_r2_MS_weights = {}
+for nB1W = 1, #B1_G1u_r1_MS_weights do
+   for nB2W = 1, #B1_G1u_r1_MS_weights do
+      B2_T1u_r2_MS_weights[nW+1] = {B1_G1u_r1_MS_weights[nB1W][1], B1_G1u_r1_MS_weights[nB1W][2], B1_G1u_r1_MS_weights[nB1W][3], B1_G1u_r1_MS_weights[nB1W][4], B1_G1u_r1_MS_weights[nB1W][5], B1_G1u_r1_MS_weights[nB1W][6], B1_G1u_r2_MS_weights[nB2W][1], B1_G1u_r2_MS_weights[nB2W][2], B1_G1u_r2_MS_weights[nB2W][3], B1_G1u_r2_MS_weights[nB2W][4], B1_G1u_r2_MS_weights[nB2W][5], B1_G1u_r2_MS_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r1_MS_weights[nB1W][7]*B1_G1u_r2_MS_weights[nB2W][7]}
+      nW = nW + 1
+      B2_T1u_r2_MS_weights[nW+1] = {B1_G1u_r2_MS_weights[nB1W][1], B1_G1u_r2_MS_weights[nB1W][2], B1_G1u_r2_MS_weights[nB1W][3], B1_G1u_r2_MS_weights[nB1W][4], B1_G1u_r2_MS_weights[nB1W][5], B1_G1u_r2_MS_weights[nB1W][6], B1_G1u_r1_MS_weights[nB2W][1], B1_G1u_r1_MS_weights[nB2W][2], B1_G1u_r1_MS_weights[nB2W][3], B1_G1u_r1_MS_weights[nB2W][4], B1_G1u_r1_MS_weights[nB2W][5], B1_G1u_r1_MS_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r2_MS_weights[nB1W][7]*B1_G1u_r1_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, MS representation down
+local nW = 0
+B2_T1u_r3_MS_weights = {}
+for nB1W = 1, #B1_G1u_r1_MS_weights do
+   for nB2W = 1, #B1_G1u_r1_MS_weights do
+      B2_T1u_r3_MS_weights[nW+1] = {B1_G1u_r2_MS_weights[nB1W][1], B1_G1u_r2_MS_weights[nB1W][2], B1_G1u_r2_MS_weights[nB1W][3], B1_G1u_r2_MS_weights[nB1W][4], B1_G1u_r2_MS_weights[nB1W][5], B1_G1u_r2_MS_weights[nB1W][6], B1_G1u_r2_MS_weights[nB2W][1], B1_G1u_r2_MS_weights[nB2W][2], B1_G1u_r2_MS_weights[nB2W][3], B1_G1u_r2_MS_weights[nB2W][4], B1_G1u_r2_MS_weights[nB2W][5], B1_G1u_r2_MS_weights[nB2W][6], B1_G1u_r2_MS_weights[nB1W][7]*B1_G1u_r2_MS_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, MA representation up
+local nW = 0
+B2_T1u_r1_MA_weights = {}
+for nB1W = 1, #B1_G1u_r1_MA_weights do
+   for nB2W = 1, #B1_G1u_r1_MA_weights do
+      B2_T1u_r1_MA_weights[nW+1] = {B1_G1u_r1_MA_weights[nB1W][1], B1_G1u_r1_MA_weights[nB1W][2], B1_G1u_r1_MA_weights[nB1W][3], B1_G1u_r1_MA_weights[nB1W][4], B1_G1u_r1_MA_weights[nB1W][5], B1_G1u_r1_MA_weights[nB1W][6], B1_G1u_r1_MA_weights[nB2W][1], B1_G1u_r1_MA_weights[nB2W][2], B1_G1u_r1_MA_weights[nB2W][3], B1_G1u_r1_MA_weights[nB2W][4], B1_G1u_r1_MA_weights[nB2W][5], B1_G1u_r1_MA_weights[nB2W][6], B1_G1u_r1_MA_weights[nB1W][7]*B1_G1u_r1_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, MA representation zero
+local nW = 0
+B2_T1u_r2_MA_weights = {}
+for nB1W = 1, #B1_G1u_r1_MA_weights do
+   for nB2W = 1, #B1_G1u_r1_MA_weights do
+      B2_T1u_r2_MA_weights[nW+1] = {B1_G1u_r1_MA_weights[nB1W][1], B1_G1u_r1_MA_weights[nB1W][2], B1_G1u_r1_MA_weights[nB1W][3], B1_G1u_r1_MA_weights[nB1W][4], B1_G1u_r1_MA_weights[nB1W][5], B1_G1u_r1_MA_weights[nB1W][6], B1_G1u_r2_MA_weights[nB2W][1], B1_G1u_r2_MA_weights[nB2W][2], B1_G1u_r2_MA_weights[nB2W][3], B1_G1u_r2_MA_weights[nB2W][4], B1_G1u_r2_MA_weights[nB2W][5], B1_G1u_r2_MA_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r1_MA_weights[nB1W][7]*B1_G1u_r2_MA_weights[nB2W][7]}
+      nW = nW + 1
+      B2_T1u_r2_MA_weights[nW+1] = {B1_G1u_r2_MA_weights[nB1W][1], B1_G1u_r2_MA_weights[nB1W][2], B1_G1u_r2_MA_weights[nB1W][3], B1_G1u_r2_MA_weights[nB1W][4], B1_G1u_r2_MA_weights[nB1W][5], B1_G1u_r2_MA_weights[nB1W][6], B1_G1u_r1_MA_weights[nB2W][1], B1_G1u_r1_MA_weights[nB2W][2], B1_G1u_r1_MA_weights[nB2W][3], B1_G1u_r1_MA_weights[nB2W][4], B1_G1u_r1_MA_weights[nB2W][5], B1_G1u_r1_MA_weights[nB2W][6], (1/math.sqrt(2))*B1_G1u_r2_MA_weights[nB1W][7]*B1_G1u_r1_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+-- negative parity deuteron, MA representation down
+local nW = 0
+B2_T1u_r3_MA_weights = {}
+for nB1W = 1, #B1_G1u_r1_MA_weights do
+   for nB2W = 1, #B1_G1u_r1_MA_weights do
+      B2_T1u_r3_MA_weights[nW+1] = {B1_G1u_r2_MA_weights[nB1W][1], B1_G1u_r2_MA_weights[nB1W][2], B1_G1u_r2_MA_weights[nB1W][3], B1_G1u_r2_MA_weights[nB1W][4], B1_G1u_r2_MA_weights[nB1W][5], B1_G1u_r2_MA_weights[nB1W][6], B1_G1u_r2_MA_weights[nB2W][1], B1_G1u_r2_MA_weights[nB2W][2], B1_G1u_r2_MA_weights[nB2W][3], B1_G1u_r2_MA_weights[nB2W][4], B1_G1u_r2_MA_weights[nB2W][5], B1_G1u_r2_MA_weights[nB2W][6], B1_G1u_r2_MA_weights[nB1W][7]*B1_G1u_r2_MA_weights[nB2W][7]}
+      nW = nW + 1
+   end
+end
+
+printf("dinucleon identical, %d weights\n", #B2_A1g_weights)
+printf("dinucleon MA, %d weights\n", #B2_A1g_MA_weights)
+printf("dinucleon MS, %d weights\n", #B2_A1g_MS_weights)
+printf("negative parity dinucleon identical, %d weights\n", #B2_A1u_weights)
+printf("negative parity dinucleon MS, %d weights\n", #B2_A1u_MS_weights)
+printf("negative parity dinucleon MA, %d weights\n", #B2_A1u_MA_weights)
+printf("deuteron identical up, %d weights\n", #B2_T1g_r1_weights)
+printf("deuteron MA up, %d weights\n", #B2_T1g_r1_MA_weights)
+printf("deuteron MS up, %d weights\n", #B2_T1g_r1_MS_weights)
+printf("deuteron identical zero, %d weights\n", #B2_T1g_r2_weights)
+printf("deuteron MA zero, %d weights\n", #B2_T1g_r2_MA_weights)
+printf("deuteron MS zero, %d weights\n", #B2_T1g_r2_MS_weights)
+printf("deuteron identical down, %d weights\n", #B2_T1g_r3_weights)
+printf("deuteron MA down, %d weights\n", #B2_T1g_r3_MA_weights)
+printf("deuteron MS down, %d weights\n", #B2_T1g_r3_MS_weights)
+printf("negative parity deuteron identical up, %d weights\n", #B2_T1u_r1_weights)
+printf("negative parity deuteron MA up, %d weights\n", #B2_T1u_r1_MA_weights)
+printf("negative parity deuteron MS up, %d weights\n", #B2_T1u_r1_MS_weights)
+printf("negative parity deuteron identical zero, %d weights\n", #B2_T1u_r2_weights)
+printf("negative parity deuteron MA zero, %d weights\n", #B2_T1u_r2_MA_weights)
+printf("negative parity deuteron MS zero, %d weights\n", #B2_T1u_r2_MS_weights)
+printf("negative parity deuteron identical down, %d weights\n", #B2_T1u_r3_weights)
+printf("negative parity deuteron MA down, %d weights\n", #B2_T1u_r3_MA_weights)
+printf("negative parity deuteron MS down, %d weights\n", #B2_T1u_r3_MS_weights)
+

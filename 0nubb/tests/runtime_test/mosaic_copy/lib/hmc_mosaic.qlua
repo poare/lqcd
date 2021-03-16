@@ -1,0 +1,1103 @@
+#!/usr/bin/env qlua
+
+-- simple leapfrom HMC with multilevel integration
+
+require "lib/action"
+
+hmc_mosaic = {action = action.act}
+
+function hmc_mosaic.printcoords(ri)
+   local string = "" .. ri[0+1]
+   for mu = 1, #ri - 1 do
+      string = string .. "," .. ri[mu+1]
+   end
+   return string
+end
+
+function hmc_mosaic.printcolormatrix(U, name)
+   local L = U.lattice
+   local VL = 1
+   for mu = 0, #L - 1 do
+      VL = VL * L[mu]
+   end
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      for mu = #L - 1, 0, -1 do
+         ri[mu+1] = imod % L[mu]
+         imod = math.floor(imod / L[mu])
+      end
+      local Uxy = U[ri]
+      printf("%s[%s] Re Trace L2Norm = %10.6f\n", name, hmc_mosaic.printcoords(ri), (Uxy*Uxy:adjoin()):trace():real())
+      printf("%s[%s] Re Trace = %10.6f\n", name, hmc_mosaic.printcoords(ri), Uxy:trace():real())
+   end
+end
+
+function hmc_mosaic.printfield(U, name)
+   local L = U[1].lattice
+   for mu=0, #L - 1 do
+      local VL = 1
+      for mu = 0, #L - 1 do
+         VL = VL * L[mu]
+      end
+      for i = 0, VL - 1 do
+         local ri = {}
+         local imod = i
+         for mu = #L - 1, 0, -1 do
+            ri[mu+1] = imod % L[mu]
+            imod = math.floor(imod / L[mu])
+         end
+         printf("%s[%d][%s] Re Trace L2Norm = %10.6f\n", name, mu, hmc_mosaic.printcoords(ri), (U[mu+1][ri]*U[mu+1][ri]:adjoin()):trace():real())
+         printf("%s[%d][%s] Re Trace = %10.6f\n", name, mu, hmc_mosaic.printcoords(ri), (U[mu+1][ri]*U[mu+1][ri]):trace():real())
+      end
+   end
+end
+
+function hmc_mosaic.printscalar(U, name)
+   local L = U.lattice
+   printf("dims %d\n", #L)
+   local VL = 1
+   for mu = 0, #L - 1 do
+      VL = VL * L[mu]
+   end
+   for i = 0, VL - 1 do
+      local ri = {}
+      local imod = i
+      for mu = #L - 1, 0, -1 do
+         ri[mu+1] = imod % L[mu]
+         imod = math.floor(imod / L[mu])
+      end
+      printf("%s[{%s}] = %10.6e + I %10.6e\n", name, hmc_mosaic.printcoords(ri), U[ri]:real(), U[ri]:imag())
+   end
+end
+
+function addElt(list, elt)
+   local newList = {unpack(list)}
+   newList[#list + 1] = elt
+   return newList
+end
+
+function extractElt(A)
+   local elt = {}
+   local Nc = A:colors()
+   for i = 0, Nc - 1 do
+      elt[i+1] = {}
+      for j = 0, Nc - 1 do
+         elt[i+1][j+1] = A[{a = i, b = j}]
+      end
+   end
+   return elt
+end
+
+function tensor(A, B)
+   local L = A.lattice
+   local Na = A:colors()
+   local Nb = B:colors()
+   local AB = L:ColorMatrixN(Na*Nb)
+   local eltA = extractElt(A)
+   local eltB = extractElt(B)
+   for ai = 0, Na - 1 do
+      for aj = 0, Na - 1 do
+         for bi = 0, Nb - 1 do
+            for bj = 0, Nb - 1 do
+               -- create tensored matrix
+               AB[{a = ai*Nb + bi, b = aj*Nb + bj}] = eltA[ai+1][aj+1] * eltB[bi+1][bj+1]
+            end
+         end
+      end
+   end
+   return AB
+end
+
+function hmc_mosaic.accept(H, old, new)
+   local U = old.x
+   local X
+   X = H.toGroup(new.x)
+   local dP, dK, oldH, newH = H.delta(old, new)
+   local stat = { dP = dP, dK = dK, deltaH = dP+dK,
+                  oldH = oldH, newH = newH, changed = 0 }
+   if stat.deltaH < 0 then
+      U = X
+      stat.changed = 1
+      stat.prob = 1
+   else
+      local p = H.seqRandom()
+      stat.prob = math.exp(-stat.deltaH)
+      if p < stat.prob then
+         stat.changed = 1
+         U = X
+      end
+   end
+   return U, stat
+end
+
+-- TODO(gkanwar): Is this function used? If not, should remove.
+-- function hmc_mosaic.accept_prob(H, old, new, p)
+--    local U = old.x
+--    local X
+--    X = H.toGroup(new.x)
+--    local dP, dK, oldH, newH = H.delta(old, new)
+--    local stat = { dP = dP, dK = dK, deltaH = dP+dK,
+--                   oldH = oldH, newH = newH, changed = 0 }
+--    printf("deltaH %10.6f\n", stat.deltaH)
+--    if stat.deltaH < 0 then
+--       U = X
+--       stat.changed = 1
+--       stat.prob = 1
+--    else
+--       stat.prob = math.exp(-stat.deltaH)
+--       if p < stat.prob then
+--          stat.changed = 1
+--          U = X
+--       end
+--    end
+--    return U, stat
+-- end
+
+
+local function get_lvl_size_and_Nsubregion(L, Nlvl)
+   local lvl_size = {}
+   local Nsubregion = {}
+   for mu = 0, #L - 1 do
+      if Nlvl[mu+1] == 0 then Nsubregion[mu+1] = 1
+      else Nsubregion[mu+1] = Nlvl[mu+1] end
+      lvl_size[mu+1] = L[mu]/Nsubregion[mu+1]
+   end
+   return lvl_size, Nsubregion
+end
+
+local function nonboundary_masks(L, Nlvl, thickness)
+   local lvl_size = get_lvl_size_and_Nsubregion(L, Nlvl)
+   local boundary_masks = {}
+   for mu = 0, #L - 1 do
+      local notboundary = L:Int(1)
+      for nu = 0, #L - 1 do
+         if Nlvl[nu+1] ~= 0 then
+            if mu ~= nu then
+               notboundary = notboundary * (
+                  (L:pcoord(nu) % lvl_size[nu+1]) / thickness[nu+1])
+            else
+               notboundary = notboundary * (
+                  ((L:pcoord(nu) % lvl_size[nu+1]) + 1) / thickness[nu+1])
+            end
+         end
+      end
+      boundary_masks[mu+1] = notboundary
+   end
+   return boundary_masks
+end
+
+-- Subset of base sites for links in each direction mu that ARE boundaries
+function hmc_mosaic.Boundaries(L, Nlvl, thickness)
+   local masks = nonboundary_masks(L, Nlvl, thickness)
+   local boundary_sites = {}
+   for mu = 1, #L do
+      boundary_sites[mu] = L:Subset(qcd.eq(masks[mu], 0))
+   end
+   return boundary_sites
+end
+-- Subset of base sites for links in each direction mu that ARE NOT boundaries
+function hmc_mosaic.NoBoundaries(L, Nlvl, thickness)
+   local masks = nonboundary_masks(L, Nlvl, thickness)
+   local notboundary_sites = {}
+   for mu = 1, #L do
+      notboundary_sites[mu] = L:Subset(qcd.ne(masks[mu], 0))
+   end
+   return notboundary_sites
+end
+-- TODO(gkanwar): Remove these if they are not used
+-- Subset of base sites for links in direction nu that ARE boundaries
+-- function hmc_mosaic.LinkBoundaries(L, Nlvl, d, nu)
+--    local masks = nonboundary_masks(L, Nlvl, d)
+--    return L:Subset(qcd.eq(masks[nu], 0))
+-- end
+-- Subset of base sites for links in direction nu that are ARE NOT boundaries
+-- function hmc_mosaic.LinkNoBoundaries(L, Nlvl, d, nu)
+--    local masks = nonboundary_masks(L, Nlvl, d)
+--    return L:Subset(qcd.ne(masks[nu], 0))
+-- end
+
+function hmc_mosaic.Sublattice(L, Nlvl)
+   local lvl_size = get_lvl_size_and_Nsubregion(L, Nlvl)
+   local subL = qcd.lattice(lvl_size)
+   return subL 
+end
+
+function hmc_mosaic.CoarseGatherScatter(L, crsL, Nlvl)
+   local lvl_size = get_lvl_size_and_Nsubregion(L, Nlvl)
+   local I = {}
+   for mu = 0, #L - 1 do I[mu+1] = L:pcoord(mu) / lvl_size[mu+1] end
+   local crsGS = {}
+   crsGS["gather"] = qcd.gather(crsL, L, I)
+   crsGS["scatter"] = qcd.scatter(L, crsL, I)
+
+   -- local Icrnr = {}
+   -- for mu = 0, #L - 1 do Icrnr[mu+1] = crsL:pcoord(mu)*lvl_size[mu+1] end
+   -- crsGS["corner"] = qcd.scatter(crsL, L, Icrnr)
+
+   crsGS["lvl_size"] = lvl_size
+   return crsGS
+end
+
+function hmc_mosaic.AcceptReject(traj, tau, steps, L, crsL, Nlvl, d)
+   -- function to run one trajectory
+   local trajRun = traj(tau, steps, L, Nlvl, d)
+   -- calculate lvl_size
+   local lvl_size = get_lvl_size_and_Nsubregion(L, Nlvl)
+   -- create sublattice
+   local subL = {}
+   local subL = hmc_mosaic.Sublattice(L, Nlvl)
+   local function run(H, U)
+      H.initTraj(U)
+      local R = H.newMomentum(U)
+      -- evolve trajectory
+      local X, P = trajRun(H, U, R)
+      -- create new gauge field
+      local Nc = U[1]:colors()
+      local U_new = {} local P_new = {}
+      for mu = 0, #L - 1 do
+         U_new[mu+1] = L:ColorMatrixN(Nc)
+         P_new[mu+1] = L:ColorMatrixN(Nc)
+      end
+      -- generate a random number in [0,1] for every coarse lattice point
+      local rand = H.latRandom(crsL)
+      local dP, dK = H.lattDelta({x = U, p = R, t = 0.0}, {x = X, p = P, t = tau})
+      local deltaH = dP + dK
+      -- independently accept/reject subregions
+      local VNlvl = 1
+      local Vlvl_size = 1
+      local Nsubrgn = {}
+      for mu = 0, #L - 1 do
+         if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+         else Nsubrgn[mu+1] = Nlvl[mu+1] end
+         VNlvl = VNlvl * Nsubrgn[mu+1]
+         Vlvl_size = Vlvl_size * lvl_size[mu+1]
+      end
+      for i = 0, VNlvl - 1 do
+         local ri = {}
+         local imod = i
+         for mu = #L - 1, 0, -1 do
+            ri[mu+1] = imod % Nsubrgn[mu+1]
+            imod = math.floor(imod / Nsubrgn[mu+1])
+         end
+         -- build map from lattice to/from subregion 
+         local subLmap = {}
+         for mu = 0, #L - 1 do
+            subLmap[mu+1] = subL:Int(0)
+         end
+         for j = 0, Vlvl_size - 1 do
+            local rj = {}
+            local jmod = j
+            for mu = #L - 1, 0, -1 do
+               rj[mu+1] = jmod % lvl_size[mu+1]
+               jmod = math.floor(jmod / lvl_size[mu+1])
+            end
+            for mu = 0, #L - 1 do
+               subLmap[mu+1][rj] = ri[mu+1]*lvl_size[mu+1] + rj[mu+1]
+            end
+         end
+         -- create subregion gauge field
+         local U_region = {}
+         local R_region = {}
+         local X_region = {}
+         local P_region = {}
+         local deltaH_region = {}
+         local sU = qcd.scatter(subL, L, subLmap)
+         for mu = 0, #L - 1 do
+            U_region[mu+1] = sU(U[mu+1])
+            R_region[mu+1] = sU(R[mu+1])
+            X_region[mu+1] = sU(X[mu+1])
+            P_region[mu+1] = sU(P[mu+1])
+         end
+         X_region = H.toGroup(X_region)
+         deltaH_region = sU(deltaH)
+         printf("deltaH region %10.6f\n", deltaH_region:sum())
+         local prob = math.exp(-deltaH_region:sum())
+         local gU = qcd.gather(L, subL, subLmap)
+         if prob > rand[ri] then  
+            for mu = 0, #L - 1 do
+               local Ur_new = gU:add(X_region[mu+1])
+               U_new[mu+1] = U_new[mu+1] + Ur_new
+            end
+         else
+            for mu = 0, #L - 1 do
+               local Ur_new = gU:add(U_region[mu+1])
+               U_new[mu+1] = U_new[mu+1] + Ur_new
+            end
+         end
+      end
+      local fullUr, fullstat
+      fullUr, fullstat = hmc_mosaic.accept(H, {x = U, p = R, t = 0.0}, {x = X, p = P, t = tau})
+      printf("total deltaH %f \n", fullstat.deltaH)
+      return U_new, fullstat
+   end
+   return run
+end
+
+function hmc_mosaic.CoarseAcceptReject(traj, tau, steps, L, crsL, Nlvl, d)
+   -- function to run one trajectory
+   local trajRun = traj(tau, steps, L, Nlvl, d)
+   -- get gather/scatter objects
+   local crsGS = hmc_mosaic.CoarseGatherScatter(L, crsL, Nlvl)
+   local crsGthr = crsGS["gather"]
+   local crsSctr = crsGS["scatter"]
+   local crsVol = 1
+   for d = 0, #crsL-1 do crsVol = crsVol * crsL[d] end
+   local function run(H, U)
+      H.initTraj(U)
+      local R = H.newMomentum(U)
+      -- evolve trajectory
+      local X, P = trajRun(H, U, R)
+      -- create new gauge field
+      local Nc = U[1]:colors()
+      local U_new = {}
+      for mu = 0, #L - 1 do
+         U_new[mu+1] = L:ColorMatrixN(Nc,complex(0,0)); U_new[mu+1]:set(U[mu+1])
+      end
+      -- calculate the accept/reject probability of each subregion
+      local dP, dK = H.lattDelta({x = U, p = R, t = 0.0}, {x = X, p = P, t = tau})
+      local deltaH = dP + dK
+      local deltaCrs = crsGthr:add(deltaH)
+      local prob = (-deltaCrs):exp()
+      -- generate a random number in [0,1] for every coarse lattice point
+      local rand = H.latRandom(crsL)
+      -- accept/reject subregions w/ coarse gather
+      local accept = qcd.lt(rand,prob)
+      -- hmc_mosaic.printscalar(crsSctr(accept), "wooow")
+      for mu = 0, #L - 1 do
+         L:Subset(crsSctr(accept)):where( function () U_new[mu+1]:set(X[mu+1]) end )
+      end
+      local fullUr, fullstat
+      fullUr, fullstat = hmc_mosaic.accept(H, {x = U, p = R, t = 0.0}, {x = X, p = P, t = tau})
+      -- printf("original deltaH %f \n", fullstat.deltaH)
+      -- fullUr, fullstat = hmc_mosaic.accept(H, {x = U, p = R, t = 0.0}, {x = U_new, p = P_new, t = tau})
+      -- printf("mosaic deltaH %f \n", fullstat.deltaH)
+      
+      -- truncate probability, compute stats
+      crsL:Subset(qcd.gt(prob, crsL:Real(1.0))):where(function () prob:set(crsL:Real(1.0)) end)
+      fullstat.prob = prob:sum() / crsVol
+      fullstat.changed = accept:sum()
+      -- new gauge field complete
+      return U_new, fullstat
+   end
+   return run
+end
+
+function hmc_mosaic.temporalLine(L, Nlvl)
+   local lvl_size, Nsubrgn = get_lvl_size_and_Nsubregion(L, Nlvl)
+   local t = #L - 1
+   local Lx = {}; for mu = 0, t - 1 do Lx[mu+1] = L[mu] end
+   local Lijx = qcd.lattice(addElt(Lx, Nsubrgn[t+1]))
+   local function run(U)
+      -- multipy temporal links within each subregion (contract t)
+      local Nc = U[1]:colors()
+      local Fline = Lijx:ColorMatrixN(Nc,complex(1,0))
+      local Ut = U[t+1]
+      local ItSctr = {}; for mu = 0, t - 1 do ItSctr[mu+1] = Lijx:pcoord(mu) end
+      local tSctr = qcd.scatter(Lijx, L, addElt(ItSctr, Lijx:pcoord(t)*lvl_size[t+1]))
+      for i = 0, lvl_size[t+1] - 1 do
+         Fline = Fline * tSctr(Ut)
+         Ut = Ut:shift(t, "from_forward")
+      end
+      return Fline
+   end
+   return run
+end
+
+function hmc_mosaic.wilsonLoop(L, Nlvl)
+   local lvl_size = {}
+   local Vlvl_size = 1
+   local Nsubrgn = {}
+   local Lx = {}
+   for mu = 0, #L - 1 do
+      if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+      else Nsubrgn[mu+1] = Nlvl[mu+1] end
+      lvl_size[mu+1] = L[mu]/Nsubrgn[mu+1]
+      Vlvl_size = Vlvl_size * lvl_size[mu+1]
+      local dim = {}
+      for nu = 0, #L - 1 do
+         if mu ~= nu then
+            dim[nu+1] = L[nu]
+         else
+            dim[nu+1] = Nsubrgn[nu+1]
+         end
+      end
+      Lx[mu+1] = qcd.lattice(dim)
+   end
+   local LpathList = {}
+   local function run(U, nx, order)
+      local Nc = U[1]:colors()
+      local xInitMul = {}
+      local xMidMul = {}
+      local xFinMul = {}
+      for mu = 0, #L - 1 do
+         -- multiply beginning & ending bits
+         xInitMul[mu+1] = {}
+         xFinMul[mu+1] = {}
+         local UxInit = U[mu+1]
+         local UxFin = U[mu+1]
+         local IxInitSctr = {}
+         local IxFinSctr = {}
+         for nu = 0, #L - 1 do
+            if mu ~= nu then
+               IxInitSctr[nu+1] = Lx[mu+1]:pcoord(nu)
+               IxFinSctr[nu+1] = Lx[mu+1]:pcoord(nu)
+            else
+               IxInitSctr[nu+1] = Lx[mu+1]:pcoord(nu) * lvl_size[nu+1] + lvl_size[nu+1] - 1
+               IxFinSctr[nu+1] = Lx[mu+1]:pcoord(nu) * lvl_size[nu+1]
+            end
+         end
+         local xInitSctr = qcd.scatter(Lx[mu+1], L, IxInitSctr)
+         local xFinSctr = qcd.scatter(Lx[mu+1], L, IxFinSctr)
+         xInitMul[mu+1][1] = xInitSctr(UxInit)
+         xFinMul[mu+1][0] = Lx[mu+1]:ColorMatrixN(Nc,complex(1,0))
+         xFinMul[mu+1][1] = xFinSctr(UxFin)
+         for i = 2, lvl_size[mu+1] do
+            UxInit = UxInit:shift(mu, "to_forward")
+            UxFin = UxFin:shift(mu, "from_forward")
+            xInitMul[mu+1][i] = xInitSctr(UxInit) * xInitMul[mu+1][i-1]
+            xFinMul[mu+1][i] = xFinMul[mu+1][i-1] * xFinSctr(UxFin)
+         end
+         -- middle bits are just the longest beggining/ending bits
+         xMidMul[mu+1] = xInitMul[mu+1][lvl_size[mu+1]]
+      end
+      local path = {}
+      -- go through each shift within one subregion
+      for shift = 0, Vlvl_size - 1 do
+         local rshift = {}
+         local shiftmod = shift
+         for mu = #L - 1, 0, -1 do
+            rshift[mu+1] = shiftmod % lvl_size[mu+1]
+            shiftmod = math.floor(shiftmod / lvl_size[mu+1])
+         end
+         -- define path lengths
+         local i = {}
+         local initLen = {}
+         local finLen = {}
+         local LSubx = {}
+         local IF = {}
+         local IB = {}
+         local pathSize = 0
+         for mu = 0, #L - 1 do
+            i[mu+1] = math.floor((nx[mu+1] + rshift[mu+1]) / lvl_size[mu+1]) + 1
+            initLen[mu+1] = lvl_size[mu+1] - rshift[mu+1]
+            finLen[mu+1] = (nx[mu+1] + rshift[mu+1]) % lvl_size[mu+1]
+            LSubx[mu+1] = qcd.lattice(addElt(Nsubrgn, i[mu+1]))
+            IF[mu+1] = rshift[mu+1]
+            IB[mu+1] = nx[mu+1] + rshift[mu+1]
+            pathSize = pathSize + 2*(i[mu+1] - 1)
+         end
+         if pathSize == 0 then pathSize = 1 end
+         LpathList[pathSize] = LpathList[pathSize] or qcd.lattice(addElt(Nsubrgn, pathSize))
+         local Lpath = LpathList[pathSize]
+         local pathIndex = #L
+         -- build subpaths
+         local xFPath = {}
+         local xBPath = {}
+         for j = 0, #L - 1 do
+            local mu = order[j+1]
+            IB[mu+1] = rshift[mu+1]
+            local IxFSubSctr = {}
+            local IxBSubSctr = {}
+            for nu = 0, #L - 1 do
+               if mu ~= nu then
+                  IxFSubSctr[nu+1] = (LSubx[mu+1]:pcoord(nu) * lvl_size[nu+1] + IF[nu+1]) % L[nu]
+                  IxBSubSctr[nu+1] = (LSubx[mu+1]:pcoord(nu) * lvl_size[nu+1] + IB[nu+1]) % L[nu]
+               else
+                  IxFSubSctr[nu+1] = LSubx[mu+1]:pcoord(nu)
+                  IxBSubSctr[nu+1] = LSubx[mu+1]:pcoord(nu)
+               end
+            end
+            local xFSubSctr = qcd.scatter(LSubx[mu+1], Lx[mu+1], IxFSubSctr)
+            local xBSubSctr = qcd.scatter(LSubx[mu+1], Lx[mu+1], IxBSubSctr)
+            -- if the subpath is only in one subregion, explicitly calculate this path
+            if i[mu+1] == 1 then
+               local UxInit = xInitMul[mu+1][initLen[mu+1]]
+               local UxMid = xMidMul[mu+1]
+               local UxFin = xFinMul[mu+1][finLen[mu+1]]
+               xFPath[mu+1] = xFSubSctr(UxInit) * xFSubSctr(UxMid):adjoin() * xFSubSctr(UxFin)
+               xBPath[mu+1] = xBSubSctr(UxFin):adjoin() * xBSubSctr(UxMid) * xBSubSctr(UxInit):adjoin()
+            -- else build path from the pieces
+            else
+               xFPath[mu+1] = LSubx[mu+1]:ColorMatrixN(Nc,complex(0,0))
+               xBPath[mu+1] = LSubx[mu+1]:ColorMatrixN(Nc,complex(0,0))
+               local UxInit = xInitMul[mu+1][initLen[mu+1]]
+               local UxMid = xMidMul[mu+1]
+               local UxFin = xFinMul[mu+1][finLen[mu+1]]
+               for subi = 1, i[mu+1] do
+                  if subi == 1 then -- beginning bit
+                     LSubx[mu+1]:Subset(qcd.eq(LSubx[mu+1]:pcoord(pathIndex), 0)):where( 
+                        function () xFPath[mu+1]:set(xFSubSctr(UxInit))
+                                    xBPath[mu+1]:set(xBSubSctr(UxInit):adjoin()) end )
+                  elseif subi == i[mu+1] then -- ending bit
+                     LSubx[mu+1]:Subset(qcd.eq(LSubx[mu+1]:pcoord(pathIndex), i[mu+1]-1)):where( 
+                        function () xFPath[mu+1]:set(xFSubSctr(UxFin))
+                                    xBPath[mu+1]:set(xBSubSctr(UxFin):adjoin()) end )
+                  else -- middle bits
+                     LSubx[mu+1]:Subset(qcd.eq(LSubx[mu+1]:pcoord(pathIndex), subi-1)):where( 
+                        function () xFPath[mu+1]:set(xFSubSctr(UxMid))
+                                    xBPath[mu+1]:set(xBSubSctr(UxMid):adjoin()) end )
+                  end
+                  UxMid = UxMid:shift(mu, "from_forward")
+                  UxFin = UxFin:shift(mu, "from_forward")
+               end
+               IF[mu+1] = nx[mu+1] + rshift[mu+1]
+            end
+         end
+         -- build path
+         path[rshift] = Lpath:ColorMatrixN(Nc,complex(1,0))
+         local initI = {}; for mu = 0, #L - 1 do initI[mu+1] = Lpath:pcoord(mu) end
+         local initSctr = qcd.scatter(Lpath, LSubx[order[#L]+1], addElt(initI, Lpath:Int(0)))
+         Lpath:Subset(qcd.eq(Lpath:pcoord(pathIndex), 0)):where(
+            function () path[rshift]:set(initSctr(xBPath[order[#L]+1])) end )
+         local pos = 0
+         -- add forward lines to path
+         for j = 0, #L - 1 do
+            local mu = order[j+1]
+            local pathXF = Lpath:ColorMatrixN(Nc,complex(1,0))
+            local Ix = {}; for nu = 0, #L - 1 do Ix[nu+1] = Lpath:pcoord(nu) end
+            local pathXFSctr = qcd.scatter(Lpath, LSubx[mu+1], addElt(Ix,
+               (Lpath:pcoord(pathIndex) - pos + pos*i[mu+1]) % i[mu+1]))
+            Lpath:Subset(qcd.ge(Lpath:pcoord(pathIndex), pos) *
+               qcd.lt(Lpath:pcoord(pathIndex), pos + i[mu+1])):where(
+               function () pathXF:set(pathXFSctr(xFPath[mu+1])) end )
+            path[rshift] = path[rshift] * pathXF
+            pos = pos + i[mu+1] - 1
+         end
+         -- add backward lines to path
+         for j = 0, #L - 1 do
+            local mu = order[j+1]
+            local pathXB = Lpath:ColorMatrixN(Nc,complex(1,0))
+            local Ix = {}; for nu = 0, #L - 1 do Ix[nu+1] = Lpath:pcoord(nu) end
+            local pathXBSctr = qcd.scatter(Lpath, LSubx[mu+1], addElt(Ix,
+               (i[mu+1]-1 - (Lpath:pcoord(pathIndex) - pos) + pathSize*i[mu+1]) % i[mu+1]))
+            Lpath:Subset(qcd.ge(Lpath:pcoord(pathIndex), pos) *
+               qcd.lt(Lpath:pcoord(pathIndex), pos + i[mu+1])):where(
+               function () pathXB:set(pathXBSctr(xBPath[mu+1])) end )
+            path[rshift] = path[rshift] * pathXB
+            pos = pos + i[mu+1] - 1
+         end
+      end
+      return path
+   end
+   return run
+end
+
+-- give it the full multilevel structure and it'll do the multilevel contraction
+-- returned function expects a nested list of temporal line outputs
+function hmc_mosaic.polyakovLoop(L, Nlvl)
+   local t = #L - 1
+   local nlvl = #Nlvl
+   -- define useful variables at all levels
+   local lvl_size = {}; for lvl = 1, nlvl do lvl_size[lvl] = {} end
+   local Nsubrgn = {}; for lvl = 1, nlvl do Nsubrgn[lvl] = {} end
+   local Vsub = {}; for lvl = 1, nlvl do Vsub[lvl] = 1 end
+   local Vcrs = {}; for lvl = 1, nlvl do Vcrs[lvl] = 1 end
+   for lvl = 1, nlvl do
+      for mu = 0, t - 1 do
+         if Nlvl[lvl][mu+1] == 0 then Nsubrgn[lvl][mu+1] = 1
+         else Nsubrgn[lvl][mu+1] = Nlvl[lvl][mu+1] end
+         lvl_size[lvl][mu+1] = L[mu]/Nsubrgn[lvl][mu+1]
+         Vsub[lvl] = Vsub[lvl] * lvl_size[lvl][mu+1]
+         Vcrs[lvl] = Vcrs[lvl] * Nsubrgn[lvl][mu+1]
+      end
+   end
+   -- define coarse lattices
+   local crsL = {}
+   for lvl = 1, nlvl - 1 do
+      if Nlvl[lvl][t+1] == 0 then Nsubrgn[lvl][t+1] = 1 else Nsubrgn[lvl][t+1] = Nlvl[lvl][t+1] end
+      crsL[lvl] = qcd.lattice(addElt(Nsubrgn[nlvl], Nsubrgn[lvl][t+1]))
+   end
+   if Nlvl[nlvl][t+1] == 0 then Nsubrgn[nlvl][t+1] = 1 else Nsubrgn[nlvl][t+1] = Nlvl[nlvl][t+1] end
+   crsL[nlvl] = qcd.lattice(Nsubrgn[nlvl])
+   -- function to change from coords to a rgn index
+   local function toRgn(coords, lvl)
+      local rgn = 0
+      local dimfac = 1
+      for mu = 0, t - 1 do
+         rgn = rgn + dimfac * coords[mu+1]
+         dimfac = dimfac * Nsubrgn[lvl][mu+1]
+      end
+      return rgn
+   end
+   -- function to change from rgn index to coords
+   local function toCoords(rgn, lvl)
+      local coords = {}
+      local rgnMod = rgn
+      for mu = 0, t - 1 do
+         coords[mu+1] = rgnMod % Nsubrgn[lvl][mu+1]
+         rgnMod = math.floor(rgnMod / Nsubrgn[lvl][mu+1])
+      end
+      return coords
+   end
+   -- define interlevel temporal-slice scatters
+   local jSctr = {}
+   for lvl = nlvl - 1, 1, -1 do
+      local I = {}; for mu = 0, t - 1 do I[mu+1] = crsL[lvl]:pcoord(mu) end
+      jSctr[lvl] = qcd.scatter(crsL[lvl], crsL[lvl+1], addElt(I, crsL[lvl]:pcoord(t) * Nsubrgn[lvl+1][t+1] / Nsubrgn[lvl][t+1]))
+   end
+   -- #T = n1 (+1)
+   -- #T[1] = n2 (+1)
+   -- #T[1][1] = n3 (+1)
+   -- etc.
+   -- nM = nCnfg(M+1)
+   local function run(T, nxList, orient)
+      local count = {}
+      local sum = {}
+      for i = 1, #nxList do
+         count[i] = 0
+         sum[i] = complex(0,0)
+      end
+      -- count multilevel cnfgs
+      local nCnfg = {}
+      local nest = T
+      nCnfg[1] = 1
+      for lvl = 2, nlvl do
+         nCnfg[lvl] = #nest
+         nest = nest[1]
+      end
+      local Lijx = nest.lattice
+      -- go through each shift within one subregion
+      for shift = 0, Vsub[nlvl] - 1 do
+         local rshift = {}
+         local shiftmod = shift
+         for mu = t - 1, 0, -1 do
+            rshift[mu+1] = shiftmod % lvl_size[nlvl][mu+1]
+            shiftmod = math.floor(shiftmod / lvl_size[nlvl][mu+1])
+         end
+         -- figure out which spatial subregions each loop resides in
+         local rgn = {}             -- spatial subregion corresponding to nloop
+         local crsSctr = {}         -- scatter for highest level corresponding to nloop
+         local repeated = {}        -- whether a loop is seen in the same subregion as another
+         local nGroups = 0          -- number of loop groups at top level
+         for nloop,nx in ipairs(nxList) do
+            rgn[nloop] = 0
+            local I = {}
+            local dimfac = 1
+            for mu = 0, t - 1 do
+               rgn[nloop] = rgn[nloop] + dimfac*(math.floor((nx[mu+1] + rshift[mu+1]) / lvl_size[nlvl][mu+1]) % Nsubrgn[nlvl][mu+1])
+               dimfac = dimfac * Nsubrgn[nlvl][mu+1]
+               I[mu+1] = (crsL[nlvl]:pcoord(mu) * lvl_size[nlvl][mu+1] + rshift[mu+1] + nx[mu+1]) % L[mu]
+            end
+            crsSctr[nloop] = qcd.scatter(crsL[nlvl], Lijx, addElt(I, crsL[nlvl]:pcoord(t)))
+            if not repeated[rgn[nloop]] then 
+               repeated[rgn[nloop]] = 1
+               nGroups = nGroups + 1
+            end
+         end
+         -- define map between upper level tensors to lower level tensors
+         local lvlMap = {}; for lvl = 1, nlvl - 1 do lvlMap[lvl] = {} end
+         -- handle nlvl - 1 case
+         if nlvl > 1 then
+            for nloop = 1, #nxList do
+               local rgnN = rgn[nloop]
+               -- map uppermost subregions that have loops in them to lower subregions
+               if not lvlMap[nlvl-1][rgnN] then
+                  local rgnCoord = toCoords(rgnN, nlvl)
+                  local mapCoord = {}
+                  for mu = 0, t - 1 do
+                     mapCoord[mu+1] = math.floor(
+                        rgnCoord[mu+1] * Nsubrgn[nlvl-1][mu+1] / Nsubrgn[nlvl][mu+1])
+                  end
+                  lvlMap[nlvl-1][rgnN] = toRgn(mapCoord, nlvl-1)
+               end
+            end
+         end
+         -- handle all lower cases except lvl 1
+         for lvl = nlvl - 2, 1, -1 do
+            for trash,rgnN in pairs(lvlMap[lvl+1]) do
+               if not lvlMap[lvl][rgnN] then
+                  local rgnCoord = toCoords(rgnN, lvl+1)
+                  local mapCoord = {}
+                  for mu = 0, t - 1 do mapCoord[mu+1] = math.floor(rgnCoord[mu+1] * Nsubrgn[lvl][mu+1] / Nsubrgn[lvl+1][mu+1]) end
+                  lvlMap[lvl][rgnN] = toRgn(mapCoord, lvl)
+               end
+            end
+         end
+         -- define recursive function to handle interlevel contractions
+         local function contract(T, lvl)
+            -- base case: highest level, most subregions
+            -- need to build tensors[rgn] object 
+            if lvl == nlvl then
+               -- each tensors[rgn] is a growing tensor product of loops in that subregion
+               -- it is a coarse lattice object since we can spatially shift by lvl_size[nlvl] without changing loop groupings,
+               --    and we can handle each time-slice parallel-y
+               local uprTensors = {}; for rgn = 0, Vcrs[nlvl] - 1 do uprTensors[rgn] = crsL[nlvl]:ColorMatrixN(1, complex(1,0)) end
+               for nloop = 1, #nxList do
+                  local rgnN = rgn[nloop]
+                  if orient[nloop] > 0 then
+                     uprTensors[rgnN] = tensor(uprTensors[rgnN], crsSctr[nloop](T))
+                  else
+                     uprTensors[rgnN] = tensor(uprTensors[rgnN], crsSctr[nloop](T):conj())
+                  end
+               end
+               return uprTensors
+            -- non-base case: need to collect upper levels, average, then contract
+            else
+               local uprTensors = contract(T[1], lvl+1)
+               for n = 2, nCnfg[lvl+1] do
+                  uprTensorsN = contract(T[n], lvl+1)
+                  for rgn = 0, Vcrs[lvl+1] - 1 do uprTensors[rgn] = uprTensors[rgn] + uprTensorsN[rgn] end
+               end
+               for rgn = 0, Vcrs[lvl+1] - 1 do uprTensors[rgn] = uprTensors[rgn] / nCnfg[lvl+1] end
+               -- contract temporal lines of uppoer subregions into lower subregions
+               local jContractUprTensors = {}
+               for rgn = 0, Vcrs[lvl+1] - 1 do
+                  local nMul = math.floor(Nsubrgn[lvl+1][t+1] / Nsubrgn[lvl][t+1])
+                  jContractUprTensors[rgn] = jSctr[lvl](uprTensors[rgn])
+                  for i = 2, nMul do
+                     uprTensors[rgn] = uprTensors[rgn]:shift(t, "from_forward")
+                     jContractUprTensors[rgn] = jContractUprTensors[rgn] * jSctr[lvl](uprTensors[rgn])
+                  end
+               end
+               -- collect tensor products of spatial upper subregions into spatial lower subregions
+               local lwrTensors = {}; for rgn = 0, Vcrs[lvl] - 1 do lwrTensors[rgn] = crsL[lvl]:ColorMatrixN(1, complex(1,0)) end
+               for uprRgn,lwrRgn in pairs(lvlMap[lvl]) do
+                  lwrTensors[lwrRgn] = tensor(lwrTensors[lwrRgn], jContractUprTensors[uprRgn])
+               end
+               return lwrTensors
+            end
+         end
+         -- for each n0 cnfg run contract and average
+         local loops = contract(T, 1)[0]:trace()
+         sum[nGroups] = sum[nGroups] + loops:sum()
+         count[nGroups] = count[nGroups] + Vcrs[nlvl]
+      end
+      for i = 1, #count do
+         if count[i] > 0 then
+            printf("%d products of %d subregion(s)\n", count[i], i)
+            sum[i] = sum[i] / count[i]
+         else
+            sum[i] = 0
+         end
+      end
+      return sum
+   end
+   return run
+end
+
+-- expects list of outputs of temporalLine as input
+-- function hmc_mosaic.polyakovLoop_old(L, Nlvl)
+--    local t = #L - 1
+--    local pathIndex = #L - 1
+--    local lvl_size = {}
+--    local Vsub = 1
+--    local VL = 1
+--    local Vcrs = 1
+--    local Nsubrgn = {}
+--    local LxN = {}
+--    for mu = 0, t - 1 do
+--       if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+--       else Nsubrgn[mu+1] = Nlvl[mu+1] end
+--       lvl_size[mu+1] = L[mu]/Nsubrgn[mu+1]
+--       Vsub = Vsub * lvl_size[mu+1]
+--       VL = VL * L[mu]
+--       Vcrs = Vcrs * Nsubrgn[mu+1]
+--       LxN[mu+1] = L[mu]
+--    end
+--    local crsLx = qcd.lattice(Nsubrgn)
+--    local Lx = qcd.lattice(LxN)
+--    if Nlvl[t+1] == 0 then Nsubrgn[t+1] = 1 else Nsubrgn[t+1] = Nlvl[t+1] end
+--    local crsL = qcd.lattice(Nsubrgn)
+--    local IjSctr = {}; for mu = 0, t - 1 do IjSctr[mu+1] = crsLx:pcoord(mu) end
+--    local jSctr = qcd.scatter(crsLx, crsL, addElt(IjSctr, crsLx:Int(0)))
+--    local LpathList = {}
+--    local function run(T, nxList, orient)
+--       local Nc = T[1]:colors()
+--       local nCnfg = #T
+--       local Lijx = T[1].lattice
+--       --local sum = complex(0,0)
+--       local count = {}
+--       local sum = {}
+--       for i = 1, #nxList do
+--          count[i] = 0
+--          sum[i] = complex(0,0)
+--       end
+--       local NlvlSum = 0; for mu = 0, t - 1 do NlvlSum = NlvlSum + Nsubrgn[mu+1] end
+--       -- if there is only one subregion, then every loop will be in the same subregion
+--       if NlvlSum <= #L - 1 then
+--          local ILjSctr = {}; for mu = 0, t - 1 do ILjSctr[mu+1] = Lx:pcoord(mu) end
+--          local LjSctr = qcd.scatter(Lx, Lijx, addElt(ILjSctr, Lx:Int(0)))
+--          local sctr = {}            -- scatter object for each loop
+--          local tensors              -- single tensor
+--          for nloop,nx in ipairs(nxList) do
+--             local I = {}
+--             for mu = 0, t - 1 do
+--                I[mu+1] = (Lijx:pcoord(mu) + nx[mu+1]) % L[mu]
+--             end
+--             sctr[nloop] = qcd.scatter(Lijx, Lijx, addElt(I, Lijx:pcoord(t)))
+--             if nloop == 1 then
+--                if orient[1] > 0 then
+--                   tensors = sctr[1](T[1])
+--                else
+--                   tensors = sctr[1](T[1]):conj()
+--                end
+--             else
+--                if orient[nloop] > 0 then
+--                   tensors = tensor(tensors, sctr[nloop](T[1]))
+--                else
+--                   tensors = tensor(tensors, sctr[nloop](T[1]):conj())
+--                end
+--             end
+--          end
+--          for n = 2, nCnfg do
+--             local tensorN
+--             if orient[1] > 0 then
+--                tensorN = sctr[1](T[n])
+--             else
+--                tensorN = sctr[1](T[n]):conj()
+--             end
+--             for nloop = 2, #nxList do
+--                if orient[nloop] > 0 then
+--                   tensorN = tensor(tensorN, sctr[nloop](T[n]))
+--                else
+--                   tensorN = tensor(tensorN, sctr[nloop](T[n]):conj())
+--                end
+--             end
+--             tensors = tensors + tensorN
+--          end
+--          local Fline = LjSctr(tensors)
+--          for j = 2, Nsubrgn[t+1] do
+--             tensors = tensors:shift(t, "from_forward")
+--             Fline = Fline * LjSctr(tensors)
+--          end
+--          sum[1] = Fline:trace():sum() / nCnfg^(Nsubrgn[t+1])
+--          count[1] = VL
+--       else
+--          -- go through each shift within one subregion
+--          for shift = 0, Vsub - 1 do
+--             local rshift = {}
+--             local shiftmod = shift
+--             for mu = t - 1, 0, -1 do
+--                rshift[mu+1] = shiftmod % lvl_size[mu+1]
+--                shiftmod = math.floor(shiftmod / lvl_size[mu+1])
+--             end
+--             -- determine which loops are grouped in subregions and build first config's tensors
+--             local crsSctr = {}      -- scatter object for each loop
+--             local repeated = {}     -- whether a loop is seen in the same subregion as another
+--             local groups = {}       -- which loops group in subregions
+--             local tensors = {}      -- tensors to be averaged
+--             for nloop,nx in ipairs(nxList) do
+--                local i = 0
+--                local I = {}
+--                local dimfac = 1
+--                for mu = 0, t - 1 do
+--                   i = i + dimfac*((math.floor((nx[mu+1] + rshift[mu+1]) / lvl_size[mu+1]) % Nsubrgn[mu+1]) + 1)
+--                   dimfac = dimfac * Nsubrgn[mu+1]
+--                   I[mu+1] = (crsL:pcoord(mu) * lvl_size[mu+1] + rshift[mu+1] + nx[mu+1]) % L[mu]
+--                end
+--                crsSctr[nloop] = qcd.scatter(crsL, Lijx, addElt(I, crsL:pcoord(t)))
+--                -- check if two or more loops are in the same subregion
+--                if repeated[i] then
+--                   local firstN = repeated[i]
+--                   table.insert(groups[firstN], nloop)
+--                   if orient[nloop] > 0 then
+--                      tensors[firstN] = tensor(tensors[firstN], crsSctr[nloop](T[1]))
+--                   else
+--                      tensors[firstN] = tensor(tensors[firstN], crsSctr[nloop](T[1]):conj())
+--                   end
+--                else
+--                   local nGroups = #groups + 1
+--                   repeated[i] = nGroups
+--                   groups[nGroups] = {nloop}
+--                   if orient[nloop] > 0 then
+--                      tensors[nGroups] = crsSctr[nloop](T[1])
+--                   else
+--                      tensors[nGroups] = crsSctr[nloop](T[1]):conj()
+--                   end
+--                end
+--             end
+--             -- average over all configurations
+--             for n = 2, nCnfg do
+--                for i = 1, #groups do
+--                   local nloop = groups[i][1]
+--                   local tensorN
+--                   if orient[nloop] > 0 then
+--                      tensorN = crsSctr[nloop](T[n])
+--                   else
+--                      tensorN = crsSctr[nloop](T[n]):conj()
+--                   end
+--                   for j = 2, #groups[i] do
+--                      local nloop = groups[i][j]
+--                      if orient[nloop] > 0 then
+--                         tensorN = tensor(tensorN, crsSctr[nloop](T[n]))
+--                      else
+--                         tensorN = tensor(tensorN, crsSctr[nloop](T[n]):conj())
+--                      end
+--                   end
+--                   tensors[i] = tensors[i] + tensorN
+--                end
+--             end
+--             -- contract all tensors
+--             local loop = crsLx:Complex(complex(1,0))
+--             for i = 1, #tensors do
+--                local tensorN = tensors[i]
+--                local Fline = jSctr(tensorN)
+--                for j = 2, Nsubrgn[t+1] do
+--                   tensorN = tensorN:shift(t, "from_forward")
+--                   Fline = Fline * jSctr(tensorN)
+--                end
+--                loop = loop * Fline:trace()
+--             end
+--             count[#groups] = count[#groups] + Vcrs
+--             sum[#groups] = sum[#groups] + loop:sum() / nCnfg^(#groups * Nsubrgn[t+1])
+--             --sum = sum + loop:sum()/ VL / nCnfg^(#groups * Nsubrgn[t+1])
+--          end
+--       end
+--       for i = 1, #count do
+--          if count[i] > 0 then
+--             printf("%d products of %d subregion(s)\n", count[i], i)
+--             sum[i] = sum[i] / count[i]
+--          else
+--             sum[i] = 0
+--          end
+--       end
+--       return sum
+--    end
+--    return run
+-- end
+
+function hmc_mosaic.Evolve(traj, tau, steps, L, Nlvl)
+   local function run(H, U)
+      H.initTraj(U)
+      local R = H.newMomentum(U)
+      local X, P = traj(tau, steps)(H, U, R)
+      return X
+   end
+   return run
+end
+
+function hmc_mosaic.trajLeapfrog(tau, steps, L, Nlvl, d)
+   local notboundary_links = hmc_mosaic.NoBoundaries(L, Nlvl, d)
+   local boundary_links = hmc_mosaic.Boundaries(L, Nlvl, d)
+   local dt = tau / steps
+   local function t(k)
+      return k * tau / steps
+   end
+   local function runVV(H,xU,xR)
+      local i
+      local X = {}
+      local P = {}
+      local Xwb = {}
+      local Pwb = {}
+      local Nc = xU[1]:colors()
+      for mu = 0, #L - 1 do
+         X[mu+1] = L:ColorMatrixN(Nc,complex(0,0))
+         P[mu+1] = L:ColorMatrixN(Nc,complex(0,0))
+      end
+      -- insert original boundary into new gauge field
+      for mu = 1, #xR do boundary_links[mu]:where( function () P[mu]:set(xR[mu]) end ) end
+      for mu = 1, #xU do boundary_links[mu]:where( function () X[mu]:set(xU[mu]) end ) end
+      -- first step
+      Xwb = H.updateX(xR, xU, t(0), t(0.5))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(xR[mu]) end ) end
+      -- more steps
+      for i = 2, steps do
+         Pwb = H.updateP(P, X, t(i-1.5), t(1))
+         for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+         Xwb = H.updateX(P, X, t(i-1.5), t(1))
+         for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      end
+      Pwb = H.updateP(P, X, t(steps-0.5), t(1))
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+      Xwb = H.updateX(P, X, t(steps-0.5), t(0.5))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      -- NOTE(gkanwar): Should we enable re-proj by default?
+      -- return H.toGroup(X), P
+      return X, P
+   end
+   return runVV
+end
+
+function genericOmelyan(zeta, tau, steps, L, Nlvl, d)
+   local notboundary_links = hmc_mosaic.NoBoundaries(L, Nlvl, d)
+   local boundary_links = hmc_mosaic.Boundaries(L, Nlvl, d)
+   local dt = tau / steps
+   local function t(k)
+      return k * tau / steps
+   end
+   local function run(H, xU, xR)
+      local X = {}
+      local P = {}
+      local Xwb = {}
+      local Pwb = {}
+      local Nc = xU[1]:colors()
+      local i
+      for mu = 0, #L - 1 do
+         X[mu+1] = L:ColorMatrixN(Nc,complex(0,0))
+         P[mu+1] = L:ColorMatrixN(Nc,complex(0,0))
+      end
+      -- insert original boundary into new gauge field
+      for mu = 1, #xU do boundary_links[mu]:where( function () X[mu]:set(xU[mu]) end ) end
+      for mu = 1, #xR do boundary_links[mu]:where( function () P[mu]:set(xR[mu]) end ) end
+      -- first step
+      Xwb = H.updateX(xR, xU, t(0), t(zeta))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(xR[mu]) end ) end
+      -- more steps
+      for i = 1, steps - 1 do
+         Pwb = H.updateP(P, X, t(i-1+zeta), t(0.5))
+         for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+         Xwb = H.updateX(P, X, t(i-1+0.5), t(1-2*zeta))
+         for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+         Pwb = H.updateP(P, X, t(i-zeta), t(0.5))
+         for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+         Xwb = H.updateX(P, X, t(i), t(2*zeta))
+         for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      end
+      Pwb = H.updateP(P, X, t(steps-1+zeta), t(0.5))
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+      Xwb = H.updateX(P, X, t(steps-1+0.5), t(1-2*zeta))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      Pwb = H.updateP(P, X, t(steps-zeta), t(0.5))
+      for mu = 1, #xR do notboundary_links[mu]:where( function () P[mu]:set(Pwb[mu]) end ) end
+      Xwb = H.updateX(P, X, t(steps), t(zeta))
+      for mu = 1, #xU do notboundary_links[mu]:where( function () X[mu]:set(Xwb[mu]) end ) end
+      return X, P
+   end
+   return run
+end
+
+function hmc_mosaic.trajOmelyanQP(tau, steps, L, Nlvl, d)
+   return genericOmelyan(0.193183327503783574, tau, steps, L, Nlvl, d)
+end
+
+function hmc_mosaic.trajOmelyanQ(tau, steps, L, Nlvl, d)
+   return genericOmelyan(0.211324865405187118, tau, steps, L, Nlvl, d)
+end
+
+function hmc_mosaic.trajOmelyanP(tau, steps, L, Nlvl, d)
+   return genericOmelyan(1.0/6.0, tau, steps, L, Nlvl, d)
+end
+
+function hmc_mosaic.leapfrog_old(tau, steps, L, Nlvl, d)
+   local Nsubrgn = {}
+   for mu = 0, #L - 1 do
+      if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+      else Nsubrgn[mu+1] = Nlvl[mu+1] end
+   end
+   local crsL = qcd.lattice(Nsubrgn)
+   return hmc_mosaic.AcceptReject(hmc_mosaic.trajLeapfrog, tau, steps, L, crsL, Nlvl, d)
+end
+
+function hmc_mosaic.leapfrog(tau, steps, L, Nlvl, d)
+   local Nsubrgn = {}
+   for mu = 0, #L - 1 do
+      if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+      else Nsubrgn[mu+1] = Nlvl[mu+1] end
+   end
+   local crsL = qcd.lattice(Nsubrgn)
+   return hmc_mosaic.CoarseAcceptReject(hmc_mosaic.trajLeapfrog, tau, steps, L, crsL, Nlvl, d)
+end
+
+function hmc_mosaic.omelyanQP(tau, steps, L, Nlvl, d)
+   local Nsubrgn = {}
+   for mu = 0, #L - 1 do
+      if Nlvl[mu+1] == 0 then Nsubrgn[mu+1] = 1
+      else Nsubrgn[mu+1] = Nlvl[mu+1] end
+   end
+   local crsL = qcd.lattice(Nsubrgn)
+   return hmc_mosaic.CoarseAcceptReject(hmc_mosaic.trajOmelyanQP, tau, steps, L, crsL, Nlvl, d)
+end
+

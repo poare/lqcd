@@ -181,6 +181,9 @@ end
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
 
+cfgpath = "/home/poare/lqcd/0nubb/tests/runtime_test/configs/"
+cfgbase = "2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
+
 -- Read in input from bash script.
 if jobid and cfgpath and cfgbase then
     printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)

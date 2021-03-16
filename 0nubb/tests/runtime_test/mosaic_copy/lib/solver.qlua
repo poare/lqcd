@@ -1,0 +1,374 @@
+-- Ax = b linear solvers
+
+require "lib/strict"
+
+solver = {}
+
+-- Produce a solver for the equation
+--         A x = psi
+-- given a function `A` that applies the matrix to psi, and solver params `eps`
+-- and `max_iter`. `init_x` is called on psi to produce x_0.
+-- If `collect_ps` is not nil, normalized `p`s are collected and returned as a
+-- second return. Useful for explicit inversion using CG.
+function solver.CG(A, eps, max_iter, init_x, should_print, collect_ps)
+   return function(psi)
+      assert(psi:norm2() > 0)
+      local psi_norm = math.sqrt(psi:norm2())
+      local timer = create_timer('CG SOLVE')
+      local x = init_x(psi)
+      local r = psi - A(x)
+      local p = r
+      local k = 0
+      local Ap
+      local resid_sq = r:norm2()
+      local old_resid_sq
+      local ps = {}
+      repeat
+         old_resid_sq = resid_sq
+
+         -- local Ap_timer = create_timer('CG AP')
+         Ap = A(p)
+         -- Ap_timer()
+         -- local pAp_timer = create_timer('CG PAP')
+         local pAp = qcd.dot(p, Ap):real():sum()
+         local alpha =  resid_sq / pAp
+         -- pAp_timer()
+
+         if collect_ps ~= nil and #ps < collect_ps then
+            ps[#ps+1] = p / pAp:sqrt()
+         end
+
+         -- local xp_timer = create_timer('CG XP')
+         x = x + alpha*p
+         r = r - alpha*Ap
+         -- xp_timer()
+
+         resid_sq = r:norm2()
+         if should_print then
+            printf('CG resid %13.8e\n', math.sqrt(resid_sq))
+         end
+
+         -- TODO: Should this be relative resid?
+         if math.sqrt(resid_sq)/psi_norm < eps then
+            break
+         end
+         
+         local p_timer = create_timer('CG P')
+         local beta = resid_sq / old_resid_sq
+         p = r + beta*p
+         -- p_timer()
+         
+         k = k + 1
+      until k >= max_iter
+      if should_print then
+         timer()
+         printf('CG SOLVE resid: %13.8e, iters: %d\n', math.sqrt(resid_sq), k)
+      end
+      return x, ps
+   end
+end
+
+-- Produce a solver for the spacetime-blocked equation
+--         A_n x_n = psi_n    (spacetime index n not summed)
+-- given a function `A` that applies a spacetime-diagonal matrix to psi.
+-- `mask_subset` is the subset of lattice points to _ignore_.
+-- If `collect_ps` is not nil, normalized `p`s are collected, with each
+-- spacetime block independent. Useful for explicit inversion of
+-- spacetime-diagonal matrix using CG (e.g. for even-odd).
+function solver.blocked_CG(A, eps, max_iter, init_x, mask_subset, should_print, collect_ps)
+   return function(psi)
+      local psi_norm = math.sqrt(psi:norm2())
+      local timer = create_timer('CG SOLVE (spacetime blocked)')
+      local x = init_x(psi)
+      local r = psi - A(x)
+      local p = r
+      local k = 0
+      local Ap
+      local resid_sq = qcd.dot(r,r):real()
+      local old_resid_sq
+      local ps = {}
+      if math.sqrt(resid_sq:sum())/psi_norm > eps then
+         repeat
+            old_resid_sq = resid_sq
+
+            Ap = A(p)
+            local pAp = qcd.dot(p, Ap):real()
+            -- Avoid division by zero by setting mask subset to non-zero
+            mask_subset:where(function() pAp:set(psi.lattice:Real(1)) end)
+
+            local alpha =  resid_sq / pAp
+
+            if collect_ps ~= nil and #ps < collect_ps then
+               ps[#ps+1] = p * (1 / pAp:sqrt())
+            end
+
+            x = x + alpha*p
+            r = r - alpha*Ap
+
+            resid_sq = qcd.dot(r,r):real()
+            if should_print then
+               printf('CG resid %13.8e\n', math.sqrt(resid_sq:sum())/psi_norm)
+            end
+
+            if math.sqrt(resid_sq:sum())/psi_norm <= eps then
+               break
+            end
+            
+            local beta = resid_sq / old_resid_sq
+            p = r + beta*p
+            
+            k = k + 1
+         until k >= max_iter
+      end
+      if should_print then
+         timer()
+         printf('CG SOLVE resid: %13.8e, iters: %d\n',
+                math.sqrt(resid_sq:sum())/psi_norm, k)
+      end
+      return x, ps
+   end
+end
+
+-- NOTE: `mask_subset` is the subset of lattice points to _ignore_.
+function solver.blocked_CG_explicit(A, L, Nc, mask_subset, should_print)
+   local Ns = 4
+   local block_dim = Nc * Ns
+   local function init_x_psi(psi) return psi end
+
+   -- NO LONGER USING THIS METHOD
+   -- local x = solver.blocked_CG(
+   --    A, 0, block_dim, init_x_psi, mask_subset, should_print)(psi)
+   -- assert(#ps == block_dim)
+   -- -- Explicit outer product makes the matrix inverse
+   -- --     A^{-1} = {p1, p2, ...} {p1, p2, ...}^{dag}
+   -- -- First build P = {p1, p2, ...} exploiting the propagator structure
+   -- local P = L:DiracPropagatorN(Nc)
+   -- for d = 0,Ns-1 do
+   --    for c = 0,Nc-1 do
+   --       P[{d=d,c=c}] = ps[d*Nc + c + 1]
+   --    end
+   -- end
+   -- -- Produce A^{-1}
+   -- local A_inv = P * P:adjoin()
+   -- -- Check resid
+   -- local resid_sq = (psi - A_inv * (A(psi))):norm2()
+   -- printf('CG EXPLICIT SOLVE resid: %13.8e\n', math.sqrt(resid_sq))
+
+   -- Solver should find exact solution in `block_dim` iters.
+   local eps = 0
+   local max_iter = block_dim
+   local solver = solver.blocked_CG(
+      A, eps, max_iter, init_x_psi, mask_subset, should_print)
+   local A_inv = L:DiracPropagatorN(Nc)
+   for d = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local src = L:DiracFermionN(Nc)
+         src[{d=d,c=c}] = L:Complex(complex(1,0))
+         mask_subset:where(function() src:set(L:DiracFermionN(Nc)) end)
+         A_inv[{d=d,c=c}] = solver(src)
+      end
+   end
+   
+   return A_inv
+end
+
+-- Generalized CG solver, handles non-Hermitian A's by solving
+--       A^{dag} A x = A^{dag} psi
+function solver.CGNE(A, Adag, eps, max_iter, init_x, should_print)
+   local function AxA(x) return Adag(A(x)) end
+   local cg_solver = solver.CG(AxA, eps, max_iter, init_x, should_print)
+   return function(psi)
+      local psi_prime = Adag(psi)
+      return cg_solver(psi_prime)
+   end
+end
+
+-- Produce a solver for the equation (compatible with non-Hermitian A)
+--         A x = psi
+-- given functions `A.ee`, `A.eo`, `A.oe`, `A.oo`, and `A.ee_inv` (and similarly
+-- functions Adag.*) that perform the relevant parity-restricted matrix
+-- operations. Solver then uses even-odd preconditioning to speed up solution.
+-- Standard solver params `eps`, `max_iter`, and `init_x` are used for inner
+-- solves.
+function solver.eo_prec_CGNE(A, Adag, eps, max_iter, init_x, should_print)
+   assert(A.ee ~= nil)
+   assert(A.eo ~= nil)
+   assert(A.oe ~= nil)
+   assert(A.oo ~= nil)
+   assert(A.ee_inv ~= nil)
+   assert(Adag.ee ~= nil)
+   assert(Adag.eo ~= nil)
+   assert(Adag.oe ~= nil)
+   assert(Adag.oo ~= nil)
+   assert(Adag.ee_inv ~= nil)
+
+   -- TODO(gkanwar): Why does applying schur_compl and schur_compl_dag take
+   -- about twice as long as the normal operator?
+   local schur_compl = function(phi)
+      return A.oo(phi) - A.oe(A.ee_inv(A.eo(phi)))
+   end
+   local schur_compl_dag = function(phi)
+      return Adag.oo(phi) - Adag.oe(Adag.ee_inv(Adag.eo(phi)))
+   end
+   local schur_compl_solver = solver.CGNE(
+      schur_compl, schur_compl_dag, eps, max_iter, init_x, should_print)
+   -- R[phi] = (phi_e + A.ee^{-1} A.eo (phi_o) \\ phi_o) = phi + A.ee^{-1} A.eo (phi)
+   local schur_R = function(phi, sign)
+      local delta = sign*A.ee_inv(A.eo(phi))
+      return delta + phi
+   end
+   -- L[phi] = (phi_e \\ phi_o + A.oe A.ee^{-1} (phi_e)) = phi + A.oe A.ee^{-1} (phi)
+   local schur_L = function(phi, sign)
+      local delta = sign*A.oe(A.ee_inv(phi))
+      return delta + phi
+   end
+
+   return function(psi)
+      local psi_norm = math.sqrt(psi:norm2())
+      local timer = create_timer('CG EOPREC SOLVE')
+      local L = psi.lattice
+      local Nc = psi:colors()
+      if should_print then printf('CG EOPREC SOLVE start\n') end
+
+      -- (1) Create psi' == L^{-1} psi
+      if should_print then printf('CG EOPREC SOLVE (1)\n') end
+      local psi_prime = schur_L(psi, -1)
+      local psi_prime_o = L:DiracFermionN(Nc)
+      L:Subset("odd"):where(function() psi_prime_o:set(psi_prime) end)
+      
+
+      -- (2) Invert diag(A.ee, schur_compl) acting on psi'
+      if should_print then printf('CG EOPREC SOLVE (2)\n') end
+      local x_prime_o = schur_compl_solver(psi_prime_o)
+      local x_prime_e = A.ee_inv(psi_prime)
+      local x_prime = x_prime_o + x_prime_e
+
+      -- (3) Reconstruct x = R^{-1} x'
+      if should_print then printf('CG EOPREC SOLVE (3)\n') end
+      local x = schur_R(x_prime, -1)
+      if should_print then timer() end
+
+      -- Check resid:
+      local Ax = A.ee(x) + A.eo(x) + A.oo(x) + A.oe(x)
+      local resid_sq = (Ax - psi):norm2()
+      if should_print then
+         printf('CG EOPREC SOLVE resid: %13.8e\n', math.sqrt(resid_sq)/psi_norm)
+      end
+      
+      return x
+   end
+end
+
+-- Produce a ``multi-shift'' solver for the set of equations
+--         (A + sigma_0 I) x_0 = psi
+--         (A + sigma_1 I) x_1 = psi
+--         ...
+-- given function A that applies a Hermitian linear operator to the input. The
+-- particular structure of related operators A_0, A_1, etc ensures these related
+-- equations can be simultaneously solved with only a little extra algebra.
+-- Returns: list of length #sigmas of solutions x_0, ... x_{#sigmas-1}.
+function solver.multishift_CG(A, all_sigmas, eps, max_iter, should_print)
+   assert(#all_sigmas >= 1)
+   -- Shift all sigmas relative to inital ``base''.
+   local base_sigma = all_sigmas[1]
+   local sigmas = {}
+   for i,sigma in ipairs(all_sigmas) do
+      sigmas[i] = sigma - base_sigma
+   end
+   return function(psi)
+      assert(psi:norm2() > 0)
+      local psi_norm = math.sqrt(psi:norm2())
+      local timer = create_timer('MULTISHIFT CG SOLVE')
+      local L = psi.lattice
+      local Nc = psi:colors()
+      local k = 0
+      local x = {}
+      -- local old_p = {}
+      local p = {}
+      -- local old_r = {}
+      local r = {}
+      local zeta = {}
+      local old_zeta = {}
+      local beta = {}
+      -- local old_beta = {}
+      local alpha = {}
+      for i = 1,#sigmas do
+         alpha[i] = 1
+         x[i] = L:DiracFermionN(Nc)
+         -- old_p[i] = L:DiracFermionN(Nc)
+         p[i] = psi
+         -- old_r[i] = psi
+         r[i] = psi
+         -- resid_sq[i] = r[i]:norm2()
+         zeta[i] = 1
+         old_zeta[i] = 1
+         -- old_beta[i] = 0
+         beta[i] = 0
+      end
+      local resid_sq = r[1]:norm2()
+      local old_resid_sq
+      local max_resid
+
+      repeat
+         old_resid_sq = resid_sq
+
+         local Ap = A(p[1]) + base_sigma*p[1]
+         local pAp = qcd.dot(p[1], Ap):real():sum()
+         local old_alpha = alpha[1]
+         alpha[1] = resid_sq / pAp
+
+         local cur_zeta = table_copy(zeta)
+         zeta[1] = 1
+         for i = 2,#sigmas do
+            zeta[i] = zeta[i] * old_zeta[i] * old_alpha / (
+               old_alpha * old_zeta[i] * (1 + alpha[1]*sigmas[i])
+                  + alpha[1]*beta[1]*(old_zeta[i] - zeta[i]))
+            alpha[i] = alpha[1] * zeta[i] / cur_zeta[i]
+         end
+         old_zeta = table_copy(cur_zeta)
+
+         for i = 1,#sigmas do
+            if r[i]:norm2() ~= 0 then
+               x[i] = x[i] + alpha[i]*p[i]
+            end
+         end
+         r[1] = r[1] - alpha[1] * Ap
+         for i = 2,#sigmas do
+            if r[i]:norm2() ~= 0 then
+               r[i] = zeta[i] * r[1]
+            end
+         end
+
+         resid_sq = r[1]:norm2()
+         local all_resids = {}
+         max_resid = 0
+         for i = 1,#sigmas do
+            all_resids[i] = math.sqrt(r[i]:norm2())
+            if all_resids[i] > max_resid then max_resid = all_resids[i] end
+         end
+         if should_print then
+            printf('MULTISHIFT CG max resid %13.8e\n', max_resid/psi_norm)
+         end
+
+         if max_resid/psi_norm < eps then
+            break
+         end
+         
+         beta[1] = resid_sq / old_resid_sq
+         for i = 2,#sigmas do
+            beta[i] = beta[1] * zeta[i]*zeta[i] / (old_zeta[i]*old_zeta[i])
+         end
+         for i = 1,#sigmas do
+            p[i] = r[i] + beta[i]*p[i]
+         end
+         
+         k = k + 1
+      until k >= max_iter
+      if should_print then
+         timer()
+         -- TODO(gkanwar): Print all resids?
+         printf('MULTISHIFT CG SOLVE max resid: %13.8e, iters: %d\n', max_resid/psi_norm, k)
+      end
+      return x
+   end
+end

@@ -1,0 +1,50 @@
+-- Utils for computing meson correlators
+
+mesons = {}
+
+function mesons.many_to_many(all_props, coarse_subset,
+                             meson_src_gamma, meson_snk_gamma, gamma5_nd)
+   local out = {}
+   for i,prop in ipairs(all_props) do
+      -- TODO(gkanwar): Check src, snk placement? Looks wrong, but
+      -- agrees with Mike's implementation of the action.
+      local meson = qcd.dot(gamma5_nd * prop * gamma5_nd,
+                            meson_src_gamma * prop * meson_snk_gamma)
+      out[i] = meson.lattice:Complex()
+      coarse_subset:where(function() out[i]:set(meson) end)
+   end
+   return out
+end
+
+
+-- Compute Tr[meson_gamma prop_src] for every src.
+-- This needs to be exposed for computing loops for background subtraction
+function disc_many(all_props, srcs, meson_gamma)
+   local L = all_props[1].lattice
+   local origin = make_origin_coord(L)
+   local corr_many = L:Complex()
+   for i,prop in ipairs(all_props) do
+      local coord = srcs[i]
+      corr_many[coord] = (prop * meson_gamma)[origin]:trace()
+   end
+   return corr_many
+end
+
+function mesons.disc_many_to_many(all_props, srcs,
+                                  meson_src_gamma, meson_snk_gamma)
+   local out = {}
+   local corr_src = disc_many(all_props, srcs, meson_src_gamma)
+   local corr_snk = disc_many(all_props, srcs, meson_snk_gamma)
+   for i = 1,#all_props do
+      local src_coord = srcs[i]
+      local corr_snk_shift = corr_snk
+      -- shift to put all corr src at (0,0) locally
+      for mu = 0,#src_coord-1 do
+         for count = 1,src_coord[mu+1] do
+            corr_snk_shift = corr_snk_shift:shift(mu, "from_forward")
+         end
+      end
+      out[i] = corr_snk_shift * corr_src[src_coord]
+   end
+   return out
+end

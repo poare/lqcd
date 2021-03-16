@@ -1,0 +1,138 @@
+require "stdlib"
+
+-- This contains both the SU(2) -> SO(3) conversion and the so(3) to su(2) conversion functions.
+
+-- Note: This method uses the one on page 1 of the Overleaf document, which was easier to implement but requires matrix exponentiation.  If we later optimize for efficiency, the method described on page 2 might be faster, but since this step is probably much faster than the inversions, this probably isn't important.
+
+function toSO3(U)
+        local L, nComp, s1, s2, s3, S1, S2, S3, t1, t2, t3, T1, T2, T3, theta, x1, x2, x3, a1, a2, a3, W
+	L=U[1].lattice
+	-- number of components in original representation
+	-- (This is an SU(2) matrix, but it might be living inside a larger one.)
+	nComp=U[1]:colors()
+
+	-- define some Pauli matrices
+	s1=qcd.ColorMatrixN(nComp)
+	s1[{a=0,b=1}]=complex(1,0)
+	s1[{a=1,b=0}]=complex(1,0)
+
+	s2=qcd.ColorMatrixN(nComp)
+	s2[{a=0,b=1}]=complex(0,-1)
+	s2[{a=1,b=0}]=complex(0,1)
+
+	s3=qcd.ColorMatrixN(nComp)
+	s3[{a=0,b=0}]=complex(1,0)
+	s3[{a=1,b=1}]=complex(-1,0)
+
+	-- upgrade these constant matrices to lattice-valued matrices (inefficient but apparently necessary for matrix-matrix multiplication in qlua)
+	S1=L:ColorMatrix(s1)
+	S2=L:ColorMatrix(s2)
+	S3=L:ColorMatrix(s3)
+
+	-- also define the T matrices (generators of SO(3))
+	t1=qcd.ColorMatrixN(3)
+	t1[{a=1,b=2}]=complex(0,-1)
+	t1[{a=2,b=1}]=complex(0,1)
+
+	t2=qcd.ColorMatrixN(3)
+	t2[{a=2,b=0}]=complex(0,-1)
+	t2[{a=0,b=2}]=complex(0,1)
+
+	t3=qcd.ColorMatrixN(3)
+	t3[{a=0,b=1}]=complex(0,-1)
+	t3[{a=1,b=0}]=complex(0,1)
+
+	T1=L:ColorMatrix(t1)
+	T2=L:ColorMatrix(t2)
+	T3=L:ColorMatrix(t3)
+
+	-- get the number of dimensions in U
+	local nd = #U
+
+	-- now loop over dimensions so that we can pick out each index of U
+	local i, V
+	W = {}
+	for i = 1, nd do
+		V=U[i]
+		-- compute theta and the x_i and alpha_i (defined in Overleaf document)
+		theta=(V:trace()/2):real():acos()*2
+
+		x1=(V*S1):trace()/(complex(0,2)*(theta/2):sin())
+		x2=(V*S2):trace()/(complex(0,2)*(theta/2):sin())
+		x3=(V*S3):trace()/(complex(0,2)*(theta/2):sin())
+
+		a1=theta*x1
+		a2=theta*x2
+		a3=theta*x3
+
+		-- compute the adjoint representation
+		W[i]=(complex(0,1)*(a1*T1+a2*T2+a3*T3)):exp()
+	end
+	return W
+end
+
+
+-- This function takes in the components of F one at a time (i.e. the loop over components of F must be called outside of the call to this function)
+-- The second argument is the number of components in the original representation (i.e. should we use 2- or 3-component matrices to store our fundamental su(2) algebra)
+function tosu2(F, nComp)
+        local L, s1, s2, s3, S1, S2, S3, t1, t2, t3, T1, T2, T3, a1, a2, a3, G
+        L=F.lattice
+        -- Here, we will work out the conversion from an algebra element in SO(3) (stored in an SU(3) matrix) to one in SU(2) (also stored in an SU(3) matrix)
+
+        -- define all the Pauli and T matrices again
+        -- TODO: Is there a way to make things shared across multiple functions so we don't have to keep redefining them?
+
+        -- The plan of attack is to take an element in the SO(3) algebra (which is traceless and Hermitian)
+        -- We will use the convention that algebra elements are Hermitian rather than anti-Hermitian.  I think this is fine as long as we use the same process extracting from SO(3) as we do when forming in SU(2) since extra factors of i will cancel.
+
+        -- We will start with a matrix F in the algebra of SO(3)
+        -- And then we will end with a matrix G in the algebra of SU(2)
+
+
+        -- define the generators of SU(2) and SO(3)
+        s1=qcd.ColorMatrixN(nComp)
+        s1[{a=0,b=1}]=complex(1,0)
+        s1[{a=1,b=0}]=complex(1,0)
+
+        s2=qcd.ColorMatrixN(nComp)
+        s2[{a=0,b=1}]=complex(0,-1)
+        s2[{a=1,b=0}]=complex(0,1)
+
+        s3=qcd.ColorMatrixN(nComp)
+        s3[{a=0,b=0}]=complex(1,0)
+        s3[{a=1,b=1}]=complex(-1,0)
+
+        -- upgrade these constant matrices to lattice-valued matrices (inefficient but apparently necessary for matrix-matrix multiplication in qlua)
+        S1=L:ColorMatrix(s1)
+        S2=L:ColorMatrix(s2)
+        S3=L:ColorMatrix(s3)
+
+        -- also define the T matrices (generators of SO(3))
+        t1=qcd.ColorMatrixN(3)
+        t1[{a=1,b=2}]=complex(0,-1)
+        t1[{a=2,b=1}]=complex(0,1)
+
+        t2=qcd.ColorMatrixN(3)
+        t2[{a=2,b=0}]=complex(0,-1)
+        t2[{a=0,b=2}]=complex(0,1)
+
+        t3=qcd.ColorMatrixN(3)
+        t3[{a=0,b=1}]=complex(0,-1)
+        t3[{a=1,b=0}]=complex(0,1)
+
+        T1=L:ColorMatrix(t1)
+        T2=L:ColorMatrix(t2)
+        T3=L:ColorMatrix(t3)
+
+        -- extract the coefficients of the 3 generators of the SO(3) algebra by tracing F1 against the T matrices
+        a1 = (T1*F):trace()/2
+        a2 = (T2*F):trace()/2
+        a3 = (T3*F):trace()/2
+
+        -- multiply by the sigma matrices to get something in SU(2)
+        -- Note that our Pauli matrices are 3x3 (with the third component in the algebra set to 0) so our result will be stored inside a 3x3 algebra element
+	-- IMPORTANT: The generators of su(2) are not the Pauli matrices but rather 1/2 * the Pauli matrices, so we have to divide by 2 here
+        G=((a1/2)*S1 + (a2/2)*S2 + (a3/2)*S3)
+        return G
+end
+

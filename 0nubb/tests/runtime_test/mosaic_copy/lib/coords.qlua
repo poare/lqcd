@@ -1,0 +1,134 @@
+-- Simple coordinate manipulation tools.
+-- NOTE(gkanwar): This module is ill-behaved in that it pollutes the global
+-- namespace, but... convenience reigns.
+
+function make_origin_coord(L)
+   local origin = {}
+   for d = 1,#L do
+      origin[d] = 0
+   end
+   return origin
+end
+
+function make_coord_name(coord)
+   local name = "["..tostring(coord[1])
+   for i=2,#coord do
+      name = name..","..tostring(coord[i])
+   end
+   name = name.."]"
+   return name
+end
+
+-- mu is assumed 1-indexed, and positive/negative indicates offset direction
+function get_mu_hat(L, mu)
+   assert(math.abs(mu) >= 1)
+   assert(math.abs(mu) <= #L)
+   local muhat = make_origin_coord(L)
+   muhat[math.abs(mu)] = mu > 0 and 1 or -1
+   return muhat
+end
+
+-- add diff to coord, taking lattice dim modulus in each direction
+function add_coord(coord, diff, L)
+   local out = {}
+   for d = 1,#L do
+      out[d] = (coord[d] + diff[d]) % L[d-1]
+   end
+   return out
+end
+
+function get_coord_index(coord, L)
+   local index = coord[1]
+   for d = 1,#L-1 do
+      index = index*L[d] + coord[d+1]
+   end
+   return index
+end
+
+function index_to_coord(index, L)
+   local coord = {}
+   for d = #L-1,0,-1 do
+      coord[d+1] = (index % L[d])
+      index = math.floor(index / L[d])
+   end
+   assert(index == 0)
+   return coord
+end
+
+function get_r1_ball(L)
+   local origin = make_origin_coord(L)
+   local coords = {origin}
+   local coord_indices = {get_coord_index(origin, L)}
+   for mu = 1,#L do
+      local p_mu = add_coord(origin, get_mu_hat(L, mu), L)
+      local m_mu = add_coord(origin, get_mu_hat(L, -mu), L)
+      coords[#coords+1] = p_mu
+      coords[#coords+1] = m_mu
+      coord_indices[#coord_indices+1] = get_coord_index(p_mu, L)
+      coord_indices[#coord_indices+1] = get_coord_index(m_mu, L)
+   end
+   assert(#coords == #coord_indices)
+   return coords, coord_indices
+end
+
+function get_all(L)
+   local V = 1
+   for d = 0, #L-1 do
+      V = V * L[d]
+   end
+   
+   local coords = {}
+   local coord_indices = {}
+   for i = 1,V do
+      coord_indices[i] = i-1
+      coords[i] = index_to_coord(i-1, L)
+   end
+   assert(#coords == #coord_indices)
+   return coords, coord_indices
+end
+
+-- coarse sublattice reducing by factor in ALL directions
+function get_coarse(L, factor)
+   local coarse_size = {}
+   for d = 0, #L-1 do
+      assert(L[d] % factor == 0)
+      coarse_size[d+1] = L[d] / factor
+   end
+   local L_coarse = qcd.lattice(coarse_size)
+   local coarse_coords = get_all(L_coarse)
+   local coords = {}
+   local coord_indices = {}
+   for i,coarse_coord in ipairs(coarse_coords) do
+      local coord = {}
+      for d,c in ipairs(coarse_coord) do
+         coord[d] = c*factor
+      end
+      coords[i] = coord
+      coord_indices[i] = get_coord_index(coord, L)
+   end
+   assert(#coords == #coord_indices)
+   return coords, coord_indices
+end
+-- coarsen only in the spatial directions (ignore mu = #L-1)
+function get_coarse_spatial(L, factor)
+   local coarse_size = {}
+   for d = 0, #L-2 do -- skip time
+      assert(L[d] % factor == 0)
+      coarse_size[d+1] = L[d] / factor
+   end
+   coarse_size[#L] = L[#L-1]
+   local L_coarse = qcd.lattice(coarse_size)
+   local coarse_coords = get_all(L_coarse)
+   local coords = {}
+   local coord_indices = {}
+   for i,coarse_coord in ipairs(coarse_coords) do
+      local coord = {}
+      for d,c in ipairs(coarse_coord) do
+         coord[d] = (d == #L) and c or c*factor
+      end
+      coords[i] = coord
+      coord_indices[i] = get_coord_index(coord, L)
+   end
+   assert(#coords == #coord_indices)
+   return coords, coord_indices
+end

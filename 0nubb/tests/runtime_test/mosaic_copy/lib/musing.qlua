@@ -1,0 +1,867 @@
+require "stdlib"
+
+function random_generator(lat, sseed, pshift)
+   local x = lat:Int(0)
+   local i
+   local ss = sseed or os.random()
+   for i = 0, #lat - 1 do
+      local xshift, xscale
+      if pshift then
+         xshift = pshift[i+1]
+      else
+         xshift = os.random()
+      end
+      x = x * lat[i] + xshift + lat:pcoord(i)
+   end
+   return lat:RandomState(ss, x)
+end
+
+function random_seeds_serial(rng, n)
+   local r = vector.int(n)
+   for i = 0, n - 1 do
+      r[i] = math.floor(rng:random_Real() * 1e9)
+   end
+   return r
+end
+
+function make_seq_and_lat_rnds(seed, nd)
+   local seqRnd = qcd.RandomState(seed, 0)
+   -- convert to table to not break interface
+   local pshift = random_seeds_serial(seqRnd, nd)
+   local pshiftTable = {}
+   for i = 0, nd-1 do
+      pshiftTable[i+1] = pshift[i]
+   end
+   local latRnd = {random_seeds_serial(seqRnd, 1)[0], pshiftTable}
+
+   return {seqRnd, latRnd}
+end
+
+function random_seeds(rng, n)
+   local L = rng.lattice
+   local r = vector.int(n)
+   local v = 1
+   for i = 0, #L - 1 do
+      v = v * L[i]
+   end
+   for i = 0, n - 1 do
+      r[i] = math.floor(rng:random_Real():sum() * 1e9 / v)
+   end
+   return r
+end
+
+function h5_load_cfg(h5_reader, prefix, L, U)
+   for mu = 0, #L - 1 do
+      U[mu+1] = h5_reader:read(prefix.."/mu"..tostring(mu), {lattice=L})
+   end
+end
+
+function h5_load_seed(h5_reader, prefix, action)
+   if h5_reader:stat(prefix.."/seed") ~= nil then
+      action.reseed(h5_reader:read(prefix.."/seed"))
+   else
+      print("WARNING: No seed in restart. Making one up!")
+      action.reseed()
+   end
+end
+
+function h5_save_cfg(h5_writer, prefix, U)
+   local L = U[1].lattice
+   for mu = 0, #L - 1 do
+      h5_writer:write(prefix.."/mu"..tostring(mu), U[mu+1])
+   end
+end
+
+function h5_save_shifts(h5_writer, prefix, shifts)
+   for mu = 0, #shifts-1 do
+      h5_writer:write(prefix.."/shift"..tostring(mu), shifts[mu+1])
+   end
+end
+
+function h5_save_reseed(h5_writer, prefix, action)
+   local new_seed = action.reseed()
+   h5_writer:write(prefix.."/seed", new_seed)
+end
+
+function h5_force_write(h5_writer, path, value)
+   h5_writer:remove(path)
+   h5_writer:write(path, value)
+end
+
+function serial_random(v)
+   return qcd.RandomState(v[0], v[1])
+end
+
+function random_matrix(rnd, Nc)
+   return rnd:gaussian_ColorMatrixN(Nc)
+end
+
+function load_conf(lat, name)
+   local f, finfo = qcd.qdpc.Reader(lat, name)
+   local U,info = f:ColorMatrix(4)
+   f:close()
+   return U, finfo, info
+end
+
+function load_set(Lat, fmt, Lx, Lt, beta, cnums)
+   local confs = {}
+   local i
+   for i = 1, #cnums do
+      local cname = string.format(gf_fmt, Lx, Lt, beta, Lx, Lt, beta, cnums[i])
+      confs[i] = load_conf(L, cname)
+   end
+   return confs
+end
+
+function save_conf(lat, name, fileInfo, U, gaugeInfo)
+   local w = qcd.qdpc.Writer(lat, name, fileInfo)
+   w:ColorMatrix(U, gaugeInfo)
+   w:close()
+end
+
+-- timer
+function create_timer(name)
+   local t0 = os.time()
+   local function f()
+      local t1 = os.time()
+      printf("TIME %s: %.3f sec\n", name, t1 - t0)
+   end
+   return f
+end
+
+function timer_value(t)
+   t()
+end
+
+-- long shifts
+function Nshift(X, d, n, dir)
+   if n == 0 then
+      return X
+   else
+      return Nshift(X:shift(d, dir), d, n-1, dir)
+   end
+end
+
+-- rescale value
+function rescale(v, U, s)
+   local i
+   local sites = s
+   local L = U[1].lattice
+   for i = 1, #L do
+      sites = sites * L[i-1]
+   end
+   return v / (sites * U[1]:colors())
+end
+
+-- three 6-links loops
+function build_1x2()
+   local function measure_rect(U)
+      local V = {}
+      local i, j
+      for i = 1, #U do
+         V[i] = U[i] * Nshift(U[i], i-1, 1, "from_forward")
+      end
+      local function p1x2(x,y)
+         local A = V[x] * Nshift(U[y], x-1, 2, "from_forward")
+         local B = U[y] * Nshift(V[x], y-1, 1, "from_forward")
+         return (A * B:adjoin()):trace():real():sum()
+      end
+      local v = 0
+      local s = 0
+      for i = 1, #U - 1 do
+         for j = i + 1, #U do
+            v = v + p1x2(i,j) + p1x2(j,i)
+            s = s + 2
+         end
+      end
+      return rescale(v, U, s)
+   end
+   local function measure_chair(U)
+      local i, j, k, x
+      local v = 0
+      local s = 0
+      local chair = {
+         function(i,j,k)
+            local A = U[i] * U[k]:shift(i-1,"from_forward") * U[i]:adjoin():shift(k-1,"from_forward")
+            local B = U[j] * U[k]:shift(j-1,"from_forward") * U[j]:adjoin():shift(k-1,"from_forward")
+            return (A * B:adjoin()):trace():real():sum()
+         end,
+         function(i,j,k)
+            local A = U[i] * U[k]:shift(i-1,"from_forward") * U[i]:adjoin():shift(k-1,"from_forward")
+            local B = (U[j]:adjoin() * U[k] * U[j]:shift(k-1,"from_forward")):shift(j-1, "from_backward")
+            return (A * B:adjoin()):trace():real():sum()
+         end,
+         function(i,j,k)
+            local A = (U[i]:adjoin() * U[k] * U[i]:shift(k-1,"from_forward")):shift(i-1, "from_backward")
+            local B = U[j] * U[k]:shift(j-1,"from_forward") * U[j]:adjoin():shift(k-1,"from_forward")
+            return (A * B:adjoin()):trace():real():sum()
+         end,
+         function(i,j,k)
+            local A = (U[i]:adjoin() * U[k] * U[i]:shift(k-1,"from_forward")):shift(i-1, "from_backward")
+            local B = (U[j]:adjoin() * U[k] * U[j]:shift(k-1,"from_forward")):shift(j-1, "from_backward")
+            return (A * B:adjoin()):trace():real():sum()
+         end
+      }
+      for i = 1, #U do
+         for j = 1, #U do
+            if not (j == i) then
+               for k = j + 1, #U do
+                  if not (k == i) then
+                     for x = 1, #chair do
+                        v = v + chair[x](i,j,k)
+                        s = s + 1
+                     end
+                  end
+               end
+            end
+         end
+      end
+      return rescale(v, U, s)
+   end
+   local function measure_twist(U)
+      local i, j, k, x
+      local v = 0
+      local s = 0
+      local function np(k,V)
+         return V:shift(k-1, "from_forward")
+      end
+      local function nm(k,V)
+         return V:adjoin():shift(k-1, "from_backward")
+      end
+      local twist = {
+         function(i,j,k)
+            local A = U[i] * np(i, U[k] * np(k, U[j]))
+            local B = U[j] * np(j, U[k] * np(k, U[i]))
+            return (A * B:adjoin()):trace():real():sum()
+         end,
+         function(i,j,k)
+            local A = U[j] * np(j, U[i] * np(i, U[k]))
+            local B = U[k] * np(k, U[i] * np(i, U[j]))
+            return (A * B:adjoin()):trace():real():sum()
+         end,
+         function(i,j,k)
+            local A = U[i] * np(i, U[j] * np(j, U[k]))
+            local B = U[k] * np(k, U[j] * np(j, U[i]))
+            return (A * B:adjoin()):trace():real():sum()
+         end,
+         function(i,j,k)
+            local A = U[i] * np(i, nm(k, U[j]:adjoin() * U[k]))
+            local B = U[j] * np(j, nm(k, U[i]:adjoin() * U[k]))
+            return (A * B:adjoin()):trace():real():sum()
+         end
+      }
+      for i = 1, #U do
+         for j = 1, #U do
+            if not (j == i) then
+               for k = j + 1, #U do
+                  if not (k == i) then
+                     for x = 1, #twist do
+                        v = v + twist[x](i,j,k)
+                        s = s + 1
+                     end
+                  end
+               end
+            end
+         end
+      end
+      return rescale(v, U, s)
+   end
+   local t = {}
+   function t:show_legend()
+      printf("# id  rect  chair  twist\n")
+   end
+   function t:measure(U, lv)
+      local lx = {lv}
+      lx[#lx+1] = measure_rect(U)
+      lx[#lx+1] = measure_chair(U)
+      lx[#lx+1] = measure_twist(U)
+      return lx
+   end
+   return t
+end
+
+-- Wilson loops up to D x D
+function build_wilson(D)
+   local function lxy(Ux, x, nx, Uy, y, ny)
+      local A = Ux * Nshift(Uy, x-1, nx, "from_forward")
+      local B = Uy * Nshift(Ux, y-1, ny, "from_forward")
+      return (A * B:adjoin()):trace():real():sum()
+   end
+   local function loop(U,V,i,j)
+      local x, y
+      local v = 0
+      local s = 0
+      for x = 1, #V do
+         for y = x + 1, #V do
+            s = s + 1
+            v = v + lxy(V[x][i], x, i, V[y][j], y, j)
+         end
+      end
+      return rescale(v, U, s)
+   end
+   local t = {}
+   function t:show_legend()
+      local i, j
+      printf("# id")
+      for i = 1, D do
+         printf(" plaq%dx%d", i, i)
+         for j = i + 1, D do
+            printf(" plaq%dx%d", i, j)
+         end
+      end
+      printf("\n")
+   end
+   function t:measure(U, lv)
+      local lx = {lv}
+      local i, j, k
+      local V = {}
+      for i = 1, #U do
+         local Vi = { U[i] }
+         for k = 2, D do
+            Vi[k] = U[i] * Vi[k-1]:shift(i-1, "from_forward")
+         end
+         V[i] = Vi
+      end
+      for i = 1, D do
+         lx[#lx+1] = loop(U,V,i,i)
+         for j = i+1, D do
+            lx[#lx+1] = (loop(U,V,i,j) + loop(U,V,j,i)) * 0.5
+         end
+      end
+      return lx
+   end
+   return t
+end
+
+-- APE smearing with defaults
+function APE_smear(U, A, N, accu0, imax0, axis0)
+   local accu = accu0 or 1e-8
+   local imax = imax0 or 150
+   local axis = axis0 or -1
+   local function ape_step(u)
+      local w = {}
+      for i, v in pairs(u) do w[i] = v end
+      for i in skip(axis+1, interval(1, #U)) do
+         local v = A * u[i]
+         for j in skip(i, skip(axis+1, interval(1, #U))) do
+            local ux = u[j]:shift(i - 1, "from_forward")
+            v = v + (u[j] * u[i]:shift(j-1, "from_forward") * ux:adjoin() +
+               (u[j]:adjoin() * u[i] * ux):shift(j-1, "from_backward"))
+         end
+         w[i] = v:proj(accu, imax, u[i])
+      end
+      return w
+   end
+
+   local v = U
+   for i = 1, N do
+      v = ape_step(v)
+   end
+
+   return v
+end
+
+-- clover term
+function Clover_term(U, i, j)
+   local Ui = U[j+1]:shift(i, "from_forward")
+   local Uj = U[i+1]:shift(j, "from_forward")
+   local Sm = U[j+1]:adjoin() * U[i+1] * Ui
+   local Sp = (Ui * (U[j+1] * Uj):adjoin()):shift(j, "from_backward")
+   local Cf = (U[i+1] * Sp) + (Sm * U[i+1]:adjoin())
+   local Cb = (Sp * U[i+1]) + (U[i+1]:adjoin() * Sm)
+   local CL = Cf + Cb:shift(i, "from_backward")
+   return CL - CL:adjoin()
+end
+
+-- Polyakov loops
+function build_polyakov(Lat, maxD2)
+   local tAxis = 3
+   local L3 = qcd.lattice{Lat[0], Lat[1], Lat[2]}
+   local vol3 = Lat[0] * Lat[1] * Lat[2]
+   local Lt = Lat[3]
+   local function get_slice(X, t)
+      local Cx = qcd.scatter(L3, Lat, {L3:pcoord(0), L3:pcoord(1), L3:pcoord(2), L3:Int(t)})
+      return Cx(X)
+   end
+   local function collect_loops(U)
+      local V = get_slice(U[tAxis + 1], 0)
+      local i
+      for i = 1, Lt - 1 do
+         V = V * get_slice(U[tAxis + 1], i)
+      end
+      local P = V:trace():real() / V:colors()
+      return P
+   end
+   local function sx(P,d,s)
+      if s == 0 then
+         return P
+      else
+         return 0.5 * (Nshift(P,d,s,"from_forward") + Nshift(P,d,s,"from_backward"))
+      end
+   end
+   local function fl(P,x,y,z)
+      local s = 1
+      local V = sx(P,0,x)
+      V = sx(P,1,y)
+      V = sx(P,2,z)
+      return V
+   end
+   local function construct_measure(x,y,z)
+      local function mx3(x)
+         return function(P)
+                   return fl(P, x, x, x)
+                end
+      end
+      local function mx1y2(x,y)
+         return function(P)
+                   return (fl(P,x,y,y) + fl(P,y,x,y) + fl(P,y,y,x))/3.0
+                end
+      end
+      local function mx1y1z1(x,y,z)
+         return function(P)
+                   return (fl(P,x,y,z) + fl(P,y,x,z) + fl(P,y,z,x) + fl(P,z,y,x) + fl(P,z,x,y) + fl(P,x,z,y))/6.0
+                end
+      end
+      if x == y then
+         if y == z then
+            return mx3(x)
+         else
+            return mx1y2(z,x)
+         end
+      else
+         if y == z then
+            return mx1y2(x,y)
+         else
+            return mx1y1z1(x,y,z)
+         end
+      end
+   end
+   local r = {}
+   local x, y, z
+   local x2, xy2, xyz2
+   x = 0; x2 = 0
+   while x2 <= maxD2 do
+      y = x
+      xy2 = x2 + y * y
+      while xy2 <= maxD2 do
+         z = y
+         xyz2 = xy2 + z * z
+         while xyz2 <= maxD2 do
+            if not r[xyz2 + 1] then
+               r[xyz2 + 1] = {}
+            end
+            local v = r[xyz2 + 1]
+            v[#v+1] = {x, y, z}
+            z = z + 1
+            xyz2 = xy2 + z * z
+         end
+         y = y + 1
+         xy2 = x2 + y * y
+      end
+      x = x + 1
+      x2 = x * x
+   end
+   local k
+   local names = {}
+   local measures = {}
+   for k = 0, maxD2 do
+      local v = r[k+1]
+      if v then
+         local j
+         for j = 1, #v do
+            names[#names+1] = string.format("x%dy%dz%d", v[j][1], v[j][2], v[j][3])
+            measures[#measures+1] = construct_measure(v[j][1], v[j][2], v[j][3])
+         end
+      end
+   end
+
+   local t = {}
+   function t:show_legend()
+      local i
+      printf("# id")
+      for i = 1, #names do
+         printf(" %s", names[i])
+      end
+      printf("\n")
+   end
+   function t:measure(U, lx)
+      local i
+      local r = {lx}
+      local P = collect_loops(U)
+      for i = 1, #measures do
+         r[#r+1] = qcd.dot(measures[i](P),P):sum()/vol3
+      end
+      return r
+   end
+   return t
+end
+
+-- Topological charge (with a funny normalization)
+function Tcharge(U, lx)
+   local q = (Clover_term(U, 0, 1) * Clover_term(U, 2, 3)):trace():real()
+   q = q + (Clover_term(U, 0, 2) * Clover_term(U, 3, 1)):trace():real()
+   q = q + (Clover_term(U, 0, 3) * Clover_term(U, 1, 2)):trace():real()
+   local ly = lx
+   ly[#ly+1] = q:sum() / (8 * 32 * math.pi * math.pi)
+   return ly
+end
+
+function build_tcharge()
+   local t = {}
+   function t:show_legend()
+      printf("# id t-charge\n")
+   end
+   function t:measure(U, lx)
+      return Tcharge(U, {lx})
+   end
+   return t
+end
+
+-- coarsening: downConverter
+function build_coarsen(cL, fL)
+   local i
+   assert(#cL == #fL, "Lattice ranks mismatched")
+   for i = 0, #fL-1 do
+      assert(2 * cL[i]== fL[i], string.format("dim %d is not scaled by 2", i))
+   end
+   local sI = {}
+   for i = 1, #cL do
+      sI[i] = 2 * cL:pcoord(i-1)
+   end
+   local Sc = qcd.scatter(cL, fL, sI)
+   return function(U)
+      local V = {}
+      local i
+      for i = 1, #U do
+         V[i] = Sc(U[i] * U[i]:shift(i-1,"from_forward"))
+      end
+      return V
+   end
+end
+
+-- refine: upConverter
+function build_refine(fL, cL)
+   local i
+   assert(#cL == #fL, "Lattice ranks mismatched")
+   for i = 0, #fL-1 do
+      assert(2 * cL[i]== fL[i], string.format("dim %d is not scaled by 2", i))
+   end
+   local sI = {}
+   for i = 1, #cL do
+      sI[i] = fL:pcoord(i-1) / 2
+   end
+   local Sf = qcd.scatter(fL, cL, sI)
+   return function(U)
+             local V = {}
+             local i
+             local N = fL:ColorMatrix(1.0)
+             for i = 1, #U do
+                V[i] = Sf(U[i])
+                local sset = fL:Subset(qcd.eq(fL:pcoord(i-1) % 2, 0))
+                sset:where(function()
+                              V[i]:set(N)
+                           end)
+             end
+             return V
+          end
+end
+
+-- build offsets for 2^d cube
+function build_offsets(dim)
+   local n2 = 1
+   local i, d
+   for i = 1, dim do
+      n2 = n2 * 2
+   end
+   local r = {}
+   for i = 0, n2 - 1 do
+      local x = {}
+      local m = i
+      for d = 1, dim do
+         if m % 2 == 0 then
+            x[#x+1] = 0
+            m = m / 2
+         else
+            x[#x+1] = 1
+            m = (m - 1)/2
+         end
+      end
+      r[#r+1] = x
+   end
+   return r
+end
+
+-- shift gauge by a vector
+function gauge_multishift(U, offv)
+   local function multishift(X, offv)
+      local Y = X
+      local d
+      for d = 1, #offv do
+         Y = Nshift(Y, d-1, offv[d], "from_forward")
+      end
+      return Y
+   end
+   local V = {}
+   local i
+   for i = 1, #U do
+      V[i] = multishift(U[i], offv)
+   end
+   return V
+end
+
+--- list generics
+function list_map(lst, fn)
+   local rx = {}
+   local i
+   for i = 1, #lst do
+      rx[i] = fn(lst[i])
+   end
+   return rx
+end
+
+function list_for_each(lst, fn)
+   local i
+   for i = 1, #lst do
+      fn(lst[i])
+   end
+end
+
+function list_copy(lst)
+   local r = {}
+   local i
+   for i = 1, #lst do
+      r[i] = lst[i]
+   end
+   return r
+end
+
+--function table_copy(tbl)
+--   local r = {}
+--   local i
+--   for i in pairs(tbl) do
+--      r[i] = tbl[i]
+--   end
+--   return r
+--end
+
+function list_shuffle(lst, rng)
+   local r = list_copy(lst)
+   local i
+   for i = 1, #r - 1 do
+      local j = math.floor(i + rng:random_Real() * (#r + 1 - i))
+      local x = r[i]
+      r[i] = r[j]
+      r[j] = x
+   end
+   return r
+end
+
+function list_append(a,b)
+   local r = list_copy(a)
+   local i
+   for i = 1, #b do
+      r[#r+1] = b[i]
+   end
+   return r
+end
+
+function table_names(tb)
+   local rx = {}
+   local i
+   for i in pairs(tb) do
+      rx[#rx + 1] = i
+   end
+   return rx
+end
+
+function table_rest(tbl)
+   local newtbl = table_copy(tbl)
+   table.remove(newtbl, 1)
+   return newtbl
+end
+
+function vec2list(v)
+   local r = {}
+   local i
+   for i = 0, #v - 1 do
+      r[#r+1] = v[i]
+   end
+   return r
+end
+
+function map2idx(mp)
+   local function fn(x)
+      return mp[x]
+   end
+   return fn
+end
+
+function idx2map(v, nm)
+   local r = {}
+   local i
+   for i = 1, #v do
+      r[nm[i]] = v[i]
+   end
+   return r
+end
+
+function list_show(name, lst)
+   local i
+   printf("%s: [", name)
+   for i = 1, #lst do
+      printf(" %s", tostring(lst[i]))
+   end
+   printf("]\n")
+end
+
+--- useful functions
+function fnConst(v)
+   local function fn(t)
+      return v
+   end
+   return fn
+end
+
+function fnLinear(v0, v1, t0, t1)
+   local function fn(t)
+      return (v0 * (t1 - t) + v1 * (t - t0)) / (t1 - t0)
+   end
+   return fn
+end
+
+--- show a list of results in a line
+function show_results(vx)
+   printf("%s  ", tostring(vx[1]))
+   local i
+   for i = 2, #vx do
+      printf(" %18.9e", vx[i])
+   end
+   printf("\n")
+end
+
+-- get the group name from Nc
+function get_group_name(Nc)
+   if Nc == 1 then
+      return "U(1)"
+   else
+      return string.format("SU(%d)", Nc)
+   end
+end
+
+function init_weak_field(L, latRnd, group, Nc, U)
+   for mu = 0, #L - 1 do
+      local A = group.randomAlgebra(random_generator(L, latRnd[1], latRnd[2]), Nc)
+      U[mu+1] = group.exp(A*complex(0,1))
+   end
+end
+
+function init_zero_field(L, group, Nc, U)
+   for mu = 0, #L - 1 do
+      local A = L:ColorMatrixN(Nc, 0.0)
+      U[mu+1] = group.exp(A*complex(0,1))
+   end
+end
+
+function show_color_mat(U)
+   local Nc = U:colors()
+   for a = 0, Nc-1 do
+      for b = 0, Nc-1 do
+         local elt = U[{a=a,b=b}]
+         printf("%.6f %+.6f\t", elt:real(), elt:imag())
+      end
+      printf("\n")
+   end
+end
+
+-- May need to pass <some gamma>:matrix() to get matrix elts.
+function show_spin_mat(m)
+   local Ns = 4
+   for a = 0, Ns-1 do
+      for b = 0, Ns-1 do
+         local elt = m[{a,b}]
+         printf("%.6f %+.6f\t", elt:real(), elt:imag())
+      end
+      printf("\n")
+   end
+end
+
+function show_ferm(f)
+   local Nc = f:colors()
+   local Ns = 4
+   for s = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         local elt = f[{d=s,c=c}]
+         printf("%.6f %+.6f\t", elt:real(), elt:imag())
+      end
+   end
+   printf("\n")
+end
+
+-- Walk along a path specified by direction to move each
+-- step and multiply all links (lattice-wide operation).
+-- Particularly handy for constructing pieces of gauge and
+-- fermion actions.
+function take_links_in_path(U, path)
+   local out
+   local curU = table_copy(U)
+   assert(#path > 0)
+   for junk,mu in pairs(path) do
+      local conj = mu < 0
+      local mu = math.abs(mu)
+      assert(1 <= mu and mu <= #curU)
+      if conj then
+         out = out and
+            out*curU[mu]:shift(mu-1, "from_backward"):adjoin() or
+            curU[mu]:shift(mu-1, "from_backward"):adjoin()
+      else
+         out = out and out*curU[mu] or curU[mu]
+      end
+      for nu = 1, #curU do
+         curU[nu] = curU[nu]:shift(mu-1, conj and "from_backward" or "from_forward")
+      end
+   end
+   return out
+end
+
+-- Multiply DiracPropagator into DiracFermion
+-- TODO(gkanwar): Does this feature exist in QDP? Can we expose it?
+function P_mul_D(prop, vec)
+   local Ns = 4
+   local Nc = vec:colors()
+   local L = vec.lattice
+   local out = L:DiracFermionN(Nc)
+   for d = 0,Ns-1 do
+      for c = 0,Nc-1 do
+         out = out + prop[{d=d,c=c}] * vec[{d=d,c=c}]
+      end
+   end
+   return out
+end
+
+function build_lattice(Nd, Lx, Lt)
+   local Ls = {}
+   for mu = 1, Nd-1 do
+      Ls[mu] = Lx
+   end
+   Ls[Nd] = Lt
+   return qcd.lattice(Ls)
+end
+
+function is_finite(n)
+   return type(n) == "number" and n == n and n > -math.huge and n < math.huge
+end
+
+
+function get_gamma5(Nd)
+   if Nd == 2 then
+      return complex(0,1)*gamma{mu=0}*gamma{mu=1}
+   elseif Nd == 4 then
+      return gamma{mu=5}
+   else
+      error("Nd "..tostring(Nd).." has ill-defined gamma5.")
+   end
+end
+
+function have_quda()
+   return pcall(function() return _quda end)
+end

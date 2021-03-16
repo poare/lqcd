@@ -1,0 +1,440 @@
+require "lib/caching"
+require "lib/solver"
+require "lib/toAdjoint2"
+
+fermion = {}
+
+-- operations
+--  .initTraj(U, rndGen) Build fermions
+--  .actionDensity(U)    phi^dag . (D^dag D)^(-1) phi
+--  .action(U)           phi^dag (D^dag D)^(-1) phi
+--  .force(U)            -(D psi)^dag dD/dA_mu psi - psi^dag dD^dag/dA_mu (D psi)
+-- If `adj` is true use adjoint fermions instead of fundamental ones.
+-- If `majorana` is true use Majorana instead of Dirac fermions.
+function fermion.make_twoflavor_act(get_ferm, eps, max_iter, adj, majorana)
+   local t = {
+      name = "two flavor",
+      eps = eps,
+      max_iter = max_iter,
+      phi = nil}
+   function t.getKappa(U)
+      local ferm = get_ferm(U)
+      return ferm.kappa
+   end
+   function t.getCSW(U)
+      local ferm = get_ferm(U)
+      return ferm.csw
+   end
+   local function DxD(U)
+      --print("Applying DxD operator")
+      local ferm = get_ferm(U)
+      --print(ferm)
+      --for var in pairs(ferm) do print(var) end
+      return function(psi) return ferm:Dx(ferm:D(psi)) end
+   end
+   local function D(U)
+      --print("Applying D operator")
+      local ferm = get_ferm(U)
+      for var in ipairs(ferm) do print(var) end
+      return function(psi) return ferm:D(psi) end
+   end
+   local function Dx(U)
+      return function(psi) return get_ferm(U):Dx(psi) end
+   end
+   local function DxDInverter(U)
+      return get_ferm(U):mxm_solver(eps, max_iter)
+   end
+   -- sample gaussian chi and init PF phi = (D^dag D) chi
+   function t.initTraj(U, rndGen)
+      if adj then
+         U = toSO3(U)
+      end
+      local L = U[1].lattice
+      local Nc = U[1]:colors()
+      for i = 2, #U do -- all mus should have same lattice
+         assert(U[i].lattice == L)
+      end
+      -- TODO(gkanwar): Add Majorana option? I assume Dirac for now
+      local chi = rndGen:gaussian_DiracFermionN(Nc) * math.sqrt(0.5)
+      t.phi = Dx(U)(chi)
+   end
+   -- phi^dag . (D^dag D)^(-1) phi
+   function t.actionDensity(U)
+      local Nc = U[1]:colors()
+      -- TODO(gkanwar): Reuse invert from last force
+      if adj then
+         U = toSO3(U)
+      end
+      local DxDPhi = DxDInverter(U)(t.phi)
+      return qcd.dot(t.phi, DxDPhi):real()
+   end
+   -- phi^dag (D^dag D)^(-1) phi
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+   --  -(D psi)^dag dD/dA_mu psi - psi^dag dD^dag/dA_mu (D psi)
+   --      = - 2 * Re[(D psi)^dag dD/dA_mu psi].
+   -- deriv_D gives the term Re[...]
+   function t.force(U)
+      local init_Nc = U[1]:colors()
+      if adj then
+         U = toSO3(U)
+      end
+      local psi = DxDInverter(U)(t.phi)
+      local zeta = D(U)(psi)
+      local F = get_ferm(U):deriv_D(zeta, psi)
+      for x = 1, #F do
+         F[x] = - 2 * F[x]
+         if adj then
+            -- We need a factor of 4 to get agreement for the fermion force test.
+            -- In the dDdA code, there is a factor of 1/2 coming from the fact that tr(T^2) = 1/2 for fundamental fermions
+            -- However, for the adjoint generators, tr(T^2) = 2, so the dDdA output is low by a factor of 4.
+            -- We correct for this factor of 4 here.
+            F[x] = tosu2(F[x], init_Nc)*4.0
+         end
+      end
+      return F
+   end
+
+   -- Expose some inner functions for testing
+   t.D = D
+   t.Dx = Dx
+   t.DxD = DxD
+   t.DxDInverter = DxDInverter
+   t.deriv_D = function(U, zeta, psi) return get_ferm(U):deriv_D(zeta, psi) end
+   t.D_deriv_D = function(U, psi) return get_ferm(U):D_deriv_D(psi) end
+   t.D_deriv_D_prop = function(U, psi) return get_ferm(U):D_deriv_D_prop(psi) end
+   return t
+end
+
+-- operations
+--  .initTraj(U, rndGen) Build fermions
+--  .actionDensity(U)    phi^dag . (D D^dag)^(-1) phi
+--  .action(U)           phi^dag (D D^dag)^(-1) phi
+--  .force(U)            -(D psi)^dag dD/dA_mu psi - psi^dag dD^dag/dA_mu (D psi)
+-- coeffs_r -- rational coefficients for X^(1/4)
+-- coeffs_irsq -- rational coefficients for X^(-1/2)
+function fermion.make_rhmc_act(inner_act, coeffs_r, coeffs_irsq, coeffs_irsq_sloppy, eps, eps_sloppy, max_iter, should_print, adj)
+   print("Initializing RHMC")
+   print(#coeffs_irsq.b)
+   local function check_coeffs(cs)
+      -- cs.a should have cs.a[0] .. cs.a[N]
+      -- cs.b should have cs.b[1] .. cs.b[N]
+      assert(#cs.a == #cs.b)
+      assert(cs.a[0] ~= nil)
+   end
+   check_coeffs(coeffs_r)
+   check_coeffs(coeffs_irsq)
+   
+   local t = {
+      name = "rat one flavor",
+      inner_act = inner_act,
+      coeffs_r = coeffs_r,
+      coeffs_irsq = coeffs_irsq,
+      eps = eps,
+      max_iter = max_iter
+   }
+   -- r(DxD) = a_0 + sum_i a_i (D^dag D + b_i)^{-1}
+   local function rDxD_CPU(U, cs, eps)
+      return function(psi)
+         local out = cs.a[0] * psi
+         local xs = solver.multishift_CG(
+            inner_act.DxD(U), cs.b, eps, max_iter, should_print)(psi)
+         for i = 1,#cs.a do
+            out = out + cs.a[i] * xs[i]
+         end
+         return out
+      end
+   end
+
+   local function rDxD_quda(U, cs, eps)
+		 local kappa = inner_act.getKappa(U)
+		 local c_sw = inner_act.getCSW(U)
+     --print(kappa)
+     --print(c_sw)
+     --require "quda"
+     -- we need everything in a except the first entry
+     local c = {}
+     local tol_offset = {}
+     local tol_hq_offset = {}
+     for i = 1, #cs.b do
+        c[i] = cs.a[i]
+        tol_offset[i] = eps
+        tol_hq_offset[i] = eps
+     end
+     return function(psi)
+       print ("computing rational expansion with precision = "..eps)
+       local result, ipres, RF
+       if c_sw > 0 then
+        print("Using clover inverter")
+        RF = qcd.quda.multishift_solver(U,
+                                {t_boundary          = "ANTI_PERIODIC_T"},
+                                {clover_coeff        = c_sw * kappa,
+                                 dslash_type         = "CLOVER_WILSON_DSLASH",
+                                 --dslash_type         = "WILSON_DSLASH",
+                                 kappa               = kappa,
+                                 tol                 = eps,
+                                 tol_offset          = tol_offset,
+                                 tol_hq_offset       = tol_hq_offset,
+                                 maxiter             = max_iter,
+                                 verbosity           = "SILENT",
+                                 cuda_prec_sloppy    = "SINGLE_PRECISION",
+                                 mass_normalization  = "MASS_NORMALIZATION",
+                                 preserve_source     = "PRESERVE_SOURCE_YES",
+                              }, cs.a[0], c, cs.b);
+       else
+        print("Using Wilson inverter")
+        RF = qcd.quda.multishift_solver(U,
+                                {t_boundary          = "ANTI_PERIODIC_T"},
+                                {dslash_type         = "WILSON_DSLASH",
+                                 kappa               = kappa,
+                                 tol                 = eps,
+                                 tol_offset          = tol_offset,
+                                 tol_hq_offset       = tol_hq_offset,
+                                 maxiter             = max_iter,
+                                 verbosity           = "SILENT",
+                                 cuda_prec_sloppy    = "SINGLE_PRECISION",
+                                 mass_normalization  = "MASS_NORMALIZATION",
+                                 preserve_source     = "PRESERVE_SOURCE_YES",
+                              }, cs.a[0], c, cs.b);
+       end
+       result,ipres = RF:apply_rf(psi)
+		   RF:close()
+  		 return result
+     end
+	 end
+
+   local function rational_terms_quda(U, cs, eps)
+     local kappa = inner_act.getKappa(U)
+     local c_sw = inner_act.getCSW(U)
+     local c = {}
+     local tol_offset = {}
+     local tol_hq_offset = {}
+     for i = 1, #cs.b do
+        c[i] = cs.a[i]
+        tol_offset[i] = eps
+        tol_hq_offset[i] = eps
+     end
+     return function(psi)
+       print ("computing terms in rational expansion with precision = "..eps)
+       local result, ipres, RF
+       if c_sw > 0 then
+        print("Using clover inverter")
+        RF = qcd.quda.multishift_solver(U,
+                                {t_boundary          = "ANTI_PERIODIC_T"},
+                                {clover_coeff        = c_sw * kappa,
+                                 dslash_type         = "CLOVER_WILSON_DSLASH",
+                                 --dslash_type         = "WILSON_DSLASH",
+                                 kappa               = kappa,
+                                 tol                 = eps,
+                                 tol_offset          = tol_offset,
+                                 tol_hq_offset       = tol_hq_offset,
+                                 maxiter             = max_iter,
+                                 verbosity           = "SILENT",
+                                 cuda_prec_sloppy    = "SINGLE_PRECISION",
+                                 mass_normalization  = "MASS_NORMALIZATION",
+                                 preserve_source     = "PRESERVE_SOURCE_YES",
+                              }, cs.a[0], c, cs.b);
+       else
+        print("Using Wilson inverter")
+        RF = qcd.quda.multishift_solver(U,
+                                {t_boundary          = "ANTI_PERIODIC_T"},
+                                {dslash_type         = "WILSON_DSLASH",
+                                 kappa               = kappa,
+                                 tol                 = eps,
+                                 tol_offset          = tol_offset,
+                                 tol_hq_offset       = tol_hq_offset,
+                                 maxiter             = max_iter,
+                                 verbosity           = "SILENT",
+                                 cuda_prec_sloppy    = "SINGLE_PRECISION",
+                                 mass_normalization  = "MASS_NORMALIZATION",
+                                 preserve_source     = "PRESERVE_SOURCE_YES",
+                              }, cs.a[0], c, cs.b);
+       end
+       result,ipres = RF:solve(psi)
+       RF:close()
+       return result
+     end
+   end
+
+   -- perform rational operation by manually adding the various terms
+   -- this is inefficient but good for testing
+   local function rDxD_quda_2(U, cs, eps)
+     return function(psi)
+       local xs = rational_terms_quda(U, cs, eps)(psi)
+       psi = psi * cs.a[0]
+       for i = 1, #cs.b do
+         psi = psi + xs[i] * cs.a[i]
+       end
+       return psi
+     end
+   end
+
+	 local function rational_terms_CPU(U, cs, eps)
+     return solver.multishift_CG(inner_act.DxD(U), cs.b, eps, max_iter, should_print)
+	 end
+
+	 local r, irsq, irsq_sloppy, rDxD, rational_terms
+ 	 if pcall(function() return _quda end) then
+     function rDxD(U, cs, eps) return rDxD_quda(U, cs, eps) end
+		 function rational_terms(U, cs, eps) return rational_terms_quda(U, cs, eps) end
+	 else
+     function rDxD(U, cs, eps) return rDxD_CPU(U, cs, eps) end
+     function rational_terms(U, cs, eps) return rational_terms_CPU(U, cs, eps) end
+	 end
+   function r(U) return rDxD(U, coeffs_r, eps) end
+   function irsq(U) return rDxD(U, coeffs_irsq, eps) end
+   function irsq_sloppy(U) return rDxD(U, coeffs_irsq_sloppy, eps_sloppy) end
+   
+   -- for now, just do the tests on the fundamental representation (maybe add adjoint support later)
+   -- make sure that irsq(U)^2 * DxD is the identity
+   function t.test1(U, rndGen)
+      if adj then
+         U = toSO3(U)
+      end
+      local Nc = U[1]:colors()
+      local chi = rndGen:gaussian_DiracFermionN(Nc)
+      local temp = inner_act.DxD(U)(chi)
+      temp = irsq(U)(temp)
+      temp = irsq(U)(temp)
+      --print(chi[{0,0,0,0,c=0,d=0}])
+      --print(temp[{0,0,0,0,c=0,d=0}])
+      return (chi - temp):norm2()/chi:norm2()   -- this should be small (O(1e-5) for 5-term expansion)
+   end
+
+   -- make sure that r(U)^2 * irsq(U) is the identity
+   function t.test2(U, rndGen)
+      if adj then
+         U = toSO3(U)
+      end
+      local Nc = U[1]:colors()
+      local chi = rndGen:gaussian_DiracFermionN(Nc)
+      local temp = irsq(U)(chi)
+      temp = r(U)(temp)
+      temp = r(U)(temp)
+      --print(chi[{0,0,0,0,c=0,d=0}])
+      --print(temp[{0,0,0,0,c=0,d=0}])
+      return (chi - temp):norm2()/chi:norm2()   -- this should be small (O(1e-5) for 5-term expansion)
+   end
+
+   function t.test3(U, rndGen) -- a test of DxDInverter, not RHMC directly, but still useful
+      if adj then
+        U = toSO3(U)
+      end
+      local Nc = U[1]:colors()
+      local chi = rndGen:gaussian_DiracFermionN(Nc)
+      local temp = inner_act.DxD(U)(chi)
+      temp = inner_act.DxDInverter(U)(temp)
+      print (chi:norm2())
+      print ((chi-temp):norm2())
+      return (chi - temp):norm2()/chi:norm2()
+   end
+
+   function t.test4(U, rndGen) -- test all the multishift solves separately (just for (D^dag D)^(-1/2) for now)
+      if adj then
+        U = toSO3(U)
+      end
+      local Nc = U[1]:colors()
+      local chi = rndGen:gaussian_DiracFermionN(Nc)
+      local xs = rational_terms(U, coeffs_irsq, eps)(chi)
+      local errors = {}
+      for i = 1, #coeffs_irsq.b do
+        local temp = inner_act.DxD(U)(xs[i]) + coeffs_irsq.b[i] * xs[i]
+        errors[i] = (chi - temp):norm2()/chi:norm2()
+        print(errors[i])
+      end
+      return (errors)
+   end
+
+   function t.initTraj(U, rndGen)
+      local L = U[1].lattice
+      if adj then
+         U = toSO3(U)
+      end
+      local Nc = U[1]:colors()
+      for i = 2, #U do -- all mus should have same lattice
+         assert(U[i].lattice == L)
+      end
+      local chi = rndGen:gaussian_DiracFermionN(Nc) * math.sqrt(0.5)
+      t.phi = r(U)(chi)
+   end
+   -- phi^dag . r(D^dag D) phi
+   function t.actionDensity(U)
+      local Nc = U[1]:colors()
+      if adj then
+         U = toSO3(U)
+      end
+      local irsq_phi = irsq(U)(t.phi)
+      return qcd.dot(t.phi, irsq_phi):real()
+   end
+   function t.action(U)
+      return t.actionDensity(U):sum()
+   end
+   function t.force(U)
+      local timer = create_timer("fermion forces")
+      local L = U[1].lattice
+      local Nc = U[1]:colors() -- initial number of colors
+      if adj then
+         U = toSO3(U)
+      end
+      print("finished converting gauge field to SO(3)")
+      timer()
+			local sloppy = true
+      local F = {}
+      if sloppy then
+        local xs = rational_terms(U, coeffs_irsq_sloppy, eps_sloppy)(t.phi)
+        print("computed multishift inversion")
+        timer()
+        for mu = 1,#U do
+           F[mu] = L:ColorMatrixN(U[1]:colors()) -- need to use number of colors *after* adjoint conversion
+        end
+        
+        if (#coeffs_irsq_sloppy.b == 12) then
+          local prop = L:DiracPropagator()
+          for c = 0, 2 do
+            for d = 0, 3 do
+              prop[{c=c,d=d}] = xs[4*c + d + 1] * math.sqrt(coeffs_irsq_sloppy.a[4*c + d + 1])
+            end
+          end
+          F = inner_act.D_deriv_D_prop(U, prop)
+          -- Note: No factor of -2 here since this is absorbed into D_deriv_D_prop
+        else
+          for i = 1,#coeffs_irsq_sloppy.b do
+             local psi = xs[i]
+             local Fi = inner_act.D_deriv_D(U, psi)
+             for mu = 1,#U do
+                F[mu] = F[mu] + coeffs_irsq_sloppy.a[i] * (-2*Fi[mu])
+             end
+          end
+        end
+      else
+        local xs = rational_terms(U, coeffs_irsq, eps)(t.phi)
+        print("computed multishift inversion")
+        timer()
+        for mu = 1,#U do
+           F[mu] = L:ColorMatrixN(U[1]:colors()) -- need to use number of colors *after* adjoint conversion
+        end
+        for i = 1,#coeffs_irsq.b do
+           local psi = xs[i]
+           local Fi = inner_act.D_deriv_D(U, psi)
+           for mu = 1,#U do
+              F[mu] = F[mu] + coeffs_irsq.a[i] * (-2*Fi[mu])
+           end
+        end
+      end
+      print("computed force terms")
+      timer()
+      if adj then
+         show_color_mat(F[1][{0,0,0,0}])
+         for x = 1, #F do
+            F[x] = tosu2(F[x], Nc)*4.0
+         end
+         show_color_mat(F[1][{0,0,0,0}])
+      end
+      print("mapped force term to su(2)")
+      timer()
+      return F
+   end
+   
+   return t
+end

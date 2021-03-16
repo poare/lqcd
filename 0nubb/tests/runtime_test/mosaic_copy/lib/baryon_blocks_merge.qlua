@@ -1,0 +1,996 @@
+-- Measurement code to compute and save baryon blocks 
+
+require "lib/cfg_names"
+require "lib/coords"
+require "lib/group"
+require "lib/fermion"
+require "lib/musing"
+require "lib/hmc_mosaic"
+
+function convert_to_Dirac_basis(prop)
+   printf("converting to Dirac basis \n")
+   local g1DP = -gamma{mu=0}
+   local g2DP = gamma{mu=1}
+   local g3DP = -gamma{mu=2}
+   local g4DP = gamma{mu=5}
+   local UDP = (complex(0,-1)*g2DP + complex(0,1)*g1DP*g3DP)/math.sqrt(2)
+   local UDPadj = (complex(0,1)*g2DP + complex(0,-1)*g3DP*g1DP)/math.sqrt(2)
+   local propUDP = prop * UDP
+   return UDPadj * propUDP
+end
+
+-- L: lattice {Lx, Ly, Lz, Lt}
+-- Nc: # of color components
+-- Ns: # of spin components
+-- props: table of Nq point-to-all propagators
+-- baryon_weights: table of Nw weights, each of which is a table of 2Nq+1 color-spin indices {c1, s1, c2, s2, c3, s3, weight}
+-- p_list: list of momenta: {px, py, pz}
+-- h5_writer: name of hdf5 database
+-- block_name: base name of block within hdf5 database
+function compute_baryon_block(L, Nc, Ns, props_DR, baryon_weights, p_list, h5_writer, block_name)
+   local props = {}
+   for prop_num=1, #props_DR do
+      props[prop_num] = convert_to_Dirac_basis(props_DR[prop_num])
+   end
+   local Lt = L[#L-1]
+   -- holder for momentum-projected baryon block
+   local baryon_block = {} 
+   local block_timer = create_timer("compute baryon blocks")
+   local count = 0
+   -- each color-spin component of block (/source)
+   for c1 = 0, Nc-1 do
+      for s1 = 0, Ns-1 do
+         for c2 = 0, Nc-1 do
+            for s2 = 0, Ns-1 do
+               for c3 = 0, Nc-1 do
+                  for s3 = 0, Ns-1 do
+                     if count % 10 == 0 then
+                        printf("Done %d / %d \n",count,Nc^3*Ns^3)
+                     end
+                     count = count + 1
+                     local component = L:Complex(0)
+                     -- add all sink color-spin components with non-zero weight
+                     for weight_num = 1, #baryon_weights do
+                        local weight = baryon_weights[weight_num]
+                        local term1 = weight[#weight] * props[1][{c=weight[1],d=weight[2]}][{c=c1,d=s1}] * props[2][{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * props[3][{c=weight[5],d=weight[6]}][{c=c3,d=s3}]
+                        local term2 = weight[#weight] * props[1][{c=weight[1],d=weight[2]}][{c=c3,d=s3}] * props[2][{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * props[3][{c=weight[5],d=weight[6]}][{c=c1,d=s1}]
+                        component = component + term1 - term2
+                     end
+                     for p_num = 1, #p_list do
+                        local mom_component = momentum_project(component, p_list[p_num])
+                        local p_coord = make_coord_name(p_list[p_num])
+                        h5_force_write(h5_writer, block_name.."/p="..p_coord.."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3), mom_component)
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   block_timer()
+end
+
+-- L: lattice {Lx, Ly, Lz, Lt}
+-- Nc: # of color components
+-- Ns: # of spin components
+-- prop: point-to-all propagator
+-- baryon_weights: table of Nw weights, each of which is a table of 2Nq+1 color-spin indices {c1, s1, c2, s2, c3, s3, weight}
+-- p_list: list of momenta: {px, py, pz}
+-- h5_writer: name of hdf5 database
+-- block_name: base name of block within hdf5 database
+function compute_baryon_block_degenerate(L, Nc, Ns, prop_DR, baryon_weights, p_list, h5_writer, block_name)
+   local prop = convert_to_Dirac_basis(prop_DR)
+   local Lt = L[#L-1]
+   -- holder for momentum-projected baryon block
+   local baryon_block = {} 
+   local block_timer = create_timer("compute baryon blocks")
+   local count = 0
+   -- each color-spin component of block (/source)
+   for c1 = 0, Nc-1 do
+      for s1 = 0, Ns-1 do
+         for c2 = 0, Nc-1 do
+            for s2 = 0, Ns-1 do
+               for c3 = 0, Nc-1 do
+                  for s3 = 0, Ns-1 do
+                     if count % 10 == 0 then
+                        printf("Done %d / %d \n",count,Nc^3*Ns^3)
+                     end
+                     count = count + 1
+                     local component = L:Complex(0)
+                     -- add all sink color-spin components with non-zero weight
+                     for weight_num = 1, #baryon_weights do
+                        local weight = baryon_weights[weight_num]
+                        local term = weight[#weight] * prop[{c=weight[1],d=weight[2]}][{c=c1,d=s1}] * prop[{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * prop[{c=weight[5],d=weight[6]}][{c=c3,d=s3}]
+                        component = component + term
+                     end
+                     for p_num = 1, #p_list do
+                        local mom_component = momentum_project(component, p_list[p_num])
+                        local p_coord = make_coord_name(p_list[p_num])
+                        h5_force_write(h5_writer, block_name.."/p="..p_coord.."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3), mom_component)
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   block_timer()
+end
+
+-- L: lattice {Lx, Ly, Lz, Lt}
+-- Nc: # of color components
+-- Ns: # of spin components
+-- baryon_weights: table of Nw weights, each of which is a table of 2Nq+1 color-spin indices {c1, s1, c2, s2, c3, s3, weight}
+-- p_list: list of momenta: {px, py, pz}
+-- h5_reader: name of hdf5 database
+-- block_name: base name of block within hdf5 database
+function compute_baryon_from_block(L, Nc, Ns, baryon_weights, p_list, h5_reader, block_name)
+   local Lt = L[#L-1]
+   -- holder for momentum-projected baryon block
+   local baryon_block = {} 
+   local contract_timer = create_timer("compute baryon from baryon blocks")
+   local correlator_list = {}
+   -- add all source color-spin components with non-zero weight
+   for p_num = 1, #p_list do
+      local p_coord = make_coord_name(p_list[p_num])
+      local component = vector.complex(Lt)
+      for weight_num = 1, #baryon_weights do
+         local weight = baryon_weights[weight_num]
+         local term = h5_reader:read(string.format(block_name.."/p="..p_coord.."/%d/%d/%d/%d/%d/%d", weight[1], weight[2], weight[3], weight[4], weight[5], weight[6]), {lattice=L})
+         for t=0, Lt-1 do
+            component[t] = component[t] + weight[#weight]*term[t]
+         end
+      end
+      correlator_list[p_num] = component
+   end
+   contract_timer()
+
+   return correlator_list
+end
+
+-- L: lattice {Lx, Ly, Lz, Lt}
+-- Nc: # of color components
+-- Ns: # of spin components
+-- baryon_weights: table of Nw weights, each of which is a table of 2Nq+1 color-spin indices {c1, s1, c2, s2, c3, s3, weight}
+-- p_list: list of momenta: {px, py, pz}
+-- h5_reader: name of hdf5 database
+-- block_name: base name of block within hdf5 database
+function compute_proton_from_weights(L, Nc, Ns, props_DR, source_weights, sink_weights, p_list)
+   local props = {}
+   for prop_num=1, #props_DR do
+      props[prop_num] = convert_to_Dirac_basis(props_DR[prop_num])
+   end
+   local Lt = L[#L-1]
+   -- holder for momentum-projected baryon block
+   local contract_timer = create_timer("compute proton from weights")
+   local correlator_list = {}
+   -- add all source color-spin components with non-zero weight
+   for p_num = 1, #p_list do
+      local p_coord = make_coord_name(p_list[p_num])
+      local correlator = L:Complex(0)
+      for source_weight_num = 1, #source_weights do
+         local source_weight = source_weights[source_weight_num]
+         for sink_weight_num = 1, #sink_weights do
+            local sink_weight = sink_weights[sink_weight_num]
+            local term1 = source_weight[#source_weight] * sink_weight[#sink_weight] * props[1][{c=sink_weight[1],d=sink_weight[2]}][{c=source_weight[1],d=source_weight[2]}] * props[2][{c=sink_weight[3],d=sink_weight[4]}][{c=source_weight[3],d=source_weight[4]}] * props[3][{c=sink_weight[5],d=sink_weight[6]}][{c=source_weight[5],d=source_weight[6]}]
+            local term2 = source_weight[#source_weight] * sink_weight[#sink_weight] * props[3][{c=sink_weight[5],d=sink_weight[6]}][{c=source_weight[1],d=source_weight[2]}] * props[2][{c=sink_weight[3],d=sink_weight[4]}][{c=source_weight[3],d=source_weight[4]}] * props[1][{c=sink_weight[1],d=sink_weight[2]}][{c=source_weight[5],d=source_weight[6]}]
+            correlator = correlator + term1 - term2
+         end
+      end
+      correlator_list[p_num] = momentum_project(correlator, p_list[p_num])
+   end
+   contract_timer()
+
+   return correlator_list
+end
+
+
+-- Heap's algorithm (for easy signature tracking)
+function perm(a)
+   local perms = {}
+   perms[1] = table_copy(a)
+   local c = {}
+   for ci = 1, #a do
+      c[ci] = 0
+   end
+   local i = 0
+   while i < #a do
+      if c[i+1] < i then
+         if i % 2 == 0 then
+            a[1], a[i+1] = a[i+1], a[1]
+         else
+            a[c[i+1]+1], a[i+1] = a[i+1], a[c[i+1]+1]
+         end
+         perms[#perms+1] = table_copy(a)
+         c[i+1] = c[i+1] + 1
+         i = 0
+      else
+         c[i+1] = 0
+         i = i + 1
+      end
+   end
+   return perms
+end
+
+-- build permutation list for flist = {{u1,u2,...,uNu},{d1,d2,...,dNd}} with positions of each flavor in weights
+function two_flavor_perms(flist)
+   local old_flist = table_copy(flist)
+   local permlist = {}
+   local siglist = {}
+   local perm_num = 1
+   local sig_num = 1
+   local uperm_list = perm(flist[1])
+   local dperm_list = perm(flist[2])
+   for uperm_num, u_perm in ipairs(uperm_list) do
+      for dperm_num, d_perm in ipairs(dperm_list) do
+         permlist[perm_num] = {}
+         local usig = 1
+         if uperm_num % 2 == 0 then usig = -1 end
+         local dsig = 1
+         if dperm_num % 2 == 0 then dsig = -1 end
+         siglist[perm_num] = usig*dsig 
+         for nu = 1, #flist[1] do
+            for nd = 1, #flist[2] do
+               permlist[perm_num][old_flist[1][nu]] = u_perm[nu]
+               permlist[perm_num][old_flist[2][nd]] = d_perm[nd]
+            end
+         end
+         perm_num = perm_num + 1
+      end
+   end
+   return permlist, siglist
+end
+
+-- convert to Dirac basis
+function convert_ca2a_props_to_Dirac_basis(props_DR, maxt, flip)
+   local L_coarse = props_DR[1].lattice
+   local dims = #L_coarse
+   -- sign flip for flip
+   local signflip = 1
+   if flip then
+     signflip = -1
+   end
+   -- restriction to subset of time direction
+   local rest_scatter
+   local V_coarse = 1
+   local coarse_size = {}
+   for mu = 0, #L_coarse - 2 do
+      coarse_size[mu+1] = L_coarse[mu] 
+      V_coarse = V_coarse * coarse_size[mu+1]
+   end
+   coarse_size[#L_coarse] = maxt
+   V_coarse = V_coarse * maxt 
+   local L_rest = qcd.lattice(coarse_size)
+   local restI = {}
+   for mu = 0, dims - 2 do
+      restI[mu+1] = L_rest:pcoord(mu) 
+   end
+   -- optionally flip time direction
+   local flip_coord = L_rest:pcoord(#L_coarse-1)
+   if flip then
+      for npsrc = 0, V_coarse - 1 do
+         local xb = {}
+         local imod = npsrc
+         xb[#L_coarse] = imod % maxt
+         imod = math.floor(imod / maxt)
+         for mu = #L_coarse - 2, 0, -1 do
+            xb[mu+1] = imod % L_rest[mu]
+            imod = math.floor(imod / L_rest[mu])
+         end
+         printf("%d -> %d\n", flip_coord[xb], (L_coarse[#L_coarse-1] - xb[#L_coarse]) % L_coarse[#L_coarse-1])
+         flip_coord[xb] = (L_coarse[#L_coarse-1] - xb[#L_coarse]) % L_coarse[#L_coarse-1] 
+      end
+   end
+   restI[#L_coarse] = flip_coord
+   rest_scatter = qcd.scatter(L_rest, L_coarse, restI)
+   printf("scattering from "..tostring(L_coarse).." to "..tostring(L_rest).."\n")
+   -- convert to Dirc basis
+   local props = {}
+   for prop_num=1, #props_DR do
+      props[prop_num] = signflip * convert_to_Dirac_basis( rest_scatter(props_DR[prop_num]) )
+   end
+   return props
+end
+
+
+
+
+
+-- build hadronic correlator from coarsely momentum projected hadronic blocks at source and sink
+function compute_coarse_all_to_coarse_all_hadron(L, L_mom, props, flavor_list, all_snk_weights, src_weights, all_snk_p, all_src_p, coarse_fac)
+   local contract_timer = create_timer("compute hadron")
+   local Lt = L[#L-1]
+   local Nc = props[1][1]:colors()
+   local L_coarse = props[1][1].lattice
+   -- generate permutation list
+   local perms, sigs
+   if #flavor_list == 2 then
+      perms, sigs = two_flavor_perms(flavor_list)
+   else
+      error("only Nf=2 supported!")
+   end
+   print(perms)
+   print(sigs)
+   -- TODO : restricted perm list for B=2, push identical quarks in baryons to inner loop and ignore perm for identical baryons at snk
+   -- no switch
+   -- 1 d switch
+   -- 1 u switch
+   -- x2 for identical quarks in each baryon
+   printf("Computing all to all correlator, coarse "..tostring(L_coarse).."\n")
+   local src_mom_name = ""
+   for ii=1, #all_src_p do src_mom_name = src_mom_name..make_coord_name(all_src_p[ii]).." " end
+   local snk_mom_name = ""
+   for ii=1, #all_snk_p do snk_mom_name = snk_mom_name..make_coord_name(all_snk_p[ii]).." " end
+   printf("%d hadron blocks \n", #all_src_p)
+   printf("Src momenta "..src_mom_name.."\n")
+   printf("Snk momenta "..snk_mom_name.."\n")
+   printf("%d src weights \n", #src_weights)
+   printf("%d snk baryon weights \n", #all_snk_weights)
+   assert(#all_src_p == #all_snk_p)
+   -- number of src points to average over
+   local V_coarse = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      V_coarse = V_coarse * coarse_size[mu+1]
+   end
+   local Nb = #all_src_p
+   -- compute list of src coarse Fourier transform factors for each hadron
+   local src_FT_list = {}
+   local src_x_list = {}
+   for b = 1, Nb do
+      src_x_list[b] = {}
+      src_FT_list[b] = {}
+   end
+   for npsrc = 0, V_coarse - 1 do
+      local xb = {}
+      local imod = npsrc
+      for mu = #L - 2, 0, -1 do
+         xb[mu+1] = coarse_fac * (imod % L_coarse[mu])
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      for b = 1, Nb do
+         local src_FT_arg = 0
+         for mu = 0, #L - 2 do
+            src_FT_arg = src_FT_arg - xb[mu+1]*all_src_p[b][mu+1] *2*math.pi/L[mu]
+         end
+         src_FT_list[b][npsrc+1] = complex(math.cos(src_FT_arg), math.sin(src_FT_arg))
+      end
+   end
+   -- compute snk coarse FT factor
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   local snk_FT_list = {}
+   for b = 1, Nb do
+      local snk_FT_arg = L:Real(0)
+      for mu = 0, #L - 2 do
+         snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * all_snk_p[b][mu+1] * 2 * math.pi/L[mu]
+      end
+      local snk_FT = snk_FT_arg:expi() 
+      snk_FT_list[b] = coarse_scatter(snk_FT)
+   end
+   local mom_I = {L_coarse:pcoord(#L-1)}
+   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   -- loop over src color-spin components with non-zero weight
+   local correlator = L_mom:Complex(0)
+   for src_weight_num = 1, #src_weights do
+      printf("Src weight %d / %d \n",src_weight_num,#src_weights)
+      local src_weight = src_weights[src_weight_num]
+      -- loop over quark flavor permutations with appropriate signs
+      for nperm = 1, #perms do
+         printf("Src perm %d / %d \n",nperm,#perms)
+         contract_timer()
+         -- project to definite spatial wavefunction at src 
+         for x = 0, V_coarse^Nb - 1 do
+            --if (x % 10 == 0) then
+            --   printf("Src position %d / %d \n",x+1,V_coarse^Nb)
+            --   contract_timer()
+            --end
+            -- baryon level weights at snk (e.g. Nup Ndown +/- Ndown Nup)
+            for bweight_num = 1, #all_snk_weights do
+               local snk_weights = all_snk_weights[bweight_num]
+               local correlator_term = L_mom:Complex(sigs[nperm] * src_weight[#src_weight] * snk_weights[Nb+1])
+               -- loop over baryon blocks at snk
+               for b = 0, Nb - 1 do
+                  local block = L_coarse:Complex(0)
+                  -- loop over snk weights for each baryon
+                  for snk_weight_num = 1, #snk_weights[b+1] do
+                     local snk_weight = snk_weights[b+1][snk_weight_num]
+                     local block_term = L_coarse:Complex(1)
+                     -- construct position space snk block from props and snk weights
+                     for nq = 0, Nc - 1 do
+                        local snk_nq = Nc*b + nq
+                        local src_nq = perms[nperm][snk_nq + 1] - 1
+                        local src_nb = (src_nq - src_nq % Nc) / Nc
+                        local xb = x % V_coarse^(src_nb+1)
+                        local src_x = (xb - xb % V_coarse^(src_nb))/V_coarse^(src_nb)
+                        block_term = block_term * props[nq+1][src_x+1][{c=snk_weight[2*nq+1],d=snk_weight[2*nq+2]}][{c=src_weight[2*src_nq+1],d=src_weight[2*src_nq+2]}]
+                     end
+                     block = block + snk_weight[#snk_weight]  * block_term
+                  end
+                  -- momentum project snk block, fold in with other baryons
+                  correlator_term = correlator_term * coarse_mom_proj_gather:add(snk_FT_list[b+1]*block)
+                  local xb = x % V_coarse^(b+1)
+                  local src_x = (xb - xb % V_coarse^(b))/V_coarse^(b)
+                  --printf("src_x "..tostring(src_x).."\n")
+                  correlator_term = correlator_term * src_FT_list[b+1][src_x+1]
+               end
+               -- add to running average over src indices
+               correlator = correlator + correlator_term 
+            end
+         end
+      end
+   end
+   return correlator 
+end
+
+function old_save_coarse_all_to_coarse_all_nucleon_exchange_block_double(L, props, baryon_weights, p_list, coarse_fac, h5_writer, block_name, component)
+   local block_timer = create_timer("compute baryon blocks")
+   printf("starting baryon blocks\n")
+   assert(component == "upper" or component == "lower")
+   local Nc = props[1][1]:colors()
+   local L_coarse = props[1][1].lattice
+   local Lt = L_coarse[#L-1]
+   local nsI, nsF
+   if component == "upper" then
+      nsI = 0
+      nsF = 1
+   elseif component == "lower" then
+      nsI = 2
+      nsF = 3
+   end
+   -- number of src points to average over
+   local V_coarse = 1
+   local coarse_size = {} for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      V_coarse = V_coarse * coarse_size[mu+1]
+   end
+   printf("V coarse = %d\n", V_coarse)
+   -- holder for momentum-projected baryon block
+   local block = {}
+   local count = 0
+   -- compute snk coarse FT factor
+   local mom_I = {L_coarse:pcoord(#L-1)}
+   local L_mom = qcd.lattice{Lt}
+   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   local coarse_snk_FT_list = {}
+   for pnum = 1, #p_list do
+      local snk_FT_arg = L:Real(0)
+      for mu = 0, #L - 2 do
+         snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * p_list[pnum][mu+1] * math.pi/L[mu]
+      end
+      local snk_FT = snk_FT_arg:expi() 
+      coarse_snk_FT_list[pnum] = coarse_scatter(snk_FT)
+   end
+   -- each color-spin component of block (/source)
+   for c1 = 0, Nc-1 do
+      for s1 = nsI, nsF do
+         for c2 = 0, Nc-1 do
+            for s2 = nsI, nsF do
+               for c3 = 0, Nc-1 do
+                  for s3 = nsI, nsF do
+                     --if count % 10 == 0 then
+                     printf("Snk component %d / %d \n",count,Nc^3*2^3)
+                     block_timer()
+                     --end
+                     count = count + 1
+                     local term1 = L:Complex(0)
+                     local term2 = L:Complex(0)
+                     local c_vec = {c1, c2, c3}
+                     local s_vec = {s1, s2, s3}
+                     -- add all sink color-spin components with non-zero weight
+                     for y1 = 1, V_coarse do
+                        printf("y1 %d / %d \n",y1,V_coarse)
+                        block_timer()
+                        for y2 = 1, V_coarse do
+                           local block = L_coarse:Complex(0)
+                           for weight_num = 1, #baryon_weights do
+                              local weight = baryon_weights[weight_num]
+                              block = block + weight[#weight] * props[1][y2][{c=weight[1],d=weight[2]}][{c=c1,d=s1}] * props[2][y1][{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * props[3][y1][{c=weight[5],d=weight[6]}][{c=c3,d=s3}]
+                              block = block - weight[#weight] * props[3][y1][{c=weight[1],d=weight[2]}][{c=c3,d=s3}] * props[2][y1][{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * props[1][y2][{c=weight[5],d=weight[6]}][{c=c1,d=s1}]
+                           end
+                           for pnum = 1, #p_list do
+                              local term = coarse_mom_proj_gather:add(coarse_snk_FT_list[pnum]*block)
+                              local save_name = block_name.."/p="..make_coord_name(p_list[pnum]).."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3).."/"..tostring(y1-1).."/"..tostring(y2-1)
+                              h5_force_write(h5_writer, save_name, term )
+                              if y1 == y2 then
+                                 hmc_mosaic.printscalar(term, save_name)
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   block_timer()
+   return block
+end
+
+function old_save_coarse_all_to_coarse_all_nucleon_exchange_block_single(L, props, baryon_weights, p_list, coarse_fac, h5_writer, block_name, component)
+   local block_timer = create_timer("compute baryon blocks")
+   printf("starting baryon blocks\n")
+   assert(component == "upper" or component == "lower")
+   local Nc = props[1][1]:colors()
+   local L_coarse = props[1][1].lattice
+   local Lt = L_coarse[#L-1]
+   local nsI, nsF
+   if component == "upper" then
+      nsI = 0
+      nsF = 1
+   elseif component == "lower" then
+      nsI = 2
+      nsF = 3
+   end
+   -- number of src points to average over
+   local V_coarse = 1
+   local coarse_size = {} for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      V_coarse = V_coarse * coarse_size[mu+1]
+   end
+   printf("V coarse = %d\n", V_coarse)
+   -- holder for momentum-projected baryon block
+   local block = {}
+   local count = 0
+   -- compute snk coarse FT factor
+   local mom_I = {L_coarse:pcoord(#L-1)}
+   local L_mom = qcd.lattice{Lt}
+   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   local coarseI = {}
+   for mu = 0, #L - 2 do
+      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+   end
+   coarseI[#L] = L_coarse:pcoord(#L-1)
+   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+   local coarse_snk_FT_list = {}
+   for pnum = 1, #p_list do
+      local snk_FT_arg = L:Real(0)
+      for mu = 0, #L - 2 do
+         snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * p_list[pnum][mu+1] * 2 * math.pi/L[mu]
+      end
+      local snk_FT = snk_FT_arg:expi() 
+      coarse_snk_FT_list[pnum] = coarse_scatter(snk_FT)
+   end
+   -- each color-spin component of block (/source)
+   for c1 = 0, Nc-1 do
+      for s1 = nsI, nsF do
+         for c2 = 0, Nc-1 do
+            for s2 = nsI, nsF do
+               for c3 = 0, Nc-1 do
+                  for s3 = nsI, nsF do
+                     --if count % 10 == 0 then
+                     printf("Snk component %d / %d \n",count,Nc^3*2^3)
+                     block_timer()
+                     --end
+                     count = count + 1
+                     local term1 = L:Complex(0)
+                     local term2 = L:Complex(0)
+                     local c_vec = {c1, c2, c3}
+                     local s_vec = {s1, s2, s3}
+                     -- add all sink color-spin components with non-zero weight
+                     for y1 = 1, V_coarse do
+                        printf("y1 %d / %d \n",y1,V_coarse)
+                        block_timer()
+                        for y2 = 1, V_coarse do
+                           local block = L_coarse:Complex(0)
+                           for weight_num = 1, #baryon_weights do
+                              local weight = baryon_weights[weight_num]
+                              block = block + weight[#weight] * props[1][y1][{c=weight[1],d=weight[2]}][{c=c1,d=s1}] * props[2][y2][{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * props[3][y1][{c=weight[5],d=weight[6]}][{c=c3,d=s3}]
+                              block = block - weight[#weight] * props[3][y1][{c=weight[1],d=weight[2]}][{c=c3,d=s3}] * props[2][y2][{c=weight[3],d=weight[4]}][{c=c2,d=s2}] * props[1][y1][{c=weight[5],d=weight[6]}][{c=c1,d=s1}]
+                           end
+                           for pnum = 1, #p_list do
+                              local term = coarse_mom_proj_gather:add(coarse_snk_FT_list[pnum]*block)
+                              local save_name = block_name.."/p="..make_coord_name(p_list[pnum]).."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3).."/"..tostring(y1-1).."/"..tostring(y2-1)
+                              h5_force_write(h5_writer, save_name, term )
+                              if y1 == y2 then
+                                 hmc_mosaic.printscalar(term, save_name)
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   block_timer()
+   return block
+end
+
+-- build hadronic correlator from coarsely momentum projected hadronic blocks at source and sink
+function old_compute_coarse_all_to_coarse_all_hadron_from_blocks(L, L_mom, flavor_list, all_snk_weights, src_weights, all_snk_p, all_src_p, coarse_fac, h5_reader_list_single, h5_reader_list_double)
+   local contract_timer = create_timer("compute hadron")
+   local Lt = L[#L-1]
+   -- generate permutation list
+   local perms, sigs
+   if #flavor_list == 2 then
+      perms, sigs = two_flavor_perms(flavor_list)
+   else
+      error("only Nf=2 supported!")
+   end
+   local Nc = 3
+--   printf("Computing all to all correlator, coarse "..tostring(L_coarse).."\n")
+   local src_mom_name = ""
+   for ii=1, #all_src_p do src_mom_name = src_mom_name..make_coord_name(all_src_p[ii]).." " end
+   local snk_mom_name = ""
+   for ii=1, #all_snk_p do snk_mom_name = snk_mom_name..make_coord_name(all_snk_p[ii]).." " end
+   printf("%d hadron blocks \n", #all_src_p)
+   printf("Src momenta "..src_mom_name.."\n")
+   printf("Snk momenta "..snk_mom_name.."\n")
+   printf("%d src weights \n", #src_weights)
+   printf("%d snk baryon weights \n", #all_snk_weights)
+   assert(#all_src_p == #all_snk_p)
+   -- number of src points to average over
+   local V_coarse = 1
+   local coarse_size = {}
+   for mu = 0, #L - 2 do
+      coarse_size[mu+1] = L[mu] / coarse_fac
+      V_coarse = V_coarse * coarse_size[mu+1]
+   end
+   local Nb = #all_src_p
+   -- compute list of src coarse Fourier transform factors for each hadron
+   local src_FT_list = {}
+   local src_x_list = {}
+   for b = 1, Nb do
+      src_x_list[b] = {}
+      src_FT_list[b] = {}
+   end
+   for npsrc = 0, V_coarse - 1 do
+      local xb = {}
+      local imod = npsrc
+      for mu = #L - 2, 0, -1 do
+         xb[mu+1] = coarse_fac * (imod % (L[mu]/coarse_fac))
+         imod = math.floor(coarse_fac * imod / L[mu])
+      end
+      for b = 1, Nb do
+         local src_FT_arg = 0
+         for mu = 0, #L - 2 do
+            -- flip sign of FT for src vs snk
+            --src_FT_arg = src_FT_arg + xb[mu+1]*all_src_p[b][mu+1]
+            src_FT_arg = src_FT_arg - xb[mu+1]*all_src_p[b][mu+1] * 2 * math.pi/L[mu]
+         end
+         src_FT_list[b][npsrc+1] = complex(math.cos(src_FT_arg), math.sin(src_FT_arg))
+      end
+   end
+   -- compute snk coarse FT factor
+--   local coarseI = {}
+--   for mu = 0, #L - 2 do
+--      coarseI[mu+1] = L_coarse:pcoord(mu) * coarse_fac
+--   end
+--   coarseI[#L] = L_coarse:pcoord(#L-1)
+--   local coarse_scatter = qcd.scatter(L_coarse, L, coarseI)
+--   local snk_FT_list = {}
+--   for b = 1, Nb do
+--      local snk_FT_arg = L:Real(0)
+--      for mu = 0, #L - 2 do
+--         snk_FT_arg = snk_FT_arg + L:Real(L:pcoord(mu)) * all_snk_p[b][mu+1]
+--      end
+--      local snk_FT = snk_FT_arg:expi() 
+--      snk_FT_list[b] = coarse_scatter(snk_FT)
+--   end
+--   local mom_I = {L_coarse:pcoord(#L-1)}
+--   local coarse_mom_proj_gather = qcd.gather(L_mom, L_coarse, mom_I)
+   local total_weights = (#src_weights)*(#all_snk_weights)
+   local correlator = L_mom:Complex(0)
+   local count = 0
+   -- loop over quark flavor permutations with appropriate signs
+   for nperm = 1, #perms do
+      printf("Src perm %d / %d \n",nperm,#perms)
+      local redundant = false
+      printf("perm num %d Nb %d \n", #perms[nperm], Nb)
+      for b = 0, Nb - 1 do
+         if perms[nperm][Nc*b+1] > perms[nperm][Nc*b+3] then redundant = true end
+      end
+      if not redundant then
+         count = count + 1
+         -- baryon level weights at snk (e.g. Nup Ndown +/- Ndown Nup)
+         for bweight_num = 1, #all_snk_weights do
+            local h5_reader_single = h5_reader_list_single[bweight_num]
+            local h5_reader_double = h5_reader_list_double[bweight_num]
+            local snk_weights = all_snk_weights[bweight_num]
+            -- loop over src color-spin components with non-zero weight
+            for src_weight_num = 1, #src_weights do
+               local src_weight = src_weights[src_weight_num]
+               printf("Weight %d / %d \n", (bweight_num - 1)*(#src_weights) + src_weight_num, total_weights)
+               contract_timer()
+               -- project to definite spatial wavefunction at src 
+               for x = 0, V_coarse^Nb - 1 do
+                  local src_FT_fac = 1 
+                  for b = 0, Nb - 1 do
+                     local xb = x % V_coarse^(b+1)
+                     local src_x = (xb - xb % V_coarse^(b))/V_coarse^(b)
+                     src_FT_fac = src_FT_fac * src_FT_list[b+1][src_x+1] 
+                  end
+                  local correlator_term = L_mom:Complex(sigs[nperm] * src_weight[#src_weight] * snk_weights[Nb+1] * src_FT_fac)
+                  -- loop over baryon blocks at snk
+                  for b = 0, Nb - 1 do
+                     -- construct position space snk block from props and snk weights
+                     local src_1_nq = perms[nperm][Nc*b + 1] - 1
+                     local src_1 = (src_1_nq - src_1_nq % Nc) / Nc
+                     local xb_1 = x % V_coarse^(src_1+1)
+                     local src_x_1 = (xb_1 - xb_1 % V_coarse^(src_1))/V_coarse^(src_1)
+                     local src_2_nq = perms[nperm][Nc*b + 2] - 1
+                     local src_2 = (src_2_nq - src_2_nq % Nc) / Nc
+                     local xb_2 = x % V_coarse^(src_2+1)
+                     local src_x_2 = (xb_2 - xb_2 % V_coarse^(src_2))/V_coarse^(src_2)
+                     local src_3_nq = perms[nperm][Nc*b + 3] - 1
+                     local src_3 = (src_3_nq - src_3_nq % Nc) / Nc
+                     local xb_3 = x % V_coarse^(src_3+1)
+                     local src_x_3 = (xb_3 - xb_3 % V_coarse^(src_3))/V_coarse^(src_3)
+                     if src_x_1 == src_x_3 then
+                        local block = h5_reader_single[b+1]:read(snk_weights[b+1].."_single/p="..make_coord_name(all_snk_p[b+1]).."/"..tostring(src_weight[2*src_1_nq+1]).."/"..tostring(src_weight[2*src_1_nq+2]).."/"..tostring(src_weight[2*src_2_nq+1]).."/"..tostring(src_weight[2*src_2_nq+2]).."/"..tostring(src_weight[2*src_3_nq+1]).."/"..tostring(src_weight[2*src_3_nq+2]).."/"..tostring(src_x_1).."/"..tostring(src_x_2), {lattice=L_mom})
+                        correlator_term = correlator_term * block
+                     elseif src_x_1 == src_x_2 then
+                        local block = h5_reader_double[b+1]:read(snk_weights[b+1].."_double/p="..make_coord_name(all_snk_p[b+1]).."/"..tostring(src_weight[2*src_1_nq+1]).."/"..tostring(src_weight[2*src_1_nq+2]).."/"..tostring(src_weight[2*src_2_nq+1]).."/"..tostring(src_weight[2*src_2_nq+2]).."/"..tostring(src_weight[2*src_3_nq+1]).."/"..tostring(src_weight[2*src_3_nq+2]).."/"..tostring(src_x_1).."/"..tostring(src_x_3), {lattice=L_mom})
+                        correlator_term = correlator_term * block
+                     elseif src_x_2 == src_x_3 then
+                        local block = h5_reader_double[b+1]:read(snk_weights[b+1].."_double/p="..make_coord_name(all_snk_p[b+1]).."/"..tostring(src_weight[2*src_1_nq+1]).."/"..tostring(src_weight[2*src_1_nq+2]).."/"..tostring(src_weight[2*src_2_nq+1]).."/"..tostring(src_weight[2*src_2_nq+2]).."/"..tostring(src_weight[2*src_3_nq+1]).."/"..tostring(src_weight[2*src_3_nq+2]).."/"..tostring(src_x_2).."/"..tostring(src_x_1), {lattice=L_mom})
+                        correlator_term = correlator_term * block
+                     end
+                  end
+                  -- add to running average over src indices
+                  correlator = correlator + correlator_term 
+               end
+            end
+         end
+      end
+   end
+   printf("Non-redundant permutation count %d \n", count)
+   return correlator 
+end
+local function unwrap_4d(theta)
+   local uw_theta = theta
+   return uw_theta
+end
+
+local function get_corr_cumus(all_corrs)
+   local L = all_corrs[1].lattice
+   local r_avg = 0
+   local r2_avg = 0
+   local uw_theta_sq_avg = 0
+   for i,corr in ipairs(all_corrs) do
+      local log = corr:log()
+      r_avg = r_avg + log:real() / #all_corrs
+      r2_avg = r2_avg + (log:real()*log:real()) / #all_corrs
+      local uw_theta = unwrap_4d(log:imag())
+      uw_theta_sq_avg = uw_theta_sq_avg - uw_theta*uw_theta / (2*#all_corrs)
+   end
+   r2_avg = (r2_avg - r_avg*r_avg) / 2
+   return r_avg, r2_avg, uw_theta_sq_avg
+end
+
+local function get_corr_cumu_estimate(all_corrs)
+   local L = all_corrs[1].lattice
+   local r, r2, uw_theta_sq = get_corr_cumus(all_corrs)
+   local est = (r + r2 + uw_theta_sq):exp()
+   return est
+end
+
+
+function save_nucleon_exchange_block(props, baryon_weights, psi, pz_list, h5_writer, block_name, nsI, nsF)
+   local block_timer = create_timer("compute baryon blocks")
+   printf("starting baryon blocks\n")
+   local Nc = props[1][1]:colors()
+   local L = props[1][1].lattice
+   local Lt = L[#L-1]
+   local V_coarse = #props[1]
+   printf("V coarse = %d\n", V_coarse)
+   local L_big = qcd.lattice{L[0], L[1], L[2], L[0], L[1], L[2], Lt}
+   local big_I1 = {}
+   local big_I2 = {}
+   for mu = 0, #L - 2 do
+      big_I1[mu+1] = L_big:pcoord(mu) -- ???  
+      big_I2[mu+1] = L_big:pcoord(#L-1+mu) -- ???  
+   end
+   big_I1[#L] = L_big:pcoord(#L_big-1)
+   big_I2[#L] = L_big:pcoord(#L_big-1)
+   local big_I1_scatter = qcd.scatter(L_big, L, big_I1)
+   local big_I2_scatter = qcd.scatter(L_big, L, big_I2)
+   local count = 1
+   local num_weights = #baryon_weights
+   local num_psi = #psi
+   -- each color-spin component of block (/source)
+   for c1 = 0, Nc-1 do
+      for s1 = nsI, nsF do
+         for c2 = 0, Nc-1 do
+            for s2 = nsI, nsF do
+               for c3 = 0, Nc-1 do
+                  for s3 = nsI, nsF do
+                     printf("Snk component %d / %d \n",count,Nc^3*2^3)
+                     block_timer()
+                     count = count + 1
+                     -- single
+                     local all_blocks = {}
+                     for wvfn_num = 1, num_psi do
+                        all_blocks[wvfn_num] = L_big:Complex(0)
+                     end
+                     for y = 1, V_coarse do
+                        --printf("y %d / %d \n",y,V_coarse)
+                        --block_timer()
+                        local block = L_big:Complex(0)
+                        for weight_num = 1, num_weights do
+                           local weight = baryon_weights[weight_num]
+                           block = block + weight[#weight] * big_I2_scatter( props[1][y][{c=c1,d=s1}][{c=weight[1],d=weight[2]}] ) * big_I1_scatter( props[2][y][{c=c2,d=s2}][{c=weight[3],d=weight[4]}] * props[3][y][{c=c3,d=s3}][{c=weight[5],d=weight[6]}] )
+                           block = block - weight[#weight] * big_I1_scatter( props[1][y][{c=c3,d=s3}][{c=weight[1],d=weight[2]}] * props[2][y][{c=c2,d=s2}][{c=weight[3],d=weight[4]}] ) * big_I2_scatter( props[3][y][{c=c1,d=s1}][{c=weight[5],d=weight[6]}] )
+                        end
+                        for wvfn_num = 1, num_psi do
+                           all_blocks[wvfn_num] = all_blocks[wvfn_num] + psi[wvfn_num][y]*block
+                        end
+                     end
+                     for wvfn_num = 1, num_psi do
+                        local save_name = block_name.."_single/"..tostring(pz_list[wvfn_num]).."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3)
+                        h5_force_write(h5_writer, save_name, all_blocks[wvfn_num] )
+                     end
+                     local all_blocks = {}
+                     for wvfn_num = 1, #psi do
+                        all_blocks[wvfn_num] = L_big:Complex(0)
+                     end
+                     -- double
+                     local all_blocks = {}
+                     for wvfn_num = 1, num_psi do
+                        all_blocks[wvfn_num] = L_big:Complex(0)
+                     end
+                     for y = 1, V_coarse do
+                        local block = L_big:Complex(0)
+                        for weight_num = 1, num_weights do
+                           local weight = baryon_weights[weight_num]
+                           block = block + weight[#weight] * big_I2_scatter( props[2][y][{c=c2,d=s2}][{c=weight[3],d=weight[4]}] ) * big_I1_scatter( props[1][y][{c=c1,d=s1}][{c=weight[1],d=weight[2]}] * props[3][y][{c=c3,d=s3}][{c=weight[5],d=weight[6]}]  -  props[1][y][{c=c3,d=s3}][{c=weight[1],d=weight[2]}] *  props[3][y][{c=c1,d=s1}][{c=weight[5],d=weight[6]}] )
+                        end
+                        for wvfn_num = 1, num_psi do
+                           all_blocks[wvfn_num] = all_blocks[wvfn_num] + psi[wvfn_num][y]*block
+                        end
+                     end
+                     for wvfn_num = 1, num_psi do
+                        local save_name = block_name.."_double/"..tostring(pz_list[wvfn_num]).."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3)
+                        h5_force_write(h5_writer, save_name, all_blocks[wvfn_num] )
+                     end
+                     -- local
+                     local all_blocks = {}
+                     for wvfn_num = 1, num_psi do
+                        all_blocks[wvfn_num] = L_big:Complex(0)
+                     end
+                     for y = 1, V_coarse do
+                        local block = L_big:Complex(0)
+                        for weight_num = 1, num_weights do
+                           local weight = baryon_weights[weight_num]
+                           block = block + weight[#weight] * big_I1_scatter( props[2][y][{c=c2,d=s2}][{c=weight[3],d=weight[4]}]  * ( props[1][y][{c=c1,d=s1}][{c=weight[1],d=weight[2]}] * props[3][y][{c=c3,d=s3}][{c=weight[5],d=weight[6]}]  -  props[1][y][{c=c3,d=s3}][{c=weight[1],d=weight[2]}] *  props[3][y][{c=c1,d=s1}][{c=weight[5],d=weight[6]}] ) )
+                        end
+                        for wvfn_num = 1, num_psi do
+                           all_blocks[wvfn_num] = all_blocks[wvfn_num] + psi[wvfn_num][y]*block
+                        end
+                     end
+                     for wvfn_num = 1, num_psi do
+                        local save_name = block_name.."_local/"..tostring(pz_list[wvfn_num]).."/"..tostring(c1).."/"..tostring(s1).."/"..tostring(c2).."/"..tostring(s2).."/"..tostring(c3).."/"..tostring(s3)
+                        h5_force_write(h5_writer, save_name, all_blocks[wvfn_num] )
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+-- build hadronic correlator from coarsely momentum projected hadronic blocks at source and sink
+function compute_dibaryon_from_blocks(L, L_mom, flavor_list, all_src_weights, snk_weights, psi, src_pz, h5_reader_list)
+   local contract_timer = create_timer("compute hadron")
+   -- generate permutation list
+   local perms, sigs
+   if #flavor_list == 2 then
+      perms, sigs = two_flavor_perms(flavor_list)
+   else
+      error("only Nf=2 supported!")
+   end
+   local Nc = 3
+   local Nb = 2
+   local L_big = psi[1].lattice
+   -- transposition map
+   local big_I_t = {}
+   for mu = 0, #L - 2 do
+      big_I_t[mu+1] = L_big:pcoord(#L-1+mu) -- ???  
+      big_I_t[#L-1+mu+1] = L_big:pcoord(mu) -- ???  
+   end
+   big_I_t[#L_big] = L_big:pcoord(#L_big-1)
+   local big_I_t_scatter = qcd.scatter(L_big, L_big, big_I_t)
+   -- compute snk spatial projetion
+   local mom_I = {L_big:pcoord(#L_big-1)}
+   local snk_proj_gather = qcd.gather(L_mom, L_big, mom_I)
+   printf("%d wavefunctions \n", #psi)
+   printf("%d src baryon-level weights \n", #all_src_weights)
+   printf("%d snk quark-level weights \n", #snk_weights)
+   -- number of snk points to average over
+   local mom_I = {L_big:pcoord(#L_big-1)}
+   local snk_proj_gather = qcd.gather(L_mom, L_big, mom_I)
+   local total_weights = (#snk_weights)*(#all_src_weights)
+   local correlator = {}
+   for m = 0, #psi - 1 do
+      correlator[m+1] = {}
+      for n = 0, #psi - 1 do
+         correlator[m+1][n+1] = L_mom:Complex(0)
+      end
+   end
+   -- loop over spatial wavefunctions at src
+   for n = 0, #psi - 1 do
+      local count = 0
+      -- loop over quark flavor permutations with appropriate signs
+      for nperm = 1, #perms do
+         printf("Snk perm %d / %d \n",nperm,#perms)
+         local redundant = false
+         for b = 0, Nb - 1 do
+            if perms[nperm][Nc*b+1] > perms[nperm][Nc*b+3] then redundant = true end
+         end
+         if not redundant then
+            count = count + 1
+            local snk_1_nq = {}
+            local snk_2_nq = {}
+            local snk_3_nq = {}
+            local snk_1 = {}
+            local snk_2 = {}
+            local snk_3 = {}
+            for b = 0, Nb-1 do
+               snk_1_nq[b+1] = perms[nperm][Nc*b + 1] - 1
+               snk_2_nq[b+1] = perms[nperm][Nc*b + 2] - 1
+               snk_3_nq[b+1] = perms[nperm][Nc*b + 3] - 1
+               snk_1[b+1] = (snk_1_nq[b+1] - snk_1_nq[b+1] % Nc) / Nc
+               snk_2[b+1] = (snk_2_nq[b+1] - snk_2_nq[b+1] % Nc) / Nc
+               snk_3[b+1] = (snk_3_nq[b+1] - snk_3_nq[b+1] % Nc) / Nc
+               printf("snk quarks %d %d %d\n",snk_1_nq[b+1],snk_2_nq[b+1],snk_3_nq[b+1])
+               printf("snk baryons %d %d %d\n",snk_1[b+1],snk_2[b+1],snk_3[b+1])
+            end
+            -- baryon level weights at src (e.g. Nup Ndown +/- Ndown Nup)
+            for bweight_num = 1, #all_src_weights do
+               local h5_reader = h5_reader_list[bweight_num]
+               local src_weights = all_src_weights[bweight_num]
+               -- loop over src color-spin components with non-zero weight
+               for snk_weight_num = 1, #snk_weights do
+                  local snk_weight = snk_weights[snk_weight_num]
+                  printf("Weight %d / %d \n", (bweight_num - 1)*(#snk_weights) + snk_weight_num, total_weights)
+                  contract_timer()
+                  local correlator_term = L_big:Complex(sigs[nperm] * snk_weight[#snk_weight] * src_weights[Nb+1])
+                  -- loop over baryon blocks at snk
+                  for b = 0, Nb - 1 do
+                     if (snk_1[b+1] == 0) and (snk_2[b+1] == 0) and (snk_3[b+1] == 0) then
+                        local block = h5_reader[b+1]:read(src_weights[b+1].."_local/"..tostring(src_pz[n+1][b+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+2]), {lattice=L_big})
+                        correlator_term = correlator_term * block
+                     elseif (snk_1[b+1] == 1) and (snk_2[b+1] == 1) and (snk_3[b+1] == 1) then
+                        local block = big_I_t_scatter(h5_reader[b+1]:read(src_weights[b+1].."_local/"..tostring(src_pz[n+1][b+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+2]), {lattice=L_big}))
+                        correlator_term = correlator_term * block
+                     elseif (snk_1[b+1] == 0) and (snk_3[b+1] == 0) then
+                        local block = h5_reader[b+1]:read(src_weights[b+1].."_single/"..tostring(src_pz[n+1][b+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+2]), {lattice=L_big})
+                        correlator_term = correlator_term * block
+                     elseif (snk_1[b+1] == 1) and (snk_3[b+1] == 1) then
+                        local block = big_I_t_scatter(h5_reader[b+1]:read(src_weights[b+1].."_single/"..tostring(src_pz[n+1][b+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+2]), {lattice=L_big}))
+                        correlator_term = correlator_term * block
+                     elseif ((snk_2[b+1] == 0) and (snk_1[b+1] == 0)) or ((snk_2[b+1] == 0) and (snk_3[b+1] == 0)) then
+                        local block = h5_reader[b+1]:read(src_weights[b+1].."_double/"..tostring(src_pz[n+1][b+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+2]), {lattice=L_big})
+                        correlator_term = correlator_term * block
+                     elseif ((snk_2[b+1] == 1) and (snk_1[b+1] == 1)) or ((snk_2[b+1] == 1) and (snk_3[b+1] == 1)) then
+                        local block = big_I_t_scatter(h5_reader[b+1]:read(src_weights[b+1].."_double/"..tostring(src_pz[n+1][b+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_1_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_2_nq[b+1]+2]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+1]).."/"..tostring(snk_weight[2*snk_3_nq[b+1]+2]), {lattice=L_big}))
+                        correlator_term = correlator_term * block
+                     end
+                  end
+                  -- add to running average over snk indices
+                  for m = 0, #psi - 1 do
+                     correlator[m+1][n+1] = correlator[m+1][n+1] + snk_proj_gather:add( psi[m+1]*correlator_term  )
+                  end
+               end
+            end
+         end
+      end
+      printf("Non-redundant permutation count %d \n", count)
+   end
+   return correlator 
+end

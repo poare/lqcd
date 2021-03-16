@@ -1,0 +1,459 @@
+require "stdlib" 
+
+local Nc = 3
+-- color-spin block weights: {uc, us, dc, ds, uc, us}
+local epsilonC = {}
+epsilonC[0 + 1*Nc + 2*Nc^2] = 1
+epsilonC[0 + 2*Nc + 1*Nc^2] = -1
+epsilonC[1 + 2*Nc + 0*Nc^2] = 1
+epsilonC[1 + 0*Nc + 2*Nc^2] = -1
+epsilonC[2 + 0*Nc + 1*Nc^2] = 1
+epsilonC[2 + 1*Nc + 0*Nc^2] = -1
+
+-- B = 1
+B1_I1_flavor = {{1,3},{2}}
+B1_Im1_flavor = {{2},{1,3}}
+
+
+-- proton, with identical u quarks MS and MA are the same up
+B1_G1g_r1_color_weights = { }
+B1_G1g_r1_spin_weights = { }
+B1_G1g_r1_weights_weights = { }
+local nW = 0
+B1_G1g_r1_color_weights[nW+1] = {0,1,2}
+B1_G1g_r1_spin_weights[nW+1] = {1-1,2-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = -2/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {0,2,1}
+B1_G1g_r1_spin_weights[nW+1] = {1-1,2-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = 2/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {1,0,2}
+B1_G1g_r1_spin_weights[nW+1] = {1-1,2-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = 2/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {0,1,2}
+B1_G1g_r1_spin_weights[nW+1] = {2-1,1-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = 1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {0,2,1}
+B1_G1g_r1_spin_weights[nW+1] = {2-1,1-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = -1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {1,0,2}
+B1_G1g_r1_spin_weights[nW+1] = {2-1,1-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = -1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {1,2,0}
+B1_G1g_r1_spin_weights[nW+1] = {2-1,1-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = 1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {2,1,0}
+B1_G1g_r1_spin_weights[nW+1] = {2-1,1-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = -1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r1_color_weights[nW+1] = {2,0,1}
+B1_G1g_r1_spin_weights[nW+1] = {2-1,1-1,1-1}
+B1_G1g_r1_weights_weights[nW+1] = 1/math.sqrt(2)
+nW = nW + 1
+-- proton, with identical u quarks MS and MA are the same down
+B1_G1g_r2_color_weights = { }
+B1_G1g_r2_spin_weights = { }
+B1_G1g_r2_weights_weights = { }
+local nW = 0
+B1_G1g_r2_color_weights[nW+1] =  {0,1,2}
+B1_G1g_r2_spin_weights[nW+1] =  {1-1,2-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {0,2,1}
+B1_G1g_r2_spin_weights[nW+1] =  {1-1,2-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  -1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {1,0,2}
+B1_G1g_r2_spin_weights[nW+1] =  {1-1,2-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  -1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {1,2,0}
+B1_G1g_r2_spin_weights[nW+1] =  {1-1,2-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {2,1,0}
+B1_G1g_r2_spin_weights[nW+1] =  {1-1,2-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  -1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {2,0,1}
+B1_G1g_r2_spin_weights[nW+1] =  {1-1,2-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  1/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {0,1,2}
+B1_G1g_r2_spin_weights[nW+1] =  {2-1,1-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  -2/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {0,2,1}
+B1_G1g_r2_spin_weights[nW+1] =  {2-1,1-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  2/math.sqrt(2)
+nW = nW + 1
+B1_G1g_r2_color_weights[nW+1] =  {1,0,2}
+B1_G1g_r2_spin_weights[nW+1] =  {2-1,1-1,2-1}
+B1_G1g_r2_weights_weights[nW+1] =  2/math.sqrt(2)
+nW = nW + 1
+-- proton, u Cg5 d u
+B1_QM_color_weights = { }
+B1_QM_spin_weights = { }
+B1_QM_weights_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {1-1,2-1,2-1}
+            B1_QM_weights_weights[nW+1] =  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {2-1,1-1,2-1}
+            B1_QM_weights_weights[nW+1] =  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {3-1,4-1,2-1}
+            B1_QM_weights_weights[nW+1] =  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {4-1,3-1,2-1}
+            B1_QM_weights_weights[nW+1] =  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {1-1,2-1,1-1}
+            B1_QM_weights_weights[nW+1] =  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {2-1,1-1,1-1}
+            B1_QM_weights_weights[nW+1] =  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {3-1,4-1,1-1}
+            B1_QM_weights_weights[nW+1] =  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+            B1_QM_color_weights[nW+1] =  {c1,c2,c3}
+            B1_QM_spin_weights[nW+1] =  {4-1,3-1,1-1}
+            B1_QM_weights_weights[nW+1] =  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- negpar proton, with identical u quarks MS and MA are the same up
+B1_G1u_r1_weights = { }
+local nW = 0
+B1_G1u_r1_weights[nW+1] = {0,3-1, 1,4-1, 2,3-1, -2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {0,3-1, 2,4-1, 1,3-1, 2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {1,3-1, 0,4-1, 2,3-1, 2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {0,4-1, 1,3-1, 2,3-1, 1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {0,4-1, 2,3-1, 1,3-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {1,4-1, 0,3-1, 2,3-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {1,4-1, 2,3-1, 0,3-1, 1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {2,4-1, 1,3-1, 0,3-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {2,4-1, 0,3-1, 1,3-1, 1/math.sqrt(2)}
+nW = nW + 1
+
+
+-- proton, with identical u quarks MS and MA are the same up
+B1_G1g_r1_weights = { }
+local nW = 0
+B1_G1g_r1_weights[nW+1] = {0,1-1, 1,2-1, 2,1-1, -2/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {0,1-1, 2,2-1, 1,1-1, 2/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {1,1-1, 0,2-1, 2,1-1, 2/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {0,2-1, 1,1-1, 2,1-1, 1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {0,2-1, 2,1-1, 1,1-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {1,2-1, 0,1-1, 2,1-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {1,2-1, 2,1-1, 0,1-1, 1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {2,2-1, 1,1-1, 0,1-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r1_weights[nW+1] = {2,2-1, 0,1-1, 1,1-1, 1/math.sqrt(2)}
+nW = nW + 1
+-- proton, with identical u quarks MS and MA are the same down
+B1_G1g_r2_weights = { }
+local nW = 0
+B1_G1g_r2_weights[nW+1] =  {0,1-1, 1,2-1, 2,2-1,  1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {0,1-1, 2,2-1, 1,2-1,  -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {1,1-1, 0,2-1, 2,2-1,  -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {1,1-1, 2,2-1, 0,2-1,  1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {2,1-1, 1,2-1, 0,2-1,  -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {2,1-1, 0,2-1, 1,2-1,  1/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {0,2-1, 1,1-1, 2,2-1,  -2/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {0,2-1, 2,1-1, 1,2-1,  2/math.sqrt(2)}
+nW = nW + 1
+B1_G1g_r2_weights[nW+1] =  {1,2-1, 0,1-1, 2,2-1,  2/math.sqrt(2)}
+nW = nW + 1
+-- negpar proton, with identical u quarks MS and MA are the same up
+B1_G1u_r1_weights = { }
+local nW = 0
+B1_G1u_r1_weights[nW+1] = {0,3-1, 1,4-1, 2,3-1, -2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {0,3-1, 2,4-1, 1,3-1, 2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {1,3-1, 0,4-1, 2,3-1, 2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {0,4-1, 1,3-1, 2,3-1, 1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {0,4-1, 2,3-1, 1,3-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {1,4-1, 0,3-1, 2,3-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {1,4-1, 2,3-1, 0,3-1, 1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {2,4-1, 1,3-1, 0,3-1, -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r1_weights[nW+1] = {2,4-1, 0,3-1, 1,3-1, 1/math.sqrt(2)}
+nW = nW + 1
+-- negpar proton, with identical u quarks MS and MA are the same down
+B1_G1u_r2_weights = { }
+local nW = 0
+B1_G1u_r2_weights[nW+1] =  {0,3-1, 1,4-1, 2,4-1,  1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {0,3-1, 2,4-1, 1,4-1,  -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {1,3-1, 0,4-1, 2,4-1,  -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {1,3-1, 2,4-1, 0,4-1,  1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {2,3-1, 1,4-1, 0,4-1,  -1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {2,3-1, 0,4-1, 1,4-1,  1/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {0,4-1, 1,3-1, 2,4-1,  -2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {0,4-1, 2,3-1, 1,4-1,  2/math.sqrt(2)}
+nW = nW + 1
+B1_G1u_r2_weights[nW+1] =  {1,4-1, 0,3-1, 2,4-1,  2/math.sqrt(2)}
+nW = nW + 1
+-- proton, MS representation up
+local nW = 0
+B1_G1g_r1_MS_weights = {}
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1g_r1_MS_weights[nW+1] =  {c1,1-1,c2,2-1,c3,1-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1g_r1_MS_weights[nW+1] =  {c1,2-1,c2,1-1,c3,1-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1g_r1_MS_weights[nW+1] =  {c1,1-1,c2,1-1,c3,2-1, 2/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- proton, MS representation down
+B1_G1g_r2_MS_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1g_r2_MS_weights[nW+1] =  {c1,1-1,c2,2-1,c3,2-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1g_r2_MS_weights[nW+1] =  {c1,2-1,c2,1-1,c3,2-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1g_r2_MS_weights[nW+1] =  {c1,2-1,c2,2-1,c3,1-1, 2/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- negative parity proton, MS representation down
+B1_G1u_r2_MS_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1u_r2_MS_weights[nW+1] =  {c1,3-1,c2,4-1,c3,4-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1u_r2_MS_weights[nW+1] =  {c1,4-1,c2,3-1,c3,4-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1u_r2_MS_weights[nW+1] =  {c1,4-1,c2,4-1,c3,3-1, 2/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- negative parity proton, MS representation up
+B1_G1u_r1_MS_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1u_r1_MS_weights[nW+1] =  {c1,3-1,c2,4-1,c3,3-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1u_r1_MS_weights[nW+1] =  {c1,4-1,c2,3-1,c3,3-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1u_r1_MS_weights[nW+1] =  {c1,3-1,c2,3-1,c3,4-1, 2/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- proton, MA representation up
+B1_G1g_r1_MA_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1g_r1_MA_weights[nW+1] =  {c1,1-1,c2,2-1,c3,1-1,  1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1g_r1_MA_weights[nW+1] =  {c1,2-1,c2,1-1,c3,1-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- proton, MA representation down
+B1_G1g_r2_MA_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1g_r2_MA_weights[nW+1] =  {c1,1-1,c2,2-1,c3,2-1,  1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1g_r2_MA_weights[nW+1] =  {c1,2-1,c2,1-1,c3,2-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- negative parity proton, MA representation up
+B1_G1u_r1_MA_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1u_r1_MA_weights[nW+1] =  {c1,3-1,c2,4-1,c3,3-1,  1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1u_r1_MA_weights[nW+1] =  {c1,4-1,c2,3-1,c3,3-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- negative parity proton, MA representation down
+B1_G1u_r2_MA_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            B1_G1u_r2_MA_weights[nW+1] =  {c1,3-1,c2,4-1,c3,4-1,  1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            B1_G1u_r2_MA_weights[nW+1] =  {c1,4-1,c2,3-1,c3,4-1, -1/math.sqrt(2)*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- proton, u Cg5 d u up
+proton_QM_up_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            proton_QM_up_weights[nW+1] =  {c1,1-1,c2,2-1,c3,1-1,  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_up_weights[nW+1] =  {c1,2-1,c2,1-1,c3,1-1,  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_up_weights[nW+1] =  {c1,3-1,c2,4-1,c3,1-1, (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_up_weights[nW+1] =  {c1,4-1,c2,3-1,c3,1-1, -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- proton, u Cg5 d u down
+proton_QM_down_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            proton_QM_down_weights[nW+1] =  {c1,1-1,c2,2-1,c3,2-1,  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_down_weights[nW+1] =  {c1,2-1,c2,1-1,c3,2-1,  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_down_weights[nW+1] =  {c1,3-1,c2,4-1,c3,2-1, (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_down_weights[nW+1] =  {c1,4-1,c2,3-1,c3,2-1, -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+-- proton, u Cg5 d u
+proton_QM_weights = { }
+local nW = 0
+for c1 = 0, Nc-1 do
+   for c2 = 0, Nc-1 do
+      for c3 = 0, Nc-1 do
+         if epsilonC[c1 + c2*Nc + c3*Nc^2] ~= nil then
+            proton_QM_weights[nW+1] =  {c1,1-1,c2,2-1,c3,2-1,  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,2-1,c2,1-1,c3,2-1,  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,3-1,c2,4-1,c3,2-1, (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,4-1,c2,3-1,c3,2-1, -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,1-1,c2,2-1,c3,1-1,  (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,2-1,c2,1-1,c3,1-1,  -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,3-1,c2,4-1,c3,1-1, (1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+            proton_QM_weights[nW+1] =  {c1,4-1,c2,3-1,c3,1-1, -(1/math.sqrt(2))*epsilonC[c1 + c2*Nc + c3*Nc^2]}
+            nW = nW + 1
+         end
+      end
+   end
+end
+
+printf("proton up, identical u quarks %d weights\n", #B1_G1g_r1_weights)
+printf("proton MA up, %d weights\n", #B1_G1g_r1_MA_weights)
+printf("proton MS up, %d weights\n", #B1_G1g_r1_MS_weights)
+printf("proton down, identical u quarks %d weights\n", #B1_G1g_r2_weights)
+printf("proton MA down, %d weights\n", #B1_G1g_r2_MA_weights)
+printf("proton MS down, %d weights\n", #B1_G1g_r2_MS_weights)
+printf("negative parity proton up, identical u quarks %d weights\n", #B1_G1u_r1_weights)
+printf("negative parity proton MA up, %d weights\n", #B1_G1u_r1_MA_weights)
+printf("negative parity proton MS up, %d weights\n", #B1_G1u_r1_MS_weights)
+printf("negative parity proton down, identical u quarks %d weights\n", #B1_G1u_r2_weights)
+printf("negative parity proton MA down, %d weights\n", #B1_G1u_r2_MA_weights)
+printf("negative parity proton MS down, %d weights\n", #B1_G1u_r2_MS_weights)
+printf("proton with some antiquarks up, %d weights\n", #proton_QM_up_weights)
+printf("proton with some antiquarks down, %d weights\n", #proton_QM_down_weights)

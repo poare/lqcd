@@ -1,0 +1,38 @@
+gl_sk = { force = {}, count = {}, action = {}}
+gl_sk.count.plaq1 = 1
+function gl_sk.action.plaq1(U,x,y)
+   local t = {}
+   t[1] = U[x + 1]
+   t[2] = U[y + 1]
+   t[3] = t[2]:shift(x, "from_forward")
+   t[4] = t[1] * t[3]
+   t[3] = t[1]:shift(y, "from_forward")
+   t[1] = t[2] * t[3]
+   t[2] = qcd.dot(t[4], t[1])
+   t[4] = t[2]:real()
+   return t[4]
+end
+gl_sk.force.plaq1 = {}
+function gl_sk.force.plaq1.dx(U,x,y)
+   local t = {}
+   t[1] = U[x + 1]
+   t[2] = U[y + 1]
+   t[3] = t[2]:shift(y, "from_backward")
+   t[4] = t[3]:adjoin()
+   t[3] = t[4]:shift(x, "from_forward")
+   t[4] = t[1] * t[3]
+   t[3] = t[2]:adjoin()
+   t[5] = t[3] * t[1]
+   t[3] = t[5]:shift(y, "from_backward")
+   t[5] = t[3]:adjoin()
+   t[3] = t[4] * t[5]
+   t[4] = t[2]:shift(x, "from_forward")
+   t[5] = t[1] * t[4]
+   t[4] = t[1]:shift(y, "from_forward")
+   t[1] = t[2] * t[4]
+   t[2] = t[1]:adjoin()
+   t[1] = t[5] * t[2]
+   -- up, down in y; both are forwards in x
+   return t[1], t[3]
+end
+
