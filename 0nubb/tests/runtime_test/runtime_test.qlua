@@ -43,7 +43,8 @@ function load_nersc(file_name, Lattice)
 end
 
 -- compute all color-unmixed bilinears with all gamma matrices.
-function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writer, timer)
+-- function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writer, timer)
+function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, timer)
   local bvec = {0,0,0,0.5}
   print("Computing with momentum sources.")
 
@@ -79,21 +80,21 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local k2FT = k2FTarg:expi()
 
     -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
-    local L_vec = qcd.lattice{4}
-    local k1_lat = L_vec:Int(0)
-    local k2_lat = L_vec:Int(0)
-    for mu = 0, #L - 1 do
-      k1_lat[{mu}] = k1[mu + 1]
-      k2_lat[{mu}] = k2[mu + 1]
-    end
-    local k1_path = string.format("moms/q%d%d%d%d/k1", q[1], q[2], q[3], q[4])
-    local k2_path = string.format("moms/q%d%d%d%d/k2", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, k1_path, k1_lat)
-    h5_force_write(writer, k2_path, k2_lat)
+    -- local L_vec = qcd.lattice{4}
+    -- local k1_lat = L_vec:Int(0)
+    -- local k2_lat = L_vec:Int(0)
+    -- for mu = 0, #L - 1 do
+    --   k1_lat[{mu}] = k1[mu + 1]
+    --   k2_lat[{mu}] = k2[mu + 1]
+    -- end
+    -- local k1_path = string.format("moms/q%d%d%d%d/k1", q[1], q[2], q[3], q[4])
+    -- local k2_path = string.format("moms/q%d%d%d%d/k2", q[1], q[2], q[3], q[4])
+    -- h5_force_write(writer, k1_path, k1_lat)
+    -- h5_force_write(writer, k2_path, k2_lat)
 
     local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
-    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
-    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+    -- local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
+    -- local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
 
     -- COMPUTE PROPAGATORS
     print("Inverting propagators.")
@@ -101,54 +102,43 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     local S_k1 = solver(srck1)
     print("Propagator k1 inverted.")
     timer()
-    local S_k2 = solver(srck2)
-    print("Propagator k2 inverted.")
-    timer()
-    local S_q = solver(srcq)
-    print("Inversions done")
-    timer()
+    -- local S_k2 = solver(srck2)
+    -- print("Propagator k2 inverted.")
+    -- timer()
+    -- local S_q = solver(srcq)
+    -- print("Inversions done")
+    -- timer()
 
-    local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
-    local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
-    local mom4_prop_q = (qFT * S_q):sum() / vol
+    -- local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
+    -- local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
+    -- local mom4_prop_q = (qFT * S_q):sum() / vol
 
-    -- local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
-    local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
+    -- TODO this is only for the test, since I want it to run in a reasonable amount of time to see how fast it is.
+    local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
+    -- local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
 
     -- Write momentum projected propagator to file
-    local prop_path_k1 = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local prop_path_k2 = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    local prop_path_q = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
-    h5_force_write(writer, prop_path_k1, mom4_prop_k1)
-    h5_force_write(writer, prop_path_k2, mom4_prop_k2)
-    h5_force_write(writer, prop_path_q, mom4_prop_q)
-    printf("Propagator for momentum k1 written at path: %s\n", prop_path_k1)
-    printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
-    printf("Propagator for momentum q written at path: %s\n", prop_path_q)
-
-    -- Vector and axial currents.
-    for mu = 0, #L - 1 do
-      -- local GV = (qFT * antiprop_k1 * (gamma{mu = mu} * S_k2)):sum() / vol
-      -- local GA = (qFT * antiprop_k1 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k2)):sum() / vol
-      local GV = (mqFT_nobvec * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
-      local GA = (mqFT_nobvec * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
-      local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
-      local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
-      h5_force_write(writer, op_path_V, GV)
-      h5_force_write(writer, op_path_A, GA)
-      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
-      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
-    end
+    -- local prop_path_k1 = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    -- local prop_path_k2 = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    -- local prop_path_q = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    -- h5_force_write(writer, prop_path_k1, mom4_prop_k1)
+    -- h5_force_write(writer, prop_path_k2, mom4_prop_k2)
+    -- h5_force_write(writer, prop_path_q, mom4_prop_q)
+    -- printf("Propagator for momentum k1 written at path: %s\n", prop_path_k1)
+    -- printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
+    -- printf("Propagator for momentum q written at path: %s\n", prop_path_q)
 
     -- Get four point function for unprimed operators
     print("Evaluating four point functions.")
     timer()
-    local Nc = S_k2:colors()
+    local Nc = S_k1:colors()
     local Nd = 4
     local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
     local m = 6    -- choose a random m index for testing
     local G = L_NPR:Complex(complex(0, 0))    -- BUG WAS HERE: accidentally didn't re-initialize G^(n) each time we looped.
-    local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
+    -- local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
+    -- Using only k1 propagator to make timing more manageable
+    local A_gamma = antiprop_k1 * (gamma{n=m} * S_k1)
     for alpha = 0, Nd - 1 do
       print(alpha)
       timer()
@@ -173,10 +163,10 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, vol, writ
     print("Four point functions evaluated.")
     timer()
     -- write to file here
-    local Gpath = string.format("Gn%d/q%d%d%d%d", m, q[1], q[2], q[3], q[4])
-    h5_force_write(writer, Gpath, G)
-    printf("Gn%d written at: %s", m, Gpath)
-    print("Done evaluating operators.")
+    -- local Gpath = string.format("Gn%d/q%d%d%d%d", m, q[1], q[2], q[3], q[4])
+    -- h5_force_write(writer, Gpath, G)
+    -- printf("Gn%d written at: %s", m, Gpath)
+    -- print("Done evaluating operators.")
   end
 end
 
@@ -243,9 +233,12 @@ for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 local timer = create_timer("runtime")
 
 -- Open file writer
-local hdf5params = { method = "phdf5" }
-local writer = qcd.hdf5.Writer(filename, hdf5params)
+-- local hdf5params = { method = "phdf5" }
+-- local writer = qcd.hdf5.Writer(filename, hdf5params)
 print("Computing vector / axial three point functions and all color-unmixed bilinears.")
-compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, timer)
+-- compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, timer)
+compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, vol, timer)
 
-writer:close()
+print("Done.")
+timer()
+-- writer:close()
