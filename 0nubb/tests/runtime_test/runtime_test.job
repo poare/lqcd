@@ -14,19 +14,20 @@ set -x
 cd ./mosaic_copy
 
 bash
+
+# these need to be adjusted to the relevant paths
 module load openmpi/3.1.5
 module load qlua/20200107
-
 EXE=qlua
+home=/home/poare/lqcd/0nubb/tests/runtime_test
 
 test="runtime_test"
-# home=/home/poare/lqcd/0nubb
-home=.
 logs=${home}/logs
 output=${home}/output
+cfgpath=${home}/configs
 
 # cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
-cfgpath="'${home}'/configs/"
+# cfgpath="'${home}'/configs/"
 cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
 cfg=1200
 parameters="jobid=${SLURM_JOB_ID} cfgpath='${cfgpath}' cfgbase='${cfgbase}' cfgnum=${cfg} out_folder='${output}'"
