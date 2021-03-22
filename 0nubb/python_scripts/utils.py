@@ -8,6 +8,7 @@ import itertools
 import io
 import random
 from scipy import optimize
+from scipy.stats import chi2
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
   # b is the boostrap index
@@ -214,6 +215,14 @@ def read_Npt(folder, stem, fnums, N, n_t, start_idx = 2):
                     print(e)
     return Cnpt
 
+# folds meff over midpoint-- its size is T - 1, so have to be careful about the indexing
+def fold_meff(m_eff, T):
+    m_eff_folded = np.zeros((n_boot, T // 2 - 1), dtype = np.float64)
+    for t in range(1, T // 2):
+        t1, t2 = t, T - (t + 1)
+        m_eff_folded[:, t - 1] = (m_eff[:, t1] - m_eff[:, t2]) / 2
+    return m_eff_folded
+
 # C should be an array of size [num_files, T] where T is the lattice temporal extent.
 # Folder is a function of two arguments which returns how to add them, (A + B)
 # for sym and (A - B) for antisym
@@ -250,6 +259,45 @@ def fit_constant(fit_region, data, nfits = n_boot):
     chi2_mu = chi2([c_mu], data_mu[fit_region], sigma_fit)
     ndof = len(fit_region) - 1    # since we're just fitting a constant, n_params = 1
     return c_fit, chi2_mu, ndof
+
+# data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
+# by p value of the fit. cut is the pvalue to cut at.
+def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
+    TT = data.shape[1]
+    fit_ranges = []
+    for t1 in range(TT):
+        for t2 in range(t1 + TT_min, TT):
+            fit_ranges.append(range(t1, t2))
+    f_acc = []        # for each accepted fit, store [fidx, fit_region]
+    stats_acc = []    # for each accepted fit, store [pf, chi2, ndof]
+    meff_acc = []     # for each accepted fit, store [meff_f, meff_sigma_f]
+    weights = []
+    print('Accepted fits\nfit index | fit range | p value | meff mean | meff sigma | weight ')
+    for f, fit_region in enumerate(fit_ranges):
+        meff_ens_f, chi2_f, ndof_f = fit_constant(fit_region, data)
+        pf = chi2.sf(chi2_f, ndof_f)
+        if pf > cut:    # accept the fit
+            meff_mu_f = np.mean(meff_ens_f)
+            meff_sigma_f = np.std(meff_ens_f, ddof = 1)
+            weight_f = pf * (meff_sigma_f ** (-2))
+            print(f, fit_region, pf, meff_mu_f, meff_sigma_f, weight_f)
+            f_acc.append([f, fit_region])
+            stats_acc.append([pf, chi2_f, ndof_f])
+            meff_acc.append([meff_mu_f, meff_sigma_f])
+            weights.append(weight_f)
+    print('Number of accepted fits: ' + str(len(f_acc)))
+    weights, meff_acc, stats_acc = np.array(weights), np.array(meff_acc), np.array(stats_acc)
+    weights = weights / np.sum(weights)    # normalize to 1
+    return f_acc, stats_acc, meff_acc, weights
+
+# Inputs should all be in the same format as above. meff = list of [meff_mu, meff_sigma]
+# for each accepted fit, weights = pf (\delta meff)^-2 for each accepted fit.
+def analyze_accepted_fits(meff, weights):
+    meff_bar = np.sum(weights * meff[:, 0])
+    dmeff_stat_sq = np.sum(weights * (meff[:, 1] ** 2))
+    dmeff_sys_sq = np.sum(weights * ((meff[:, 0] - meff_bar) ** 2))
+    meff_sigma = np.sqrt(dmeff_stat_sq + dmeff_sys_sq)
+    return meff_bar, meff_sigma
 
 # VarPro code
 

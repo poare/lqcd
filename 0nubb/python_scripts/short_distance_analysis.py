@@ -13,10 +13,10 @@ Pi_Pi = '/Users/theoares/Pi_Pi/'
 
 # Choose lattice to run analysis on and initialize parameters
 # config = '24I/ml_0p01'
-# config = '24I/ml_0p005'
+config = '24I/ml_0p005'
 # config = '32I/ml0p008'
 # config = '32I/ml0p006'
-config = '32I/ml0p004'
+# config = '32I/ml0p004'
 
 resultsA = Pi_Pi + config + '/resultsA'
 resultsA_tavg = resultsA + '.tavg'
@@ -83,9 +83,10 @@ C2_boot = bootstrap(C2_tavg, data_type = np.complex64)
 # C2_fold = fold(C2_tavg, L.T, fold_fn)            # fold about midpoint. Might not need this for the 3pt analysis
 
 # Extract pion mass. pi_masses should contain bootstrapped fit results for mpi
+print('Fitting pion mass at one range of times')
 m_eff = get_cosh_effective_mass(C2_boot)
 meff_fit_range = range(10, 25)
-mpi_boot = fit_constant(meff_fit_range, m_eff)
+mpi_boot = fit_constant(meff_fit_range, m_eff)[0]
 mpi_mu = np.mean(mpi_boot)
 mpi_sigma = np.std(mpi_boot, ddof = 1)
 print('Pion mass = ' + str(mpi_mu) + ' \\pm ' + str(mpi_sigma))
@@ -110,7 +111,7 @@ for t in range(L.T):
     C2_neg_mode[:, t] = C2_boot[:, t] - (1/2) * C2_boot[:, L.T // 2] * np.exp(mpi_boot[:] * (t - L.T // 2))
 
 # TODO do other stems!
-other_stems = ['pion-00WP', 'fp-00WP']
+other_stems = ['pion-00WP', 'fp-00WP', 'fp-00WW']
 C2_stem_boot = {}
 for stem in other_stems:
     print('Reading 2pt from ' + stem)
