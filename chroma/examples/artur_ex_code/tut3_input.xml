@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<chroma>
+<annotation>
+; $Id: chroma_simple.xml.ini,v 1.1 2005/04/07 03:26:00 edwards Exp $
+;
+; Simple test input file for chroma program
+;
+</annotation>
+<Param> 
+  <InlineMeasurements>
+
+   
+    <elem>
+      <Name>PLAQUETTE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>2</version> 
+      </Param>
+      <NamedObject>
+         <gauge_id>default_gauge_field</gauge_id>
+      </NamedObject>
+    </elem>
+
+
+    <elem>
+      <Name>QIO_READ_NAMED_OBJECT</Name>
+      <Frequency>1</Frequency>
+      <File>
+	<file_name>./propagator_0</file_name>
+	<file_volfmt>SINGLEFILE</file_volfmt>
+      </File>
+      <NamedObject>
+	<object_type>LatticePropagator</object_type>
+	<object_id>prop</object_id>
+      </NamedObject>
+    </elem>
+
+
+    <elem>
+      <Name>MY_MEAS</Name>
+      <Frequency>1</Frequency>
+      <Param>
+      </Param>
+      <NamedObject>
+	 <gauge_id>default_gauge_field</gauge_id>
+         <prop_id>prop</prop_id>
+      </NamedObject>
+      
+      <xml_file>my_meas.xml</xml_file>
+  </elem>
+
+  </InlineMeasurements>
+  <nrow>4 4 4 8</nrow>
+</Param>
+<Cfg>
+ <cfg_type>SZIN</cfg_type>
+ <cfg_file>test_purgaug.cfg1</cfg_file>
+</Cfg>
+</chroma>
+
+

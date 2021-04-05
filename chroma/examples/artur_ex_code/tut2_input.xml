@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tutorial2>
+  <Param>
+    <nrow>4 4 4 8</nrow>
+    <my_name>Arthur</my_name>
+  </Param>
+  <Cfg>
+    <cfg_type>UNIT</cfg_type>
+    <cfg_file>ignored</cfg_file>
+  </Cfg>
+  <Prop>
+    <prop_file>./propagator_0</prop_file>
+  </Prop>
+  <FermionAction>
+     <FermAct>WILSON</FermAct>
+     <Mass>0.3</Mass>
+     <FermState>
+        <Name>SIMPLE_FERM_STATE</Name>
+        <FermionBC>
+          <FermBC>SIMPLE_FERMBC</FermBC>
+	  <boundary>1 1 1 -1</boundary>
+        </FermionBC>
+     </FermState>
+  </FermionAction>
+</tutorial2>

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=chroma_test
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=prod
+#SBATCH -t 6:00:00
+
+set -x
+
+# cd /home/poare/lqcd/mosaic
+
+bash
+
+# these need to be adjusted to the relevant paths
+module load openmpi/3.1.5
+# module load qlua/20200107
+# EXE=qlua
+EXE=/home/dpefkou/wm_chroma_wombat/wm_chroma
+home=/home/poare/lqcd/chroma/examples/artur_ex_code/
+
+test="tut1"
+logs=${home}/logs
+output=${home}/output
+cfgpath=${home}/configs/
+
+# cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
+# cfgpath="'${home}'/configs/"
+cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
+cfg=1200
+parameters="jobid=${SLURM_JOB_ID} cfgpath='${cfgpath}' cfgbase='${cfgbase}' cfgnum=${cfg} out_folder='${output}'"
+# parameters="jobid=${SLURM_JOB_ID} cfgnum=${cfg} out_folder='${output}'"
+export OMP_NUM_THREADS=6
+
+mpirun -np 4 $EXE -e "$parameters" ${home}/${test}.qlua > ${logs}/job${SLURM_JOB_ID}.txt
