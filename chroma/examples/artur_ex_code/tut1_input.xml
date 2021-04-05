@@ -16,7 +16,7 @@
 		            <SourceType>POINT_SOURCE</SourceType>
 		            <j_decay>3</j_decay>
 		            <t_srce>0 0 0 0</t_srce>
-					
+
 		            <Displacement>
 		              <version>1</version>
 		              <DisplacementType>NONE</DisplacementType>
@@ -91,7 +91,7 @@
 		          <prop_id>pt_prop_0</prop_id>
 		          <smeared_prop_id>pt_pt_prop_0</smeared_prop_id>
 		        </NamedObject>
-			</elem> 
+			</elem>
 			<!-- DISCARD THE  SOURCE -->
 			<elem>
 				<annotation>
@@ -101,12 +101,12 @@
 				<Frequency>1</Frequency>
 				<NamedObject>
 					<object_id>pt_prop_0</object_id>
-				</NamedObject>	
+				</NamedObject>
 			</elem>
-			<!-- COMPUTE MESON SPECTRUM --> 
+			<!-- COMPUTE MESON SPECTRUM -->
 			<elem>
 		        <annotation>
-		           Compute the meson spectrum. 
+		           Compute the meson spectrum.
 		        </annotation>
 		        <Name>HADRON_SPECTRUM</Name>
 		        <Frequency>1</Frequency>
@@ -129,13 +129,13 @@
 		          </sink_pairs>
 		        </NamedObject>
 				<xml_file>hadspec.dat.xml</xml_file>
-			</elem> 
+			</elem>
 		</InlineMeasurements>
 		<nrow>24 24 24 48</nrow>
 	</Param>
 	<RNG>
 		<Seed>
-			<!-- copied this from tests --> 
+			<!-- copied this from tests -->
 		    <elem>11</elem>
 		    <elem>11</elem>
 		    <elem>11</elem>
@@ -144,7 +144,7 @@
 	</RNG>
 	<Cfg>
 		<cfg_type>SCIDAC</cfg_type>
-		<cfg_file>./su3_24_48_b6p10050_gf.lime100</cfg_file>
+		<cfg_file>/home/poare/lqcd/chroma/examples/artur_ex_code/cfgs/su3_24_48_b6p10050_gf.lime100</cfg_file>
 		<!--<cfg_type>WEAK_FIELD</cfg_type>
 		<cfg_file>dummy</cfg_file> -->
         <!--<cfg_type>SZIN</cfg_type>
