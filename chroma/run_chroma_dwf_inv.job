@@ -18,7 +18,8 @@ bash
 # these need to be adjusted to the relevant paths
 module load openmpi/3.1.5
 # module load qlua/20200107
-EXE=/home/dpefkou/wm_chroma_wombat/wm_chroma
+# EXE=/home/dpefkou/wm_chroma_wombat/wm_chroma
+EXE=/data/d10a/users/dchackett/chroma/wombat/nojit/install/chroma-double/bin/chroma
 home=/home/poare/lqcd/0nubb/tests/chroma
 
 logs=${home}/logs
