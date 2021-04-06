@@ -5,8 +5,8 @@
 #SBATCH --job-name=chroma_inv
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
-#SBATCH -t 144:00:00
+#SBATCH --partition=prod4
+#SBATCH -t 6:00:00
 
 set -x
 
