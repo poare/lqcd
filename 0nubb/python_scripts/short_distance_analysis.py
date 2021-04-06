@@ -72,52 +72,21 @@ if config == '32I/ml0p004':
 ################################################################################
 ############################# TWO POINT ANALYSIS ###############################
 ################################################################################
-print('2 point')
-stem_2pt = 'pion-00WW'          # <PP> correlator with wall sources
-# I need 'pion-00WP' and 'fp-00WP' as well to extract fpi
-C2pt = read_Npt(resultsA, stem_2pt, filenums, 2, L.T)
-C2_tavg = np.mean(C2pt, axis = 1)               # t avg over first (source) time-- Should equal what's in resultsA.tavg directory
-print('2pt shape before bootstrap: ' + str(C2_tavg.shape))
-C2_boot = bootstrap(C2_tavg, data_type = np.complex64)
-# fold_fn = np.add if (stem_2pt == 'pion-00WW' or stem_2pt == 'pion-00WP') else np.subtract
-# C2_fold = fold(C2_tavg, L.T, fold_fn)            # fold about midpoint. Might not need this for the 3pt analysis
+print('2 point analysis')
+# stem_2pt = 'pion-00WW'          # <PP> correlator with wall sources
+# C2pt = read_Npt(resultsA, stem_2pt, filenums, 2, L.T)
+# C2_tavg = np.mean(C2pt, axis = 1)               # t avg over first (source) time-- Should equal what's in resultsA.tavg directory
+# print('2pt shape before bootstrap: ' + str(C2_tavg.shape))
+# C2_boot = bootstrap(C2_tavg, data_type = np.complex64)
 
-# Extract pion mass. pi_masses should contain bootstrapped fit results for mpi
-print('Fitting pion mass at one range of times')
-m_eff = get_cosh_effective_mass(C2_boot)
-meff_fit_range = range(10, 25)
-mpi_boot = fit_constant(meff_fit_range, m_eff)[0]
-mpi_mu = np.mean(mpi_boot)
-mpi_sigma = np.std(mpi_boot, ddof = 1)
-print('Pion mass = ' + str(mpi_mu) + ' \\pm ' + str(mpi_sigma))
-# # Old code: just used David's pion mass results. Don't do this, it's jackknifed
-# pi_masses = np.genfromtxt(Pi_Pi + config + '/fits/results/fit_params/mpi_jacks.dat')
-# if config == '32I/ml0p004':
-#     pi_masses = np.delete(pi_masses, err_idx
-
-# pion_out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + config + '/2pt_output.h5'
-# f2pt = h5py.File(pion_out_path, 'w')
-# f2pt['L'], f2pt['T'] = L.L, L.T
-# f2pt['ml'], f2pt['ms'] = ml, ms
-# f2pt['pi_mass'] = mpi_boot
-# f2pt['fpi'] = fpi
-# f2pt.close()
-
-# C2_neg_mode = np.zeros(C2_tavg.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
-# for t in range(L.T):
-#     C2_neg_mode[:, t] = C2_tavg[:, t] - (1/2) * C2_tavg[:, L.T // 2] * np.exp(pi_masses[:] * (t - L.T // 2))
-C2_neg_mode = np.zeros(C2_boot.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
-for t in range(L.T):
-    C2_neg_mode[:, t] = C2_boot[:, t] - (1/2) * C2_boot[:, L.T // 2] * np.exp(mpi_boot[:] * (t - L.T // 2))
-
-# TODO do other stems!
-other_stems = ['pion-00WP', 'fp-00WP', 'fp-00WW']
+stems = ['pion-00WW', 'pion-00WP', 'fp-00WW', 'fp-00WP']
 C2_stem_boot = {}
-for stem in other_stems:
+for stem in stems:
     print('Reading 2pt from ' + stem)
     C2pt_stem = read_Npt(resultsA, stem, filenums, 2, L.T)
     C2_tavg_stem = np.mean(C2pt_stem, axis = 1)               # t avg over first (source) time-- Should equal what's in resultsA.tavg directory
     C2_stem_boot[stem] = bootstrap(C2_tavg_stem, data_type = np.complex64)
+C2_boot = C2_stem_boot['pion-00WW']         # use wall-wall PP correlator for 3pt analysis
 
 # Correlators for A and curly A are in the same file-- looks like data is (Re[A], Im[A], Re[curlyA], Im[curlyA])
 dwf_stem = 'za_' + str(ml)
@@ -130,6 +99,44 @@ print('Reading 2pt from ' + dwf_stem + ' at second position')
 C2pt_curlyA = read_Npt(resultsA, dwf_stem, filenums, 2, L.T, start_idx = 4)
 C2_tavg_curlyA = np.mean(C2pt_curlyA, axis = 1)
 C2_curlyA_boot = bootstrap(C2_tavg_curlyA, data_type = np.complex64)
+
+# Extract pion mass. Fits should be averaged over all stems
+# print('Fitting pion mass at one range of times')
+# m_eff = get_cosh_effective_mass(C2_boot)
+# meff_fit_range = range(10, 25)
+# mpi_boot = fit_constant(meff_fit_range, m_eff)[0]
+# mpi_mu = np.mean(mpi_boot)
+# mpi_sigma = np.std(mpi_boot, ddof = 1)
+# print('Pion mass = ' + str(mpi_mu) + ' \\pm ' + str(mpi_sigma))
+
+# time average and get pion mass
+print('Fitting pion mass over all ranges and stems.')
+meff_fns = [get_cosh_effective_mass, get_cosh_effective_mass, get_sinh_effective_mass, get_sinh_effective_mass]
+meff_ens_list, weight_list = [], []
+for idx, stem in enumerate(stems):
+    meff_stem = meff_fns[idx](C2_stem_boot[stem])
+    meff_stem_folded = fold_meff(meff_stem, L.T)
+    fits_stem, stats_stem, meff_stem_ens, weights_stem = fit_constant_allrange(meff_stem_folded)
+    ampi_stem_bar, ampi_stem_sigma = analyze_accepted_fits(meff_stem_ens, weights_stem)
+    print('meff on ' + stem + ', avg over all fit ranges with cut ϵ = 0.01 on pvals: ' + str(ampi_stem_bar) \
+          + ' \pm ' + str(ampi_stem_sigma))
+    meff_ens_list.append(meff_stem_ens)
+    weight_list.append(weights_stem)
+meff_all = np.concatenate((meff_ens_list[0], meff_ens_list[1], meff_ens_list[2], meff_ens_list[3]), axis = 0)
+weights_all = np.concatenate((weight_list[0], weight_list[1], weight_list[2], weight_list[3]), axis = 0)
+
+# TODO this is probably not propagating the stats right
+mpi_boot = weighted_sum_bootstrap(meff_all, weights_all)
+meff_boots_mu = np.mean(mpi_boot)
+meff_boots_sigma = np.std(mpi_boot, ddof = 1)
+print('Average pion mass over bootstrapped samples: ' + str(meff_boots_mu) + ' \pm ' + str(meff_boots_sigma))
+
+# C2_neg_mode = np.zeros(C2_tavg.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
+# for t in range(L.T):
+#     C2_neg_mode[:, t] = C2_tavg[:, t] - (1/2) * C2_tavg[:, L.T // 2] * np.exp(pi_masses[:] * (t - L.T // 2))
+C2_neg_mode = np.zeros(C2_boot.shape, dtype = np.complex64)         # subtract off the positive frequency mode to isolate the exponential decay exp(-mt)
+for t in range(L.T):
+    C2_neg_mode[:, t] = C2_boot[:, t] - (1/2) * C2_boot[:, L.T // 2] * np.exp(mpi_boot[:] * (t - L.T // 2))
 
 ################################################################################
 ############################ THREE POINT ANALYSIS ##############################
@@ -230,8 +237,6 @@ for bidx in range(n_boot):
         for t, delta in itertools.product(range(L.T), repeat = 2):
             R[bidx, i, t, delta] = 2 * mpi_boot[bidx] * Cnpt[bidx, i, t, delta] / C2_neg_mode[bidx, delta]
 
-raise Exception
-
 # Write three point functions here
 # add 'nomult' to the path if we aren't multiplying the operators by -2 or -4
 f3pt_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + config + '/SD_output.h5'
@@ -245,8 +250,8 @@ f3pt['Cnpt'] = Cnpt
 f3pt['R'] = R
 f3pt['mpi'] = mpi_boot
 
-f3pt[stem_2pt] = C2_boot
-for stem in other_stems:
+# f3pt[stem_2pt] = C2_boot
+for stem in stems:
     f3pt[stem] = C2_stem_boot[stem]
 
 f3pt['za_A'] = C2_A_boot

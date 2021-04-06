@@ -225,13 +225,19 @@ def fold_meff(m_eff, T):
 
 # C should be an array of size [num_files, T] where T is the lattice temporal extent.
 # Folder is a function of two arguments which returns how to add them, (A + B)
-# for sym and (A - B) for antisym
-def fold(C, T, folder = np.add):
+# for sym and (A - B) for antisym. Folding should map 0 to itself, 1 <--> T - 1,
+# 2 <--> T - 2, ...
+def fold(C, T, sym = True):
     # folded = np.zeros((C.shape[0], T // 2 + 1), dtype = np.complex64)
     folded = np.zeros((C.shape[0], T // 2 + 1), dtype = np.float64)
     folded[:, 0] = C[:, 0]
     for t in range(T // 2):
-        folded[:, t + 1] = folder(C[:, t + 1], C[:, T - (t + 1)]) / 2
+        if sym:
+            folded[:, t + 1] = (C[:, t + 1] + C[:, T - (t + 1)]) / 2
+        else:    # fold antisym
+            folded[:, t + 1] = (C[:, T - (t + 1)] - C[:, t + 1]) / 2
+    if not sym:
+        folded[:, T // 2] = np.abs(C[:, T // 2])    # midpoint for asymmetric shouldn't be folded into itself
     return folded
 
 # data should be an array of size (n_fits, T) and fit_region gives the times to fit at
@@ -276,28 +282,43 @@ def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
     for f, fit_region in enumerate(fit_ranges):
         meff_ens_f, chi2_f, ndof_f = fit_constant(fit_region, data)
         pf = chi2.sf(chi2_f, ndof_f)
-        if pf > cut:    # accept the fit
+        if pf > cut:
+            # TODO change so that we store m_eff_mu as an ensemble, want to compute m_eff_bar ensemble
             meff_mu_f = np.mean(meff_ens_f)
             meff_sigma_f = np.std(meff_ens_f, ddof = 1)
             weight_f = pf * (meff_sigma_f ** (-2))
             print(f, fit_region, pf, meff_mu_f, meff_sigma_f, weight_f)
             f_acc.append([f, fit_region])
             stats_acc.append([pf, chi2_f, ndof_f])
-            meff_acc.append([meff_mu_f, meff_sigma_f])
+            # meff_acc.append([meff_mu_f, meff_sigma_f])
+            meff_acc.append(meff_ens_f)
             weights.append(weight_f)
     print('Number of accepted fits: ' + str(len(f_acc)))
     weights, meff_acc, stats_acc = np.array(weights), np.array(meff_acc), np.array(stats_acc)
-    weights = weights / np.sum(weights)    # normalize to 1
+    # weights = weights / np.sum(weights)    # normalize to 1
     return f_acc, stats_acc, meff_acc, weights
 
-# Inputs should all be in the same format as above. meff = list of [meff_mu, meff_sigma]
-# for each accepted fit, weights = pf (\delta meff)^-2 for each accepted fit.
+# Inputs should all be in the same format as above. meff = list of meff_f ensembles, each of
+# shape n_boot, so meff has shape (# accepted fits, n_boot)
+# for each accepted fit, weights = pf (\delta meff)^-2 for each accepted fit. Note that
+# weights should not be normalized, this will make sure it is.
 def analyze_accepted_fits(meff, weights):
-    meff_bar = np.sum(weights * meff[:, 0])
-    dmeff_stat_sq = np.sum(weights * (meff[:, 1] ** 2))
-    dmeff_sys_sq = np.sum(weights * ((meff[:, 0] - meff_bar) ** 2))
+    weights = weights / np.sum(weights)
+    meff_mu_f, meff_sigma_f = np.mean(meff, axis = 1), np.std(meff, axis = 1, ddof = 1)
+    meff_bar = np.sum(weights * meff_mu_f)
+    dmeff_stat_sq = np.sum(weights * (meff_sigma_f ** 2))
+    dmeff_sys_sq = np.sum(weights * ((meff_mu_f - meff_bar) ** 2))
     meff_sigma = np.sqrt(dmeff_stat_sq + dmeff_sys_sq)
     return meff_bar, meff_sigma
+
+# returns a bootstrap ensemble by summing fits over their weight
+def weighted_sum_bootstrap(meff, weights):
+    weights = weights / np.sum(weights)
+    return np.einsum('fb,f->b', meff, weights)
+
+# spreads a dataset in a correlated way to have standard deviation new_std. 
+def spread_boots(data, new_std):
+
 
 # VarPro code
 
@@ -459,11 +480,22 @@ def get_cosh_effective_mass(ensemble_avg):
         for t in range(ratios.shape[1]):
             m = optimize.root(lambda m : ratios[ens_idx, t] - np.cosh(m * (t - TT / 2)) / np.cosh(m * (t + 1 - TT / 2)), \
                          m_eff_ensemble[ens_idx, t])
+            # m = optimize.root(lambda m : ratios[ens_idx, t] - np.cosh(m * t) / np.cosh(m * (t + 1)), \
+            #              m_eff_ensemble[ens_idx, t])
             cosh_m_eff_ensemble[ens_idx, t] = m.x
     return cosh_m_eff_ensemble
-    # m_cosh = np.mean(cosh_m_eff_ensemble, axis = 0)
-    # sigma = np.std(cosh_m_eff_ensemble, axis = 0, ddof = 1)
-    # return m_cosh, sigma
+
+def get_sinh_effective_mass(ensemble_avg):
+    TT = ensemble_avg.shape[1]
+    ratios = np.abs(ensemble_avg / np.roll(ensemble_avg, shift = -1, axis = 1))[:, :-1]
+    m_eff_ensemble = np.log(ratios)
+    sinh_m_eff_ensemble = np.zeros(ratios.shape, dtype = np.float64)
+    for ens_idx in range(ratios.shape[0]):
+        for t in range(ratios.shape[1]):
+            m = optimize.root(lambda m : ratios[ens_idx, t] - np.sinh(m * (t - TT / 2)) / np.sinh(m * (t + 1 - TT / 2)), \
+                         m_eff_ensemble[ens_idx, t])
+            sinh_m_eff_ensemble[ens_idx, t] = m.x
+    return sinh_m_eff_ensemble
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 10, weights = None, data_type = np.complex64):
