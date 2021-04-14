@@ -92,7 +92,7 @@ csw = 1.2493
 bcs = {1, 1, 1, -1}
 LS = 8
 --Ls = 8
-M = -1.8
+M = 1.8
 ml = 0.1
 
 eps = 1e-20
@@ -133,7 +133,7 @@ if gpu then
 
   -- DWF inverter
   print("DWFs with QUDA.")
-  --
+  --[[
   quda_dwf_solver = qcd.quda.solver(U,
                              {t_boundary = "ANTI_PERIODIC_T"},
                              {inv_type = "CG_INVERTER",   -- some of these parameters need to be played with. Which ones are valid???
@@ -147,6 +147,8 @@ if gpu then
                               maxiter = 5000,
                               mass = ml
                              })
+  ]]
+  quda_dwf_solver = create_dwf_multigrid_solver(U, M, LS)
   print("Solver initialized. Attempting solve.")
   local S_quda_dwf = L:DiracPropagatorN(Nc)
   for s = 0, qcd.Ns - 1 do
