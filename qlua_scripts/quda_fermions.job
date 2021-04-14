@@ -21,7 +21,7 @@ export LD_LIBRARY_PATH=/opt/software/openmpi-4.0.2/lib/:/home/poare/libc++
 module load qlua/20200107
 #module load qlua/20200107-gpu1080
 
-#EXE=qlua
+EXE=qlua
 # EXE=/home/poare/qlua-20210110/qlua/bin/qlua
 # EXE=/home/poare/qlua-20210110-gpu/qlua/bin/qlua
 
