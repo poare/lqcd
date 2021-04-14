@@ -148,7 +148,7 @@ if gpu then
                               mass = ml
                              })
   ]]
-  quda_dwf_solver = create_dwf_multigrid_solver(U, M, LS)
+  quda_dwf_solver = dw_ferm:create_dwf_multigrid_solver(U, M, LS)
   print("Solver initialized. Attempting solve.")
   local S_quda_dwf = L:DiracPropagatorN(Nc)
   for s = 0, qcd.Ns - 1 do
