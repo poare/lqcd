@@ -3,9 +3,9 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=quda_dwf_test
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=devel
+#SBATCH --partition=prod
 
 set -x
 
@@ -18,15 +18,15 @@ module load openmpi/4.0.2
 export LD_LIBRARY_PATH=/opt/software/openmpi-4.0.2/lib/:/home/poare/libc++
 
 # module load qlua
-# module load qlua/20200107
+module load qlua/20200107
 #module load qlua/20200107-gpu1080
 
 # EXE=qlua
 # EXE=/home/poare/qlua-20210110/qlua/bin/qlua
-EXE=/home/poare/qlua-20210110-gpu/qlua/bin/qlua
+# EXE=/home/poare/qlua-20210110-gpu/qlua/bin/qlua
 
-gpu=true
-# gpu=false
+# gpu=true
+gpu=false
 
 home=/home/poare/lqcd/qlua_scripts
 logs=${home}/logs/quda_dwf_test
