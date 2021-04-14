@@ -50,8 +50,8 @@ function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
 end
 
 -- Initialize lattice, random weak field configuration, and point source
-Lx = 4
-Lt = 8
+Lx = 16
+Lt = 48
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 
 do
