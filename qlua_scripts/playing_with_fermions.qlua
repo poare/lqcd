@@ -83,7 +83,7 @@ q = {1, 1, 0, 0}
 src = compute_spacetime_wall_source_antiperiodicBC(U, q)
 print("Wall source created at momentum (1, 1, 1, 1)")
 
-gpu = false
+-- gpu = false
 
 -- Parameters
 mq = -0.2450
