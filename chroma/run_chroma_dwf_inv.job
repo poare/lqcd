@@ -2,40 +2,32 @@
 
 ##ulimit -c unlimited
 
-#SBATCH --job-name=chroma_inv
+#SBATCH --job-name=dwf_chroma
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod4
+#SBATCH --partition=prod
 #SBATCH -t 6:00:00
 
 set -x
 
-# cd /home/poare/lqcd/mosaic
-# cd ./mosaic_copy
-
 bash
+module load python/2.7.15
+module load libxml2
+module load cmake
+module load cuda
+module load openmpi/4.0.2
+module load hdf
+module load llvm
+export LD_LIBRARY_PATH=/opt/software/hdf5-1.10.6/lib/:/usr/local/cuda-10.2/lib64/
+source /data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/env.sh
+EXE=/data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/install/chroma-double/bin/chroma
 
-# these need to be adjusted to the relevant paths
-module load openmpi/3.1.5
-# module load qlua/20200107
-# EXE=/home/dpefkou/wm_chroma_wombat/wm_chroma
-EXE=/data/d10a/users/dchackett/chroma/wombat/nojit/install/chroma-double/bin/chroma
-home=/home/poare/lqcd/0nubb/tests/chroma
+home=/home/poare/lqcd/chroma
 
-logs=${home}/logs
-output=${home}/output
-cfgpath=${home}/configs/
+output=${home}/output/dwf_test${SLURM_JOB_ID}.out.xml
 
-# cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
-# cfgpath="'${home}'/configs/"
-cfgbase="2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005"
-cfg=1200
-parameters="jobid=${SLURM_JOB_ID} cfgpath='${cfgpath}' cfgbase='${cfgbase}' cfgnum=${cfg} out_folder='${output}'"
-# parameters="jobid=${SLURM_JOB_ID} cfgnum=${cfg} out_folder='${output}'"
 export OMP_NUM_THREADS=6
 
-IN_FILE=${home}/dwf_inv.xml
-OUT_FILE=${home}/
+GEOM="1 1 1 4"
 
-# mpirun -np 4 $EXE -e "$parameters" ${home}/${test}.qlua > ${logs}/job${SLURM_JOB_ID}.txt
-mpirun -np 4 $EXE -i ${IN_FILE} -o ${OUT_FILE}
+mpirun -np 4 $EXE -i ${home}/dwf_inv.ini.xml -o ${output} -geom ${GEOM}
