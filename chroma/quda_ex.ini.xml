@@ -1,58 +1,153 @@
 <?xml version = "1.0" encoding = "UTF-8" ?>
 
 <chroma>
-  <Param>
-    <nrow>16 16 16 16</nrow>
-    <Cfg>
-      <cfg_type>WEAK_FIELD</cfg_type>
-      <cfg_file>dummy</cfg_file>
-   </Cfg>
-   <FermionAction>
-     <FermAct>CLOVER</FermAct>
-     <Mass>0.1</Mass>
-     <clovCoeff>1</clovCoeff>
-     <AnisoParam>
-       <anisoP>false</anisoP>
-       <t_dir>3</t_dir>
-       <xi_0>1</xi_0>
-       <nu>1</nu>
-     </AnisoParam>
+	<annotation></annotation>
+	<Param>
+		<InlineMeasurements>
+			<!-- CREATE POINT SOURCE -->
+			<elem>
+				<annotation>create point source</annotation>
+		        <Name>MAKE_SOURCE</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>6</version>
+		          <Source>
+		            <version>2</version>
+		            <SourceType>POINT_SOURCE</SourceType>
+		            <j_decay>3</j_decay>
+		            <t_srce>0 0 0 0</t_srce>
 
-     <FermState>
-       <Name>STOUT_FERM_STATE</Name>
-       <rho>0.14</rho>
-       <n_smear>2</n_smear>
-       <orthog_dir>3</orthog_dir>
-       <FermionBC>
-         <FermBC>SIMPLE_FERMBC</FermBC>
-         <boundary>1 1 1 -1</boundary>
-       </FermionBC>
-     </FermState>
-   </FermionAction>
-   <InvertParam>
-     <invType>MULTI_CG_QUDA_CLOVER_INVERTER</invType>
-     <CloverParams>
-       <Mass>0.1</Mass>
-       <clovCoeff>1</clovCoeff>
-       <AnisoParam>
-         <anisoP>false</anisoP>
-         <t_dir>3</t_dir>
-         <xi_0>1</xi_0>
-         <nu>1</nu>
-       </AnisoParam>
-     </CloverParams>
-     <RsdTarget>1.0e-10</RsdTarget>
-     <Delta>0.1</Delta>
-     <MaxIter>10000</MaxIter>
-     <AntiPeriodicT>true</AntiPeriodicT>
-     <SolverType>CG</SolverType>
-     <Verbose>false</Verbose>
-     <AsymmetricLinop>false</AsymmetricLinop>
-     <CudaReconstruct>RECONS_NONE</CudaReconstruct>
-     <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
-     <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
-     <AxialGaugeFix>false</AxialGaugeFix>
-     <AutotuneDslash>true</AutotuneDslash>
-   </InvertParam>
-  </Param>
+		            <Displacement>
+		              <version>1</version>
+		              <DisplacementType>NONE</DisplacementType>
+		            </Displacement>
+		          </Source>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <source_id>pt_source_0</source_id>
+		        </NamedObject>
+			</elem>
+			<!-- CREATE WILSON PROPAGATOR -->
+			<elem>
+				<annotation>
+					compute point source Wilson propagator
+				</annotation>
+		        <Name>PROPAGATOR</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>10</version>
+		          <quarkSpinType>FULL</quarkSpinType>
+		          <obsvP>false</obsvP>
+		          <numRetries>1</numRetries>
+		          <FermionAction>
+		          	<FermAct>WILSON</FermAct>
+		          	<Kappa>0.11</Kappa>
+		          	<AnisoParam>
+		            	<anisoP>false</anisoP>
+		             	<t_dir>3</t_dir>
+		             	<xi_0>1.0</xi_0>
+		             	<nu>1.0</nu>
+		           	</AnisoParam>
+				      	<FermionBC>
+		            	<FermBC>SIMPLE_FERMBC</FermBC>
+		             	<boundary>1 1 1 -1</boundary>
+              	</FermionBC>
+		          </FermionAction>
+		          <InvertParam>
+		            <invType>MULTI_CG_QUDA_CLOVER_INVERTER</invType>
+		            <RsdCG>1.0e-8</RsdCG>
+		            <MaxCG>1000</MaxCG>
+		          </InvertParam>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <source_id>pt_source_0</source_id>
+		          <prop_id>pt_prop_0</prop_id>
+		        </NamedObject>
+			</elem>
+			<!-- POINT-SMEAR THE SINK -->
+			<elem>
+				<annotation>
+					(trivially) point-smear the sink on the propagator
+				</annotation>
+		        <Name>SINK_SMEAR</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>5</version>
+		          <Sink>
+		            <version>2</version>
+		            <SinkType>POINT_SINK</SinkType>
+		            <j_decay>3</j_decay>
+
+		            <Displacement>
+		              <version>1</version>
+		              <DisplacementType>NONE</DisplacementType>
+		            </Displacement>
+		          </Sink>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <prop_id>pt_prop_0</prop_id>
+		          <smeared_prop_id>pt_pt_prop_0</smeared_prop_id>
+		        </NamedObject>
+			</elem>
+			<!-- DISCARD THE  SOURCE -->
+			<elem>
+				<annotation>
+					discard the source to save memory
+				</annotation>
+				<Name>ERASE_NAMED_OBJECT</Name>
+				<Frequency>1</Frequency>
+				<NamedObject>
+					<object_id>pt_prop_0</object_id>
+				</NamedObject>
+			</elem>
+			<!-- COMPUTE MESON SPECTRUM -->
+			<elem>
+		        <annotation>
+		           Compute the meson spectrum.
+		        </annotation>
+		        <Name>HADRON_SPECTRUM</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>1</version>
+		          <MesonP>true</MesonP>
+		          <CurrentP>true</CurrentP>
+		          <BaryonP>true</BaryonP>
+		          <time_rev>false</time_rev>
+		          <mom2_max>3</mom2_max>
+		          <avg_equiv_mom>true</avg_equiv_mom>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <sink_pairs>
+		            <elem>
+		              <first_id>pt_pt_prop_0</first_id>
+		              <second_id>pt_pt_prop_0</second_id>
+		            </elem>
+		          </sink_pairs>
+		        </NamedObject>
+				<xml_file>hadspec.dat.xml</xml_file>
+			</elem>
+		</InlineMeasurements>
+		<nrow>24 24 24 48</nrow>
+	</Param>
+	<RNG>
+		<Seed>
+			<!-- copied this from tests -->
+		    <elem>11</elem>
+		    <elem>11</elem>
+		    <elem>11</elem>
+		    <elem>0</elem>
+		</Seed>
+	</RNG>
+	<Cfg>
+		<cfg_type>SCIDAC</cfg_type>
+		<cfg_file>/home/poare/lqcd/chroma/examples/artur_ex_code/cfgs/su3_24_48_b6p10050_gf.lime100</cfg_file>
+		<!--<cfg_type>WEAK_FIELD</cfg_type>
+		<cfg_file>dummy</cfg_file> -->
+        <!--<cfg_type>SZIN</cfg_type>
+        <cfg_file>test_purgaug.cfg1</cfg_file> -->
+	</Cfg>
 </chroma>
