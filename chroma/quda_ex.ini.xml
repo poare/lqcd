@@ -68,7 +68,7 @@
 			           	</AnisoParam>
 								</CloverParams>
 								<SolverType>CG</SolverType>
-								<RsdCG>1.0e-8</RsdCG>
+								<RsdTarget>1.0e-8</RsdTarget>
 		            <MaxIter>10000</MaxIter>
 		          </InvertParam>
 		        </Param>
