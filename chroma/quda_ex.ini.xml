@@ -31,7 +31,7 @@
 			<!-- CREATE WILSON PROPAGATOR -->
 			<elem>
 				<annotation>
-					compute point source Wilson propagator
+					compute point source Wilson propagator. Try QUDA_MULTIGRID_CLOVER_INVERTER for invType tag next
 				</annotation>
 		        <Name>PROPAGATOR</Name>
 		        <Frequency>1</Frequency>
@@ -55,7 +55,7 @@
               	</FermionBC>
 		          </FermionAction>
 		          <InvertParam>
-		            <invType>MULTI_CG_QUDA_CLOVER_INVERTER</invType>
+		            <invType>QUDA_CLOVER_INVERTER</invType>
 		            <RsdCG>1.0e-8</RsdCG>
 		            <MaxCG>1000</MaxCG>
 		          </InvertParam>
