@@ -22,7 +22,7 @@ export LD_LIBRARY_PATH=/opt/software/hdf5-1.10.6/lib/:/usr/local/cuda-10.2/lib64
 source /data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/env.sh
 EXE=/data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/install/chroma-double/bin/chroma
 
-home=/home/poare/lqcd/chroma/
+home=/home/poare/lqcd/chroma
 
 logs=${home}/logs
 output=${home}/output/quda_test_${SLURM_JOB_ID}.out.xml

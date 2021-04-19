@@ -31,7 +31,7 @@ source /data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/env.sh
 EXE=/data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/install/chroma-double/bin/chroma
 
 
-home=/home/poare/lqcd/chroma/examples/artur_ex_code/
+home=/home/poare/lqcd/chroma/examples/artur_ex_code
 
 test=tut1
 logs=${home}/logs
