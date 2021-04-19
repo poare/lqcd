@@ -67,18 +67,8 @@
 			             	<nu>1.0</nu>
 			           	</AnisoParam>
 								</CloverParams>
-								<RsdTarget>1.0e-10</RsdTarget>
-							  <Delta>0.1</Delta>
-							  <MaxIter>10000</MaxIter>
-							  <AntiPeriodicT>true</AntiPeriodicT>
-							  <SolverType>CG</SolverType>
-							  <Verbose>false</Verbose>
-							  <AsymmetricLinop>false</AsymmetricLinop>
-							  <CudaReconstruct>RECONS_NONE</CudaReconstruct>
-							  <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
-							  <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
-							  <AxialGaugeFix>false</AxialGaugeFix>
-							  <AutotuneDslash>true</AutotuneDslash>
+								<RsdCG>1.0e-8</RsdCG>
+		            <MaxCG>1000</MaxCG>
 		          </InvertParam>
 		        </Param>
 		        <NamedObject>
