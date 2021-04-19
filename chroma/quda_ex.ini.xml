@@ -71,6 +71,7 @@
 								<RsdTarget>1.0e-8</RsdTarget>
 		            <MaxIter>10000</MaxIter>
 								<AntiPeriodicT>true</AntiPeriodicT>
+								<Delta>0.1</Delta>
 		          </InvertParam>
 		        </Param>
 		        <NamedObject>
