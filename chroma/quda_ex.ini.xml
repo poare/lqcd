@@ -70,6 +70,7 @@
 								<SolverType>CG</SolverType>
 								<RsdTarget>1.0e-8</RsdTarget>
 		            <MaxIter>10000</MaxIter>
+								<AntiPeriodicT>true</AntiPeriodicT>
 		          </InvertParam>
 		        </Param>
 		        <NamedObject>
