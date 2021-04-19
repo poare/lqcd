@@ -67,8 +67,9 @@
 			             	<nu>1.0</nu>
 			           	</AnisoParam>
 								</CloverParams>
+								<SolverType>CG</SolverType>
 								<RsdCG>1.0e-8</RsdCG>
-		            <MaxCG>1000</MaxCG>
+		            <MaxIter>10000</MaxIter>
 		          </InvertParam>
 		        </Param>
 		        <NamedObject>
