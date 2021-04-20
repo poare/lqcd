@@ -83,7 +83,16 @@
           <SolverType>CG</SolverType>
           <AntiPeriodicT>true</AntiPeriodicT>
           <Delta>0.1</Delta>
-          <numRestarts>1</numRestarts>
+          <!-- <numRestarts>1</numRestarts> -->
+          <RsdToleranceFactor>100</RsdToleranceFactor>
+          <SilentFail>true</SilentFail>
+          <Verbose>false</Verbose>
+          <AsymmetricLinop>true</AsymmetricLinop>
+          <CudaReconstruct>RECONS_12</CudaReconstruct>
+          <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+          <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+          <AxialGaugeFix>false</AxialGaugeFix>
+          <AutotuneDslash>true</AutotuneDslash>
         </InvertParam>
       </Param>
       <NamedObject>
