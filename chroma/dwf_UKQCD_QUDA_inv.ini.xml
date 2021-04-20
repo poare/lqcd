@@ -59,9 +59,9 @@
          <b5>1.2</b5>
          <c5>0.8</c5>
          <AnisoParam>
-           <anisoP>true</anisoP>
+           <anisoP>false</anisoP>
            <t_dir>3</t_dir>
-           <xi_0>2.464</xi_0>
+           <xi_0>1</xi_0>
            <nu>1.2</nu>
          </AnisoParam>
          <FermionBC>
