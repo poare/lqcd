@@ -68,7 +68,7 @@
          </FermionBC>
         </FermionAction>
         <InvertParam>
-          <invType>QUDA_MULTIGRID_WILSON_INVERTER</invType>
+          <invType>QUDA_NEF_INVERTER</invType>
           <RsdTarget>1.0e-8</RsdTarget>
           <MaxIter>10000</MaxIter>
           <AntiPeriodicT>true</AntiPeriodicT>
