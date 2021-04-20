@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <chroma>
 <annotation>
-  Invert a domain wall fermion propagator on a UKQCD config
+  Invert a domain wall fermion propagator on a weak field for testing
 </annotation>
 <Param>
   <InlineMeasurements>
@@ -53,9 +53,9 @@
         <numRetries>1</numRetries>
         <FermionAction>
          <FermAct>DWF</FermAct>
-         <OverMass>1.8</OverMass>
-         <Mass>0.005</Mass>
-         <N5>16</N5>
+         <OverMass>1.2</OverMass>
+         <Mass>0.4</Mass>
+         <N5>4</N5>
          <AnisoParam>
            <anisoP>true</anisoP>
            <t_dir>3</t_dir>
@@ -68,7 +68,7 @@
          </FermionBC>
         </FermionAction>
         <InvertParam>
-          <invType>CG_INVERTER</invType>
+          <invType>QUDA_MULTIGRID_WILSON_INVERTER</invType>
           <RsdCG>1.0e-8</RsdCG>
           <MaxCG>1000</MaxCG>
           <numRestarts>1</numRestarts>
@@ -93,7 +93,7 @@
     </elem>
 
   </InlineMeasurements>
-  <nrow>24 24 24 64</nrow>
+  <nrow>4 4 4 8</nrow>
 </Param>
 
 <RNG>
@@ -106,7 +106,7 @@
 </RNG>
 
 <Cfg>
- <cfg_type>NERSC</cfg_type>
- <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1080</cfg_file>
+ <cfg_type>WEAK_FIELD</cfg_type>
+ <cfg_file>dummy</cfg_file>
 </Cfg>
 </chroma>
