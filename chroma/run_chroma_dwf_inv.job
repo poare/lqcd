@@ -32,6 +32,7 @@ GEOM="1 1 1 4"
 
 # FILE_IN=dwf_inv
 # FILE_IN=dwf_UKQCD_inv
-FILE_IN=dwf_UKQCD_QUDA_inv
+# FILE_IN=dwf_UKQCD_QUDA_inv
+FILE_IN=chroma_dwf_nef_ex
 
 mpirun -np 4 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
