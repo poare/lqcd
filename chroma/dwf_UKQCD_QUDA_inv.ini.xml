@@ -52,10 +52,12 @@
         <obsvP>true</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>DWF</FermAct>
+         <FermAct>NEF</FermAct>
          <OverMass>1.8</OverMass>
          <Mass>0.5</Mass>
-         <N5>14</N5>
+         <N5>16</N5>
+         <b5>1.0</b5>
+         <c5>0.0</c5>
          <AnisoParam>
            <anisoP>true</anisoP>
            <t_dir>3</t_dir>
@@ -69,8 +71,15 @@
         </FermionAction>
         <InvertParam>
           <invType>QUDA_NEF_INVERTER</invType>
-          <RsdTarget>1.0e-8</RsdTarget>
-          <MaxIter>10000</MaxIter>
+          <NEFParams>
+            <OverMass>1.8</OverMass>
+            <Mass>0.5</Mass>
+            <N5>4</N5>
+            <b5>1.0</b5>
+            <c5>0.0</c5>
+          </NEFParams>
+          <RsdTarget>1.0e-7</RsdTarget>
+          <MaxIter>1000</MaxIter>
           <AntiPeriodicT>true</AntiPeriodicT>
           <Delta>0.1</Delta>
           <numRestarts>1</numRestarts>
