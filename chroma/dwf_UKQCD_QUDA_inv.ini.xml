@@ -80,6 +80,7 @@
           </NEFParams>
           <RsdTarget>1.0e-7</RsdTarget>
           <MaxIter>1000</MaxIter>
+          <SolverType>CG<SolverType>
           <AntiPeriodicT>true</AntiPeriodicT>
           <Delta>0.1</Delta>
           <numRestarts>1</numRestarts>
