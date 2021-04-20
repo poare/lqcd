@@ -55,7 +55,7 @@
          <FermAct>NEF</FermAct>
          <OverMass>1.8</OverMass>
          <Mass>0.5</Mass>
-         <N5>16</N5>
+         <N5>4</N5>
          <b5>1.0</b5>
          <c5>0.0</c5>
          <AnisoParam>
@@ -129,5 +129,7 @@
 <Cfg>
  <cfg_type>WEAK_FIELD</cfg_type>
  <cfg_file>dummy</cfg_file>
+ <!-- <cfg_type>NERSC</cfg_type>
+ <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1080</cfg_file> -->
 </Cfg>
 </chroma>
