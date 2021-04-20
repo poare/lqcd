@@ -5,8 +5,8 @@
 #SBATCH --job-name=dwf_chroma
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod
-#SBATCH -t 6:00:00
+#SBATCH --partition=long
+#SBATCH -t 144:00:00
 
 set -x
 
