@@ -31,7 +31,7 @@ export OMP_NUM_THREADS=6
 GEOM="1 1 1 4"
 
 # FILE_IN=dwf_inv
-FILE_IN=dwf_UKQCD_inv
-# FILE_IN=dwf_UKQCD_QUDA_inv
+# FILE_IN=dwf_UKQCD_inv
+FILE_IN=dwf_UKQCD_QUDA_inv
 
 mpirun -np 4 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}

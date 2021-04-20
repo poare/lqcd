@@ -53,9 +53,9 @@
         <numRetries>1</numRetries>
         <FermionAction>
          <FermAct>DWF</FermAct>
-         <OverMass>1.2</OverMass>
-         <Mass>0.4</Mass>
-         <N5>4</N5>
+         <OverMass>1.8</OverMass>
+         <Mass>0.5</Mass>
+         <N5>14</N5>
          <AnisoParam>
            <anisoP>true</anisoP>
            <t_dir>3</t_dir>
@@ -69,8 +69,10 @@
         </FermionAction>
         <InvertParam>
           <invType>QUDA_MULTIGRID_WILSON_INVERTER</invType>
-          <RsdCG>1.0e-8</RsdCG>
-          <MaxCG>1000</MaxCG>
+          <RsdTarget>1.0e-8</RsdTarget>
+          <MaxIter>10000</MaxIter>
+          <AntiPeriodicT>true</AntiPeriodicT>
+          <Delta>0.1</Delta>
           <numRestarts>1</numRestarts>
         </InvertParam>
       </Param>
