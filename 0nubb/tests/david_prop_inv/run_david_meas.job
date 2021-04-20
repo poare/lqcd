@@ -15,10 +15,11 @@ set -x
 module load openmpi/3.1.5
 
 WORKDIR=/data/d10b/wombat/users/djmurphy/Software/cps/src/measurement_package/djm_quda
-# exe=/data/d10b/wombat/users/djmurphy/Software/cps/src/measurement_package/djm_quda/binaries/NOARCH.x
-exe=/home/agrebe/wombat/0vbb/src/measurement_package/djm_quda/binaries/NOARCH.x
+exe=/data/d10b/wombat/users/djmurphy/Software/cps/src/measurement_package/djm_quda/binaries/NOARCH.x
+# exe=/home/agrebe/wombat/0vbb/src/measurement_package/djm_quda/binaries/NOARCH.x
 
-export LD_LIBRARY_PATH=/opt/software/openmpi-3.1.5/lib:/opt/software/cuda-11.2.0/lib64:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/opt/software/openmpi-3.1.5/lib:/opt/software/cuda-11.2.0/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/opt/software/openmpi-2.1.1/lib:/opt/software/cuda-9.0/lib64:$LD_LIBRARY_PATH
 export QUDA_RESOURCE_PATH=$WORKDIR/work
 export OMP_NUM_THREADS=6
 export QUDA_ENABLE_P2P=1
@@ -28,7 +29,7 @@ now=$(date '+%Y%m%d%H%M%S')
 # log_file=$WORKDIR/scripts/logs/log-${now}.out
 log_file=/home/poare/lqcd/0nubb/tests/david_prop_inv/log-${now}.out
 touch log_file
-# /opt/software/openmpi-2.1.1/bin/mpirun -np 4 $exe ../vmls quda_arg.vml -qmp-geom 1 1 1 4 | tee $log_file
-/opt/software/openmpi-3.1.5/bin/mpirun -np 4 $exe ../vmls quda_arg.vml -qmp-geom 1 1 1 4 | tee $log_file
+/opt/software/openmpi-2.1.1/bin/mpirun -np 4 $exe ../vmls quda_arg.vml -qmp-geom 1 1 1 4 | tee $log_file
+# /opt/software/openmpi-3.1.5/bin/mpirun -np 4 $exe ../vmls quda_arg.vml -qmp-geom 1 1 1 4 | tee $log_file
 
 echo $(date)
