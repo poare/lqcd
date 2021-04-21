@@ -3,8 +3,8 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=dwf_chroma
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=8
 #SBATCH --partition=long
 #SBATCH -t 144:00:00
 
@@ -28,11 +28,13 @@ output=${home}/output/dwf_test${SLURM_JOB_ID}.out.xml
 
 export OMP_NUM_THREADS=6
 
-GEOM="1 1 1 4"
+# GEOM="1 1 1 4"
+GEOM="1 1 2 4"
 
 # FILE_IN=dwf_inv
 # FILE_IN=dwf_UKQCD_inv
 FILE_IN=dwf_UKQCD_QUDA_inv
 # FILE_IN=chroma_dwf_nef_ex
 
-mpirun -np 4 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
+# mpirun -np 4 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
+mpirun -np 8 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
