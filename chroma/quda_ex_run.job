@@ -4,7 +4,7 @@
 
 #SBATCH --job-name=quda_chroma_test
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=8
 #SBATCH --partition=prod
 #SBATCH -t 6:00:00
 
@@ -29,6 +29,6 @@ output=${home}/output/quda_test_${SLURM_JOB_ID}.out.xml
 
 export OMP_NUM_THREADS=6
 
-GEOM="1 1 1 4"
+GEOM="1 1 2 4"
 
-mpirun -np 4 $EXE -i ${home}/quda_ex.ini.xml -o ${output} -geom ${GEOM}
+mpirun -np 8 $EXE -i ${home}/chroma_dwf_nef_ex.ini.xml -o ${output} -geom ${GEOM}
