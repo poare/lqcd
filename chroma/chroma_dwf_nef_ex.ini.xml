@@ -207,14 +207,14 @@
          <OverMass>1.2</OverMass>
          <Mass>0.4</Mass>
          <N5>4</N5>
-	 <b5>1.2</b5>
-	 <c5>0.8</c5>
-         <AnisoParam>
+      	 <b5>1.2</b5>
+      	 <c5>0.8</c5>
+         <!-- <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
            <xi_0>1</xi_0>
            <nu>1</nu>
-         </AnisoParam>
+         </AnisoParam> -->
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
            <boundary>1 1 1 -1</boundary>
@@ -255,14 +255,14 @@
          <OverMass>1.2</OverMass>
          <Mass>0.4</Mass>
          <N5>4</N5>
-	 <b5>1.2</b5>
-	 <c5>0.8</c5>
-         <AnisoParam>
+      	 <b5>1.2</b5>
+      	 <c5>0.8</c5>
+         <!-- <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
            <xi_0>1</xi_0>
            <nu>1</nu>
-         </AnisoParam>
+         </AnisoParam> -->
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
            <boundary>1 1 1 -1</boundary>
