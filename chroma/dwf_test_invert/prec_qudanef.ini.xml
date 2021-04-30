@@ -6,7 +6,7 @@
 ; Test input file for chroma main program
 ;
 </annotation>
-<Param> 
+<Param>
   <InlineMeasurements>
 
 <!--    <elem>
@@ -100,7 +100,7 @@
 	    <b5>1.0</b5>
 	    <c5>0.0</c5>
           </NEFParams>
-	  
+
           <RsdTarget>1.0e-7</RsdTarget>
           <Delta>1.0e-1</Delta>
           <MaxIter>10000</MaxIter>
@@ -116,14 +116,14 @@
           <AxialGaugeFix>false</AxialGaugeFix>
           <AutotuneDslash>true</AutotuneDslash>
         </InvertParam>
-	
+
       </Param>
       <NamedObject>
         <gauge_id>default_gauge_field</gauge_id>
         <source_id>sh_source_0</source_id>
         <prop_id>sh_prop_0</prop_id>
       </NamedObject>
-      <xml_file>qudanef2.xml</xml_file>
+      <xml_file>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/will_viz_test.out.xml</xml_file>
     </elem>
 
     <elem>
@@ -193,7 +193,7 @@
 </Param>
 
 <RNG>
-  <Seed>	
+  <Seed>
     <elem>11</elem>
     <elem>11</elem>
     <elem>11</elem>
@@ -206,5 +206,3 @@
    <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1080</cfg_file>
 </Cfg>
 </chroma>
-
-

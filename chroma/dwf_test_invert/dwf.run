@@ -31,4 +31,4 @@ export QUDA_REORDER_LOCATION=GPU #GPU/CPU
 export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
 #mpirun -np $nCores $application -i dwf.ini   -qmpgeom ${GEOM}  -geom ${GEOM}
-mpirun -np $nCores $application -i prec_qudanef.ini.xml -o /data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/dwf_test${SLURM_JOB_ID}.out.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
+mpirun -np $nCores $application -i prec_qudanef.ini.xml -o /data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/will_viz_test.out.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
