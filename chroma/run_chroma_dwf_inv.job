@@ -3,7 +3,7 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=dwf_chroma
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --partition=prod
 #SBATCH -t 6:00:00
