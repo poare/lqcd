@@ -1,0 +1,36 @@
+#!/bin/bash
+#ulimit -c unlimited
+#SBATCH --job-name=viz
+#SBATCH --nodes=1
+#SBATCH --time=6:00:00
+#SBATCH --partition=prod
+
+echo "hee"
+
+source /usr/local/Modules/init/bash
+TOPDIR=/data/d10a/projects/wdetmold_viz
+
+set -x
+
+cd $TOPDIR
+source /data/d10a/projects/nplqcd/wd_build/nojit/env.sh
+
+module load openmpi/3.1.5-gcc.7.3.0
+
+export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH #/home/agrebe/wombat/compute-node/install/llvm-75/lib/
+export application=/data/d10a/projects/nplqcd/wd_build/nojit/install/nplqcd-double-master/bin/nplqcd
+
+#application=/home/agrebe/build/chroma_qcdsf/mainprogs/main/chroma
+nCores=8
+export GEOM="2 2 2 1"
+export OMP_NUM_THREADS=8
+cpus=$nodes
+echo "=== Run MPI application on $nCores cores ==="
+
+export QUDA_REORDER_LOCATION=GPU #GPU/CPU
+export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
+
+#mpirun -np $nCores $application -i dwf.ini   -qmpgeom ${GEOM}  -geom ${GEOM}
+mpirun -np $nCores $application -i prec_qudanef.ini.xml   -qmpgeom ${GEOM}  -geom ${GEOM}
+
+

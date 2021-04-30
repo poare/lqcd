@@ -5,36 +5,37 @@
 #SBATCH --job-name=dwf_chroma
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=8
-#SBATCH --partition=long
-#SBATCH -t 144:00:00
+#SBATCH --partition=prod
+#SBATCH -t 6:00:00
+
+source /usr/local/Modules/init/bash
 
 set -x
 
-bash
-module load python/2.7.15
-module load libxml2
-module load cmake
-module load cuda
-module load openmpi/4.0.2
-module load hdf
-module load llvm
-export LD_LIBRARY_PATH=/opt/software/hdf5-1.10.6/lib/:/usr/local/cuda-10.2/lib64/
-source /data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/env.sh
-EXE=/data/d10a/projects/nplqcd/wd_build/jit-llvm-nvptx-new/install/chroma-double/bin/chroma
+source /data/d10a/projects/nplqcd/wd_build/nojit/env.sh
+module load openmpi/3.1.5-gcc.7.3.0
 
-home=/home/poare/lqcd/chroma
+export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH #/home/agrebe/wombat/compute-node/install/llvm-75/lib/
+export EXE=/data/d10a/projects/nplqcd/wd_build/nojit/install/nplqcd-double-master/bin/nplqcd
 
-output=${home}/output/dwf_test${SLURM_JOB_ID}.out.xml
+nCores=8
+# GEOM="1 1 2 4"
+export GEOM="2 2 2 1"
+export OMP_NUM_THREADS=8
+cpus=$nodes
+echo "=== Run MPI application on $nCores cores ==="
 
-export OMP_NUM_THREADS=6
-
-# GEOM="1 1 1 4"
-GEOM="1 1 2 4"
+export QUDA_REORDER_LOCATION=GPU #GPU/CPU
+export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
 # FILE_IN=dwf_inv
 # FILE_IN=dwf_UKQCD_inv
 FILE_IN=dwf_UKQCD_QUDA_inv
 # FILE_IN=chroma_dwf_nef_ex
 
-# mpirun -np 4 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
-mpirun -np 8 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
+home=/home/poare/lqcd/chroma
+# output=${home}/output/dwf_test${SLURM_JOB_ID}.out.xml
+output=/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/dwf_test${SLURM_JOB_ID}.out.xml
+
+# mpirun -np 8 $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output} -geom ${GEOM}
+mpirun -np $nCores $EXE -i ${home}/${FILE_IN}.ini.xml -o ${output}   -qmpgeom ${GEOM}  -geom ${GEOM}
