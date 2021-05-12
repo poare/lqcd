@@ -5,6 +5,8 @@
 #SBATCH --time=6:00:00
 #SBATCH --partition=prod
 
+ssh d10
+
 source /usr/local/Modules/init/bash
 #TOPDIR=/data/d10a/projects/wdetmold_viz
 TOPDIR=/home/poare/0nubb/chroma_scripts
