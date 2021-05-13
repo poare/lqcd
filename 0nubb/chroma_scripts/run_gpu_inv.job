@@ -6,7 +6,6 @@
 #SBATCH --partition=prod
 
 source /usr/local/Modules/init/bash
-#TOPDIR=/data/d10a/projects/wdetmold_viz
 TOPDIR=/home/poare/0nubb/chroma_scripts
 
 set -x
@@ -27,10 +26,5 @@ echo "=== Run MPI application on $nCores cores ==="
 
 export QUDA_REORDER_LOCATION=GPU #GPU/CPU
 export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
-#export QUDA_RESOURCE_PATH="/home/poare/wdetmold_viz/":/opt/software/hdf5-1.10.6/lib
-# export QUDA_RESOURCE_PATH="/home/poare/wdetmold_viz"
 
-# ldd ${application}
-
-#mpirun -np $nCores $application -i dwf.ini   -qmpgeom ${GEOM}  -geom ${GEOM}
-mpirun -np $nCores $application -i gpu_inv_input.ini.xml   -qmpgeom ${GEOM}  -geom ${GEOM}
+mpirun -np $nCores $application -i gpu_inv_input.ini.xml -o /data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/gpu_inv_${SLURM_JOB_ID}.out.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
