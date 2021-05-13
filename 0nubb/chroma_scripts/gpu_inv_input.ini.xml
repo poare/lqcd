@@ -33,6 +33,26 @@
       <Param>
         <version>6</version>
         <Source>
+          <version>1</version>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <mom> 0  1 0 0</mom>
+          <av_mom>false</av_mom>
+          <t_srce>0 0 0 0</t_srce>
+        </Source>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <source_id>sh_source_0</source_id>
+      </NamedObject>
+    </elem>
+
+    <!-- <elem>
+      <Name>MAKE_SOURCE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>6</version>
+        <Source>
           <version>2</version>
           <SourceType>SHELL_SOURCE</SourceType>
           <j_decay>3</j_decay>
@@ -62,7 +82,7 @@
         <gauge_id>default_gauge_field</gauge_id>
         <source_id>sh_source_0</source_id>
       </NamedObject>
-    </elem>
+    </elem> -->
 
     <elem>
       <Name>PROPAGATOR</Name>
@@ -94,11 +114,11 @@
 	<InvertParam>
           <invType>QUDA_NEF_INVERTER</invType>
           <NEFParams>
-	    <OverMass>1.8</OverMass>
+      	    <OverMass>1.8</OverMass>
             <Mass>0.005</Mass>
             <N5>16</N5>
-	    <b5>1.0</b5>
-	    <c5>0.0</c5>
+      	    <b5>1.0</b5>
+      	    <c5>0.0</c5>
           </NEFParams>
 
           <RsdTarget>1.0e-7</RsdTarget>
@@ -127,7 +147,7 @@
       <!-- TODO edit this -->
     </elem>
 
-    <elem>
+    <!-- <elem>
       <Name>SINK_SMEAR</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -186,7 +206,7 @@
         </sink_pairs>
       </NamedObject>
       <xml_file>hadspec.dat.xml</xml_file>
-    </elem>
+    </elem> -->
 
 
   </InlineMeasurements>
