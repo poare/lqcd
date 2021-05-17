@@ -1,0 +1,163 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+
+<chroma>
+	<annotation>
+
+	</annotation>
+	<Param>
+		<InlineMeasurements>
+			<!-- CREATE POINT SOURCE -->
+
+			<elem>
+	      <Name>MAKE_SOURCE</Name>
+	      <Frequency>1</Frequency>
+	      <Param>
+	        <version>6</version>
+	        <Source>
+	          <version>1</version>
+	          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+	          <j_decay>3</j_decay>
+	          <mom> 0  1 0 0</mom>
+	          <av_mom>false</av_mom>
+	          <t_srce>0 0 0 0</t_srce>
+	        </Source>
+	      </Param>
+	      <NamedObject>
+	        <gauge_id>default_gauge_field</gauge_id>
+	        <source_id>pt_source_0</source_id>
+	      </NamedObject>
+	    </elem>
+
+			<!-- CREATE WILSON PROPAGATOR -->
+			<elem>
+				<annotation>
+					compute point source Wilson propagator. Try QUDA_MULTIGRID_CLOVER_INVERTER for invType tag next
+				</annotation>
+		        <Name>PROPAGATOR</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>10</version>
+		          <quarkSpinType>FULL</quarkSpinType>
+		          <obsvP>false</obsvP>
+		          <numRetries>1</numRetries>
+		          <FermionAction>
+		          	<FermAct>CLOVER</FermAct>
+		          	<Mass>1.0</Mass>
+								<clovCoeff>1</clovCoeff>
+		          	<AnisoParam>
+		            	<anisoP>false</anisoP>
+		             	<t_dir>3</t_dir>
+		             	<xi_0>1.0</xi_0>
+		             	<nu>1.0</nu>
+		           	</AnisoParam>
+				      	<FermionBC>
+		            	<FermBC>SIMPLE_FERMBC</FermBC>
+		             	<boundary>1 1 1 -1</boundary>
+              	</FermionBC>
+		          </FermionAction>
+		          <InvertParam>
+		            <invType>QUDA_CLOVER_INVERTER</invType>
+								<CloverParams>
+									<Mass>1.0</Mass>
+									<clovCoeff>1</clovCoeff>
+			          	<AnisoParam>
+			            	<anisoP>false</anisoP>
+			             	<t_dir>3</t_dir>
+			             	<xi_0>1.0</xi_0>
+			             	<nu>1.0</nu>
+			           	</AnisoParam>
+								</CloverParams>
+								<SolverType>CG</SolverType>
+								<RsdTarget>1.0e-8</RsdTarget>
+		            <MaxIter>10000</MaxIter>
+								<AntiPeriodicT>true</AntiPeriodicT>
+								<Delta>0.1</Delta>
+		          </InvertParam>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <source_id>pt_source_0</source_id>
+		          <prop_id>pt_prop_0</prop_id>
+		        </NamedObject>
+			</elem>
+			<!-- POINT-SMEAR THE SINK -->
+			<elem>
+				<annotation>
+					(trivially) point-smear the sink on the propagator
+				</annotation>
+		        <Name>SINK_SMEAR</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>5</version>
+		          <Sink>
+		            <version>2</version>
+		            <SinkType>POINT_SINK</SinkType>
+		            <j_decay>3</j_decay>
+
+		            <Displacement>
+		              <version>1</version>
+		              <DisplacementType>NONE</DisplacementType>
+		            </Displacement>
+		          </Sink>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <prop_id>pt_prop_0</prop_id>
+		          <smeared_prop_id>pt_pt_prop_0</smeared_prop_id>
+		        </NamedObject>
+			</elem>
+			<!-- DISCARD THE  SOURCE -->
+			<elem>
+				<annotation>
+					discard the source to save memory
+				</annotation>
+				<Name>ERASE_NAMED_OBJECT</Name>
+				<Frequency>1</Frequency>
+				<NamedObject>
+					<object_id>pt_prop_0</object_id>
+				</NamedObject>
+			</elem>
+			<!-- COMPUTE MESON SPECTRUM -->
+			<elem>
+		        <annotation>
+		           Compute the meson spectrum.
+		        </annotation>
+		        <Name>HADRON_SPECTRUM</Name>
+		        <Frequency>1</Frequency>
+		        <Param>
+		          <version>1</version>
+		          <MesonP>true</MesonP>
+		          <CurrentP>true</CurrentP>
+		          <BaryonP>true</BaryonP>
+		          <time_rev>false</time_rev>
+		          <mom2_max>3</mom2_max>
+		          <avg_equiv_mom>true</avg_equiv_mom>
+		        </Param>
+		        <NamedObject>
+		          <gauge_id>default_gauge_field</gauge_id>
+		          <sink_pairs>
+		            <elem>
+		              <first_id>pt_pt_prop_0</first_id>
+		              <second_id>pt_pt_prop_0</second_id>
+		            </elem>
+		          </sink_pairs>
+		        </NamedObject>
+				<xml_file>hadspec.dat.xml</xml_file>
+			</elem>
+		</InlineMeasurements>
+		<nrow>4 4 4 8</nrow>
+	</Param>
+	<RNG>
+		<Seed>
+			<!-- copied this from tests -->
+		    <elem>11</elem>
+		    <elem>11</elem>
+		    <elem>11</elem>
+		    <elem>0</elem>
+		</Seed>
+	</RNG>
+	<Cfg>
+		<cfg_type>WEAK_FIELD</cfg_type>
+		<cfg_file>dummy</cfg_file>
+	</Cfg>
+</chroma>

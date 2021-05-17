@@ -1,0 +1,30 @@
+#!/bin/bash
+#ulimit -c unlimited
+#SBATCH --job-name=nplqcd_test
+#SBATCH --nodes=1
+#SBATCH --time=6:00:00
+#SBATCH --partition=prod
+
+source /usr/local/Modules/init/bash
+TOPDIR=/home/poare/0nubb/chroma_scripts
+
+set -x
+
+cd $TOPDIR
+source /data/d10a/projects/nplqcd/wd_build/nojit/env.sh
+
+module load openmpi/3.1.5-gcc.7.3.0
+
+export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:/opt/software/hdf5-1.10.6/lib:$LD_LIBRARY_PATH
+export application=/data/d10a/projects/nplqcd/wd_build/nojit/install/nplqcd-double-master/bin/nplqcd
+
+nCores=8
+export GEOM="2 2 2 1"
+export OMP_NUM_THREADS=8
+cpus=$nodes
+echo "=== Run MPI application on $nCores cores ==="
+
+export QUDA_REORDER_LOCATION=GPU #GPU/CPU
+export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
+
+mpirun -np $nCores $application -i hadspec_poare.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
