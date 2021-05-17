@@ -88,10 +88,10 @@
         <source_id>sh_source_0</source_id>
         <prop_id>sh_prop_0</prop_id>
       </NamedObject>
-      <!-- <xml_file>qudanef.out.xml</xml_file> -->
+      <xml_file>qudanef.out.xml</xml_file>
     </elem>
 
-    <!-- <elem>
+    <elem>
       <Name>SINK_SMEAR</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -150,7 +150,7 @@
         </sink_pairs>
       </NamedObject>
       <xml_file>hadspec.dat.xml</xml_file>
-    </elem> -->
+    </elem>
 
 
   </InlineMeasurements>
