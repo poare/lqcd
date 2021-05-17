@@ -91,7 +91,7 @@
       <!-- <xml_file>qudanef.out.xml</xml_file> -->
     </elem>
 
-    <elem>
+    <!-- <elem>
       <Name>SINK_SMEAR</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -150,11 +150,11 @@
         </sink_pairs>
       </NamedObject>
       <xml_file>hadspec.dat.xml</xml_file>
-    </elem>
+    </elem> -->
 
 
   </InlineMeasurements>
-   <nrow>4 4 4 8</nrow>
+  <nrow>4 4 4 8</nrow>
 </Param>
 
 <RNG>
@@ -167,7 +167,7 @@
 </RNG>
 
 <Cfg>
-	<cfg_type>WEAK_FIELD</cfg_type>
-	<cfg_file>dummy</cfg_file>
+	<cfg_type>UNIT</cfg_type>
+	<cfg_file>ignored</cfg_file>
 </Cfg>
 </chroma>
