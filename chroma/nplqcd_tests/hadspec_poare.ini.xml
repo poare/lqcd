@@ -91,7 +91,7 @@
       <xml_file>qudanef.out.xml</xml_file>
     </elem>
 
-    <elem>
+    <!-- <elem>
       <Name>SINK_SMEAR</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -126,7 +126,7 @@
         <prop_id>sh_prop_0</prop_id>
         <smeared_prop_id>sh_sh_sink_1</smeared_prop_id>
       </NamedObject>
-    </elem>
+    </elem> -->
 
     <elem>
       <Name>HADRON_SPECTRUM</Name>
@@ -144,8 +144,8 @@
         <gauge_id>default_gauge_field</gauge_id>
         <sink_pairs>
           <elem>
-            <first_id>sh_sh_sink_1</first_id>
-            <second_id>sh_sh_sink_1</second_id>
+            <first_id>sh_prop_0</first_id>
+            <second_id>sh_prop_0</second_id>
           </elem>
         </sink_pairs>
       </NamedObject>
