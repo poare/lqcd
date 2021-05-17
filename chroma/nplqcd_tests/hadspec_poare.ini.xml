@@ -40,10 +40,10 @@
         <FermionAction>
          <FermAct>NEF</FermAct>
          <OverMass>1.8</OverMass>
-         <Mass>0.005</Mass>
-         <N5>16</N5>
-	 <b5>1.0</b5>
-	 <c5>0.0</c5>
+         <Mass>0.1</Mass>
+         <N5>8</N5>
+      	 <b5>1.0</b5>
+      	 <c5>0.0</c5>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
