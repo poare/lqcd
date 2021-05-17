@@ -164,7 +164,7 @@
     </elem>
 
     <elem>
-      <Name>HADRON_SPECTRUM</Name>
+      <Name>HADRON_SPECTRUM_POARE</Name>
       <Frequency>1</Frequency>
       <Param>
         <version>1</version>
