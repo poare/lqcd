@@ -27,6 +27,6 @@ cpus=$nodes
 echo "=== Run MPI application on $nCores cores ==="
 
 export QUDA_REORDER_LOCATION=GPU #GPU/CPU
-export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/""
+export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
 mpirun -np $nCores $application -i hadspec_poare.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
