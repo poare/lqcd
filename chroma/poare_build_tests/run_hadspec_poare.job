@@ -2,8 +2,8 @@
 #ulimit -c unlimited
 #SBATCH --job-name=chroma_dwf_test
 #SBATCH --nodes=1
-#SBATCH --time=6:00:00
-#SBATCH --partition=prod
+#SBATCH --time=00:30:00
+#SBATCH --partition=devel
 
 source /usr/local/Modules/init/bash
 TOPDIR=/home/poare/0nubb/chroma_scripts
