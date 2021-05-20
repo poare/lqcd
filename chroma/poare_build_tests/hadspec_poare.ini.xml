@@ -164,8 +164,8 @@
     </elem>
 
     <elem>
-      <!-- <Name>ZERO_NUBB_MEAS</Name> -->
-      <Name>HADRON_SPECTRUM</Name>
+      <Name>ZERO_NUBB_MEAS</Name>
+      <!-- <Name>HADRON_SPECTRUM</Name> -->
       <Frequency>1</Frequency>
       <Param>
         <version>1</version>
