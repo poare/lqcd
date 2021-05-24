@@ -6,11 +6,11 @@
 #SBATCH --partition=devel
 
 source /usr/local/Modules/init/bash
-TOPDIR=/home/poare/0nubb/chroma_scripts
+# TOPDIR=/home/poare/0nubb/chroma_scripts
 
 set -x
 
-cd $TOPDIR
+# cd $TOPDIR
 # source /data/d10a/projects/nplqcd/wd_build/nojit/env.sh
 source /data/d10b/users/poare/software/poare_build/env.sh
 

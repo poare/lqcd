@@ -6,17 +6,17 @@
 #SBATCH --partition=prod
 
 source /usr/local/Modules/init/bash
-TOPDIR=/home/poare/0nubb/chroma_scripts
+# TOPDIR=/home/poare/0nubb/chroma_scripts
 
 set -x
 
-cd $TOPDIR
-source /data/d10a/projects/nplqcd/wd_build/nojit/env.sh
+# cd $TOPDIR
+source /data/d10b/users/poare/software/poare_build/env.sh
 
 module load openmpi/3.1.5-gcc.7.3.0
 
 export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:/opt/software/hdf5-1.10.6/lib:$LD_LIBRARY_PATH
-export application=/data/d10a/projects/nplqcd/wd_build/nojit/install/nplqcd-double-master/bin/nplqcd
+export application=/data/d10b/users/poare/software/poare_build/install/chroma-double/bin/chroma
 
 nCores=8
 export GEOM="2 2 2 1"

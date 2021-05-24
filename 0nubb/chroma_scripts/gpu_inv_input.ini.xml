@@ -147,7 +147,7 @@
       <!-- TODO edit this -->
     </elem>
 
-    <!-- <elem>
+    <elem>
       <Name>SINK_SMEAR</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -185,7 +185,7 @@
     </elem>
 
     <elem>
-      <Name>HADRON_SPECTRUM</Name>
+      <Name>ZERO_NUBB_MEAS</Name>
       <Frequency>1</Frequency>
       <Param>
         <version>1</version>
@@ -206,7 +206,7 @@
         </sink_pairs>
       </NamedObject>
       <xml_file>hadspec.dat.xml</xml_file>
-    </elem> -->
+    </elem>
 
 
   </InlineMeasurements>
