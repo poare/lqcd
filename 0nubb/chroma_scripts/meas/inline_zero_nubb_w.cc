@@ -107,6 +107,7 @@ namespace Chroma
 
     read(inputtop, "first_id", input.first_id);
     read(inputtop, "second_id", input.second_id);
+    read(inputtop, "third_id", input.third_id);
   }
 
   //! Propagator output
@@ -116,6 +117,7 @@ namespace Chroma
 
     write(xml, "first_id", input.first_id);
     write(xml, "second_id", input.second_id);
+    write(xml, "third_id", input.third_id);
 
     pop(xml);
   }
@@ -215,8 +217,9 @@ namespace Chroma
     //! Useful structure holding sink props
     struct AllSinkProps_t
     {
-      SinkPropContainer_t  sink_prop_1;
-      SinkPropContainer_t  sink_prop_2;
+      SinkPropContainer_t  sink_prop_k1;
+      SinkPropContainer_t  sink_prop_k2;
+      SinkPropContainer_t  sink_prop_q;
     };
 
 
@@ -307,11 +310,15 @@ namespace Chroma
 		      InlineZeroNubbParams::NamedObject_t::Props_t sink_pair)
     {
       QDPIO::cout << "Attempt to parse forward propagator = " << sink_pair.first_id << std::endl;
-      readSinkProp(s.sink_prop_1, sink_pair.first_id);
+      readSinkProp(s.sink_prop_k1, sink_pair.first_id);
       QDPIO::cout << "Forward propagator successfully parsed" << std::endl;
 
       QDPIO::cout << "Attempt to parse forward propagator = " << sink_pair.second_id << std::endl;
-      readSinkProp(s.sink_prop_2, sink_pair.second_id);
+      readSinkProp(s.sink_prop_k2, sink_pair.second_id);
+      QDPIO::cout << "Forward propagator successfully parsed" << std::endl;
+
+      QDPIO::cout << "Attempt to parse forward propagator = " << sink_pair.third_id << std::endl;
+      readSinkProp(s.sink_prop_q, sink_pair.third_id);
       QDPIO::cout << "Forward propagator successfully parsed" << std::endl;
     }
 
@@ -419,29 +426,29 @@ namespace Chroma
 
       // Derived from input prop
       multi1d<int> t_srce
-                  = all_sinks.sink_prop_1.prop_header.source_header.getTSrce();
-      int j_decay = all_sinks.sink_prop_1.prop_header.source_header.j_decay;
-      int t0      = all_sinks.sink_prop_1.prop_header.source_header.t_source;
+                  = all_sinks.sink_prop_k1.prop_header.source_header.getTSrce();
+      int j_decay = all_sinks.sink_prop_k1.prop_header.source_header.j_decay;
+      int t0      = all_sinks.sink_prop_k1.prop_header.source_header.t_source;
 
       // Sanity checks
       {
-	if (all_sinks.sink_prop_2.prop_header.source_header.j_decay != j_decay)
+	if (all_sinks.sink_prop_k2.prop_header.source_header.j_decay != j_decay)
 	{
 	  QDPIO::cerr << "Error!! j_decay must be the same for all propagators " << std::endl;
 	  QDP_abort(1);
 	}
-	if (all_sinks.sink_prop_2.prop_header.source_header.t_source !=
-	    all_sinks.sink_prop_1.prop_header.source_header.t_source)
+	if (all_sinks.sink_prop_k2.prop_header.source_header.t_source !=
+	    all_sinks.sink_prop_k1.prop_header.source_header.t_source)
 	{
 	  QDPIO::cerr << "Error!! t_source must be the same for all propagators " << std::endl;
 	  QDP_abort(1);
 	}
-	if (all_sinks.sink_prop_1.source_type != all_sinks.sink_prop_2.source_type)
+	if (all_sinks.sink_prop_k1.source_type != all_sinks.sink_prop_k2.source_type)
 	{
 	  QDPIO::cerr << "Error!! source_type must be the same in a pair " << std::endl;
 	  QDP_abort(1);
 	}
-	if (all_sinks.sink_prop_1.sink_type != all_sinks.sink_prop_2.sink_type)
+	if (all_sinks.sink_prop_k1.sink_type != all_sinks.sink_prop_k2.sink_type)
 	{
 	  QDPIO::cerr << "Error!! source_type must be the same in a pair " << std::endl;
 	  QDP_abort(1);
@@ -452,16 +459,14 @@ namespace Chroma
       int bc_spec = 0;
       if (params.param.BaryonP)
       {
-	bc_spec = all_sinks.sink_prop_1.bc[j_decay] ;
-	if (all_sinks.sink_prop_2.bc[j_decay] != bc_spec)
+	bc_spec = all_sinks.sink_prop_k1.bc[j_decay] ;
+	if (all_sinks.sink_prop_k2.bc[j_decay] != bc_spec)
 	{
 	  QDPIO::cerr << "Error!! bc must be the same for all propagators " << std::endl;
 	  QDP_abort(1);
 	}
       }
 
-
-      // Initialize the slow Fourier transform phases
       SftMom phases(params.param.mom2_max, t_srce, params.param.avg_equiv_mom,
                     j_decay);
 
@@ -469,94 +474,114 @@ namespace Chroma
       SftMom phases_nomom(0, true, j_decay);
 
       // Masses
-      write(xml_out, "Mass_1", all_sinks.sink_prop_1.Mass);
-      write(xml_out, "Mass_2", all_sinks.sink_prop_2.Mass);
+      write(xml_out, "Mass_k1", all_sinks.sink_prop_k1.Mass);
+      write(xml_out, "Mass_k2", all_sinks.sink_prop_k2.Mass);
+      write(xml_out, "Mass_q", all_sinks.sink_prop_q.Mass);
       write(xml_out, "t0", t0);
 
       // Save prop input
       push(xml_out, "Forward_prop_headers");
-      write(xml_out, "First_forward_prop", all_sinks.sink_prop_1.prop_header);
-      write(xml_out, "Second_forward_prop", all_sinks.sink_prop_2.prop_header);
+      write(xml_out, "First_forward_prop", all_sinks.sink_prop_k1.prop_header);
+      write(xml_out, "Second_forward_prop", all_sinks.sink_prop_k2.prop_header);
+      write(xml_out, "Third_forward_prop", all_sinks.sink_prop_q.prop_header);
       pop(xml_out);
 
       // Sanity check - write out the norm2 of the forward prop in the j_decay direction
       // Use this for any possible verification
       push(xml_out, "Forward_prop_correlator");
       {
-	const LatticePropagator& sink_prop_1 =
-	  TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_1.quark_propagator_id);
-	const LatticePropagator& sink_prop_2 =
-	  TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_2.quark_propagator_id);
+      	const LatticePropagator& sink_prop_k1 =
+      	  TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k1.quark_propagator_id);
+      	const LatticePropagator& sink_prop_k2 =
+      	  TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k2.quark_propagator_id);
+        const LatticePropagator& sink_prop_q =
+          TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_q.quark_propagator_id);
 
-	write(xml_out, "forward_prop_corr_1", sumMulti(localNorm2(sink_prop_1), phases.getSet()));
-	write(xml_out, "forward_prop_corr_2", sumMulti(localNorm2(sink_prop_2), phases.getSet()));
+      	write(xml_out, "forward_prop_corr_k1", sumMulti(localNorm2(sink_prop_k1), phases.getSet()));
+      	write(xml_out, "forward_prop_corr_k2", sumMulti(localNorm2(sink_prop_k2), phases.getSet()));
+        write(xml_out, "forward_prop_corr_q", sumMulti(localNorm2(sink_prop_q), phases.getSet()));
       }
       pop(xml_out);
 
-
+      // Commenting out source-sink stuff, since I'm using a MOMENTUM_VOLUME_SOURCE and not smearing anything. This
+      // code seems to break on anything that's a volume source
+      /*
       push(xml_out, "SourceSinkType");
       {
-	QDPIO::cout << "Source_type_1 = " << all_sinks.sink_prop_1.source_type << std::endl;
-	QDPIO::cout << "Sink_type_1 = " << all_sinks.sink_prop_1.sink_type << std::endl;
-	QDPIO::cout << "Source_type_2 = " << all_sinks.sink_prop_2.source_type << std::endl;
-	QDPIO::cout << "Sink_type_2 = " << all_sinks.sink_prop_2.sink_type << std::endl;
+      	QDPIO::cout << "Source_type_k1 = " << all_sinks.sink_prop_k1.source_type << std::endl;
+      	QDPIO::cout << "Sink_type_k1 = " << all_sinks.sink_prop_k1.sink_type << std::endl;
+      	QDPIO::cout << "Source_type_k2 = " << all_sinks.sink_prop_k2.source_type << std::endl;
+      	QDPIO::cout << "Sink_type_k2 = " << all_sinks.sink_prop_k2.sink_type << std::endl;
+        QDPIO::cout << "Source_type_q = " << all_sinks.sink_prop_q.source_type << std::endl;
+      	QDPIO::cout << "Sink_type_q = " << all_sinks.sink_prop_q.sink_type << std::endl;
 
-	write(xml_out, "source_type_1", all_sinks.sink_prop_1.source_type);
-	write(xml_out, "source_disp_type_1", all_sinks.sink_prop_1.source_disp_type);
-	write(xml_out, "sink_type_1", all_sinks.sink_prop_1.sink_type);
-	write(xml_out, "sink_disp_type_1", all_sinks.sink_prop_1.sink_disp_type);
+      	write(xml_out, "source_type_k1", all_sinks.sink_prop_k1.source_type);
+      	write(xml_out, "source_disp_type_k1", all_sinks.sink_prop_k1.source_disp_type);
+      	write(xml_out, "sink_type_k1", all_sinks.sink_prop_k1.sink_type);
+      	write(xml_out, "sink_disp_type_k1", all_sinks.sink_prop_k1.sink_disp_type);
 
-	write(xml_out, "source_type_2", all_sinks.sink_prop_2.source_type);
-	write(xml_out, "source_disp_type_2", all_sinks.sink_prop_2.source_disp_type);
-	write(xml_out, "sink_type_2", all_sinks.sink_prop_2.sink_type);
-	write(xml_out, "sink_disp_type_2", all_sinks.sink_prop_2.sink_disp_type);
+      	write(xml_out, "source_type_k2", all_sinks.sink_prop_k2.source_type);
+      	write(xml_out, "source_disp_type_k2", all_sinks.sink_prop_k2.source_disp_type);
+      	write(xml_out, "sink_type_k2", all_sinks.sink_prop_k2.sink_type);
+      	write(xml_out, "sink_disp_type_k2", all_sinks.sink_prop_k2.sink_disp_type);
+
+        write(xml_out, "source_type_q", all_sinks.sink_prop_q.source_type);
+      	write(xml_out, "source_disp_type_q", all_sinks.sink_prop_q.source_disp_type);
+      	write(xml_out, "sink_type_q", all_sinks.sink_prop_q.sink_type);
+      	write(xml_out, "sink_disp_type_q", all_sinks.sink_prop_q.sink_disp_type);
       }
       pop(xml_out);
+      */
 
 
       // References for use later
-      const LatticePropagator& sink_prop_1 =
-	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_1.quark_propagator_id);
-      const LatticePropagator& sink_prop_2 =
-	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_2.quark_propagator_id);
+      const LatticePropagator& sink_prop_k1 =
+	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k1.quark_propagator_id);
+      const LatticePropagator& sink_prop_k2 =
+	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k2.quark_propagator_id);
+      const LatticePropagator& sink_prop_q =
+  TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_q.quark_propagator_id);
 
+  /*
 
       // Construct group name for output
       std::string src_type;
-      if (all_sinks.sink_prop_1.source_type == "POINT_SOURCE")
+      if (all_sinks.sink_prop_k1.source_type == "POINT_SOURCE")
 	src_type = "Point";
-      else if (all_sinks.sink_prop_1.source_type == "SF_POINT_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "SF_POINT_SOURCE")
 	src_type = "Point";
-      else if (all_sinks.sink_prop_1.source_type == "SHELL_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "SHELL_SOURCE")
 	src_type = "Shell";
-      else if (all_sinks.sink_prop_1.source_type == "NORM_SHELL_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "NORM_SHELL_SOURCE")
 	src_type = "Shell";
-      else if (all_sinks.sink_prop_1.source_type == "SF_SHELL_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "SF_SHELL_SOURCE")
 	src_type = "Shell";
-      else if (all_sinks.sink_prop_1.source_type == "WALL_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "WALL_SOURCE")
 	src_type = "Wall";
-      else if (all_sinks.sink_prop_1.source_type == "SF_WALL_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "SF_WALL_SOURCE")
 	src_type = "Wall";
-      else if (all_sinks.sink_prop_1.source_type == "RAND_ZN_WALL_SOURCE")
+      else if (all_sinks.sink_prop_k1.source_type == "RAND_ZN_WALL_SOURCE")
 	src_type = "Wall";
+      else if (all_sinks.sink_prop_k1.source_type == "MOMENTUM_VOLUME_SOURCE")
+  src_type = "Wall";
       else
       {
-	QDPIO::cerr << "Unsupported source type = " << all_sinks.sink_prop_1.source_type << std::endl;
+	QDPIO::cerr << "Unsupported source type = " << all_sinks.sink_prop_k1.source_type << std::endl;
 	QDP_abort(1);
       }
 
       std::string snk_type;
-      if (all_sinks.sink_prop_1.sink_type == "POINT_SINK")
+      if (all_sinks.sink_prop_k1.sink_type == "POINT_SINK")
 	snk_type = "Point";
-      else if (all_sinks.sink_prop_1.sink_type == "SHELL_SINK")
+      else if (all_sinks.sink_prop_k1.sink_type == "SHELL_SINK")
 	snk_type = "Shell";
-      else if (all_sinks.sink_prop_1.sink_type == "NORM_SHELL_SINK")
+      else if (all_sinks.sink_prop_k1.sink_type == "NORM_SHELL_SINK")
 	snk_type = "Shell";
-      else if (all_sinks.sink_prop_1.sink_type == "WALL_SINK")
+      else if (all_sinks.sink_prop_k1.sink_type == "WALL_SINK")
 	snk_type = "Wall";
       else
       {
-	QDPIO::cerr << "Unsupported sink type = " << all_sinks.sink_prop_1.sink_type << std::endl;
+	QDPIO::cerr << "Unsupported sink type = " << all_sinks.sink_prop_k1.sink_type << std::endl;
 	QDP_abort(1);
       }
 
@@ -564,34 +589,36 @@ namespace Chroma
       QDPIO::cout << "Source type = " << src_type << std::endl;
       QDPIO::cout << "Sink type = "   << snk_type << std::endl;
 
-      // Do the mesons first
-      if (params.param.MesonP)
-      {
-	zero_nubb(sink_prop_1, sink_prop_2, phases, t0,
-		xml_out, source_sink_type + "_Wilson_Mesons");
-      } // end if (MesonP)
+      */
+
+      // momentum index
+      int k = params.param.mom_idx
+
+      QDPIO::cout << "Calling zero_nubb measurement function now." << std::endl;
+    	zero_nubb(sink_prop_k1, sink_prop_k2, sink_prop_q, phases, t0,
+    		xml_out, "0nubb_npr");
 
 
-      // Do the currents next
-      if (params.param.CurrentP)
-      {
-	// Construct the rho std::vector-current and the pion axial current divergence
-	if (snk_type == "Point")
-	{
-	  curcor2(u, sink_prop_1, sink_prop_2, phases,
-		  t0, 3,
-		  xml_out, src_type + "_Point_Meson_Currents");
-	}
-      } // end if (CurrentP)
-
-
-      // Do the baryons
-      if (params.param.BaryonP)
-      {
-	barhqlq(sink_prop_2, sink_prop_1, phases,
-		t0, bc_spec, params.param.time_rev,
-		xml_out, source_sink_type + "_Wilson_Baryons");
-      } // end if (BaryonP)
+  //     // Do the currents next
+  //     if (params.param.CurrentP)
+  //     {
+	// // Construct the rho std::vector-current and the pion axial current divergence
+	// if (snk_type == "Point")
+	// {
+	//   curcor2(u, sink_prop_k1, sink_prop_k2, phases,
+	// 	  t0, 3,
+	// 	  xml_out, src_type + "_Point_Meson_Currents");
+	// }
+  //     } // end if (CurrentP)
+  //
+  //
+  //     // Do the baryons
+  //     if (params.param.BaryonP)
+  //     {
+	// barhqlq(sink_prop_k2, sink_prop_k1, phases,
+	// 	t0, bc_spec, params.param.time_rev,
+	// 	xml_out, source_sink_type + "_Wilson_Baryons");
+  //     } // end if (BaryonP)
 
       pop(xml_out);  // array element
     }
