@@ -71,7 +71,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   LatticeReal phase_q_arg = zero;
   LatticeReal phase_mq_arg = zero;  // no bvec for these-- they cancel in the momentum proj step
   LatticeReal phase_m2q_arg = zero;
-  for (mu = 0; mu < 4; mu++) {
+  for (int mu = 0; mu < 4; mu++) {
     phase_k1_arg += Layout::latticeCoordinate(mu) * (k1[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
     phase_k2_arg += Layout::latticeCoordinate(mu) * (k2[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
     phase_q_arg += Layout::latticeCoordinate(mu) * (q[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
