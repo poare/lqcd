@@ -94,11 +94,27 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   int G5 = Ns*Ns-1;
   LatticePropagator antiprop_k2 = Gamma(G5) * adj(quark_prop_k2) * Gamma(G5);
 
-  // Write S(q) to file-- need it for Zq analysis
-  push(xml, "S_q");
-    write(xml, "q", q);
-    write(xml, "propagator", momproj_prop_q);
-  pop(xml);
+  // Write mom projected props to file-- need Sq for Zq analysis
+	int n_props = 3;
+	XMLArrayWriter xml_props(xml, n_props);
+	push(xml_props, "propagators");
+
+	push(xml_props, "S_k1");
+	write(xml_props, "k1", k1);
+	write(xml_props, "prop", momproj_prop_k1);
+	pop(xml_props);
+
+	push(xml_props, "S_k2");
+	write(xml_props, "k2", k2);
+	write(xml_props, "prop", momproj_prop_k2);
+	pop(xml_props);
+
+	push(xml_props, "S_q");
+	write(xml_props, "q", q);
+	write(xml_props, "prop", momproj_prop_q);
+	pop(xml_props);
+
+	pop(xml_props);
 
   // Compute vector and axial currents
   multi1d<Propagator> GV;
@@ -112,114 +128,71 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   }
 
   // Write current correlators
-  push(xml, "GV");
+	XMLArrayWriter xml_GV(xml, Nd);
+	push(xml_GV, "GV");
   for (int mu = 0; mu < Nd; mu++) {
-    write(xml, "mu", mu);
-    write(xml, "correlator", GV[mu]);
+		push(xml_GV);
+		write(xml_GV, "mu", mu);
+		write(xml_GV, "correlator", GV[mu]);
+		pop(xml_GV);
   }
-  pop(xml);
+  pop(xml_GV);
 
-  push(xml, "GA");
+	XMLArrayWriter xml_GA(xml, Nd);
+	push(xml_GA, "GA");
   for (int mu = 0; mu < Nd; mu++) {
-    write(xml, "mu", mu);
-    write(xml, "correlator", GA[mu]);
+		push(xml_GA);
+		write(xml_GA, "mu", mu);
+    write(xml_GA, "correlator", GA[mu]);
+		pop(xml_GA);
   }
-  pop(xml);
+	pop(xml_GA);
 
   // Loop over gamma matrix insertions
-  // XMLArrayWriter xml_gamma(xml, Ns * Ns);    // makes 16 entries under this tag
-  // push(xml_gamma, "four_point_function");
-	push(xml, "four_point_function");
-
-  for (int n=0; n < (Ns*Ns); n++)
-  {
-    // push(xml_gamma);     // next array element
-    // write(xml_gamma, "gamma_value", n);
-		push(xml);
-		write(xml, "gamma_value", n);
-
+  XMLArrayWriter xml_gamma(xml, Ns * Ns);    // makes 16 entries under this tag
+  push(xml_gamma, "four_point_function");
+  for (int n = 0; n < (Ns * Ns); n++) {
+    push(xml_gamma);     // next array element
+    write(xml_gamma, "gamma_value", n);
     LatticePropagator A_gamma = antiprop_k2 * (Gamma(n) * quark_prop_k1);
     // Tie it up
     for (int alpha = 0; alpha < Nd; alpha++) {
-      // push(xml_gamma);
-      // write(xml_gamma, "alpha", alpha);
-			push(xml);
-      write(xml, "alpha", alpha);
       for (int beta = 0; beta < Nd; beta++) {
-        // push(xml_gamma);
-        // write(xml_gamma, "beta", beta);
-				push(xml);
-        write(xml, "beta", beta);
         for (int rho = 0; rho < Nd; rho++) {
-          // push(xml_gamma);
-          // write(xml_gamma, "rho", rho);
-					push(xml);
-          write(xml, "rho", rho);
           for (int sigma = 0; sigma < Nd; sigma++) {
-            // push(xml_gamma);
-            // write(xml_gamma, "sigma", sigma);
-						push(xml);
-            write(xml, "sigma", sigma);
             for (int a = 0; a < Nc; a++) {
-              // push(xml_gamma);
-              // write(xml_gamma, "a", a);
-							push(xml);
-              write(xml, "a", a);
               for (int b = 0; b < Nc; b++) {
-                // push(xml_gamma);
-                // write(xml_gamma, "b", b);
-								push(xml);
-                write(xml, "b", b);
                 for (int c = 0; c < Nc; c++) {
-                  // push(xml_gamma);
-                  // write(xml_gamma, "c", c);
-									push(xml);
-                  write(xml, "c", c);
                   for (int d = 0; d < Nc; d++) {
-                    // push(xml_gamma);
-                    // write(xml_gamma, "d", d);
-										push(xml);
-                    write(xml, "d", d);
-
                     Complex Gcomp = 2 * sumMulti( phase_m2q * (
                       peekSpin(peekColor(A_gamma, a, b), alpha, beta) * peekSpin(peekColor(A_gamma, c, d), rho, sigma) -
                       peekSpin(peekColor(A_gamma, a, d), alpha, sigma) * peekSpin(peekColor(A_gamma, c, b), rho, beta)
                     ), dummyPhases.getSet())[0] / (double) vol;
-                    // write(xml_gamma, "comp", Gcomp);
-										write(xml, "comp", Gcomp);
 
-                    // pop(xml_gamma);
-										pop(xml);
+										push(xml_gamma);
+										write(xml_gamma, "alpha", alpha);
+										write(xml_gamma, "beta", beta);
+										write(xml_gamma, "rho", rho);
+										write(xml_gamma, "sigma", sigma);
+										write(xml_gamma, "a", a);
+										write(xml_gamma, "b", b);
+										write(xml_gamma, "c", c);
+										write(xml_gamma, "d", d);
+										write(xml_gamma, "comp", Gcomp);
+										pop(xml_gamma);
                   }
-                  // pop(xml_gamma);
-									pop(xml);
                 }
-                // pop(xml_gamma);
-								pop(xml);
               }
-              // pop(xml_gamma);
-							pop(xml);
             }
-            // pop(xml_gamma);
-						pop(xml);
           }
-          // pop(xml_gamma);
-					pop(xml);
         }
-        // pop(xml_gamma);
-				pop(xml);
       }
-      // pop(xml_gamma);
-			pop(xml);
     } // end iteration over propagator indices
-
-
-    // pop(xml_gamma);
-		pop(xml);
+    pop(xml_gamma);
   } // end iteration over gamma matrix index n
 
-  // pop(xml_gamma);
-	pop(xml);
+  pop(xml_gamma);
+	// pop(xml);
 
   END_CODE();
 }
