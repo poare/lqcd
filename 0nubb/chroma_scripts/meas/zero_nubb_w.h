@@ -28,8 +28,6 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
 	     const LatticePropagator& quark_prop_k2,
 			 const LatticePropagator& quark_prop_q,
 			 int n,
-	     // const SftMom& phases,
-	     // int t0,
 	     XMLWriter& xml,
 	     const std::string& xml_group) ;
 

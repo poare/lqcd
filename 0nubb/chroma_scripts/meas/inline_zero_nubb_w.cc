@@ -69,13 +69,15 @@ namespace Chroma
       QDP_abort(1);
     }
 
-    read(paramtop, "MesonP", param.MesonP);
-    read(paramtop, "CurrentP", param.CurrentP);
-    read(paramtop, "BaryonP", param.BaryonP);
-    read(paramtop, "time_rev", param.time_rev);
+    read(paramtop, "mom_idx", param.mom_idx);
 
-    read(paramtop, "mom2_max", param.mom2_max);
-    read(paramtop, "avg_equiv_mom", param.avg_equiv_mom);
+    // read(paramtop, "MesonP", param.MesonP);
+    // read(paramtop, "CurrentP", param.CurrentP);
+    // read(paramtop, "BaryonP", param.BaryonP);
+    // read(paramtop, "time_rev", param.time_rev);
+    //
+    // read(paramtop, "mom2_max", param.mom2_max);
+    // read(paramtop, "avg_equiv_mom", param.avg_equiv_mom);
   }
 
 
@@ -87,14 +89,15 @@ namespace Chroma
     int version = 1;
     write(xml, "version", version);
 
-    write(xml, "MesonP", param.MesonP);
-    write(xml, "CurrentP", param.CurrentP);
-    write(xml, "BaryonP", param.BaryonP);
-
-    write(xml, "time_rev", param.time_rev);
-
-    write(xml, "mom2_max", param.mom2_max);
-    write(xml, "avg_equiv_mom", param.avg_equiv_mom);
+    write(xml, "mom_idx", param.mom_idx);
+    // write(xml, "MesonP", param.MesonP);
+    // write(xml, "CurrentP", param.CurrentP);
+    // write(xml, "BaryonP", param.BaryonP);
+    //
+    // write(xml, "time_rev", param.time_rev);
+    //
+    // write(xml, "mom2_max", param.mom2_max);
+    // write(xml, "avg_equiv_mom", param.avg_equiv_mom);
 
     pop(xml);
   }
@@ -428,56 +431,57 @@ namespace Chroma
       multi1d<int> t_srce
                   = all_sinks.sink_prop_k1.prop_header.source_header.getTSrce();
       int j_decay = all_sinks.sink_prop_k1.prop_header.source_header.j_decay;
-      int t0      = all_sinks.sink_prop_k1.prop_header.source_header.t_source;
+      // int t0      = all_sinks.sink_prop_k1.prop_header.source_header.t_source;
 
       // Sanity checks
-      {
-	if (all_sinks.sink_prop_k2.prop_header.source_header.j_decay != j_decay)
-	{
-	  QDPIO::cerr << "Error!! j_decay must be the same for all propagators " << std::endl;
-	  QDP_abort(1);
-	}
-	if (all_sinks.sink_prop_k2.prop_header.source_header.t_source !=
-	    all_sinks.sink_prop_k1.prop_header.source_header.t_source)
-	{
-	  QDPIO::cerr << "Error!! t_source must be the same for all propagators " << std::endl;
-	  QDP_abort(1);
-	}
-	if (all_sinks.sink_prop_k1.source_type != all_sinks.sink_prop_k2.source_type)
-	{
-	  QDPIO::cerr << "Error!! source_type must be the same in a pair " << std::endl;
-	  QDP_abort(1);
-	}
-	if (all_sinks.sink_prop_k1.sink_type != all_sinks.sink_prop_k2.sink_type)
-	{
-	  QDPIO::cerr << "Error!! source_type must be the same in a pair " << std::endl;
-	  QDP_abort(1);
-	}
-      }
+      // {
+        	// if (all_sinks.sink_prop_k2.prop_header.source_header.j_decay != j_decay)
+        	// {
+        	//   QDPIO::cerr << "Error!! j_decay must be the same for all propagators " << std::endl;
+        	//   QDP_abort(1);
+        	// }
+        	// if (all_sinks.sink_prop_k2.prop_header.source_header.t_source !=
+        	//     all_sinks.sink_prop_k1.prop_header.source_header.t_source)
+        	// {
+        	//   QDPIO::cerr << "Error!! t_source must be the same for all propagators " << std::endl;
+        	//   QDP_abort(1);
+        	// }
+        	// if (all_sinks.sink_prop_k1.source_type != all_sinks.sink_prop_k2.source_type)
+        	// {
+        	//   QDPIO::cerr << "Error!! source_type must be the same in a pair " << std::endl;
+        	//   QDP_abort(1);
+        	// }
+        	// if (all_sinks.sink_prop_k1.sink_type != all_sinks.sink_prop_k2.sink_type)
+        	// {
+        	//   QDPIO::cerr << "Error!! source_type must be the same in a pair " << std::endl;
+        	//   QDP_abort(1);
+        	// }
+      // }
 
       // Only baryons care about bc
-      int bc_spec = 0;
-      if (params.param.BaryonP)
-      {
-	bc_spec = all_sinks.sink_prop_k1.bc[j_decay] ;
-	if (all_sinks.sink_prop_k2.bc[j_decay] != bc_spec)
-	{
-	  QDPIO::cerr << "Error!! bc must be the same for all propagators " << std::endl;
-	  QDP_abort(1);
-	}
-      }
+      // int bc_spec = 0;
+      // if (params.param.BaryonP)
+      // {
+      //   	bc_spec = all_sinks.sink_prop_k1.bc[j_decay] ;
+      //   	if (all_sinks.sink_prop_k2.bc[j_decay] != bc_spec)
+      //   	{
+      //   	  QDPIO::cerr << "Error!! bc must be the same for all propagators " << std::endl;
+      //   	  QDP_abort(1);
+      //   	}
+      // }
 
-      SftMom phases(params.param.mom2_max, t_srce, params.param.avg_equiv_mom,
-                    j_decay);
+      // SftMom phases(params.param.mom2_max, t_srce, params.param.avg_equiv_mom,
+      //               j_decay);
+      SftMom dummyPhases(1, false, -1); // use dummyPhases.getSet() for the sumMulti subset
 
       // Keep a copy of the phases with NO momenta
-      SftMom phases_nomom(0, true, j_decay);
+      // SftMom phases_nomom(0, true, j_decay);
 
       // Masses
-      write(xml_out, "Mass_k1", all_sinks.sink_prop_k1.Mass);
-      write(xml_out, "Mass_k2", all_sinks.sink_prop_k2.Mass);
-      write(xml_out, "Mass_q", all_sinks.sink_prop_q.Mass);
-      write(xml_out, "t0", t0);
+      // write(xml_out, "Mass_k1", all_sinks.sink_prop_k1.Mass);
+      // write(xml_out, "Mass_k2", all_sinks.sink_prop_k2.Mass);
+      // write(xml_out, "Mass_q", all_sinks.sink_prop_q.Mass);
+      // write(xml_out, "t0", t0);
 
       // Save prop input
       push(xml_out, "Forward_prop_headers");
@@ -497,9 +501,9 @@ namespace Chroma
         const LatticePropagator& sink_prop_q =
           TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_q.quark_propagator_id);
 
-      	write(xml_out, "forward_prop_corr_k1", sumMulti(localNorm2(sink_prop_k1), phases.getSet()));
-      	write(xml_out, "forward_prop_corr_k2", sumMulti(localNorm2(sink_prop_k2), phases.getSet()));
-        write(xml_out, "forward_prop_corr_q", sumMulti(localNorm2(sink_prop_q), phases.getSet()));
+      	write(xml_out, "forward_prop_corr_k1", sumMulti(localNorm2(sink_prop_k1), dummyPhases.getSet()));
+      	write(xml_out, "forward_prop_corr_k2", sumMulti(localNorm2(sink_prop_k2), dummyPhases.getSet()));
+        write(xml_out, "forward_prop_corr_q", sumMulti(localNorm2(sink_prop_q), dummyPhases.getSet()));
       }
       pop(xml_out);
 
@@ -536,11 +540,11 @@ namespace Chroma
 
       // References for use later
       const LatticePropagator& sink_prop_k1 =
-	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k1.quark_propagator_id);
+        	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k1.quark_propagator_id);
       const LatticePropagator& sink_prop_k2 =
-	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k2.quark_propagator_id);
+        	TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_k2.quark_propagator_id);
       const LatticePropagator& sink_prop_q =
-  TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_q.quark_propagator_id);
+          TheNamedObjMap::Instance().getData<LatticePropagator>(all_sinks.sink_prop_q.quark_propagator_id);
 
   /*
 
@@ -592,11 +596,9 @@ namespace Chroma
       */
 
       // momentum index
-      int k = params.param.mom_idx
-
+      int k = params.param.mom_idx;
       QDPIO::cout << "Calling zero_nubb measurement function now." << std::endl;
-    	zero_nubb(sink_prop_k1, sink_prop_k2, sink_prop_q, phases, t0,
-    		xml_out, "0nubb_npr");
+    	zero_nubb(sink_prop_k1, sink_prop_k2, sink_prop_q, k, xml_out, "0nubb_npr");
 
 
   //     // Do the currents next
