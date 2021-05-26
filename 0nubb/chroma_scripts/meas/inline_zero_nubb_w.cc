@@ -204,16 +204,16 @@ namespace Chroma
     //! Useful structure holding sink props
     struct SinkPropContainer_t
     {
-      ForwardProp_t prop_header;
+      // ForwardProp_t prop_header;
       std::string quark_propagator_id;
-      Real Mass;
+      // Real Mass;
 
-      multi1d<int> bc;
+      // multi1d<int> bc;
 
-      std::string source_type;
-      std::string source_disp_type;
-      std::string sink_type;
-      std::string sink_disp_type;
+      // std::string source_type;
+      // std::string source_disp_type;
+      // std::string sink_type;
+      // std::string sink_disp_type;
     };
 
 
@@ -229,14 +229,19 @@ namespace Chroma
     //! Read a sink prop
     void readSinkProp(SinkPropContainer_t& s, const std::string& id)
     {
+      QDPIO::cout << "Reading sink prop." << std::endl;
       try
       {
 	// Try a cast to see if it succeeds
 	const LatticePropagator& foo =
 	  TheNamedObjMap::Instance().getData<LatticePropagator>(id);
 
+    QDPIO::cout << "Reading out prop id." << std::endl;
+
 	// Snarf the data into a copy
 	s.quark_propagator_id = id;
+
+  QDPIO::cout << "Snarf prop info." << std::endl;
 
 	// Snarf the prop info. This is will throw if the prop_id is not there
 	XMLReader prop_file_xml, prop_record_xml;
@@ -245,6 +250,8 @@ namespace Chroma
 
 	// Try to invert this record XML into a ChromaProp struct
 	// Also pull out the id of this source
+
+/*
 	{
 	  std::string xpath;
 	  read(prop_record_xml, "/SinkSmear", s.prop_header);
@@ -276,35 +283,52 @@ namespace Chroma
 		    << std::endl;
 	QDP_abort(1);
       }
-
+  */
 
       // Derived from input prop
       // Hunt around to find the mass
       // NOTE: this may be problematic in the future if actions are used with no
       // clear def. of a Mass
-      QDPIO::cout << "Try action and mass" << std::endl;
-      s.Mass = getMass(s.prop_header.prop_header.fermact);
+      // QDPIO::cout << "Try action and mass" << std::endl;
+      // s.Mass = getMass(s.prop_header.prop_header.fermact);
 
       // Only baryons care about boundaries
       // Try to find them. If not present, assume dirichlet.
       // This turns off any attempt to time reverse which is the
       // only thing that the BC are affecting.
-      s.bc.resize(Nd);
-      s.bc = 0;
+  //     s.bc.resize(Nd);
+  //     s.bc = 0;
+  //
+  //     try
+  //     {
+	// s.bc = getFermActBoundary(s.prop_header.prop_header.fermact);
+  //     }
+  //     catch (const std::string& e)
+  //     {
+	// QDPIO::cerr << InlineZeroNubbEnv::name
+	// 	    << ": caught exception. No BC found in these headers. Will assume dirichlet: " << e
+	// 	    << std::endl;
+  //     }
+  //
+  //     QDPIO::cout << "FermAct = " << s.prop_header.prop_header.fermact.id << std::endl;
+  //     QDPIO::cout << "Mass = " << s.Mass << std::endl;
 
-      try
+      }
+      catch( std::bad_cast )
       {
-	s.bc = getFermActBoundary(s.prop_header.prop_header.fermact);
+      QDPIO::cerr << InlineZeroNubbEnv::name << ": caught dynamic cast error"
+        << std::endl;
+      QDP_abort(1);
       }
       catch (const std::string& e)
       {
-	QDPIO::cerr << InlineZeroNubbEnv::name
-		    << ": caught exception. No BC found in these headers. Will assume dirichlet: " << e
-		    << std::endl;
+      QDPIO::cerr << InlineZeroNubbEnv::name << ": error message: " << e
+        << std::endl;
+      QDP_abort(1);
       }
 
-      QDPIO::cout << "FermAct = " << s.prop_header.prop_header.fermact.id << std::endl;
-      QDPIO::cout << "Mass = " << s.Mass << std::endl;
+      QDPIO::cout << "readSinkProp succeeded." << std::endl;
+
     }
 
 
@@ -428,9 +452,9 @@ namespace Chroma
       readAllSinks(all_sinks, named_obj);
 
       // Derived from input prop
-      multi1d<int> t_srce
-                  = all_sinks.sink_prop_k1.prop_header.source_header.getTSrce();
-      int j_decay = all_sinks.sink_prop_k1.prop_header.source_header.j_decay;
+      // multi1d<int> t_srce
+      //             = all_sinks.sink_prop_k1.prop_header.source_header.getTSrce();
+      // int j_decay = all_sinks.sink_prop_k1.prop_header.source_header.j_decay;
       // int t0      = all_sinks.sink_prop_k1.prop_header.source_header.t_source;
 
       // Sanity checks
@@ -484,11 +508,11 @@ namespace Chroma
       // write(xml_out, "t0", t0);
 
       // Save prop input
-      push(xml_out, "Forward_prop_headers");
-      write(xml_out, "First_forward_prop", all_sinks.sink_prop_k1.prop_header);
-      write(xml_out, "Second_forward_prop", all_sinks.sink_prop_k2.prop_header);
-      write(xml_out, "Third_forward_prop", all_sinks.sink_prop_q.prop_header);
-      pop(xml_out);
+      // push(xml_out, "Forward_prop_headers");
+      // write(xml_out, "First_forward_prop", all_sinks.sink_prop_k1.prop_header);
+      // write(xml_out, "Second_forward_prop", all_sinks.sink_prop_k2.prop_header);
+      // write(xml_out, "Third_forward_prop", all_sinks.sink_prop_q.prop_header);
+      // pop(xml_out);
 
       // Sanity check - write out the norm2 of the forward prop in the j_decay direction
       // Use this for any possible verification
