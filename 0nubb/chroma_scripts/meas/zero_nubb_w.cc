@@ -121,8 +121,15 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   multi1d<Propagator> GA;
   GV.resize(Nd);
   GA.resize(Nd);
+	multi1d<int> vectorGamma;				// 2**mu - 1
+	vectorGamma.resize(Nd);
+	vectorGamma[0] = 1;
+	vectorGamma[1] = 2;
+	vectorGamma[2] = 4;
+	vectorGamma[3] = 8;
   for(int mu = 0; mu < Nd; mu++) {
-    int gamIdx = (2 ** mu) - 1;
+    // int gamIdx = pow(2, mu) - 1;
+		int gamIdx = vectorGamma[mu];
     GV[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * quark_prop_k1)), dummyPhases.getSet())[0] / (double) vol;
     GA[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * (Gamma(G5) * quark_prop_k1))), dummyPhases.getSet())[0] / (double) vol;
   }
