@@ -154,6 +154,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   for (int n = 0; n < (Ns * Ns); n++) {
     push(xml_gamma);     // next array element
     write(xml_gamma, "gamma_value", n);
+		// TODO may need to do const and reference with & here
     LatticePropagator A_gamma = antiprop_k2 * (Gamma(n) * quark_prop_k1);
     // Tie it up
     for (int alpha = 0; alpha < Nd; alpha++) {
@@ -164,10 +165,33 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
               for (int b = 0; b < Nc; b++) {
                 for (int c = 0; c < Nc; c++) {
                   for (int d = 0; d < Nc; d++) {
-                    Complex Gcomp = 2 * sumMulti( phase_m2q * (
-                      peekSpin(peekColor(A_gamma, a, b), alpha, beta) * peekSpin(peekColor(A_gamma, c, d), rho, sigma) -
-                      peekSpin(peekColor(A_gamma, a, d), alpha, sigma) * peekSpin(peekColor(A_gamma, c, b), rho, beta)
-                    ), dummyPhases.getSet())[0] / (double) vol;
+
+										LatticeSpinMatrix Aab;
+										LatticeSpinMatrix Acd;
+										LatticeSpinMatrix Aad;
+										LatticeSpinMatrix Acb;
+
+										LatticeComplex Aab_comp;
+										LatticeComplex Acd_comp;
+										LatticeComplex Aad_comp;
+										LatticeComplex Acb_comp;
+
+										Aab = peekColor(A_gamma, a, b);
+										Acd = peekColor(A_gamma, c, d);
+										Aad = peekColor(A_gamma, a, d);
+										Acb = peekColor(A_gamma, c, b);
+
+										Aab_comp = peekSpin(Aab, alpha, beta);
+										Acd_comp = peekSpin(Acd, rho, sigma);
+										Aad_comp = peekSpin(alpha, sigma);
+										Acb_comp = peekSpin(rho, beta);
+
+										Complex Gcomp = 2 * sumMulti(phase_m2q * (Aab_comp * Acd_comp - Aad_comp * Acb_comp), dummyPhases.getSet())[0] / (double) vol;
+
+                    // Complex Gcomp = 2 * sumMulti( phase_m2q * (
+                    //   peekSpin(peekColor(A_gamma, a, b), alpha, beta) * peekSpin(peekColor(A_gamma, c, d), rho, sigma) -
+                    //   peekSpin(peekColor(A_gamma, a, d), alpha, sigma) * peekSpin(peekColor(A_gamma, c, b), rho, beta)
+                    // ), dummyPhases.getSet())[0] / (double) vol;
 
 										push(xml_gamma);
 										write(xml_gamma, "alpha", alpha);
