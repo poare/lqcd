@@ -201,7 +201,10 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
                     // ), dummyPhases.getSet())[0] / (double) vol;
 
                     double epsilon = 1.0e-15;    // tolerance
-                    if (abs(Gcomp) < epsilon) {    // only print nonzero components to save memory
+                    double reG = double(real(Gcomp)); // may need to do this in 2 steps
+                    double imG = double(imag(Gcomp));
+                    double normG = sqrt(pow(reG, 2) + pow(imG, 2));
+                    if (normG < epsilon) {    // only print nonzero components to save memory
                       push(xml_gamma);
                       write(xml_gamma, "alpha", alpha);
                       write(xml_gamma, "beta", beta);
