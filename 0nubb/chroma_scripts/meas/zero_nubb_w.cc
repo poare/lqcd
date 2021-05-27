@@ -206,7 +206,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
                     Real normG = sqrt(pow(reG, 2) + pow(imG, 2));
                     double normG_d = toDouble(normG);
                     if (normG_d > epsilon) {    // only print nonzero components to save memory
-                      push(xml_gamma);
+                      push(xml_gamma, "elem");
                       write(xml_gamma, "alpha", alpha);
                       write(xml_gamma, "beta", beta);
                       write(xml_gamma, "rho", rho);
