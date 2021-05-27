@@ -200,17 +200,21 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
                     //   peekSpin(peekColor(A_gamma, a, d), alpha, sigma) * peekSpin(peekColor(A_gamma, c, b), rho, beta)
                     // ), dummyPhases.getSet())[0] / (double) vol;
 
-										push(xml_gamma);
-										write(xml_gamma, "alpha", alpha);
-										write(xml_gamma, "beta", beta);
-										write(xml_gamma, "rho", rho);
-										write(xml_gamma, "sigma", sigma);
-										write(xml_gamma, "a", a);
-										write(xml_gamma, "b", b);
-										write(xml_gamma, "c", c);
-										write(xml_gamma, "d", d);
-										write(xml_gamma, "comp", Gcomp);
-										pop(xml_gamma);
+                    double epsilon = 1.0e-15;    // tolerance
+                    if (abs(Gcomp) < epsilon) {    // only print nonzero components to save memory
+                      push(xml_gamma);
+                      write(xml_gamma, "alpha", alpha);
+                      write(xml_gamma, "beta", beta);
+                      write(xml_gamma, "rho", rho);
+                      write(xml_gamma, "sigma", sigma);
+                      write(xml_gamma, "a", a);
+                      write(xml_gamma, "b", b);
+                      write(xml_gamma, "c", c);
+                      write(xml_gamma, "d", d);
+                      write(xml_gamma, "comp", Gcomp);
+                      pop(xml_gamma);
+                    }
+
                   }
                 }
               }
