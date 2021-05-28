@@ -10,7 +10,9 @@ import itertools
 # from analysis import *
 # Add parent directory to path so that we can import from it
 import sys
-sys.path.append('/Users/theoares/lqcd/0nubb/python_scripts')
+# home = '/Users/theoares/'
+home = '/Users/poare/'
+sys.path.append(home + 'lqcd/0nubb/python_scripts')
 from utils import *
 
 # read in npr_momfrac format. Used for testing RI/sMOM RCs on RI'-MOM data.
@@ -38,7 +40,7 @@ def read_propagators(file, lat, q):
     props_q = np.zeros((3, 4, 3, 4), dtype = np.complex64)
 
     f = h5py.File(file, 'r')
-    qstr = lat.klist_to_string(q, 'q')
+    qstr = klist_to_string(q, 'q')
     props_k1 = np.einsum('...ijab->...aibj', f['prop_k1/' + qstr][()])
     props_k2 = np.einsum('...ijab->...aibj', f['prop_k2/' + qstr][()])
     props_q = np.einsum('...ijab->...aibj', f['prop_q/' + qstr][()])

@@ -87,9 +87,9 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   // momentum project propagators. TODO DPropagator vs Propagator (or DiracPropagator?)? In npr_vertex_w.cc they use DPropagator
   SftMom dummyPhases(1, false, -1); // use dummyPhases.getSet() for the sumMulti subset
   int vol = Layout::vol();
-  Propagator momproj_prop_k1 = sumMulti(phase_k1 * quark_prop_k1, dummyPhases.getSet())[0] / (double) vol;
-  Propagator momproj_prop_k2 = sumMulti(phase_k2 * quark_prop_k2, dummyPhases.getSet())[0] / (double) vol;
-  Propagator momproj_prop_q = sumMulti(phase_q * quark_prop_q, dummyPhases.getSet())[0] / (double) vol;
+  Propagator momproj_prop_k1 = sumMulti(phase_k1 * quark_prop_k1, dummyPhases.getSet())[0]// / (double) vol;
+  Propagator momproj_prop_k2 = sumMulti(phase_k2 * quark_prop_k2, dummyPhases.getSet())[0]// / (double) vol;
+  Propagator momproj_prop_q = sumMulti(phase_q * quark_prop_q, dummyPhases.getSet())[0]// / (double) vol;
 
   int G5 = Ns*Ns-1;
   LatticePropagator antiprop_k2 = Gamma(G5) * adj(quark_prop_k2) * Gamma(G5);
@@ -130,8 +130,8 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   for(int mu = 0; mu < Nd; mu++) {
     // int gamIdx = pow(2, mu) - 1;
 		int gamIdx = vectorGamma[mu];
-    GV[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * quark_prop_k1)), dummyPhases.getSet())[0] / (double) vol;
-    GA[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * (Gamma(G5) * quark_prop_k1))), dummyPhases.getSet())[0] / (double) vol;
+    GV[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * quark_prop_k1)), dummyPhases.getSet())[0]// / (double) vol;
+    GA[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * (Gamma(G5) * quark_prop_k1))), dummyPhases.getSet())[0]// / (double) vol;
   }
 
   // Write current correlators
@@ -193,7 +193,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
 										Aad_comp = peekSpin(Aad, alpha, sigma);
 										Acb_comp = peekSpin(Acb, rho, beta);
 
-										Complex Gcomp = 2 * sumMulti(phase_m2q * (Aab_comp * Acd_comp - Aad_comp * Acb_comp), dummyPhases.getSet())[0] / (double) vol;
+										Complex Gcomp = 2 * sumMulti(phase_m2q * (Aab_comp * Acd_comp - Aad_comp * Acb_comp), dummyPhases.getSet())[0]// / (double) vol;
 
                     // Complex Gcomp = 2 * sumMulti( phase_m2q * (
                     //   peekSpin(peekColor(A_gamma, a, b), alpha, beta) * peekSpin(peekColor(A_gamma, c, d), rho, sigma) -

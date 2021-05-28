@@ -9,30 +9,34 @@ import test_utils
 from utils import *
 
 ################################## PARAMETERS #################################
-job_num = 30792
-L, T = 16, 48
-# job_num = 30661
-# L, T = 4, 4
-data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_' + str(job_num)
-# An.set_dimensions(L, T)
+# job_num = 30792
+# L, T = 16, 48
+# # job_num = 30661
+# data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_' + str(job_num)
+
+L, T = 4, 8
+# home = '/Users/theoares/'
+home = '/Users/poare/'
+data_dir = home + 'Dropbox (MIT)/research/0nubb/tests/hdf5'
 L = Lattice(L, T)
 
-# k1_list = []
-# k2_list = []
-# for n in range(-6, 7):
-#     k1_list.append([-n, 0, n, 0])
-#     k2_list.append([0, n, n, 0])
-k1_list = [[-1, 0, 1, 0]]
-k2_list = [[0, 1, 1, 0]]
+# k1_list = [[-1, 0, 1, 0]]
+# k2_list = [[0, 1, 1, 0]]
+k1_list = [[-2, 0, 2, 0]]
+k2_list = [[0, 2, 2, 0]]
+
 k1_list = np.array(k1_list)
 k2_list = np.array(k2_list)
 q_list = k2_list - k1_list
 print('Number of total momenta: ' + str(len(q_list)))
 
 ############################### PERFORM ANALYSIS ##############################
-cfgs = []
-for (dirpath, dirnames, file) in os.walk(data_dir):
-    cfgs.extend(file)
+# cfgs = ['free_field_qlua_dwf.h5']                           # run qlua output
+cfgs = ['cfgEXAMPLE.h5']                                    # run chroma output
+# cfgs = ['free_field_qlua_clover.h5']
+# cfgs = ['free_field_qlua_clover_diff_mass.h5']
+# for (dirpath, dirnames, file) in os.walk(data_dir):
+#     cfgs.extend(file)
 for idx, cfg in enumerate(cfgs):
     cfgs[idx] = data_dir + '/' + cfgs[idx]
 n_cfgs = len(cfgs)
@@ -100,7 +104,9 @@ for q_idx, q in enumerate(q_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/tests/free_field_' + str(job_num) + '/Z_' + scheme + '.h5'
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/tests/free_field_' + str(job_num) + '/Z_' + scheme + '.h5'
+
+out_file = home + 'Dropbox (MIT)/research/0nubb/analysis_output/tests/qlua_out/Z_' + scheme + '.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV
