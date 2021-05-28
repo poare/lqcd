@@ -346,8 +346,8 @@ local bcs = {1, 1, 1, -1}
 --  end
 
 print("Running at one q value; run at more q once this works.")
-local k1_list_NPR = {{-1, 0, 1, 0}}
-local k2_list_NPR = {{0, 1, 1, 0}}
+local k1_list_NPR = {{-2, 0, 2, 0}}
+local k2_list_NPR = {{0, 2, 2, 0}}
 
 print("Initializing solver.")
 if gpu then

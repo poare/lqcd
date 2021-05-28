@@ -5,7 +5,7 @@
 #SBATCH --job-name=free_field_test
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod4
+#SBATCH --partition=prod
 #SBATCH -t 6:00:00
 
 set -x
