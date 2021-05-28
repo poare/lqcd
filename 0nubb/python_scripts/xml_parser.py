@@ -9,7 +9,9 @@ Nd = 4
 Nc = 3
 
 # This script takes in XML input and reformats it as HDF5
-xml_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/tests/zero_nubb_test.dat.xml'
+home_dir = '/Users/theoares'
+# home_dir = '/Users/poare'
+xml_file = home_dir + '/Dropbox (MIT)/research/0nubb/tests/zero_nubb_test.dat.xml'
 tree = ET.parse(xml_file)
 root = tree.getroot()
 
