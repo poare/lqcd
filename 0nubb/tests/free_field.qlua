@@ -305,12 +305,16 @@ end
 ------------------------------------------------------------------
 
 -- Set parameters
-Lx = 16
-Lt = 48
--- Lx = 4
--- Lt = 4
+-- Lx = 16
+-- Lt = 48
+Lx = 4
+Lt = 8
 
-mq = -0.2450
+ml = 0.1
+M = 1.8
+Ls = 8
+-- mq = -0.2450
+mq = ml       -- TODO checking out if this changes anything
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
@@ -343,8 +347,8 @@ local bcs = {1, 1, 1, -1}
 --  end
 
 print("Running at one q value; run at more q once this works.")
-local k1_list_NPR = {{-1, 0, 1, 0}}
-local k2_list_NPR = {{0, 1, 1, 0}}
+local k1_list_NPR = {{-2, 0, 2, 0}}
+local k2_list_NPR = {{0, 2, 2, 0}}
 
 print("Initializing solver.")
 if gpu then

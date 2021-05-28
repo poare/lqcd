@@ -5,7 +5,7 @@
 #SBATCH --job-name=free_field_test
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod4
+#SBATCH --partition=prod
 #SBATCH -t 6:00:00
 
 set -x
@@ -22,7 +22,7 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-gpu=true
+gpu=false
 dwf=false
 
 # whether to only compute current correlators, or to compute operator correlators as well
