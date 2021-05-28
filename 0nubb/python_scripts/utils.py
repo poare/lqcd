@@ -178,6 +178,7 @@ def readfiles(cfgs, q, op_renorm = True):
             GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()])
         if op_renorm:
             for n in range(16):
+                # TODO be careful about this with the chroma input
                 # GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])
                 GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
@@ -316,9 +317,9 @@ def weighted_sum_bootstrap(meff, weights):
     weights = weights / np.sum(weights)
     return np.einsum('fb,f->b', meff, weights)
 
-# spreads a dataset in a correlated way to have standard deviation new_std. 
+# spreads a dataset in a correlated way to have standard deviation new_std.
 def spread_boots(data, new_std):
-
+    return 0
 
 # VarPro code
 
