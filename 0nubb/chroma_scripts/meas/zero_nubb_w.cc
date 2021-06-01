@@ -43,7 +43,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  bvec[3] = 1.0;    // just to see if it matches the QLUA output
+  bvec[3] = 0.0;    // just to see if it matches the QLUA output
 
   multi1d<double> k1;
   k1.resize(4);
