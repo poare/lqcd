@@ -26,8 +26,8 @@ Nc = 3
 #   cfg200.h5   mom_1.dat.xml  ...   mom_6.dat.xml
 
 # INPUT PARAMETERS
-# home = '/Users/theoares'
-home = '/Users/poare'
+home = '/Users/theoares'
+# home = '/Users/poare'
 cfg_root = 'cfgEXAMPLE'                                     # 'cfg200'
 mom_idx_list = [2]                                          #[1, 2, ..., 6]
 

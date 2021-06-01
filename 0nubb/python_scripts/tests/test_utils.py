@@ -10,8 +10,8 @@ import itertools
 # from analysis import *
 # Add parent directory to path so that we can import from it
 import sys
-# home = '/Users/theoares/'
-home = '/Users/poare/'
+home = '/Users/theoares/'
+# home = '/Users/poare/'
 sys.path.append(home + 'lqcd/0nubb/python_scripts')
 from utils import *
 

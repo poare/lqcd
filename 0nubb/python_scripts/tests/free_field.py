@@ -15,8 +15,8 @@ from utils import *
 # data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_' + str(job_num)
 
 L, T = 4, 8
-# home = '/Users/theoares/'
-home = '/Users/poare/'
+home = '/Users/theoares/'
+# home = '/Users/poare/'
 data_dir = home + 'Dropbox (MIT)/research/0nubb/tests/hdf5'
 L = Lattice(L, T)
 
@@ -53,9 +53,11 @@ for q_idx, q in enumerate(q_list):
     q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
+    print(props_q[0])
     GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), \
         np.array([bootstrap(GO[n]) for n in range(16)])
     props_k1_inv, props_k2_inv, props_q_inv = invert_props(props_k1_b), invert_props(props_k2_b), invert_props(props_q_b)
+    print(props_q_inv[0])
     Zq[q_idx] = quark_renorm(props_q_inv, q_lat)
     GammaV, GammaA = np.zeros(GV_boot.shape, dtype = np.complex64), np.zeros(GA_boot.shape, dtype = np.complex64)
     qDotV, qDotA = np.zeros(GV_boot.shape[1:]), np.zeros(GA_boot.shape[1:])

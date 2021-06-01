@@ -108,10 +108,10 @@ class Lattice:
         self.vol = (l ** 3) * t
 
     def to_linear_momentum(self, k):
-        return np.array([np.complex64(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(Nd)])
+        return np.array([np.complex64(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(4)])
 
     def to_lattice_momentum(self, k):
-        return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / self.LL[mu])) for mu in range(Nd)])
+        return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / self.LL[mu])) for mu in range(4)])
     # Converts a wavevector to an energy scale using ptwid. Lattice parameter is a = A femtometers.
     # Shouldn't use this-- should use k_to_mu_p instead and convert at p^2 = mu^2
     def k_to_mu_ptwid(self, k, A = .1167):
@@ -514,9 +514,9 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64):
     return samples
 
 # Invert propagators to get S^{-1} required for amputation.
-def invert_props(props):
+def invert_props(props, Nb = n_boot):
     Sinv = np.zeros(props.shape, dtype = np.complex64)
-    for b in range(n_boot):
+    for b in range(Nb):
         Sinv[b] = np.linalg.tensorinv(props[b])
     return Sinv
 
@@ -539,10 +539,12 @@ def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints):
     return Gamma
 
 # q is the lattice momentum that should be passed in
-def quark_renorm(props_inv_q, q):
-    Zq = np.zeros((n_boot), dtype = np.complex64)
-    for b in range(n_boot):
+def quark_renorm(props_inv_q, q, Nb = n_boot):
+    Zq = np.zeros((Nb), dtype = np.complex64)
+    for b in range(Nb):
         Sinv = props_inv_q[b]
+        for mu in range(d):
+            print(np.einsum('ij,ajai', gamma[mu], Sinv))
         Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(d)]) / (12 * square(q))
     return Zq
 

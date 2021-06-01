@@ -43,7 +43,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  bvec[3] = 0.5;
+  bvec[3] = 1.0;    // just to see if it matches the QLUA output
 
   multi1d<double> k1;
   k1.resize(4);
@@ -66,6 +66,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   q[2] = 0.0;
   q[3] = 0.0;
 
+  // TODO check bvec, it might be redundant in the QLUA code
   LatticeReal phase_k1_arg = zero;
   LatticeReal phase_k2_arg = zero;
   LatticeReal phase_q_arg = zero;
