@@ -38,12 +38,14 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   // Construct phases (can't use SFT because we need fermionic bcs, and SFT only takes integer moms)
 
   // initialize momenta k1, k2, q
+  // Problem looks like it may be in the computation of the propagator-- need to add bvec into the
+  // source term when it's initialized
   multi1d<double> bvec;
   bvec.resize(4);
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  bvec[3] = 0.0;    // just to see if it matches the QLUA output
+  bvec[3] = 0.5;    // just to see if it matches the QLUA output
 
   multi1d<double> k1;
   k1.resize(4);
