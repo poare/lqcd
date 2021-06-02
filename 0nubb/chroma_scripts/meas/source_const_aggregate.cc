@@ -9,6 +9,7 @@
 #include "meas/sources/norm_sh_source_const.h"
 #include "meas/sources/wall_source_const.h"
 #include "meas/sources/mom_source_const.h"
+#include "meas/sources/ferm_mom_source_const.h"   // New source type added for fermionic b.c.
 #include "meas/sources/partwall_source_const.h"
 
 #include "meas/sources/rndz2wall_source_const.h"
@@ -33,9 +34,9 @@ namespace Chroma
     static bool registered = false;
 
     //! Register all the factories
-    bool registerAll() 
+    bool registerAll()
     {
-      bool success = true; 
+      bool success = true;
       if (! registered)
       {
 	// Sources
@@ -46,6 +47,7 @@ namespace Chroma
 	success &= RandZ2WallQuarkSourceConstEnv::registerAll();
 	success &= RandZNWallQuarkSourceConstEnv::registerAll();
 	success &= MomWallQuarkSourceConstEnv::registerAll();
+	success &= FermMomWallQuarkSourceConstEnv:registerAll();
 	success &= PartialWallQuarkSourceConstEnv::registerAll();
 	success &= DiluteZNQuarkSourceConstEnv::registerAll();
 	success &= DiluteZNEigVecQuarkSourceConstEnv::registerAll();

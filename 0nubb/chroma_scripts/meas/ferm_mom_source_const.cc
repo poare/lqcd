@@ -5,21 +5,21 @@
 #include "chromabase.h"
 
 #include "meas/sources/source_const_factory.h"
-#include "meas/sources/mom_source_const.h"
+#include "meas/sources/ferm_mom_source_const.h"
 #include "util/ft/sftmom.h"
 #include "util/ferm/transf.h"
 
 namespace Chroma
 {
   // Read parameters
-  void read(XMLReader& xml, const std::string& path, MomWallQuarkSourceConstEnv::Params& param)
+  void read(XMLReader& xml, const std::string& path, FermMomWallQuarkSourceConstEnv::Params& param)
   {
-    MomWallQuarkSourceConstEnv::Params tmp(xml, path);
+    FermMomWallQuarkSourceConstEnv::Params tmp(xml, path);
     param = tmp;
   }
 
   // Writer
-  void write(XMLWriter& xml, const std::string& path, const MomWallQuarkSourceConstEnv::Params& param)
+  void write(XMLWriter& xml, const std::string& path, const FermMomWallQuarkSourceConstEnv::Params& param)
   {
     param.writeXML(xml, path);
   }
@@ -49,13 +49,13 @@ namespace Chroma
 
     // Broadcast to all sites
     a = sitefield;  // QDP (not installed version) now supports   construct OLattice = OScalar
-      
+
     END_CODE();
   }
 
 
   //! Hooks to register the class
-  namespace MomWallQuarkSourceConstEnv
+  namespace FermMomWallQuarkSourceConstEnv
   {
     namespace
     {
@@ -67,7 +67,7 @@ namespace Chroma
       }
 
       //! Name to be used
-      const std::string name("MOMENTUM_VOLUME_SOURCE");
+      const std::string name("FERMION_MOMENTUM_VOLUME_SOURCE");
 
       //! Local registration flag
       bool registered = false;
@@ -77,9 +77,9 @@ namespace Chroma
     std::string getName() {return name;}
 
     //! Register all the factories
-    bool registerAll() 
+    bool registerAll()
     {
-      bool success = true; 
+      bool success = true;
       if (! registered)
       {
 	success &= Chroma::ThePropSourceConstructionFactory::Instance().registerObject(name, createProp);
@@ -105,13 +105,13 @@ namespace Chroma
       int version;
       read(paramtop, "version", version);
 
-      switch (version) 
+      switch (version)
       {
       case 1:
 	break;
 
       default:
-	QDPIO::cerr << __func__ << ": parameter version " << version 
+	QDPIO::cerr << __func__ << ": parameter version " << version
 		    << " unsupported." << std::endl;
 	QDP_abort(1);
       }
@@ -151,11 +151,11 @@ namespace Chroma
     LatticePropagator
     SourceConst<LatticePropagator>::operator()(const multi1d<LatticeColorMatrix>& u) const
     {
-      QDPIO::cout << "Volume Momentum Source" << std::endl;
+      QDPIO::cout << "Volume Momentum Source with Fermionic BCs" << std::endl;
 
       LatticeComplex phase ;
       // Initialize the slow Fourier transform phases
-      if(params.av_mom){
+      if(params.av_mom){ // TODO implement later
 	multi1d<int> mom3(Nd-1);
 	for(int mu=0,j=0; mu < Nd; ++mu){
 	  if (mu != params.j_decay)
@@ -178,11 +178,25 @@ namespace Chroma
 	QDPIO::cout<<mom[0]<<mom[1]<<mom[2]<<std::endl;
       }
       else{ // do not use momentum averaged sources
-	SftMom phases(0, params.t_srce, params.mom);
-	phase = phases[0] ;
-	multi1d<int> mom = phases.numToMom(0) ;
+	// SftMom phases(0, params.t_srce, params.mom);
+	// phase = phases[0] ;
+
+  multi1d<int> k = params.mom;
+  multi1d<double> bvec;
+  bvec.resize(4);
+  bvec[0] = 0.0;
+  bvec[1] = 0.0;
+  bvec[2] = 0.0;
+  bvec[3] = 0.5;    // just to see if it matches the QLUA output
+  LatticeReal phase_arg = zero;
+  for (int mu = 0; mu < 4; mu++) {
+    double comp = (double) k[mu]
+    phase_arg += Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+  }
+  LatticeComplex phase = cmplx(cos(phase_arg), sin(phase_arg));
+
 	QDPIO::cout<<"Source momentum: " ;
-	QDPIO::cout<<mom[0]<<mom[1]<<mom[2]<<mom[3]<<std::endl;
+	QDPIO::cout<<k[0]<<k[1]<<k[2]<<k[3]<<std::endl;
       }
 
       // Create the quark source

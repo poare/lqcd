@@ -1,10 +1,10 @@
 // -*- C++ -*-
 /*! \file
- *  \brief Fixed momentum (wall) source construction
+ *  \brief Fixed momentum (wall) source construction with fermionic boundary conditions
  */
 
-#ifndef __mom_source_const_h__
-#define __mom_source_const_h__
+#ifndef __ferm_mom_source_const_h__
+#define __ferm_mom_source_const_h__
 
 #include "meas/sources/source_construction.h"
 
@@ -13,13 +13,13 @@ namespace Chroma
 
   //! Name and registration
   /*! @ingroup sources */
-  namespace MomWallQuarkSourceConstEnv
+  namespace FermMomWallQuarkSourceConstEnv
   {
     bool registerAll();
 
     //! Return the name
     std::string getName();
-  
+
     //! MomWall source parameters
     /*! @ingroup sources */
     struct Params
@@ -27,7 +27,7 @@ namespace Chroma
       Params();
       Params(XMLReader& in, const std::string& path);
       void writeXML(XMLWriter& in, const std::string& path) const;
-    
+
       multi1d<int>     mom    ;              /*<! prototype momentum */
       int              j_decay;              /*<! time direction */
       multi1d<int>     t_srce ;              /*<! the origin for the FT */
@@ -63,11 +63,11 @@ namespace Chroma
 
   //! Reader
   /*! @ingroup sources */
-  void read(XMLReader& xml, const std::string& path, MomWallQuarkSourceConstEnv::Params& param);
+  void read(XMLReader& xml, const std::string& path, FermMomWallQuarkSourceConstEnv::Params& param);
 
   //! Writer
   /*! @ingroup sources */
-  void write(XMLWriter& xml, const std::string& path, const MomWallQuarkSourceConstEnv::Params& param);
+  void write(XMLWriter& xml, const std::string& path, const FermMomWallQuarkSourceConstEnv::Params& param);
 
 }  // end namespace Chroma
 
