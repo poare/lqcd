@@ -190,7 +190,7 @@ namespace Chroma
   bvec[3] = 0.5;    // just to see if it matches the QLUA output
   LatticeReal phase_arg = zero;
   for (int mu = 0; mu < 4; mu++) {
-    double comp = (double) k[mu]
+    double comp = (double) k[mu];
     phase_arg += Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
   }
   LatticeComplex phase = cmplx(cos(phase_arg), sin(phase_arg));
