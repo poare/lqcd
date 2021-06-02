@@ -24,10 +24,11 @@ namespace Chroma
     param.writeXML(xml, path);
   }
 
+  // boxfil was defined here, if the build doesn't work then we may need to import mom_source_const.cc as well
 
   //! Fill a specific color and spin index with 1.0 within a volume
   /*! \ingroup sources */
-  void boxfil(LatticeFermion& a, int color_index, int spin_index)
+  void boxfil2(LatticeFermion& a, int color_index, int spin_index)
   {
     START_CODE();
 
@@ -207,7 +208,7 @@ namespace Chroma
 	{
 	  // MomWall fill a fermion source. Insert it into the propagator source
 	  LatticeFermion chi;
-	  boxfil(chi, color_source, spin_source);
+	  boxfil2(chi, color_source, spin_source);
 	  // Multiply in the time direction phases (not handled in sftmom)
 	  chi *= phase;
 	  FermToProp(chi, quark_source, color_source, spin_source);
