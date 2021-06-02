@@ -47,7 +47,7 @@ namespace Chroma
 	success &= RandZ2WallQuarkSourceConstEnv::registerAll();
 	success &= RandZNWallQuarkSourceConstEnv::registerAll();
 	success &= MomWallQuarkSourceConstEnv::registerAll();
-	success &= FermMomWallQuarkSourceConstEnv:registerAll();
+	success &= FermMomWallQuarkSourceConstEnv::registerAll();
 	success &= PartialWallQuarkSourceConstEnv::registerAll();
 	success &= DiluteZNQuarkSourceConstEnv::registerAll();
 	success &= DiluteZNEigVecQuarkSourceConstEnv::registerAll();
