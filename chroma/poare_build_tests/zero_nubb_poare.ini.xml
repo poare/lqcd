@@ -96,7 +96,7 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
           <mom>-2 2 0 0</mom>
           <av_mom>false</av_mom>
@@ -329,10 +329,11 @@
             </AnisoParam>
           </CloverParams>
           <SolverType>CG</SolverType>
-          <RsdTarget>1.0e-8</RsdTarget>
+          <RsdTarget>1.0e-7</RsdTarget>
           <MaxIter>10000</MaxIter>
           <AntiPeriodicT>true</AntiPeriodicT>
           <Delta>0.1</Delta>
+          <SilentFailP>true</SilentFailP>
         </InvertParam>
       </Param>
       <NamedObject>
