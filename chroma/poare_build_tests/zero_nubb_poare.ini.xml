@@ -70,6 +70,25 @@
       </NamedObject>
     </elem>
 
+    <!-- <elem>
+      <Name>MAKE_SOURCE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>6</version>
+        <Source>
+          <version>1</version>
+          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <mom>-2 2 0 0</mom>
+          <av_mom>false</av_mom>
+          <t_srce>0 0 0 0</t_srce>
+        </Source>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <source_id>mom_source_q</source_id>
+      </NamedObject>
+    </elem> -->
     <elem>
       <Name>MAKE_SOURCE</Name>
       <Frequency>1</Frequency>
@@ -213,7 +232,7 @@
       </NamedObject>
     </elem>
 
-    <elem>
+    <!-- <elem>
       <Name>PROPAGATOR</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -272,9 +291,56 @@
         <source_id>mom_source_q</source_id>
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
+    </elem> -->
+
+    <elem>
+      <Name>PROPAGATOR</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>10</version>
+        <quarkSpinType>FULL</quarkSpinType>
+        <obsvP>false</obsvP>
+        <numRetries>1</numRetries>
+        <FermionAction>
+          <FermAct>CLOVER</FermAct>
+          <Mass>1.0</Mass>
+          <clovCoeff>1</clovCoeff>
+          <AnisoParam>
+            <anisoP>false</anisoP>
+            <t_dir>3</t_dir>
+            <xi_0>1.0</xi_0>
+            <nu>1.0</nu>
+          </AnisoParam>
+          <FermionBC>
+            <FermBC>SIMPLE_FERMBC</FermBC>
+            <boundary>1 1 1 -1</boundary>
+          </FermionBC>
+        </FermionAction>
+        <InvertParam>
+          <invType>QUDA_CLOVER_INVERTER</invType>
+          <CloverParams>
+            <Mass>1.0</Mass>
+            <clovCoeff>1</clovCoeff>
+            <AnisoParam>
+              <anisoP>false</anisoP>
+              <t_dir>3</t_dir>
+              <xi_0>1.0</xi_0>
+              <nu>1.0</nu>
+            </AnisoParam>
+          </CloverParams>
+          <SolverType>CG</SolverType>
+          <RsdTarget>1.0e-8</RsdTarget>
+          <MaxIter>10000</MaxIter>
+          <AntiPeriodicT>true</AntiPeriodicT>
+          <Delta>0.1</Delta>
+        </InvertParam>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <source_id>mom_source_q</source_id>
+        <prop_id>mom_prop_q</prop_id>
+      </NamedObject>
     </elem>
-
-
 
     <elem>
       <Name>ZERO_NUBB_MEAS</Name>
