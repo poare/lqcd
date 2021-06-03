@@ -45,7 +45,8 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  bvec[3] = 0.5;    // just to see if it matches the QLUA output
+  // bvec[3] = 0.5;    // just to see if it matches the QLUA output
+  bvec[3] = 0.0;
 
   multi1d<double> k1;
   k1.resize(4);
@@ -75,9 +76,13 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   LatticeReal phase_mq_arg = zero;  // no bvec for these-- they cancel in the momentum proj step
   LatticeReal phase_m2q_arg = zero;
   for (int mu = 0; mu < 4; mu++) {
-    phase_k1_arg += Layout::latticeCoordinate(mu) * (k1[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
-    phase_k2_arg += Layout::latticeCoordinate(mu) * (k2[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
-    phase_q_arg += Layout::latticeCoordinate(mu) * (q[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    // phase_k1_arg += Layout::latticeCoordinate(mu) * (k1[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    // phase_k2_arg += Layout::latticeCoordinate(mu) * (k2[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    // phase_q_arg += Layout::latticeCoordinate(mu) * (q[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    phase_k1_arg -= Layout::latticeCoordinate(mu) * (k1[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    phase_k2_arg -= Layout::latticeCoordinate(mu) * (k2[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    phase_q_arg -= Layout::latticeCoordinate(mu) * (q[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+
     phase_mq_arg -= Layout::latticeCoordinate(mu) * q[mu] * twopi / Real(Layout::lattSize()[mu]);
     phase_m2q_arg -= Layout::latticeCoordinate(mu) * 2 * q[mu] * twopi / Real(Layout::lattSize()[mu]);
   }
