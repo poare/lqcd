@@ -96,7 +96,7 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
           <mom>-2 2 0 0</mom>
           <av_mom>false</av_mom>
