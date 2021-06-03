@@ -333,7 +333,7 @@
           <MaxIter>10000</MaxIter>
           <AntiPeriodicT>true</AntiPeriodicT>
           <Delta>0.1</Delta>
-          <SilentFailP>true</SilentFailP>
+          <SilentFail>true</SilentFail>
         </InvertParam>
       </Param>
       <NamedObject>
