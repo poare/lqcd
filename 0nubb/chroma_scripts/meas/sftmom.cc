@@ -195,7 +195,7 @@ namespace Chroma
 
     for (int m = 0 ; m < num_mom ; ++m)
     {
-      if (decay_dir < 0 || decay_dir >= Nd) {  // we want a 4-momentum projection
+      if ( (decay_dir < 0) || (decay_dir >= Nd) ) {  // we want a 4-momentum projection
         phases[m] = singlePhase(orig, mom_list[m]);
       } else {    // we want a 3-momentum projection
         phases[m] = singlePhase(orig, mom_list[m], decay_dir);
