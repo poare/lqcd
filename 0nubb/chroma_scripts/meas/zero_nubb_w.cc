@@ -102,6 +102,28 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   Propagator momproj_prop_q = sumMulti(phase_q * quark_prop_q, dummyPhases.getSet())[0];// / (double) vol;
   */
 
+  // defining these for organizational purposes
+  multi1d<int> k1;
+  k1.resize(4);
+  k1[0] = -k;
+  k1[1] = 0;
+  k1[2] = k;
+  k1[3] = 0;
+
+  multi1d<int> k2;
+  k2.resize(4);
+  k2[0] = 0;
+  k2[1] = k;
+  k2[2] = k;
+  k2[3] = 0;
+
+  multi1d<int> q;
+  q.resize(4);
+  q[0] = k;
+  q[1] = k;
+  q[2] = 0;
+  q[3] = 0;
+
   // TODO may need to negate these. Begin other method {
   multi2d<int> k_list;  // k_list[0] = k1, k_list[1] = k2, k_list[2] = q
   k_list.resize(5, 4);
