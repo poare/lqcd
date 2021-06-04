@@ -48,6 +48,9 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   bvec[3] = 0.5;    // just to see if it matches the QLUA output
   // bvec[3] = 0.0;
 
+
+  // TODO going to use the SFTMom structure to implement the momentum projection (for now! bvec is not allowed with this infrastructure)
+  /*
   multi1d<double> k1;
   k1.resize(4);
   k1[0] = (double) -k;
@@ -69,7 +72,6 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   q[2] = 0.0;
   q[3] = 0.0;
 
-  // TODO check bvec, it might be redundant in the QLUA code
   LatticeReal phase_k1_arg = zero;
   LatticeReal phase_k2_arg = zero;
   LatticeReal phase_q_arg = zero;
@@ -98,6 +100,62 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   Propagator momproj_prop_k1 = sumMulti(phase_k1 * quark_prop_k1, dummyPhases.getSet())[0];// / (double) vol;
   Propagator momproj_prop_k2 = sumMulti(phase_k2 * quark_prop_k2, dummyPhases.getSet())[0];// / (double) vol;
   Propagator momproj_prop_q = sumMulti(phase_q * quark_prop_q, dummyPhases.getSet())[0];// / (double) vol;
+  */
+
+  // TODO may need to negate these. Begin other method {
+  multi2d<int> k_list;  // k_list[0] = k1, k_list[1] = k2, k_list[2] = q
+  k_list.resize(5, 4);
+  // k_list[0][0] = -k;     // k1
+  // k_list[0][1] = 0;
+  // k_list[0][2] = k;
+  // k_list[0][3] = 0;
+  k_list[0][0] = k;
+  k_list[0][1] = 0;
+  k_list[0][2] = -k;
+  k_list[0][3] = 0;
+
+  // k_list[1][0] = 0;      // k2
+  // k_list[1][1] = k;
+  // k_list[1][2] = k;
+  // k_list[1][3] = 0;
+  k_list[1][0] = 0;
+  k_list[1][1] = -k;
+  k_list[1][2] = -k;
+  k_list[1][3] = 0;
+
+  // k_list[2][0] = k;        // q
+  // k_list[2][1] = k;
+  // k_list[2][2] = 0;
+  // k_list[2][3] = 0;
+  k_list[2][0] = -k;
+  k_list[2][1] = -k;
+  k_list[2][2] = 0;
+  k_list[2][3] = 0;
+
+  // k_list[3][0] = -k;        // -q
+  // k_list[3][1] = -k;
+  // k_list[3][2] = 0;
+  // k_list[3][3] = 0;
+  k_list[3][0] = k;
+  k_list[3][1] = k;
+  k_list[3][2] = 0;
+  k_list[3][3] = 0;
+
+  // k_list[4][0] = -2 * k;        // -2q
+  // k_list[4][1] = -2 * k;
+  // k_list[4][2] = 0;
+  // k_list[4][3] = 0;
+  k_list[4][0] = 2 * k;
+  k_list[4][1] = 2 * k;
+  k_list[4][2] = 0;
+  k_list[4][3] = 0;
+
+  SftMom phases (k_list, Nd);
+  DPropagator momproj_prop_k1 = sumMulti(phases[0] * quark_prop_k1, phases.getSet())[0] / (double) vol;
+  DPropagator momproj_prop_k2 = sumMulti(phases[1] * quark_prop_k2, phases.getSet())[0] / (double) vol;
+  DPropagator momproj_prop_q = sumMulti(phases[2] * quark_prop_q, phases.getSet())[0] / (double) vol;
+
+  // } end other method
 
   int G5 = Ns*Ns-1;
   LatticePropagator antiprop_k2 = Gamma(G5) * adj(quark_prop_k2) * Gamma(G5);
@@ -136,10 +194,11 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
 	vectorGamma[2] = 4;
 	vectorGamma[3] = 8;
   for(int mu = 0; mu < Nd; mu++) {
-    // int gamIdx = pow(2, mu) - 1;
 		int gamIdx = vectorGamma[mu];
-    GV[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * quark_prop_k1)), dummyPhases.getSet())[0];// / (double) vol;
-    GA[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * (Gamma(G5) * quark_prop_k1))), dummyPhases.getSet())[0];// / (double) vol;
+    // GV[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * quark_prop_k1)), dummyPhases.getSet())[0];// / (double) vol;
+    // GA[mu] = sumMulti(phase_mq * (antiprop_k2 * (Gamma(gamIdx) * (Gamma(G5) * quark_prop_k1))), dummyPhases.getSet())[0];// / (double) vol;
+    GV[mu] = sumMulti(phases[3] * (antiprop_k2 * (Gamma(gamIdx) * quark_prop_k1)), phases.getSet())[0] / (double) vol;
+    GA[mu] = sumMulti(phases[3] * (antiprop_k2 * (Gamma(gamIdx) * (Gamma(G5) * quark_prop_k1))), phases.getSet())[0] / (double) vol;
   }
 
   // Write current correlators
@@ -201,12 +260,8 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
 										Aad_comp = peekSpin(Aad, alpha, sigma);
 										Acb_comp = peekSpin(Acb, rho, beta);
 
-										Complex Gcomp = 2 * sumMulti(phase_m2q * (Aab_comp * Acd_comp - Aad_comp * Acb_comp), dummyPhases.getSet())[0];// / (double) vol;
-
-                    // Complex Gcomp = 2 * sumMulti( phase_m2q * (
-                    //   peekSpin(peekColor(A_gamma, a, b), alpha, beta) * peekSpin(peekColor(A_gamma, c, d), rho, sigma) -
-                    //   peekSpin(peekColor(A_gamma, a, d), alpha, sigma) * peekSpin(peekColor(A_gamma, c, b), rho, beta)
-                    // ), dummyPhases.getSet())[0] / (double) vol;
+										// Complex Gcomp = 2 * sumMulti(phase_m2q * (Aab_comp * Acd_comp - Aad_comp * Acb_comp), dummyPhases.getSet())[0];// / (double) vol;
+                    Complex Gcomp = 2 * sumMulti(phases[4] * (Aab_comp * Acd_comp - Aad_comp * Acb_comp), phases.getSet())[0] / (double) vol;
 
                     double epsilon = 1.0e-15;    // tolerance
                     Real reG = real(Gcomp); // may need to do this in 2 steps
