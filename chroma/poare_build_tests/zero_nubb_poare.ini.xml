@@ -289,6 +289,8 @@
          <FermAct>CLOVER</FermAct>
          <Kappa>0.115</Kappa>
          <clovCoeff>1.17</clovCoeff>
+         <clovCoeffR>0.91</clovCoeffR>
+         <clovCoeffT>1.07</clovCoeffT>
          <AnisoParam>
            <anisoP>true</anisoP>
            <t_dir>3</t_dir>
