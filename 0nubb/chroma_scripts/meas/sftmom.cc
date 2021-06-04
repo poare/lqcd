@@ -101,7 +101,7 @@
 #include "util/ft/single_phase.h"
 #include "qdp_util.h"                 // part of QDP++, for crtesn()
 
-namespace Chroma 
+namespace Chroma
 {
 
   // Param struct for SftMom
@@ -178,15 +178,15 @@ namespace Chroma
   SftMom::SftMom(const multi2d<int> & moms , int j_decay)
   {
     decay_dir = j_decay;
-		
+
     multi1d<int> orig(Nd);
 
 
     for(int i = 0 ; i < Nd ; ++i)
       orig[i] = 0;
-		
+
     init(0, orig, orig , false, decay_dir);
-		
+
     num_mom = moms.size2();
     mom_list = moms;
 
@@ -195,7 +195,11 @@ namespace Chroma
 
     for (int m = 0 ; m < num_mom ; ++m)
     {
-      phases[m] = singlePhase(orig, mom_list[m], decay_dir);
+      if (decay_dir < 0 || decay_dir >= Nd) {  // we want a 4-momentum projection
+        phases[m] = singlePhase(orig, mom_list[m]);
+      } else {    // we want a 3-momentum projection
+        phases[m] = singlePhase(orig, mom_list[m], decay_dir);
+      }
     }
 
   }
@@ -222,7 +226,7 @@ namespace Chroma
 
     if ((decay_dir<0)||(decay_dir>=Nd))
       vol = Layout::vol();
-    else 
+    else
     {
       for(int m=0; m < Nd; ++m)
 	vol *= Layout::lattSize()[m];
@@ -259,7 +263,7 @@ namespace Chroma
     for (L=1; L*L <= mom2_max; ++L) ;
 
     for(int mu=0; mu < mom_size.size(); ++mu) {
-      if (avg_equiv_mom) {  
+      if (avg_equiv_mom) {
 	mom_vol      *= L;
 	mom_size[mu]  = L;
       } else {
@@ -425,7 +429,7 @@ namespace Chroma
       } // end if (avg_equiv_mom)
 
       //
-      // Build the phase. 
+      // Build the phase.
       // RGE: the origin_offset works with or without momentum averaging
       //
       LatticeReal p_dot_x ;
@@ -460,7 +464,7 @@ namespace Chroma
 
   // Canonically order an array of momenta
   /* \return abs(mom[0]) >= abs(mom[1]) >= ... >= abs(mom[mu]) >= ... >= 0 */
-  multi1d<int> 
+  multi1d<int>
   SftMom::canonicalOrder(const multi1d<int>& mom) const
   {
     // first step: make all the components positive
@@ -470,7 +474,7 @@ namespace Chroma
 
     // Initially, the first item is considered sorted.  mu divides mom
     // into a sorted region (<mu) and an unsorted one (>=mu)
-    for (int mu=1; mu < mom_tmp.size(); ++mu) 
+    for (int mu=1; mu < mom_tmp.size(); ++mu)
     {
       // Select the item at the beginning of the unsorted region
       int v = mom_tmp[mu];
@@ -492,7 +496,7 @@ namespace Chroma
 
   // Convert array of momenta to momenta id
   /* \return id in [0,numMom()-1] or -1 if not in list */
-  int 
+  int
   SftMom::momToNum(const multi1d<int>& mom_in) const
   {
     multi1d<int> mom;
@@ -504,12 +508,12 @@ namespace Chroma
       mom = mom_in;
 
     // Search for the mom
-    for(int mom_num=0; mom_num < num_mom; ++mom_num) 
+    for(int mom_num=0; mom_num < num_mom; ++mom_num)
     {
       bool match = true ;
       for (int mu=0; mu < mom.size(); ++mu)
       {
-	if (mom_list[mom_num][mu] != mom[mu]) 
+	if (mom_list[mom_num][mu] != mom[mu])
 	{
 	  match = false ;
 	  break;
