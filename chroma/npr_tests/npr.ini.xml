@@ -57,8 +57,10 @@ NPR input
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
+         <!-- <FermAct>WILSON</FermAct> -->
+         <FermAct>CLOVER</FermAct>
          <Kappa>0.12</Kappa>
+         <clovCoeff>1.17</clovCoeff>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
