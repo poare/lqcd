@@ -103,6 +103,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   */
 
   // defining these for organizational purposes
+  int vol = Layout::vol();
   multi1d<int> k1;
   k1.resize(4);
   k1[0] = -k;
