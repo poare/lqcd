@@ -39,6 +39,7 @@ f = h5py.File(out_file, 'w')
 
 for mom_idx in mom_idx_list:
     xml_file = dir + '/mom_' + str(mom_idx) + '.dat.xml'
+    print('Reading data from ' + xml_file)
     tree = ET.parse(xml_file)
     root = tree.getroot()
 
