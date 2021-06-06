@@ -101,8 +101,8 @@
           <version>1</version>
           <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
-          <!-- <mom>2 2 0 0</mom> -->
-          <mom>0  1 0 0</mom>
+          <mom>2 2 0 0</mom>
+          <!-- <mom>0  1 0 0</mom> -->
           <av_mom>false</av_mom>
           <t_srce>0 0 0 0</t_srce>
         </Source>
@@ -418,8 +418,8 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 -1</boundary>
-           <!-- <boundary>1 1 1 1</boundary> -->
+           <!-- <boundary>1 1 1 -1</boundary> -->
+           <boundary>1 1 1 1</boundary>
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -499,7 +499,7 @@
         </annotation>
         <Name>NPR</Name>
         <Frequency>1</Frequency>
-        <max_mom2>2</max_mom2>
+        <max_mom2>8</max_mom2>
         <output_type>XML</output_type>
         <!-- <filename>./fft_prop.lime</filename> -->
         <filename>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/npr_Sq.dat.xml</filename>
