@@ -334,7 +334,7 @@
          <FermAct>WILSON</FermAct>
          <Kappa>0.115</Kappa>
          <AnisoParam>
-           <anisoP>true</anisoP>
+           <anisoP>false</anisoP>
            <t_dir>3</t_dir>
            <xi_0>2.464</xi_0>
            <nu>0.95</nu>
@@ -373,7 +373,7 @@
          <clovCoeffR>0.91</clovCoeffR>
          <clovCoeffT>1.07</clovCoeffT> -->
          <AnisoParam>
-           <anisoP>true</anisoP>
+           <anisoP>false</anisoP>
            <t_dir>3</t_dir>
            <xi_0>2.464</xi_0>
            <nu>0.95</nu>
@@ -418,9 +418,8 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 -1</boundary> -->
-           <boundary>1 1 1 1</boundary>
-           <!-- THIS SEEMS TO BE THE ONLY DIFFERENCE -->
+           <boundary>1 1 1 -1</boundary>
+           <!-- <boundary>1 1 1 1</boundary> -->
          </FermionBC>
         </FermionAction>
         <InvertParam>
