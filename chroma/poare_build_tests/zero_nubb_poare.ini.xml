@@ -438,7 +438,7 @@
     </elem>
 
 
-  <elem>
+  <!-- <elem>
     <Name>PROPAGATOR</Name>
     <Frequency>1</Frequency>
     <Param>
@@ -471,7 +471,7 @@
       <source_id>sh_source_0</source_id>
       <prop_id>prop_0</prop_id>
     </NamedObject>
-  </elem>
+  </elem> -->
 
     <elem>
       <Name>ZERO_NUBB_MEAS</Name>
