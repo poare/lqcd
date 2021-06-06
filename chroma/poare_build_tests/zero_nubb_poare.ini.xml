@@ -103,8 +103,8 @@
           <j_decay>3</j_decay>
           <!-- <mom>2 2 0 0</mom> -->
           <!-- <mom>0 1 0 0</mom> -->
-          <!-- <mom>1 0 0 0</mom> -->
-          <mom>2 0 0 0</mom>
+          <mom>1 0 0 0</mom>
+          <!-- <mom>2 0 0 0</mom> -->
           <av_mom>false</av_mom>
           <t_srce>0 0 0 0</t_srce>
         </Source>
@@ -116,7 +116,7 @@
       </NamedObject>
     </elem>
 
-    <elem>
+    <!-- <elem>
       <Name>MAKE_SOURCE</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -126,7 +126,6 @@
           <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
           <mom> 0  1 0 0</mom>
-          <!-- no averaging over momenta is allowed for NPR -->
 	  <av_mom>false</av_mom>
           <t_srce>0 0 0 0</t_srce>
         </Source>
@@ -135,7 +134,7 @@
         <gauge_id>landau_cfg</gauge_id>
         <source_id>sh_source_0</source_id>
       </NamedObject>
-    </elem>
+    </elem> -->
 
 <!--
 
@@ -512,7 +511,7 @@
     </elem>
 
 
-    <elem>
+    <!-- <elem>
     <annotation>
             Do the NPR thing
     </annotation>
@@ -525,7 +524,7 @@
       <gauge_id>landau_cfg</gauge_id>
       <prop_id>prop_0</prop_id>
     </NamedObject>
-</elem>
+</elem> -->
 
   </InlineMeasurements>
   <nrow>4 4 4 8</nrow>
