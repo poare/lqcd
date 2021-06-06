@@ -103,7 +103,7 @@
           <j_decay>3</j_decay>
           <!-- <mom>2 2 0 0</mom> -->
           <!-- <mom>0 1 0 0</mom> -->
-          <mom>0 2 0 0</mom>
+          <mom>1 0 0 0</mom>
           <av_mom>false</av_mom>
           <t_srce>0 0 0 0</t_srce>
         </Source>
