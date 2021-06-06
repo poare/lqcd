@@ -432,6 +432,21 @@
       <xml_file>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/zero_nubb_test.dat.xml</xml_file>
     </elem>
 
+    <elem>
+        <annotation>
+                Testing to see if Sq is computed correctly here
+        </annotation>
+        <Name>NPR</Name>
+        <Frequency>1</Frequency>
+        <max_mom2>8</max_mom2>
+        <output_type>XML</output_type>
+        <!-- <filename>./fft_prop.lime</filename> -->
+        <filename>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/npr_Sq.dat.xml</filename>
+        <NamedObject>
+          <gauge_id>landau_cfg</gauge_id>
+          <prop_id>mom_prop_q</prop_id>
+        </NamedObject>
+    </elem>
 
   </InlineMeasurements>
   <nrow>4 4 4 8</nrow>
@@ -448,6 +463,6 @@
 
 <Cfg>
 	<cfg_type>UNIT</cfg_type>
-	<cfg_file>ignored</cfg_file>
+	<cfg_file>test</cfg_file>
 </Cfg>
 </chroma>
