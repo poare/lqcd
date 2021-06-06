@@ -395,7 +395,9 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 -1</boundary>
+           <!-- <boundary>1 1 1 -1</boundary> -->
+           <boundary>1 1 1 1</boundary>
+           <!-- THIS SEEMS TO BE THE ONLY DIFFERENCE -->
          </FermionBC>
         </FermionAction>
         <InvertParam>
