@@ -103,8 +103,9 @@
           <j_decay>3</j_decay>
           <!-- <mom>2 2 0 0</mom> -->
           <!-- <mom>0 1 0 0</mom> -->
-          <mom>1 0 0 0</mom>
-          <!-- <mom>2 0 0 0</mom> -->
+          <!-- <mom>1 0 0 0</mom> -->
+          <mom>2 0 0 0</mom>
+          <!-- GOAL: use my code to figure out why when p^2 > 1 the inversion is wrong -->
           <av_mom>false</av_mom>
           <t_srce>0 0 0 0</t_srce>
         </Source>
