@@ -125,9 +125,9 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
     // phase_k1_arg -= Layout::latticeCoordinate(mu) * (k1[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
     // phase_k2_arg -= Layout::latticeCoordinate(mu) * (k2[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
     // phase_q_arg -= Layout::latticeCoordinate(mu) * (q[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
-		phase_k1_arg -= Layout::latticeCoordinate(mu) * k1[mu] * twopi / Real(Layout::lattSize()[mu]);    // no bvec for now, add it in later
-    phase_k2_arg -= Layout::latticeCoordinate(mu) * k2[mu] * twopi / Real(Layout::lattSize()[mu]);
-    phase_q_arg -= Layout::latticeCoordinate(mu) * q[mu] * twopi / Real(Layout::lattSize()[mu]);
+		phase_k1_arg -= Layout::latticeCoordinate(mu) * (k1[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);    // no bvec for now, add it in later
+    phase_k2_arg -= Layout::latticeCoordinate(mu) * (k2[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    phase_q_arg -= Layout::latticeCoordinate(mu) * (q[mu] + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
 
     // phase_mq_arg -= Layout::latticeCoordinate(mu) * q[mu] * twopi / Real(Layout::lattSize()[mu]);
     // phase_m2q_arg -= Layout::latticeCoordinate(mu) * 2 * q[mu] * twopi / Real(Layout::lattSize()[mu]);
