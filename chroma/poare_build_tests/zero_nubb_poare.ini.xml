@@ -480,6 +480,7 @@
       <Param>
         <version>1</version>
         <mom_idx>1</mom_idx>
+        <ferm_bc>false</ferm_bc>
        </Param>
       <NamedObject>
         <!-- <gauge_id>default_gauge_field</gauge_id> -->
