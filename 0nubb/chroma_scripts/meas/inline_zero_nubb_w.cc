@@ -70,6 +70,7 @@ namespace Chroma
     }
 
     read(paramtop, "mom_idx", param.mom_idx);
+    read(paramtop, "ferm_bc", param.ferm_bc);
 
     // read(paramtop, "MesonP", param.MesonP);
     // read(paramtop, "CurrentP", param.CurrentP);
@@ -90,6 +91,7 @@ namespace Chroma
     write(xml, "version", version);
 
     write(xml, "mom_idx", param.mom_idx);
+    write(xml, "ferm_bc", param.ferm_bc);
     // write(xml, "MesonP", param.MesonP);
     // write(xml, "CurrentP", param.CurrentP);
     // write(xml, "BaryonP", param.BaryonP);
@@ -621,8 +623,9 @@ namespace Chroma
 
       // momentum index
       int k = params.param.mom_idx;
+      bool ferm_bc = params.param.ferm_bc;
       QDPIO::cout << "Calling zero_nubb measurement function now." << std::endl;
-    	zero_nubb(sink_prop_k1, sink_prop_k2, sink_prop_q, k, xml_out, "0nubb_npr");
+    	zero_nubb(sink_prop_k1, sink_prop_k2, sink_prop_q, k, ferm_bc, xml_out, "0nubb_npr");
 
 
   //     // Do the currents next

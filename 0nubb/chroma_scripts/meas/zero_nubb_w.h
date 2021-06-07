@@ -19,7 +19,7 @@ namespace Chroma {
  * \param quark_prop_1  first quark propagator, computed with wall source of momentum k1 ( Read )
  * \param quark_prop_2  second (anti-) quark propagator, computed with wall source of momentum k2 ( Read )
  * \param quark_prop_3  third quark propagator, computed with wall source of momentum q
- * \param n 						momentum index, k1 = (-n, 0, n, 0), k2 = (0, n, n, 0), k3 = (n, n, 0, 0)
+ * \param k 						momentum index, k1 = (-k, 0, k, 0), k2 = (0, k, k, 0), k3 = (k, k, 0, 0)
  * \param xml           xml file object ( Write )
  * \param xml_group     std::string used for writing xml data ( Read )
  */
@@ -27,7 +27,8 @@ namespace Chroma {
 void zero_nubb(const LatticePropagator& quark_prop_k1,
 	     const LatticePropagator& quark_prop_k2,
 			 const LatticePropagator& quark_prop_q,
-			 int n,
+			 int k,
+			 bool ferm_bc,
 	     XMLWriter& xml,
 	     const std::string& xml_group) ;
 

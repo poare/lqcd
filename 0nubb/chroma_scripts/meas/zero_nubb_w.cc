@@ -19,6 +19,7 @@ namespace Chroma {
  * \param quark_prop_1  first quark propagator ( Read )
  * \param quark_prop_2  second (anti-) quark propagator ( Read )
  * \param k             momentum index for RI/sMOM
+ * \param ferm_bc				true if we want to add bvec
  * \param xml           xml file object ( Write )
  * \param xml_group     std::string used for writing xml data ( Read )
  */
@@ -27,6 +28,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
 	     const LatticePropagator& quark_prop_k2,
 			 const LatticePropagator& quark_prop_q,
        int k,
+			 bool ferm_bc,
 	     XMLWriter& xml,
 	     const std::string& xml_group)
 {
@@ -45,8 +47,11 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  bvec[3] = 0.5;    // just to see if it matches the QLUA output
-  // bvec[3] = 0.0;
+	if (ferm_bc) {
+		bvec[3] = 0.5;
+	} else {
+		bvec[3] = 0.0;
+	}
 
 	// use these for writing k1, k2, q to files
 	int vol = Layout::vol();

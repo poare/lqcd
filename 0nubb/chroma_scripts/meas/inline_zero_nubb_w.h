@@ -39,7 +39,7 @@ namespace Chroma
       // bool time_rev;           // Use time reversal in baryon spectroscopy
 
       int mom_idx;                // k1 = (-n, 0, n, 0), k2 = (0, n, n, 0), q = (n, n, 0, 0)
-
+      bool ferm_bc;               // true if fermionic boundary conditions
       // int mom2_max;            // (mom)^2 <= mom2_max. mom2_max=7 in szin.
       // bool avg_equiv_mom;      // average over equivalent momenta
     } param;
