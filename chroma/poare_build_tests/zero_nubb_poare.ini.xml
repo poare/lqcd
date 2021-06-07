@@ -36,8 +36,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
-          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
+          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
+          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
           <mom>-1 0 1 0</mom>
           <av_mom>false</av_mom>
@@ -58,8 +58,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
-          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
+          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
+          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
           <mom>0 1 1 0</mom>
           <av_mom>false</av_mom>
@@ -73,25 +73,6 @@
       </NamedObject>
     </elem>
 
-    <!-- <elem>
-      <Name>MAKE_SOURCE</Name>
-      <Frequency>1</Frequency>
-      <Param>
-        <version>6</version>
-        <Source>
-          <version>1</version>
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
-          <j_decay>3</j_decay>
-          <mom>2 2 0 0</mom>
-          <av_mom>false</av_mom>
-          <t_srce>0 0 0 0</t_srce>
-        </Source>
-      </Param>
-      <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <source_id>mom_source_q</source_id>
-      </NamedObject>
-    </elem> -->
     <elem>
       <Name>MAKE_SOURCE</Name>
       <Frequency>1</Frequency>
@@ -99,7 +80,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
+          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
           <j_decay>3</j_decay>
           <!-- <mom>2 2 0 0</mom> -->
           <!-- <mom>0 1 0 0</mom> -->
