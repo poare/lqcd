@@ -343,7 +343,8 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 1</boundary>
+           <!-- <boundary>1 1 1 1</boundary> -->
+           <boundary>1 1 1 -1</boundary>
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -382,7 +383,8 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 1</boundary>
+           <!-- <boundary>1 1 1 1</boundary> -->
+           <boundary>1 1 1 -1</boundary>
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -420,8 +422,8 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 -1</boundary> -->
-           <boundary>1 1 1 1</boundary>
+           <boundary>1 1 1 -1</boundary>
+           <!-- <boundary>1 1 1 1</boundary> -->
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -480,7 +482,8 @@
       <Param>
         <version>1</version>
         <mom_idx>1</mom_idx>
-        <ferm_bc>false</ferm_bc>
+        <!-- <ferm_bc>false</ferm_bc> -->
+        <ferm_bc>true</ferm_bc>
        </Param>
       <NamedObject>
         <!-- <gauge_id>default_gauge_field</gauge_id> -->
@@ -496,7 +499,7 @@
       <xml_file>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/zero_nubb_test.dat.xml</xml_file>
     </elem>
 
-    <elem>
+    <!-- <elem>
         <annotation>
                 Testing to see if Sq is computed correctly here
         </annotation>
@@ -504,13 +507,13 @@
         <Frequency>1</Frequency>
         <max_mom2>8</max_mom2>
         <output_type>XML</output_type>
-        <!-- <filename>./fft_prop.lime</filename> -->
+        <filename>./fft_prop.lime</filename>
         <filename>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/npr_Sq.dat.xml</filename>
         <NamedObject>
           <gauge_id>landau_cfg</gauge_id>
           <prop_id>mom_prop_q</prop_id>
         </NamedObject>
-    </elem>
+    </elem> -->
 
 
     <!-- <elem>
