@@ -151,8 +151,8 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   // k_list[2][2] = 0;
   // k_list[2][3] = 0;
   k_list[2][0] = -k;
-  // k_list[2][1] = -k;
-  k_list[2][1] = 0; // TODO only doing this temporarily while testing
+  k_list[2][1] = -k;
+  // k_list[2][1] = 0; // TODO only doing this temporarily while testing
   k_list[2][2] = 0;
   k_list[2][3] = 0;
 
