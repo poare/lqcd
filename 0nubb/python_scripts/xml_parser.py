@@ -119,6 +119,7 @@ for mom_idx in mom_idx_list:
 
     # write to file (use same format that read_files uses to read things in)
     qstr = klist_to_string(k_out[2], 'q')
+    print(qstr)
     for i in range(2):
         f['moms/' + qstr + '/' + mom_labels[i]] = k_out[i]
     for i in range(3):

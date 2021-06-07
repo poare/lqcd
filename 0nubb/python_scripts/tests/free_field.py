@@ -14,16 +14,17 @@ from utils import *
 # # job_num = 30661
 # data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_' + str(job_num)
 
-L, T = 4, 8
+# L, T = 4, 8
+L, T = 8, 8
 home = '/Users/theoares/'
 # home = '/Users/poare/'
 data_dir = home + 'Dropbox (MIT)/research/0nubb/tests/hdf5'
 L = Lattice(L, T)
 
-# k1_list = [[-1, 0, 1, 0]]
-# k2_list = [[0, 1, 1, 0]]
-k1_list = [[-2, 0, 2, 0]]
-k2_list = [[0, 2, 2, 0]]
+k1_list = [[-1, 0, 1, 0]]
+k2_list = [[0, 1, 1, 0]]
+# k1_list = [[-2, 0, 2, 0]]
+# k2_list = [[0, 2, 2, 0]]
 
 k1_list = np.array(k1_list)
 k2_list = np.array(k2_list)
@@ -35,6 +36,7 @@ print('Number of total momenta: ' + str(len(q_list)))
 cfgs = ['cfgEXAMPLE.h5']                                    # run chroma output
 # cfgs = ['free_field_qlua_clover.h5']
 # cfgs = ['free_field_qlua_clover_diff_mass.h5']
+# cfgs = ['cfgEXAMPLE_fullbvec.h5']
 # for (dirpath, dirnames, file) in os.walk(data_dir):
 #     cfgs.extend(file)
 for idx, cfg in enumerate(cfgs):
@@ -50,7 +52,6 @@ ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
-    q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
     print(props_q[0])
@@ -58,6 +59,15 @@ for q_idx, q in enumerate(q_list):
         np.array([bootstrap(GO[n]) for n in range(16)])
     props_k1_inv, props_k2_inv, props_q_inv = invert_props(props_k1_b), invert_props(props_k2_b), invert_props(props_q_b)
     print(props_q_inv[0])
+
+    q = -q
+    # q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
+    q_lat = np.sin(L.to_linear_momentum(q))
+
+    # # for a specific test
+    # q = np.array([-2, 0, 0, 0])
+    # q_lat = np.sin(L.to_linear_momentum(q))
+
     Zq[q_idx] = quark_renorm(props_q_inv, q_lat)
     GammaV, GammaA = np.zeros(GV_boot.shape, dtype = np.complex64), np.zeros(GA_boot.shape, dtype = np.complex64)
     qDotV, qDotA = np.zeros(GV_boot.shape[1:]), np.zeros(GA_boot.shape[1:])

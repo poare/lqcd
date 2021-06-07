@@ -179,8 +179,8 @@ def readfiles(cfgs, q, op_renorm = True):
         if op_renorm:
             for n in range(16):
                 # TODO be careful about this with the chroma input
-                # GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])
-                GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])
+                GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])      # for chroma
+                # GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])    # for qlua
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
 # Read an Npt function in David's format
