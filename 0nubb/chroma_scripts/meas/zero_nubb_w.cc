@@ -151,7 +151,8 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   // k_list[2][2] = 0;
   // k_list[2][3] = 0;
   k_list[2][0] = -k;
-  k_list[2][1] = -k;
+  // k_list[2][1] = -k;
+  k_list[2][1] = 0; // TODO only doing this temporarily while testing
   k_list[2][2] = 0;
   k_list[2][3] = 0;
 
@@ -177,6 +178,7 @@ void zero_nubb(const LatticePropagator& quark_prop_k1,
   DPropagator momproj_prop_k1 = sumMulti(phases[0] * quark_prop_k1, phases.getSet())[0] / (double) vol;
   DPropagator momproj_prop_k2 = sumMulti(phases[1] * quark_prop_k2, phases.getSet())[0] / (double) vol;
   DPropagator momproj_prop_q = sumMulti(phases[2] * quark_prop_q, phases.getSet())[0] / (double) vol;
+  // TODO change the method and make sure it works the way I was doing it before
 
   // } end other method
 
