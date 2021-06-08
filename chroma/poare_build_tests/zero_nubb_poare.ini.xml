@@ -36,8 +36,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
           <j_decay>3</j_decay>
           <mom>-1 0 1 0</mom>
           <av_mom>false</av_mom>
@@ -58,8 +58,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
           <j_decay>3</j_decay>
           <mom>0 1 1 0</mom>
           <av_mom>false</av_mom>
@@ -80,8 +80,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
           <j_decay>3</j_decay>
           <!-- <mom>2 2 0 0</mom> -->
           <!-- <mom>0 1 0 0</mom> -->
@@ -119,7 +119,7 @@
       </NamedObject>
     </elem> -->
 
-<!--
+
 
     <elem>
       <Name>PROPAGATOR</Name>
@@ -144,7 +144,7 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
          </FermionBC>
         </FermionAction>
 
@@ -176,7 +176,7 @@
 
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k1</source_id>
         <prop_id>mom_prop_k1</prop_id>
       </NamedObject>
@@ -205,7 +205,7 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
          </FermionBC>
         </FermionAction>
 
@@ -237,7 +237,7 @@
 
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k2</source_id>
         <prop_id>mom_prop_k2</prop_id>
       </NamedObject>
@@ -298,14 +298,16 @@
 
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_q</source_id>
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
-    </elem> -->
+    </elem>
+
 
 <!-- Right now: run with clover ferms to get Zq and other Z factors correct. Then, promote to DWF.  -->
 
+<!--
     <elem>
       <Name>PROPAGATOR</Name>
       <Frequency>1</Frequency>
@@ -325,8 +327,7 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 1</boundary> -->
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -336,7 +337,6 @@
         </InvertParam>
       </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
         <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k1</source_id>
         <prop_id>mom_prop_k1</prop_id>
@@ -354,9 +354,6 @@
         <FermionAction>
          <FermAct>WILSON</FermAct>
          <Kappa>0.115</Kappa>
-         <!-- <clovCoeff>1.17</clovCoeff>
-         <clovCoeffR>0.91</clovCoeffR>
-         <clovCoeffT>1.07</clovCoeffT> -->
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
@@ -365,8 +362,7 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 1</boundary> -->
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -376,7 +372,6 @@
         </InvertParam>
       </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
         <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k2</source_id>
         <prop_id>mom_prop_k2</prop_id>
@@ -395,8 +390,6 @@
          <FermAct>WILSON</FermAct>
          <Kappa>0.115</Kappa>
          <AnisoParam>
-           <!-- <anisoP>true</anisoP> -->
-           <!-- LOOKING LIKE IT MIGHT BE THE ANISOP PARAM -->
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
            <xi_0>2.464</xi_0>
@@ -404,8 +397,7 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <boundary>1 1 1 -1</boundary>
-           <!-- <boundary>1 1 1 1</boundary> -->
+           <boundary>1 1 1 1</boundary>
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -415,48 +407,13 @@
         </InvertParam>
       </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
         <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_q</source_id>
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
     </elem>
 
-
-  <!-- <elem>
-    <Name>PROPAGATOR</Name>
-    <Frequency>1</Frequency>
-    <Param>
-      <version>10</version>
-      <quarkSpinType>FULL</quarkSpinType>
-      <obsvP>false</obsvP>
-      <numRetries>1</numRetries>
-      <FermionAction>
-       <FermAct>WILSON</FermAct>
-       <Kappa>0.12</Kappa>
-       <AnisoParam>
-         <anisoP>false</anisoP>
-         <t_dir>3</t_dir>
-         <xi_0>2.464</xi_0>
-         <nu>0.95</nu>
-       </AnisoParam>
-       <FermionBC>
-         <FermBC>SIMPLE_FERMBC</FermBC>
-         <boundary>1 1 1 1</boundary>
-       </FermionBC>
-      </FermionAction>
-      <InvertParam>
-        <invType>CG_INVERTER</invType>
-        <RsdCG>1.0e-10</RsdCG>
-        <MaxCG>1000</MaxCG>
-      </InvertParam>
-    </Param>
-    <NamedObject>
-      <gauge_id>landau_cfg</gauge_id>
-      <source_id>sh_source_0</source_id>
-      <prop_id>prop_0</prop_id>
-    </NamedObject>
-  </elem> -->
+-->
 
     <elem>
       <Name>ZERO_NUBB_MEAS</Name>
@@ -464,8 +421,8 @@
       <Param>
         <version>1</version>
         <mom_idx>1</mom_idx>
-        <!-- <ferm_bc>false</ferm_bc> -->
-        <ferm_bc>true</ferm_bc>
+        <ferm_bc>false</ferm_bc>
+        <!-- <ferm_bc>true</ferm_bc> -->
        </Param>
       <NamedObject>
         <!-- <gauge_id>default_gauge_field</gauge_id> -->
