@@ -119,7 +119,7 @@
       </NamedObject>
     </elem> -->
 
-
+<!--
 
     <elem>
       <Name>PROPAGATOR</Name>
@@ -304,10 +304,11 @@
       </NamedObject>
     </elem>
 
+-->
 
 <!-- Right now: run with clover ferms to get Zq and other Z factors correct. Then, promote to DWF.  -->
 
-<!--
+
     <elem>
       <Name>PROPAGATOR</Name>
       <Frequency>1</Frequency>
@@ -317,8 +318,12 @@
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
-         <Kappa>0.115</Kappa>
+         <!-- <FermAct>WILSON</FermAct> -->
+         <FermAct>CLOVER</FermAct>
+         <Kappa>0.12</Kappa>
+         <clovCoeff>1</clovCoeff>
+         <clovCoeffR>1</clovCoeffR>
+         <clovCoeffT>1</clovCoeffT>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
@@ -352,8 +357,13 @@
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
-         <Kappa>0.115</Kappa>
+         <!-- <FermAct>WILSON</FermAct>
+         <Kappa>0.115</Kappa> -->
+         <FermAct>CLOVER</FermAct>
+         <Kappa>0.12</Kappa>
+         <clovCoeff>1</clovCoeff>
+         <clovCoeffR>1</clovCoeffR>
+         <clovCoeffT>1</clovCoeffT>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
@@ -387,8 +397,13 @@
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
-         <Kappa>0.115</Kappa>
+         <!-- <FermAct>WILSON</FermAct>
+         <Kappa>0.115</Kappa> -->
+         <FermAct>CLOVER</FermAct>
+         <Kappa>0.12</Kappa>
+         <clovCoeff>1</clovCoeff>
+         <clovCoeffR>1</clovCoeffR>
+         <clovCoeffT>1</clovCoeffT>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
@@ -413,7 +428,7 @@
       </NamedObject>
     </elem>
 
--->
+
 
     <elem>
       <Name>ZERO_NUBB_MEAS</Name>
@@ -471,7 +486,8 @@
 </elem> -->
 
   </InlineMeasurements>
-  <nrow>8 8 8 8</nrow>
+  <!-- <nrow>8 8 8 8</nrow> -->
+  <nrow>4 4 4 8</nrow>
 </Param>
 
 <RNG>
