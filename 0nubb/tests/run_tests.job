@@ -23,7 +23,8 @@ module load qlua/20200107-gpu1080
 EXE=qlua
 
 gpu=false
-dwf=true
+# dwf=true
+dwf=false
 
 # whether to only compute current correlators, or to compute operator correlators as well
 operators=true
