@@ -318,13 +318,13 @@
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
-         <Kappa>0.115</Kappa>
-         <!-- <FermAct>CLOVER</FermAct>
+         <!-- <FermAct>WILSON</FermAct>
+         <Kappa>0.115</Kappa> -->
+         <FermAct>CLOVER</FermAct>
          <Kappa>0.12</Kappa>
          <clovCoeff>1</clovCoeff>
          <clovCoeffR>1</clovCoeffR>
-         <clovCoeffT>1</clovCoeffT> -->
+         <clovCoeffT>1</clovCoeffT>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
@@ -358,13 +358,13 @@
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
-         <Kappa>0.115</Kappa>
-         <!-- <FermAct>CLOVER</FermAct>
+         <!-- <FermAct>WILSON</FermAct>
+         <Kappa>0.115</Kappa> -->
+         <FermAct>CLOVER</FermAct>
          <Kappa>0.12</Kappa>
          <clovCoeff>1</clovCoeff>
          <clovCoeffR>1</clovCoeffR>
-         <clovCoeffT>1</clovCoeffT> -->
+         <clovCoeffT>1</clovCoeffT>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
@@ -398,13 +398,13 @@
         <obsvP>false</obsvP>
         <numRetries>1</numRetries>
         <FermionAction>
-         <FermAct>WILSON</FermAct>
-         <Kappa>0.115</Kappa>
-         <!-- <FermAct>CLOVER</FermAct>
+         <!-- <FermAct>WILSON</FermAct>
+         <Kappa>0.115</Kappa> -->
+         <FermAct>CLOVER</FermAct>
          <Kappa>0.12</Kappa>
          <clovCoeff>1</clovCoeff>
          <clovCoeffR>1</clovCoeffR>
-         <clovCoeffT>1</clovCoeffT> -->
+         <clovCoeffT>1</clovCoeffT>
          <AnisoParam>
            <anisoP>false</anisoP>
            <t_dir>3</t_dir>
