@@ -365,7 +365,6 @@ local solver
 local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
 local U = load_conf(L, gauge_file)
 local kappa = 0.12
-local csw = 1
 
 print("Initializing free field")
 if dwf then
@@ -388,7 +387,8 @@ if dwf then
     solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
   end
 else
-  local csw = 1.2493
+  -- local csw = 1.2493
+  local csw = 1
   local clover
   if gpu then
       clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)

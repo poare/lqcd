@@ -501,7 +501,9 @@
 </RNG>
 
 <Cfg>
-	<cfg_type>UNIT</cfg_type>
-	<cfg_file>test</cfg_file>
+  <cfg_type>SCIDAC</cfg_type>
+  <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file>
+	<!-- <cfg_type>UNIT</cfg_type>
+	<cfg_file>test</cfg_file> -->
 </Cfg>
 </chroma>
