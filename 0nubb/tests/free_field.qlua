@@ -314,10 +314,10 @@ end
 ------------------------------------------------------------------
 
 -- Set parameters
--- Lx = 16
--- Lt = 48
-Lx = 4
-Lt = 8
+Lx = 16
+Lt = 48
+-- Lx = 4
+-- Lt = 8
 
 ml = 0.1
 M = 1.8
@@ -389,8 +389,8 @@ end
 
 -- local U = init_id_field(L)
 -- local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
--- local gauge_file = "/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
-local gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
+local gauge_file = "/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
+-- local gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
 local U, finfo, ginfo = load_conf(L, gauge_file)
 print("file info:")
 print(finfo)
