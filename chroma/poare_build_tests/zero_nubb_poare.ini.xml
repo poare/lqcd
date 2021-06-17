@@ -502,7 +502,8 @@
 
 <Cfg>
   <cfg_type>SCIDAC</cfg_type>
-  <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file>
+  <!-- <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file> -->
+  <cfg_file>/data/d10b/users/poare/0nubb/weak_field_37508.lime</cfg_file>
 	<!-- <cfg_type>UNIT</cfg_type>
 	<cfg_file>test</cfg_file> -->
 </Cfg>
