@@ -384,12 +384,17 @@ for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
   U[mu + 1] = weak_SUn(L, S)
 end
 
-gauge_file_name = string.format("/data/d10b/users/poare/0nubb/weak_field_%d.lime", jobid)
-save_conf(L, gauge_file_name, "weak_field", U, "weak_field")
+-- gauge_file_name = string.format("/data/d10b/users/poare/0nubb/weak_field_%d.lime", jobid)
+-- save_conf(L, gauge_file_name, "weak_field", U, "weak_field")
 
 -- local U = init_id_field(L)
--- local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
--- local U = load_conf(L, gauge_file)
+local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
+local U, finfo, ginfo = load_conf(L, gauge_file)
+print("file info:")
+print(finfo)
+print("gauge info:")
+print(ginfo)
+
 local kappa = 0.12
 
 print("Initializing free field")
