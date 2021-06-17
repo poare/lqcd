@@ -34,6 +34,15 @@ function show_propagator(name, m)
       printf("\n")
     end
 
+function toSUn(L, X)    -- Project a matrix onto SU(N)
+  local Y = (X - X:adjoin()) / 2    -- anti-hermitian part
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
+end
+
+function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
+  return toSUn(L, .1 * S:gaussian_ColorMatrix())
+end
+
 function init_id_field(L)
   local U = {}
   for mu = 0, #L - 1 do
@@ -361,9 +370,22 @@ end
 
 local solver
 
+do
+  local r = L:Int(os.random())
+  for i = 0, #L - 1 do
+    r = r * L[i] + L:pcoord(i)
+  end
+  S = L:RandomState(os.random(), r)
+end
+
+U = {}
+for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
+  U[mu + 1] = weak_SUn(L, S)
+end
+
 -- local U = init_id_field(L)
-local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
-local U = load_conf(L, gauge_file)
+-- local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
+-- local U = load_conf(L, gauge_file)
 local kappa = 0.12
 
 print("Initializing free field")
