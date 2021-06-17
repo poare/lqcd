@@ -506,7 +506,7 @@
   <!-- <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file> -->
   <!-- <cfg_file>/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
   <!-- <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
-  <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file>
+  <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file>
 	<!-- <cfg_type>UNIT</cfg_type>
 	<cfg_file>test</cfg_file> -->
 </Cfg>
