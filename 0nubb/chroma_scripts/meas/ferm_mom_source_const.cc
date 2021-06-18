@@ -186,7 +186,6 @@ namespace Chroma
 	phase = phases[0] ;
   */
 
-  multi1d<int> k = params.mom;
   multi1d<double> bvec;
   bvec.resize(4);
   bvec[0] = 0.0;
