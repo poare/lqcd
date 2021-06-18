@@ -179,9 +179,12 @@ namespace Chroma
 	QDPIO::cout<<mom[0]<<mom[1]<<mom[2]<<std::endl;
       }
       else{ // do not use momentum averaged sources
-	// SftMom phases(0, params.t_srce, params.mom);
-	// phase = phases[0] ;
 
+	SftMom phases(0, params.t_srce, params.mom);
+	phase = phases[0] ;
+  multi1d<int> k = params.mom;
+
+  /*
   multi1d<int> k = params.mom;
   multi1d<double> bvec;
   bvec.resize(4);
@@ -198,6 +201,8 @@ namespace Chroma
     // phase_arg -= Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
   }
   LatticeComplex phase = cmplx(cos(phase_arg), sin(phase_arg));
+  // TODO delete the LatticeComplex definition here
+  */
 
 	QDPIO::cout<<"Source momentum: " ;
 	QDPIO::cout<<k[0]<<k[1]<<k[2]<<k[3]<<std::endl;
