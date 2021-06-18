@@ -188,12 +188,14 @@ namespace Chroma
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  bvec[3] = 0.5;    // just to see if it matches the QLUA output
+  // bvec[3] = 0.5;    // just to see if it matches the QLUA output
+  // TODO TOMORROW: Recompile with bvec set to 0, see if this does anything
+  bvec[3] = 0.0;    // Compare to usual momentum source, should be equal
   LatticeReal phase_arg = zero;
   for (int mu = 0; mu < 4; mu++) {
     double comp = (double) k[mu];
-    // phase_arg += Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
-    phase_arg -= Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    phase_arg += Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    // phase_arg -= Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
   }
   LatticeComplex phase = cmplx(cos(phase_arg), sin(phase_arg));
 
