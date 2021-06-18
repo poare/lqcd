@@ -191,9 +191,8 @@ namespace Chroma
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  // bvec[3] = 0.5;    // just to see if it matches the QLUA output
-  // TODO TOMORROW: Recompile with bvec set to 0, see if this does anything
-  bvec[3] = 0.0;    // Compare to usual momentum source, should be equal
+  // bvec[3] = 0.0;    // Compare to usual momentum source, should be equal
+  bvec[3] = 0.5;    // just to see if it matches the QLUA output
   LatticeReal phase_arg = zero;
   for (int mu = 0; mu < 4; mu++) {
     double comp = (double) k[mu];
