@@ -12,8 +12,6 @@ Nc = 3
 
 # INPUT PARAMETERS
 home = '/Users/theoares'
-cfg_root = 'cfgEXAMPLE'                                     # 'cfg200'
-mom_idx_list = [2]                                          #[1, 2, ..., 6]
 
 # FIXED SETUP
 parent = home + '/Dropbox (MIT)/research/0nubb/tests/'      # meas/24I/ml0p01
