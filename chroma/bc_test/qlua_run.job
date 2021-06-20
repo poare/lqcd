@@ -24,12 +24,8 @@ EXE=qlua
 
 home=/home/poare/lqcd/chroma/bc_test
 logs=${home}/logs
-output=/data/d10b/users/poare/0nubb/output/tests/${test}_${SLURM_JOB_ID}
-
-mkdir ${logs}
-mkdir ${output}
 
 parameters="jobid = ${SLURM_JOB_ID}"
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "$parameters" ${home}/bcs.qlua > ${logs}/job${cfg}.txt
+mpirun -np 4 $EXE -e "$parameters" ${home}/bcs.qlua > ${logs}/job${SLURM_JOB_ID}.txt
