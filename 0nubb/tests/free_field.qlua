@@ -314,10 +314,10 @@ end
 ------------------------------------------------------------------
 
 -- Set parameters
-Lx = 16
-Lt = 48
--- Lx = 4
--- Lt = 8
+-- Lx = 16
+-- Lt = 48
+Lx = 4
+Lt = 8
 
 ml = 0.1
 M = 1.8
@@ -371,26 +371,26 @@ end
 local solver
 
 -- initialize random weak field and save it
-do
-  local r = L:Int(os.random())
-  for i = 0, #L - 1 do
-    r = r * L[i] + L:pcoord(i)
-  end
-  S = L:RandomState(os.random(), r)
-end
-
-U = {}
-for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
-  U[mu + 1] = weak_SUn(L, S)
-end
+-- do
+--   local r = L:Int(os.random())
+--   for i = 0, #L - 1 do
+--     r = r * L[i] + L:pcoord(i)
+--   end
+--   S = L:RandomState(os.random(), r)
+-- end
+--
+-- U = {}
+-- for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
+--   U[mu + 1] = weak_SUn(L, S)
+-- end
 
 -- gauge_file_name = string.format("/data/d10b/users/poare/0nubb/weak_field_%d.lime", jobid)
 -- save_conf(L, gauge_file_name, "weak_field", U, "weak_field")
 
 -- local U = init_id_field(L)
--- local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
+local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
 -- local gauge_file = "/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
-local gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
+-- local gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
 local U, finfo, ginfo = load_conf(L, gauge_file)
 print("file info:")
 print(finfo)
