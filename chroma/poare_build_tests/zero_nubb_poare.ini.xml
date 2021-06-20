@@ -9,8 +9,7 @@
 <Param>
   <InlineMeasurements>
 
-    <elem>
-      <!-- Coulomb gauge fix -->
+    <!-- <elem>
       <Name>COULOMB_GAUGEFIX</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -26,7 +25,7 @@
         <gfix_id>landau_cfg</gfix_id>
         <gauge_rot_id>gauge_rot</gauge_rot_id>
       </NamedObject>
-    </elem>
+    </elem> -->
 
 
     <elem>
@@ -36,8 +35,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
           <j_decay>3</j_decay>
           <mom>-1 0 1 0</mom>
           <av_mom>false</av_mom>
@@ -45,8 +44,8 @@
         </Source>
       </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <source_id>mom_source_k1</source_id>
       </NamedObject>
     </elem>
@@ -58,8 +57,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
           <j_decay>3</j_decay>
           <mom>0 1 1 0</mom>
           <av_mom>false</av_mom>
@@ -67,8 +66,8 @@
         </Source>
       </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <source_id>mom_source_k2</source_id>
       </NamedObject>
     </elem>
@@ -80,8 +79,8 @@
         <version>6</version>
         <Source>
           <version>1</version>
-          <!-- <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType> -->
-          <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <!-- <SourceType>FERMION_MOMENTUM_VOLUME_SOURCE</SourceType> -->
           <j_decay>3</j_decay>
           <!-- <mom>2 2 0 0</mom> -->
           <!-- <mom>0 1 0 0</mom> -->
@@ -93,8 +92,8 @@
         </Source>
       </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <source_id>mom_source_q</source_id>
       </NamedObject>
     </elem>
@@ -333,8 +332,8 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 1</boundary> -->
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
+           <!-- <boundary>1 1 1 -1</boundary> -->
          </FermionBC>
         </FermionAction>
         <InvertParam>
@@ -342,11 +341,12 @@
           <RsdCG>1.0e-8</RsdCG>
           <MaxCG>1000</MaxCG>
           <!-- TODO trying to add this to see what happens -->
-          <AntiPeriodicT>true</AntiPeriodicT>
+          <!-- <AntiPeriodicT>true</AntiPeriodicT> -->
         </InvertParam>
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <source_id>mom_source_k1</source_id>
         <prop_id>mom_prop_k1</prop_id>
       </NamedObject>
@@ -376,19 +376,20 @@
          </AnisoParam>
          <FermionBC>
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 1</boundary> -->
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
+           <!-- <boundary>1 1 1 -1</boundary> -->
          </FermionBC>
         </FermionAction>
         <InvertParam>
           <invType>CG_INVERTER</invType>
           <RsdCG>1.0e-8</RsdCG>
           <MaxCG>1000</MaxCG>
-          <AntiPeriodicT>true</AntiPeriodicT>
+          <!-- <AntiPeriodicT>true</AntiPeriodicT> -->
         </InvertParam>
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <source_id>mom_source_k2</source_id>
         <prop_id>mom_prop_k2</prop_id>
       </NamedObject>
@@ -419,19 +420,20 @@
          <FermionBC>
            <!-- Is it possible that SIMPLE_FERMBC is not used right? Check out where this gets used -->
            <FermBC>SIMPLE_FERMBC</FermBC>
-           <!-- <boundary>1 1 1 1</boundary> -->
-           <boundary>1 1 1 -1</boundary>
+           <boundary>1 1 1 1</boundary>
+           <!-- <boundary>1 1 1 -1</boundary> -->
          </FermionBC>
         </FermionAction>
         <InvertParam>
           <invType>CG_INVERTER</invType>
           <RsdCG>1.0e-8</RsdCG>
           <MaxCG>1000</MaxCG>
-          <AntiPeriodicT>true</AntiPeriodicT>
+          <!-- <AntiPeriodicT>true</AntiPeriodicT> -->
         </InvertParam>
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <source_id>mom_source_q</source_id>
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
@@ -445,12 +447,12 @@
       <Param>
         <version>1</version>
         <mom_idx>1</mom_idx>
-        <!-- <ferm_bc>false</ferm_bc> -->
-        <ferm_bc>true</ferm_bc>
+        <ferm_bc>false</ferm_bc>
+        <!-- <ferm_bc>true</ferm_bc> -->
        </Param>
       <NamedObject>
-        <!-- <gauge_id>default_gauge_field</gauge_id> -->
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
+        <!-- <gauge_id>landau_cfg</gauge_id> -->
         <sink_pairs>
           <elem>
             <first_id>mom_prop_k1</first_id>
@@ -495,9 +497,9 @@
 </elem> -->
 
   </InlineMeasurements>
-  <nrow>8 8 8 8</nrow>
+  <!-- <nrow>8 8 8 8</nrow> -->
   <!-- <nrow>4 4 4 8</nrow> -->
-  <!-- <nrow>16 16 16 48</nrow> -->
+  <nrow>16 16 16 48</nrow>
 </Param>
 
 <RNG>
@@ -510,12 +512,13 @@
 </RNG>
 
 <Cfg>
-  <!-- <cfg_type>SCIDAC</cfg_type>
-  <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
+  <cfg_type>SCIDAC</cfg_type>
+  <!-- <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
   <!-- <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file> -->
   <!-- <cfg_file>/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
   <!-- <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
-	<cfg_type>UNIT</cfg_type>
-	<cfg_file>test</cfg_file>
+  <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file>
+	<!-- <cfg_type>UNIT</cfg_type>
+	<cfg_file>test</cfg_file> -->
 </Cfg>
 </chroma>
