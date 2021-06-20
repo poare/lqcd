@@ -1,0 +1,35 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=bc_test
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=prod
+#SBATCH -t 6:00:00
+
+set -x
+
+# cd /data/wombat/users/mlwagman/mosaic
+cd /home/poare/lqcd/mosaic
+
+bash
+module load openmpi/3.1.5
+#module load qlua
+# module load qlua/20200107
+module load qlua/20200107-gpu1080
+#module load qlua/20201002
+
+EXE=qlua
+
+home=/home/poare/lqcd/chroma/bc_test
+logs=${home}/logs
+output=/data/d10b/users/poare/0nubb/output/tests/${test}_${SLURM_JOB_ID}
+
+mkdir ${logs}
+mkdir ${output}
+
+parameters="jobid = ${SLURM_JOB_ID}"
+export OMP_NUM_THREADS=6
+
+mpirun -np 4 $EXE -e "$parameters" ${home}/bcs.qlua > ${logs}/job${cfg}.txt

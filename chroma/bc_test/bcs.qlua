@@ -1,0 +1,270 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+-- Prints a qcd.DiracPropagator object
+function show_propagator(name, m)
+    local nc = m:colors()
+    for ci = 0, nc - 1 do
+    for cj = 0, nc - 1 do
+        for si = 0, qcd.Ns - 1 do
+            printf("%s[%d,%d,%d,.] ", name, ci,cj,si)
+            for sj = 0, qcd.Ns - 1 do
+              local zv = m[{c=ci,d=si}]
+              local z = zv[{c=cj,d=sj}]
+              printf("  [%1.12e %1.12e]", z:real(), z:imag())
+            end
+            printf("\n")
+          end
+        end
+      end
+      printf("\n")
+    end
+
+function toSUn(L, X)    -- Project a matrix onto SU(N)
+  local Y = (X - X:adjoin()) / 2    -- anti-hermitian part
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
+end
+
+function weak_SUn(L, S)    -- Generate a SU(N) matrix close to 1
+  return toSUn(L, .1 * S:gaussian_ColorMatrix())
+end
+
+function init_id_field(L)
+  local U = {}
+  for mu = 0, #L - 1 do
+    local A = L:ColorMatrixN(Nc, 0.0)
+    U[mu+1] = (A*complex(0,1)):exp()
+  end
+  return U
+end
+
+-- compute all color-unmixed bilinears with all gamma matrices.
+function compute_npr_momsource(L, U, solver, k1_list, k2_list, vol, writer)
+  local bvec = {0, 0, 0, 0.5}
+  print("Computing with momentum sources.")
+
+  for kidx = 1, #k1_list do
+    printf("p index: %d\n", kidx)
+    local k1 = k1_list[kidx]
+    local k2 = k2_list[kidx]
+    local q = {}
+    for mu = 0, #L - 1 do
+        q[mu + 1] = k2[mu + 1] - k1[mu + 1]
+      end
+    printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
+              k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
+    local qFTarg = L:Real(0)
+    local mqFTarg = L:Real(0)
+    local mqFTarg_nobvec = L:Real(0)
+    local mqFT2arg = L:Real(0)    -- Likely no bvec on qFT2arg; if it looks really weird then add bvec to it.
+    local k1FTarg = L:Real(0)
+    local k2FTarg = L:Real(0)
+    for mu = 0, #L - 1 do
+      qFTarg = qFTarg + L:Real(L:pcoord(mu)) * (q[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      mqFTarg_nobvec = mqFTarg_nobvec - L:Real(L:pcoord(mu)) * q[mu + 1] * 2 * math.pi / L[mu]
+      mqFT2arg = mqFT2arg - L:Real(L:pcoord(mu)) * (2 * q[mu + 1]) * 2 * math.pi / L[mu]
+      k1FTarg = k1FTarg + L:Real(L:pcoord(mu)) * (k1[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      k2FTarg = k2FTarg + L:Real(L:pcoord(mu)) * (k2[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+    end
+    local qFT = qFTarg:expi()
+    local mqFT_nobvec = mqFTarg_nobvec:expi()
+    local mqFT2 = mqFT2arg:expi()
+    local k1FT = k1FTarg:expi()
+    local k2FT = k2FTarg:expi()
+
+    -- h5_force_write(writer, "mqFT2", mqFT2)  -- SAVE THE MOMENTUM PROJ FACTOR
+
+    -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
+    local L_vec = qcd.lattice{4}
+    local k1_lat = L_vec:Int(0)
+    local k2_lat = L_vec:Int(0)
+    for mu = 0, #L - 1 do
+      k1_lat[{mu}] = k1[mu + 1]
+      k2_lat[{mu}] = k2[mu + 1]
+    end
+    local k1_path = string.format("moms/q%d%d%d%d/k1", q[1], q[2], q[3], q[4])
+    local k2_path = string.format("moms/q%d%d%d%d/k2", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, k1_path, k1_lat)
+    h5_force_write(writer, k2_path, k2_lat)
+
+    local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
+    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
+    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+
+    -- COMPUTE PROPAGATORS
+    print("Inverting propagators.")
+    local S_k1 = compute_propagator(U, solver, srck1)
+    local S_k2 = compute_propagator(U, solver, srck2)
+    local S_q = compute_propagator(U, solver, srcq)
+
+    local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
+    local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
+    local mom4_prop_q = (qFT * S_q):sum() / vol
+
+    -- local antiprop_k1 = gamma{mu = 5} * S_k1:adjoin() * gamma{mu = 5}
+    local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
+
+    -- Write momentum projected propagator to file
+    local prop_path_k1 = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local prop_path_k2 = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local prop_path_q = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, prop_path_k1, mom4_prop_k1)
+    h5_force_write(writer, prop_path_k2, mom4_prop_k2)
+    h5_force_write(writer, prop_path_q, mom4_prop_q)
+    printf("Propagator for momentum k1 written at path: %s\n", prop_path_k1)
+    printf("Propagator for momentum k2 written at path: %s\n", prop_path_k2)
+    printf("Propagator for momentum q written at path: %s\n", prop_path_q)
+
+    -- Vector and axial currents.
+    for mu = 0, #L - 1 do
+      local GV = (mqFT_nobvec * antiprop_k2 * (gamma{mu = mu} * S_k1)):sum() / vol
+      local GA = (mqFT_nobvec * antiprop_k2 * ((gamma{mu = mu} * gamma{mu = 5}) * S_k1)):sum() / vol
+      local op_path_V = string.format("GV%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
+      local op_path_A = string.format("GA%d/q%d%d%d%d", mu + 1, q[1], q[2], q[3], q[4])
+      h5_force_write(writer, op_path_V, GV)
+      h5_force_write(writer, op_path_A, GA)
+      printf("Matrix element GV%d written at: %s\n", mu + 1, op_path_V)
+      printf("Matrix element GA%d written at: %s\n", mu + 1, op_path_A)
+    end
+
+    -- Get three point function for unprimed operators
+    --[[
+    print("Evaluating three point functions.")
+    local Nc = S_k2:colors()
+    local Nd = 4
+    local L_NPR = qcd.lattice{Nd, Nd, Nd, Nd, Nc, Nc, Nc, Nc}
+    local G
+    for m = 0, 15 do
+      G = L_NPR:Complex(complex(0, 0))
+      local A_gamma = antiprop_k2 * (gamma{n=m} * S_k1)
+      -- local gamma_path = string.format("Agamma%d", m)
+      -- h5_force_write(writer, gamma_path, A_gamma)   -- SAVE A_GAMMA TO SEE IF IT'S BUGGY.
+      for alpha = 0, Nd - 1 do
+        print(alpha)
+        for beta = 0, Nd - 1 do
+          for rho = 0, Nd - 1 do
+            for sigma = 0, Nd - 1 do
+              for a = 0, Nc - 1 do
+                for b = 0, Nc - 1 do
+                  for c = 0, Nc - 1 do
+                    for d = 0, Nc - 1 do
+                      G[{alpha, beta, rho, sigma, a, b, c, d}] = G[{alpha, beta, rho, sigma, a, b, c, d}] + 2 * (mqFT2 * (
+                        A_gamma[{c=c, d=rho}][{c=d, d=sigma}] * A_gamma[{c=a, d=alpha}][{c=b, d=beta}] - A_gamma[{c=c, d=rho}][{c=b, d=beta}] * A_gamma[{c=a, d=alpha}][{c=d, d=sigma}]
+                      )) : sum() / vol
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+      -- write to file here
+      local Gpath = string.format("Gn%d/q%d%d%d%d", m, q[1], q[2], q[3], q[4])
+      h5_force_write(writer, Gpath, G)
+      printf("Gn%d written at: %s", m, Gpath)
+    end
+    print("Done evaluating operators.")
+    ]]
+
+  end
+end
+
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Set parameters
+-- Lx = 16
+-- Lt = 48
+Lx = 4
+Lt = 8
+
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+lqcd_dir = "/home/poare"
+
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+-- Paths to output file.
+filename = string.format("%s/chroma/bc_test/output/qlua_out_%d.h5", lqcd_dir, jobid)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+-- momenta to compute Z(p) at
+-- local k1_list_NPR = {}
+-- local k2_list_NPR = {}
+-- print("Initializing momenta.")
+-- for m = -6, 6 do
+--   local minusM = -m
+--   k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
+--   k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
+--  end
+
+print("Running at one q value; run at more q once this works.")
+local k1_list_NPR = {{-1, 0, 1, 0}}
+local k2_list_NPR = {{0, 1, 1, 0}}
+
+print("Initializing solver.")
+-- initialize random weak field and save it
+-- do
+--   local r = L:Int(os.random())
+--   for i = 0, #L - 1 do
+--     r = r * L[i] + L:pcoord(i)
+--   end
+--   S = L:RandomState(os.random(), r)
+-- end
+--
+-- U = {}
+-- for mu = 0, #L - 1 do    -- #L = 2 for a 3 dim lattice
+--   U[mu + 1] = weak_SUn(L, S)
+-- end
+
+-- gauge_file_name = string.format("/data/d10b/users/poare/0nubb/weak_field_%d.lime", jobid)
+-- save_conf(L, gauge_file_name, "weak_field", U, "weak_field")
+
+-- local U = init_id_field(L)
+local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
+-- local gauge_file = "/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
+-- local gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
+local U, finfo, ginfo = load_conf(L, gauge_file)
+print("file info:")
+print(finfo)
+print("gauge info:")
+print(ginfo)
+
+print("Initializing field")
+
+local csw = 1
+local kappa = 0.12
+local bcs = {1, 1, 1, -1}
+local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+local solver = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+-- project gauge configuration onto SU(3)
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+-- Open file writer
+local hdf5params = { method = "phdf5" }
+local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+print("Computing propagators and correlators.")
+compute_npr_momsource(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer)
+
+writer:close()

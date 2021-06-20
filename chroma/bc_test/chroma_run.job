@@ -1,0 +1,28 @@
+#!/bin/bash
+#ulimit -c unlimited
+#SBATCH --job-name=0nubb_test_chroma
+#SBATCH --nodes=1
+#SBATCH --time=00:30:00
+#SBATCH --partition=devel
+
+source /usr/local/Modules/init/bash
+
+set -x
+
+source /data/d10b/users/poare/software/poare_build/env.sh
+
+module load openmpi/3.1.5-gcc.7.3.0
+
+export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:/opt/software/hdf5-1.10.6/lib:$LD_LIBRARY_PATH
+export application=/data/d10b/users/poare/software/poare_build/install/chroma-double/bin/chroma
+
+nCores=8
+export GEOM="2 2 2 1"
+export OMP_NUM_THREADS=8
+cpus=$nodes
+echo "=== Run MPI application on $nCores cores ==="
+
+export QUDA_REORDER_LOCATION=GPU #GPU/CPU
+export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
+
+mpirun -np $nCores $application -i bcs.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
