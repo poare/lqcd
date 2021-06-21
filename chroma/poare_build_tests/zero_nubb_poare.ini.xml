@@ -9,7 +9,7 @@
 <Param>
   <InlineMeasurements>
 
-    <!-- <elem>
+    <elem>
       <Name>COULOMB_GAUGEFIX</Name>
       <Frequency>1</Frequency>
       <Param>
@@ -25,7 +25,7 @@
         <gfix_id>landau_cfg</gfix_id>
         <gauge_rot_id>gauge_rot</gauge_rot_id>
       </NamedObject>
-    </elem> -->
+    </elem>
 
 
     <elem>
@@ -44,8 +44,8 @@
         </Source>
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k1</source_id>
       </NamedObject>
     </elem>
@@ -66,8 +66,8 @@
         </Source>
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k2</source_id>
       </NamedObject>
     </elem>
@@ -92,8 +92,8 @@
         </Source>
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_q</source_id>
       </NamedObject>
     </elem>
@@ -340,13 +340,11 @@
           <invType>CG_INVERTER</invType>
           <RsdCG>1.0e-8</RsdCG>
           <MaxCG>1000</MaxCG>
-          <!-- TODO trying to add this to see what happens -->
-          <!-- <AntiPeriodicT>true</AntiPeriodicT> -->
         </InvertParam>
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k1</source_id>
         <prop_id>mom_prop_k1</prop_id>
       </NamedObject>
@@ -388,8 +386,8 @@
         </InvertParam>
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_k2</source_id>
         <prop_id>mom_prop_k2</prop_id>
       </NamedObject>
@@ -432,8 +430,8 @@
         </InvertParam>
       </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <source_id>mom_source_q</source_id>
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
@@ -451,8 +449,8 @@
         <!-- <ferm_bc>true</ferm_bc> -->
        </Param>
       <NamedObject>
-        <gauge_id>default_gauge_field</gauge_id>
-        <!-- <gauge_id>landau_cfg</gauge_id> -->
+        <!-- <gauge_id>default_gauge_field</gauge_id> -->
+        <gauge_id>landau_cfg</gauge_id>
         <sink_pairs>
           <elem>
             <first_id>mom_prop_k1</first_id>
@@ -498,8 +496,8 @@
 
   </InlineMeasurements>
   <!-- <nrow>8 8 8 8</nrow> -->
-  <nrow>4 4 4 8</nrow>
-  <!-- <nrow>16 16 16 48</nrow> -->
+  <!-- <nrow>4 4 4 8</nrow> -->
+  <nrow>24 24 24 48</nrow>
 </Param>
 
 <RNG>
@@ -512,13 +510,13 @@
 </RNG>
 
 <Cfg>
-  <cfg_type>SCIDAC</cfg_type>
+  <!-- <cfg_type>SCIDAC</cfg_type> -->
   <!-- <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/cfgs/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
-  <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file>
+  <!-- <cfg_file>/home/dpefkou/random_chroma/dumped.lime</cfg_file> -->
   <!-- <cfg_file>/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
   <!-- <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
   <!-- <cfg_file>/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime</cfg_file> -->
-	<!-- <cfg_type>UNIT</cfg_type>
-	<cfg_file>test</cfg_file> -->
+	<cfg_type>UNIT</cfg_type>
+	<cfg_file>test</cfg_file>
 </Cfg>
 </chroma>
