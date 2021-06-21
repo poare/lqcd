@@ -98,9 +98,12 @@ function compute_npr_momsource(L, U, solver, k1_list, k2_list, vol, writer)
     h5_force_write(writer, k1_path, k1_lat)
     h5_force_write(writer, k2_path, k2_lat)
 
-    local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
-    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
-    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+    -- local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
+    -- local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
+    -- local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+    local srck1 = compute_spacetime_wall_source_periodicBC(U, k1)
+    local srck2 = compute_spacetime_wall_source_periodicBC(U, k2)
+    local srcq = compute_spacetime_wall_source_periodicBC(U, q)
 
     -- COMPUTE PROPAGATORS
     print("Inverting propagators.")
@@ -253,7 +256,8 @@ print("Initializing field")
 
 local csw = 1
 local kappa = 0.12
-local bcs = {1, 1, 1, -1}
+-- local bcs = {1, 1, 1, -1}
+local bcs = {1, 1, 1, 1}
 local clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
 local solver = propagator.make_from_ferm(clover, 1e-20, 1000)
 
