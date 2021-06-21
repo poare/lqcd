@@ -193,7 +193,7 @@ namespace Chroma
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  if (ferm_bc) {
+  if (params.ferm_bc) {
     bvec[3] = 0.5;
   } else {
     bvec[3] = 0.0;    // If this is turned on, should give same result as MOMENTUM_VOLUME_SOURCE
