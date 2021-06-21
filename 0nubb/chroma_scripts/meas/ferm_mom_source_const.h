@@ -32,6 +32,7 @@ namespace Chroma
       int              j_decay;              /*<! time direction */
       multi1d<int>     t_srce ;              /*<! the origin for the FT */
       bool             av_mom ;              /*<! average equivalent momenta */
+      bool            ferm_bc;
     };
 
 

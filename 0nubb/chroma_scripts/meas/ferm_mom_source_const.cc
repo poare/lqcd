@@ -120,6 +120,7 @@ namespace Chroma
       read(paramtop, "j_decay", j_decay);
       read(paramtop, "t_srce", t_srce);
       read(paramtop, "av_mom", av_mom) ;
+      read(paramtop, "ferm_bc", ferm_bc);
       read(paramtop, "mom", mom);
 
       if (mom.size() != Nd)
@@ -140,6 +141,7 @@ namespace Chroma
 
       write(xml, "mom", mom);
       write(xml, "av_mom", av_mom) ;
+      write(xml, "ferm_bc", ferm_bc);
       write(xml, "j_decay", j_decay);
       write(xml, "t_srce", t_srce);
 
@@ -191,13 +193,16 @@ namespace Chroma
   bvec[0] = 0.0;
   bvec[1] = 0.0;
   bvec[2] = 0.0;
-  // bvec[3] = 0.0;    // If this is turned on, should give same result as MOMENTUM_VOLUME_SOURCE
-  bvec[3] = 0.5;
+  if (ferm_bc) {
+    bvec[3] = 0.5;
+  } else {
+    bvec[3] = 0.0;    // If this is turned on, should give same result as MOMENTUM_VOLUME_SOURCE
+  }
   LatticeReal phase_arg = zero;
   for (int mu = 0; mu < 4; mu++) {
     double comp = (double) k[mu];
-    phase_arg += Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
-    // phase_arg -= Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    // phase_arg += Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
+    phase_arg -= Layout::latticeCoordinate(mu) * LatticeReal(comp + bvec[mu]) * twopi / Real(Layout::lattSize()[mu]);
   }
   phase = cmplx(cos(phase_arg), sin(phase_arg));
 
