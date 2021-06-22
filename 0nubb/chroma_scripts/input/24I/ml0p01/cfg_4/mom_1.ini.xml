@@ -289,7 +289,7 @@
           </elem>
         </sink_pairs>
       </NamedObject>
-      <xml_file>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/24I/ml0p01/cfg_0/mom_1.dat.xml</xml_file>
+      <xml_file>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/24I/ml0p01/cfg_0/mom_4.dat.xml</xml_file>
     </elem>
 
   </InlineMeasurements>
@@ -307,6 +307,6 @@
 
 <Cfg>
   <cfg_type>NERSC</cfg_type>
-  <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1030</cfg_file>
+  <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1185</cfg_file>
 </Cfg>
 </chroma>
