@@ -190,10 +190,10 @@ end
 ------------------------------------------------------------------
 
 -- Set parameters
--- Lx = 16
--- Lt = 48
-Lx = 4
-Lt = 8
+Lx = 16
+Lt = 48
+-- Lx = 4
+-- Lt = 8
 
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
