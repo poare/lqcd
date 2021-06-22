@@ -2,8 +2,8 @@
 #ulimit -c unlimited
 #SBATCH --job-name=0nubb_test_chroma
 #SBATCH --nodes=1
-#SBATCH --time=00:30:00
-#SBATCH --partition=devel
+#SBATCH --time=06:00:00
+#SBATCH --partition=prod
 
 source /usr/local/Modules/init/bash
 
