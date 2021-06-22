@@ -41,7 +41,7 @@ gammaList = [np.identity(4,dtype=complex), gamma[0], gamma[1], np.matmul(gamma[0
     np.matmul(gamma[2], gamma[3]), np.matmul(gamma[0], np.matmul(gamma[2], gamma[3])), np.matmul(gamma[1], np.matmul(gamma[2], gamma[3])), \
     np.matmul(np.matmul(gamma[0], gamma[1]), np.matmul(gamma[2], gamma[3]))]
 
-bvec = [0, 0, 0, .5]
+bvec = [0, 0, 0, 0.5]
 
 # initialize Dirac matrices
 gammaMu5 = np.array([gamma[mu] @ gamma5 for mu in range(d)])
