@@ -377,7 +377,7 @@
           <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
           <AxialGaugeFix>false</AxialGaugeFix>
           <AutotuneDslash>true</AutotuneDslash>
-        </InvertParam> -->
+        </InvertParam>
 
       </Param>
       <NamedObject>
@@ -386,6 +386,7 @@
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
     </elem>
+     -->
 
     <elem>
       <Name>ZERO_NUBB_MEAS</Name>
