@@ -5,18 +5,22 @@ import os
 from utils import *
 
 ################################## PARAMETERS #################################
-cfgbase = 'cl3_16_48_b6p1_m0p2450'
-job_num = 29552
-data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
+# cfgbase = 'cl3_16_48_b6p1_m0p2450'
+# job_num = 29552
+# data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
+base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
+ens = '24I/ml0p01'
+data_dir = base + ens + '/hdf5'
 
-l = 16
-t = 48
+l = 24
+t = 64
 # An.set_dimensions(L, T)
 L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-for n in range(-6, 7):
+# for n in range(-6, 7):
+for n in range(1, 2):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
@@ -41,9 +45,10 @@ ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
-    q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
-    # q_lat = np.sin(L.to_linear_momentum(q))
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
+    # q_lat = np.sin(L.to_linear_momentum(q + bvec))
+    q = -q
+    q_lat = np.sin(L.to_linear_momentum(q))
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
     GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
     props_k1_inv, props_k2_inv, props_q_inv = invert_props(props_k1_b), invert_props(props_k2_b), invert_props(props_q_b)
@@ -59,9 +64,12 @@ for q_idx, q in enumerate(q_list):
     ZV[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,ji->z', qDotV, qlat_slash)
     ZA[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,jk,ki->z', qDotA, gamma5, qlat_slash)
 
-    print('Zq ~ ' + str(Zq[q_idx, 0]))
-    print('ZV ~ ' + str(ZV[q_idx, 0]))
-    print('ZA ~ ' + str(ZA[q_idx, 0]))
+    # print('Zq ~ ' + str(Zq[q_idx, 0]))
+    # print('ZV ~ ' + str(ZV[q_idx, 0]))
+    # print('ZA ~ ' + str(ZA[q_idx, 0]))
+    print('Zq ~ ' + str(np.mean(Zq[q_idx])) + ' \pm ' + str(np.std(Zq[q_idx], ddof = 1)))
+    print('ZV ~ ' + str(np.mean(ZV[q_idx])) + ' \pm ' + str(np.std(ZV[q_idx], ddof = 1)))
+    print('ZA ~ ' + str(np.mean(ZA[q_idx])) + ' \pm ' + str(np.std(ZA[q_idx], ddof = 1)))
 
     # Amputate and get scalar / vector / pseudoscalar / axial / tensor green's functions from G^n
     GammaO = np.zeros(GO_boot.shape, dtype = np.complex64)
@@ -89,12 +97,14 @@ for q_idx, q in enumerate(q_list):
         Z[:, :, q_idx, b] = (Zq[q_idx, b] ** 2) * np.einsum('ik,kj->ij', F, Lambda_inv)
 
     print('Z_ij ~ ' + str(Z[:, :, q_idx, 0]))
+    # print('Z_ij ~ ' + str(np.mean(Z[:, :, q_idx])) + ' \pm ' + str(np.std(Z[:, :, q_idx], ddof = 1)))
 
     # Time per iteration
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/job' + str(job_num) + '/Z_' + scheme + '.h5'
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/job' + str(job_num) + '/Z_' + scheme + '.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV
