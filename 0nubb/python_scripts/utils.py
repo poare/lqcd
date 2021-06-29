@@ -499,16 +499,16 @@ def get_sinh_effective_mass(ensemble_avg):
     return sinh_m_eff_ensemble
 
 # Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
-def bootstrap(S, seed = 10, weights = None, data_type = np.complex64):
+def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boot):
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
-    bootshape = [n_boot]
+    bootshape = [Nb]
     bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
     samples = np.zeros(bootshape, dtype = data_type)
     if weights == None:
         weights = np.ones((num_configs))
     weights2 = weights / float(np.sum(weights))
     np.random.seed(seed)
-    for boot_id in range(n_boot):
+    for boot_id in range(Nb):
         cfg_ids = np.random.choice(num_configs, p = weights2, size = num_configs, replace = True)
         samples[boot_id] = np.mean(S[cfg_ids], axis = 0)
     return samples
@@ -522,18 +522,18 @@ def invert_props(props, Nb = n_boot):
 
 # Amputate legs to get vertex function \Gamma(p). Uses first argument to amputate left-hand side and
 # second argument to amputate right-hand side.
-def amputate_threepoint(props_inv_L, props_inv_R, threepts):
+def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
-    for b in range(n_boot):
+    for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], threepts[b]
         Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_L, G, Sinv_R)
     return Gamma
 
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
 # momentum p2, so amputates with p1 on the left and p2 on the right
-def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints):
+def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
     Gamma = np.zeros(fourpoints.shape, dtype = np.complex64)
-    for b in range(n_boot):
+    for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], fourpoints[b]
         Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl->aibjckdl', Sinv_L, Sinv_L, G, Sinv_R, Sinv_R)
     return Gamma

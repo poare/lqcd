@@ -29,7 +29,7 @@ Nc = 3
 home = '/Users/theoares'
 # home = '/Users/poare'
 mom_idx_list = [1]                                          #[1, 2, ..., 6]
-cfgs = range(9)
+cfgs = range(13)
 # cfg_root = 'cfg_0'                                     # 'cfg_0'
 
 # FIXED SETUP
