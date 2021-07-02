@@ -20,7 +20,8 @@ L = Lattice(l, t)
 k1_list = []
 k2_list = []
 # for n in range(-6, 7):
-for n in range(1, 2):
+# for n in range(1, 2):
+for n in range(4, 5):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
@@ -35,6 +36,7 @@ for (dirpath, dirnames, file) in os.walk(data_dir):
 for idx, cfg in enumerate(cfgs):
     cfgs[idx] = data_dir + '/' + cfgs[idx]
 n_cfgs = len(cfgs)
+print('Reading ' + str(n_cfgs) + ' configs.')
 
 scheme = 'gamma'                # scheme == 'gamma' or 'qslash'
 F = getF(L, scheme)                # tree level projections
@@ -103,7 +105,7 @@ for q_idx, q in enumerate(q_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/job' + str(job_num) + '/Z_' + scheme + '.h5'
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'
 out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list

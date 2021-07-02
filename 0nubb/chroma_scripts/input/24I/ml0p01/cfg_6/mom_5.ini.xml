@@ -1,0 +1,312 @@
+<?xml version="1.0"?>
+<chroma>
+<annotation>
+; $Id: prec_dwf.ini.xml,v 3.9 2006-10-15 05:59:46 edwards Exp $
+;
+; Test input file for chroma main program
+;
+</annotation>
+<Param>
+  <InlineMeasurements>
+
+    <elem>
+      <Name>COULOMB_GAUGEFIX</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>1</version>
+        <GFAccu>1.0e-5</GFAccu>
+        <GFMax>200</GFMax>
+        <OrDo>false</OrDo>
+        <OrPara>1.0</OrPara>
+        <j_decay>-3</j_decay>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <gfix_id>landau_cfg</gfix_id>
+        <gauge_rot_id>gauge_rot</gauge_rot_id>
+      </NamedObject>
+    </elem>
+
+
+    <elem>
+      <Name>MAKE_SOURCE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>6</version>
+        <Source>
+          <version>1</version>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <mom>-5 0 5 0</mom>
+          <av_mom>false</av_mom>
+          <t_srce>0 0 0 0</t_srce>
+        </Source>
+      </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <source_id>mom_source_k1</source_id>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <Name>MAKE_SOURCE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>6</version>
+        <Source>
+          <version>1</version>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <mom>0 5 5 0</mom>
+          <av_mom>false</av_mom>
+          <t_srce>0 0 0 0</t_srce>
+        </Source>
+      </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <source_id>mom_source_k2</source_id>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <Name>MAKE_SOURCE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>6</version>
+        <Source>
+          <version>1</version>
+          <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <mom>5 5 0 0</mom>
+          <av_mom>false</av_mom>
+          <t_srce>0 0 0 0</t_srce>
+        </Source>
+      </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <source_id>mom_source_q</source_id>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <Name>PROPAGATOR</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>10</version>
+        <quarkSpinType>FULL</quarkSpinType>
+        <obsvP>true</obsvP>
+        <numRetries>1</numRetries>
+        <FermionAction>
+         <FermAct>NEF</FermAct>
+         <OverMass>1.8</OverMass>
+         <Mass>0.01</Mass>
+         <N5>16</N5>
+         <b5>1.0</b5>
+         <c5>0.0</c5>
+         <AnisoParam>
+           <anisoP>false</anisoP>
+           <t_dir>3</t_dir>
+           <xi_0>1</xi_0>
+           <nu>1</nu>
+         </AnisoParam>
+         <FermionBC>
+           <FermBC>SIMPLE_FERMBC</FermBC>
+           <boundary>1 1 1 1</boundary>
+         </FermionBC>
+        </FermionAction>
+
+      	<InvertParam>
+          <invType>QUDA_NEF_INVERTER</invType>
+          <NEFParams>
+            <OverMass>1.8</OverMass>
+            <Mass>0.01</Mass>
+            <N5>16</N5>
+            <b5>1.0</b5>
+            <c5>0.0</c5>
+          </NEFParams>
+
+          <RsdTarget>1.0e-7</RsdTarget>
+          <Delta>1.0e-1</Delta>
+          <MaxIter>10000</MaxIter>
+          <RsdToleranceFactor>100</RsdToleranceFactor>
+          <SilentFail>false</SilentFail>
+          <AntiPeriodicT>false</AntiPeriodicT>
+          <SolverType>CG</SolverType>
+          <Verbose>true</Verbose>
+          <AsymmetricLinop>true</AsymmetricLinop>
+          <CudaReconstruct>RECONS_12</CudaReconstruct>
+          <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+          <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+          <AxialGaugeFix>false</AxialGaugeFix>
+          <AutotuneDslash>true</AutotuneDslash>
+        </InvertParam>
+
+      </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <source_id>mom_source_k1</source_id>
+        <prop_id>mom_prop_k1</prop_id>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <Name>PROPAGATOR</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>10</version>
+        <quarkSpinType>FULL</quarkSpinType>
+        <obsvP>true</obsvP>
+        <numRetries>1</numRetries>
+        <FermionAction>
+         <FermAct>NEF</FermAct>
+         <OverMass>1.8</OverMass>
+         <Mass>0.01</Mass>
+         <N5>16</N5>
+         <b5>1.0</b5>
+         <c5>0.0</c5>
+         <AnisoParam>
+           <anisoP>false</anisoP>
+           <t_dir>3</t_dir>
+           <xi_0>1</xi_0>
+           <nu>1</nu>
+         </AnisoParam>
+         <FermionBC>
+           <FermBC>SIMPLE_FERMBC</FermBC>
+           <boundary>1 1 1 1</boundary>
+         </FermionBC>
+        </FermionAction>
+
+        <InvertParam>
+          <invType>QUDA_NEF_INVERTER</invType>
+          <NEFParams>
+            <OverMass>1.8</OverMass>
+            <Mass>0.01</Mass>
+            <N5>16</N5>
+            <b5>1.0</b5>
+            <c5>0.0</c5>
+          </NEFParams>
+
+          <RsdTarget>1.0e-7</RsdTarget>
+          <Delta>1.0e-1</Delta>
+          <MaxIter>10000</MaxIter>
+          <RsdToleranceFactor>100</RsdToleranceFactor>
+          <SilentFail>false</SilentFail>
+          <AntiPeriodicT>false</AntiPeriodicT>
+          <SolverType>CG</SolverType>
+          <Verbose>true</Verbose>
+          <AsymmetricLinop>true</AsymmetricLinop>
+          <CudaReconstruct>RECONS_12</CudaReconstruct>
+          <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+          <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+          <AxialGaugeFix>false</AxialGaugeFix>
+          <AutotuneDslash>true</AutotuneDslash>
+        </InvertParam>
+
+      </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <source_id>mom_source_k2</source_id>
+        <prop_id>mom_prop_k2</prop_id>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <Name>PROPAGATOR</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>10</version>
+        <quarkSpinType>FULL</quarkSpinType>
+        <obsvP>true</obsvP>
+        <numRetries>1</numRetries>
+        <FermionAction>
+         <FermAct>NEF</FermAct>
+         <OverMass>1.8</OverMass>
+         <Mass>0.01</Mass>
+         <N5>16</N5>
+         <b5>1.0</b5>
+         <c5>0.0</c5>
+         <AnisoParam>
+           <anisoP>false</anisoP>
+           <t_dir>3</t_dir>
+           <xi_0>1</xi_0>
+           <nu>1</nu>
+         </AnisoParam>
+         <FermionBC>
+           <FermBC>SIMPLE_FERMBC</FermBC>
+           <boundary>1 1 1 1</boundary>
+         </FermionBC>
+        </FermionAction>
+
+        <InvertParam>
+          <invType>QUDA_NEF_INVERTER</invType>
+          <NEFParams>
+            <OverMass>1.8</OverMass>
+            <Mass>0.01</Mass>
+            <N5>16</N5>
+            <b5>1.0</b5>
+            <c5>0.0</c5>
+          </NEFParams>
+
+          <RsdTarget>1.0e-7</RsdTarget>
+          <Delta>1.0e-1</Delta>
+          <MaxIter>10000</MaxIter>
+          <RsdToleranceFactor>100</RsdToleranceFactor>
+          <SilentFail>false</SilentFail>
+          <AntiPeriodicT>false</AntiPeriodicT>
+          <SolverType>CG</SolverType>
+          <Verbose>true</Verbose>
+          <AsymmetricLinop>true</AsymmetricLinop>
+          <CudaReconstruct>RECONS_12</CudaReconstruct>
+          <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+          <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+          <AxialGaugeFix>false</AxialGaugeFix>
+          <AutotuneDslash>true</AutotuneDslash>
+        </InvertParam>
+
+      </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <source_id>mom_source_q</source_id>
+        <prop_id>mom_prop_q</prop_id>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <Name>ZERO_NUBB_MEAS</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>1</version>
+        <mom_idx>5</mom_idx>
+        <ferm_bc>false</ferm_bc>
+       </Param>
+      <NamedObject>
+        <gauge_id>landau_cfg</gauge_id>
+        <sink_pairs>
+          <elem>
+            <first_id>mom_prop_k1</first_id>
+            <second_id>mom_prop_k2</second_id>
+            <third_id>mom_prop_q</third_id>
+          </elem>
+        </sink_pairs>
+      </NamedObject>
+      <xml_file>/data/d10b/users/poare/0nubb/chroma_dwf_inversions/24I/ml0p01/cfg_6/mom_5.dat.xml</xml_file>
+    </elem>
+
+  </InlineMeasurements>
+  <nrow>24 24 24 64</nrow>
+</Param>
+
+<RNG>
+  <Seed>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>0</elem>
+  </Seed>
+</RNG>
+
+<Cfg>
+  <cfg_type>NERSC</cfg_type>
+  <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1260</cfg_file>
+</Cfg>
+</chroma>

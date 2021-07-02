@@ -28,8 +28,8 @@ Nc = 3
 # INPUT PARAMETERS
 home = '/Users/theoares'
 # home = '/Users/poare'
-mom_idx_list = [1]                                          #[1, 2, ..., 6]
-cfgs = range(13)
+mom_idx_list = [1, 4]                                          #[1, 2, ..., 6]
+cfgs = range(10)
 # cfg_root = 'cfg_0'                                     # 'cfg_0'
 
 # FIXED SETUP
