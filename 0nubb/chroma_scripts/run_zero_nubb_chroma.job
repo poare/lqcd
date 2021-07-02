@@ -34,10 +34,10 @@ ens=${ini_dir}/24I/ml0p01    # change this for each different ensemble
 
 for cfg_idx in `seq 0 9`
 do
-  # for k in `seq 6`
-  # do
-  k=4
+  for k in `seq 2 3`
+  do
+  # k=4
     ini_file=${ens}/cfg_${cfg_idx}/mom_${k}.ini.xml
     mpirun -np $nCores $application -i ${ini_file}  -qmpgeom ${GEOM}  -geom ${GEOM}
-  # done
+  done
 done
