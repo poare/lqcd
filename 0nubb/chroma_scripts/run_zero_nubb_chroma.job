@@ -2,8 +2,8 @@
 #ulimit -c unlimited
 #SBATCH --job-name=0nubb_npr
 #SBATCH --nodes=1
-#SBATCH --time=48:00:00
-#SBATCH --partition=prod
+#SBATCH --time=144:00:00
+#SBATCH --partition=long
 
 source /usr/local/Modules/init/bash
 # TOPDIR=/home/poare/0nubb/chroma_scripts
