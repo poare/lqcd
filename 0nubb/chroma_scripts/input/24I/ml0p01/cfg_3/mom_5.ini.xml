@@ -307,6 +307,6 @@
 
 <Cfg>
   <cfg_type>NERSC</cfg_type>
-  <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005/ckpoint_lat.IEEE64BIG.1155</cfg_file>
+  <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.01/ckpoint_lat.IEEE64BIG.1060</cfg_file>
 </Cfg>
 </chroma>
