@@ -4,11 +4,14 @@ import h5py
 import os
 from utils import *
 
-ensemble = '24I/ml0p01/'
+# ensemble = '24I/ml0p01/'
+# ensemble = '24I/ml0p005/'
+# ensemble = '32I/ml0p006/'
+ensemble = '32I/ml0p004/'
 parent = '/Users/theoares/lqcd/0nubb/chroma_scripts/input/' + ensemble
 
 n_cfgs = 10
-mom_idx_list = range(2, 13)
+mom_idx_list = range(2, 10)
 for cfg_idx in range(n_cfgs):
     cfg = str(cfg_idx)
     template = parent + 'cfg_' + cfg + '/mom_1.ini.xml'

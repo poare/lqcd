@@ -21,6 +21,7 @@ Nd = 4
 d = 4
 
 g = np.diag([1, 1, 1, 1])
+hbarc = .197327
 
 delta = np.identity(Nd, dtype = np.complex64)
 gamma = np.zeros((d, Nd, Nd),dtype=complex)
@@ -543,8 +544,8 @@ def quark_renorm(props_inv_q, q, Nb = n_boot):
     Zq = np.zeros((Nb), dtype = np.complex64)
     for b in range(Nb):
         Sinv = props_inv_q[b]
-        for mu in range(d):
-            print(np.einsum('ij,ajai', gamma[mu], Sinv))
+        # for mu in range(d):
+        #     print(np.einsum('ij,ajai', gamma[mu], Sinv))
         Zq[b] = (1j) * sum([q[mu] * np.einsum('ij,ajai', gamma[mu], Sinv) for mu in range(d)]) / (12 * square(q))
     return Zq
 
@@ -596,7 +597,12 @@ def getF(L, scheme = 'gamma'):
 
 # Returns a in units of GeV^{-1}
 def fm_to_GeV(a):
-    return a / .197327
+    return a / hbarc
+
+# returns mu for mode k at lattice spacing A fm, on lattice L
+def get_energy_scale(k, a, L):
+    return 2 * (hbarc / a) * np.linalg.norm(np.sin(np.pi * k / L.LL))
+
 
 def load_data_h5(file):
     print('Loading ' + str(file) + '.')

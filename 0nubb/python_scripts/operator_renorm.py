@@ -10,6 +10,7 @@ from utils import *
 # data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
 base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 ens = '24I/ml0p01'
+# ens = '24I/ml0p005'
 data_dir = base + ens + '/hdf5'
 
 l = 24
@@ -19,9 +20,9 @@ L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-# for n in range(-6, 7):
-# for n in range(1, 2):
-for n in range(4, 5):
+# for n in range(4, 5):
+# for n in range(1, 13):
+for n in range(1, 10):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
@@ -47,6 +48,7 @@ ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
+    print('Momentum is: ' + str(q))
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
     # q_lat = np.sin(L.to_linear_momentum(q + bvec))
     q = -q
