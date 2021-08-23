@@ -72,34 +72,6 @@ for a, b in itertools.product(range(Nc), repeat = 2):
                 tree[4, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gammaGamma[mu, nu, alpha, beta] * gammaGamma[mu, nu, gam, sigma])
                 tree[4, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gammaGamma[mu, nu, alpha, sigma] * gammaGamma[mu, nu, gam, beta])
 
-# L = 16
-# T = 48
-# LL = [L, L, L, T]
-# vol = (L ** 3) * T
-#
-# def set_dimensions(l, t):
-#     global L
-#     global T
-#     global LL
-#     L, T, vol = l, t, (l ** 3) * t
-#     LL = [l, l, l, t]
-#     return L, T, vol, LL
-#
-# def to_linear_momentum(k):
-#     return np.array([np.complex64(2 * np.pi * k[mu] / LL[mu]) for mu in range(4)])
-#
-# def to_lattice_momentum(k):
-#     return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / LL[mu])) for mu in range(4)])
-# # Converts a wavevector to an energy scale using ptwid. Lattice parameter is a = A femtometers.
-# # Shouldn't use this-- should use k_to_mu_p instead and convert at p^2 = mu^2
-# def k_to_mu_ptwid(k, A = .1167):
-#     aGeV = fm_to_GeV(A)
-#     return 2 / aGeV * np.sqrt(sum([np.sin(np.pi * k[mu] / LL[mu]) ** 2 for mu in range(4)]))
-#
-# def k_to_mu_p(k, A = .1167):
-#     aGeV = fm_to_GeV(A)
-#     return (2 * np.pi / aGeV) * np.sqrt(sum([(k[mu] / LL[mu]) ** 2 for mu in range(4)]))
-
 # Saves the dimensions of a lattice.
 class Lattice:
     def __init__(self, l, t):
@@ -108,8 +80,9 @@ class Lattice:
         self.LL = [l, l, l, t]
         self.vol = (l ** 3) * t
 
-    def to_linear_momentum(self, k):
-        return np.array([np.complex64(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(4)])
+    def to_linear_momentum(self, k, datatype = np.complex64):
+        # return np.array([np.complex64(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(4)])
+        return np.array([datatype(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(4)])
 
     def to_lattice_momentum(self, k):
         return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / self.LL[mu])) for mu in range(4)])
@@ -267,6 +240,89 @@ def fit_constant(fit_region, data, nfits = n_boot):
     chi2_mu = chi2([c_mu], data_mu[fit_region], sigma_fit)
     ndof = len(fit_region) - 1    # since we're just fitting a constant, n_params = 1
     return c_fit, chi2_mu, ndof
+
+# data should have length n_boot and data[b] should consist of a list {y_i} with the same size as fit_region.
+# We're trying to fit y_i = a x_i + c, where fit_region = {x_i}
+# Performs a linear fit to the (x_i, y_i) data for each bootstrap and extrapolates to the point
+# x_0.
+# @return
+# fit_params : array of fit parameters (a, c) for each bootstrap
+# chi2 : list of chi2 values for each fit for each bootstrap
+# y_extrap : list of extrapolated Lambda values for each bootstrap
+def corr_linear_fit(fit_region, data, x_extrap, nfits = n_boot):
+    sigma_fit = np.std(data, axis = 0, ddof = 1)
+    chi2 = lambda x, dat, sigma : np.sum((dat - (x[0] * fit_region + x[1] * np.ones(len(fit_region)))) ** 2 / (sigma ** 2))
+    fit_params = np.zeros((n_boot, 2), dtype = np.float64)    # 2 fit params
+    chi2_list = np.zeros((n_boot), dtype = np.float64)
+    y_extrap = np.zeros((n_boot), dtype = np.float64)
+    for i in range(nfits):
+        # print('Fit ' + str(i))
+        data_fit = data[i]
+        x0 = [0., np.mean(data)]    # guess for fit params (a, c)
+        out = optimize.minimize(chi2, x0, args = (data_fit, sigma_fit), method = 'Powell')
+        fit_params[i] = out['x']
+        chi2_list[i] = chi2(fit_params[i], data_fit, sigma_fit)
+        y_extrap[i] = fit_params[i][0] * x_extrap + fit_params[i][1]
+    print('Extrapolated Lambda_ij: ' + str(np.mean(y_extrap)) + ' \pm ' + str(np.std(y_extrap, ddof = 1)))
+    return fit_params, chi2_list, y_extrap
+
+# performs an uncorrelated fit to superboot objects. This performs (n_boot x n_ens) fits,
+# where n_ens is the
+# fit form is y_i = c_0 * x_i + c_1
+def uncorr_linear_fit(fit_region, superboot_data, x_extrap):
+    n_ens = len(superboot_data)
+    nb = superboot_data[0].n_boot
+    assert n_ens == superboot_data[0].n_ens
+    sigma_fit = np.array([superboot_data[i].std for i in range(n_ens)])
+    chi2 = lambda x, dat, sigma : np.sum((dat - (x[0] * fit_region + x[1] * np.ones(len(fit_region)))) ** 2 / (sigma ** 2))
+    fit_params = [Superboot(n_ens), Superboot(n_ens)]    # (c_0, c_1)
+    chi2_boots = Superboot(n_ens)
+    y_extrap = Superboot(n_ens)
+    for k in range(n_ens):
+        for b in range(nb):
+            data_fit = [superboot_data[l].boots[k, b] for l in range(n_ens)]
+            x0 = [0., np.mean(data_fit)]    # guess for fit params (a, c)
+            out = optimize.minimize(chi2, x0, args = (data_fit, sigma_fit), method = 'Powell')
+            c0, c1 = out['x']
+            fit_params[0].boots[k, b] = c0
+            fit_params[1].boots[k, b] = c1
+            chi2_boots.boots[k, b] = chi2(out['x'], data_fit, sigma_fit)
+            y_extrap.boots[k, b] = c0 * x_extrap + c1
+    for i in range(n_ens):
+        fit_params[i].compute_mean()
+        fit_params[i].compute_std()
+    chi2_boots.compute_mean()
+    chi2_boots.compute_std()
+    y_extrap.compute_mean()
+    y_extrap.compute_std()
+    print('Extrapolated result for Lambda_ij: ' + str(y_extrap.mean) + ' \pm ' + str(y_extrap.std))
+    return fit_params, chi2_boots, y_extrap
+
+# performs an uncorrelated fit to superboot objects. This performs (n_boot x n_ens) fits,
+# where n_ens is the
+# fit form is y(x_i) = c_0
+def uncorr_const_fit(fit_region, superboot_data, x_extrap): # TODO constant fit and see how the error changes
+    n_ens = len(superboot_data)
+    nb = superboot_data[0].n_boot
+    assert n_ens == superboot_data[0].n_ens
+    sigma_fit = np.array([superboot_data[i].std for i in range(n_ens)])
+    chi2 = lambda x, dat, sigma : np.sum((dat - (x[0] * np.ones(len(fit_region)))) ** 2 / (sigma ** 2))
+    chi2_boots = Superboot(n_ens)
+    y_extrap = Superboot(n_ens)   # c_0
+    for k in range(n_ens):
+        for b in range(nb):
+            data_fit = [superboot_data[l].boots[k, b] for l in range(n_ens)]
+            x0 = [np.mean(data_fit)]    # guess for fit params (a, c)
+            out = optimize.minimize(chi2, x0, args = (data_fit, sigma_fit), method = 'Powell')
+            c0 = out['x']
+            chi2_boots.boots[k, b] = chi2([c0], data_fit, sigma_fit)
+            y_extrap.boots[k, b] = c0
+    chi2_boots.compute_mean()
+    chi2_boots.compute_std()
+    y_extrap.compute_mean()
+    y_extrap.compute_std()
+    print('Extrapolated result for Lambda_ij: ' + str(y_extrap.mean) + ' \pm ' + str(y_extrap.std))
+    return chi2_boots, y_extrap
 
 # data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
 # by p value of the fit. cut is the pvalue to cut at.
@@ -602,7 +658,6 @@ def fm_to_GeV(a):
 # returns mu for mode k at lattice spacing A fm, on lattice L
 def get_energy_scale(k, a, L):
     return 2 * (hbarc / a) * np.linalg.norm(np.sin(np.pi * k / L.LL))
-
 
 def load_data_h5(file):
     print('Loading ' + str(file) + '.')

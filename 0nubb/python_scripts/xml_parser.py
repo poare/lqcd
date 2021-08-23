@@ -28,12 +28,15 @@ Nc = 3
 # INPUT PARAMETERS
 home = '/Users/theoares'
 # home = '/Users/poare'
-mom_idx_list = range(1, 10)                                          #[1, 2, ..., 6]
-cfgs = range(10)
+mom_idx_list = range(2, 10)                                          #[1, 2, ..., 6]
+# cfgs = range(10)
+cfgs = [3, 5, 6, 7, 8, 9]
 # cfg_root = 'cfg_0'                                     # 'cfg_0'
 
-parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p005/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p006/'
+parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p004/'
 
 for cfg in cfgs:
     cfg_root = 'cfg_' + str(cfg)

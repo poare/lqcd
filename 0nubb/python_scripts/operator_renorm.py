@@ -5,24 +5,21 @@ import os
 from utils import *
 
 ################################## PARAMETERS #################################
-# cfgbase = 'cl3_16_48_b6p1_m0p2450'
-# job_num = 29552
-# data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/' + cfgbase + '_' + str(job_num)
 base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 ens = '24I/ml0p01'
 # ens = '24I/ml0p005'
+# ens = '32I/ml0p006'
+# ens = '32I/ml0p004'
 data_dir = base + ens + '/hdf5'
 
 l = 24
+# l = 32
 t = 64
-# An.set_dimensions(L, T)
 L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-# for n in range(4, 5):
-# for n in range(1, 13):
-for n in range(1, 10):
+for n in range(2, 10):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
@@ -46,6 +43,7 @@ start = time.time()
 Zq = np.zeros((len(q_list), n_boot), dtype = np.complex64)
 ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_list), n_boot), dtype = np.complex64)
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
+Lambda_list = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
     print('Momentum is: ' + str(q))
@@ -68,9 +66,6 @@ for q_idx, q in enumerate(q_list):
     ZV[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,ji->z', qDotV, qlat_slash)
     ZA[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,jk,ki->z', qDotA, gamma5, qlat_slash)
 
-    # print('Zq ~ ' + str(Zq[q_idx, 0]))
-    # print('ZV ~ ' + str(ZV[q_idx, 0]))
-    # print('ZA ~ ' + str(ZA[q_idx, 0]))
     print('Zq ~ ' + str(np.mean(Zq[q_idx])) + ' \pm ' + str(np.std(Zq[q_idx], ddof = 1)))
     print('ZV ~ ' + str(np.mean(ZV[q_idx])) + ' \pm ' + str(np.std(ZV[q_idx], ddof = 1)))
     print('ZA ~ ' + str(np.mean(ZA[q_idx])) + ' \pm ' + str(np.std(ZA[q_idx], ddof = 1)))
@@ -97,6 +92,7 @@ for q_idx, q in enumerate(q_list):
     # Lambda_inv = np.array([np.linalg.inv(Lambda[b, :, :]) for b in range(n_boot)])
     # Z[:, :, q_idx, :] = (Zq[q_idx] ** 2) * np.einsum('ik,zkj->ijz', F, Lambda_inv)
     for b in range(n_boot):
+        Lambda_list[:, :, q_idx, b] = Lambda[b]         # save Lambda for chiral extrapolation
         Lambda_inv = np.linalg.inv(Lambda[b, :, :])
         Z[:, :, q_idx, b] = (Zq[q_idx, b] ** 2) * np.einsum('ik,kj->ij', F, Lambda_inv)
 
@@ -108,12 +104,13 @@ for q_idx, q in enumerate(q_list):
 
 ################################## SAVE DATA ##################################
 # out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '_Lambda.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV
 f['ZA'] = ZA
 f['Zq'] = Zq
+f['Lambda'] = Lambda_list
 for i, j in itertools.product(range(5), repeat = 2):
     f['Z' + str(i + 1) + str(j + 1)] = Z[i, j]
 f['cfgnum'] = n_cfgs
