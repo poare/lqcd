@@ -324,6 +324,52 @@ def uncorr_const_fit(fit_region, superboot_data, x_extrap): # TODO constant fit 
     print('Extrapolated result for Lambda_ij: ' + str(y_extrap.mean) + ' \pm ' + str(y_extrap.std))
     return chi2_boots, y_extrap
 
+# Performs a correlated fit in powers of (ap)^2 to the data. Assumes that data
+# is a MATRIX of shape [len(fit_range), Superboot.boots], i.e. indexed by (momenta, ens_idx, boot)
+# order is what power of \mu^2 to fit to. mu1 = 3 GeV is the matching point
+def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1):
+    n_pts = len(fit_region)
+    assert n_pts == data.shape[0]
+    n_ens = data.shape[1]
+    nb = data.shape[2]
+    sigma_fit = np.zeros((n_pts), dtype = np.float64)
+    superboot_data = []
+    for i in range(n_pts):
+        tmp = Superboot(n_ens)
+        tmp.boots = data[i]
+        tmp.compute_mean()
+        sigma_fit[i] = tmp.compute_std()
+        superboot_data.append(tmp)
+    moments = np.ones((order + 1, len(fit_region)), dtype = np.float64)         # moments mu_k^{2n} for n = 0, 1, ..., order. Should have len order + 1
+    mu1_moments = np.ones((order + 1), dtype = np.float64)
+    print('Fitting c0')
+    for i in range(order):
+        power = 2 * (i + 1)
+        print('+ c' + str(i + 1) + ' \mu^' + str(power))
+        moments[i + 1] = fit_region ** power
+        mu1_moments[i + 1] = mu1 ** power
+    # here x = (x[0], x[1], ..., x[order]) are the fit coefficiens, f(\mu) = x[0] + x[1] \mu^2 + x[2] \mu^4 + ...
+    chi2 = lambda x, dat, sigma : np.sum((dat - np.einsum('a,ab->b', x, moments)) ** 2 / (sigma ** 2))
+    fit_coeffs = np.zeros((order + 1, n_ens, nb), dtype = np.float64)
+    chi2_fits = np.zeros((n_ens, nb), dtype = np.float64)
+    y_extrap = np.zeros((n_ens, nb), dtype = np.float64)
+    for k in range(n_ens):
+        for b in range(nb):
+            data_fit = data[:, k, b]
+            # x0 = [1 for i in range(order + 1)]    # TODO find a better guess
+            x0 = [1]    # start with [1, 0, 0, ...]
+            for i in range(order):
+                x0.append(0)
+            contr = np.einsum('a,ab->b', x0, moments)
+            out = optimize.minimize(chi2, x0, args = (data_fit, sigma_fit), method = 'Powell')
+            fit_coeffs[:, k, b] = out['x']
+            chi2_fits[k, b] = chi2(out['x'], data_fit, sigma_fit)
+            y_extrap[k, b] = np.sum(out['x'] * mu1_moments)
+            print(fit_coeffs[:, k, b])
+            print(chi2_fits[k, b])
+            print(y_extrap[k, b])
+    return fit_coeffs, chi2_fits, y_extrap
+
 # data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
 # by p value of the fit. cut is the pvalue to cut at.
 def fit_constant_allrange(data, TT_min = 4, cut = 0.01):

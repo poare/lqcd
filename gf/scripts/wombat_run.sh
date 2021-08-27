@@ -56,8 +56,8 @@ base_dir=/home/poare/lqcd/gf
 run_dir=${base_dir}/scripts
 now=$(date '+%Y%m%d%H%M%S')
 log_file=${base_dir}/logs/log-${now}.out
-run_file=gf.sh
-# run_file=smear.sh
+# run_file=gf.sh
+run_file=smear.sh
 
 cd ${run_dir}
 ${run_dir}/${run_file} | tee ${log_file}

@@ -24,7 +24,7 @@ n_ens = len(ensembles)
 ampi_list = [mpi_list[i] / ainv for i in range(n_ens)]
 
 file_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + 'Z_gamma.h5' for ens in ensembles]
-chi_extrap_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ensembles[0][:3] + '/chiral_extrap/Z_extrap.h5'
+chi_extrap_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ensembles[0][:3] + '/chiral_extrap/Z_extrap_linear.h5'
 Fs = [h5py.File(fpath, 'r') for fpath in file_paths]
 # k_list = [f['momenta'][()] for f in Fs]
 # mom_list = [[L.to_linear_momentum(k, datatype=np.float64) for k in k_list[i]] for i in range(n_ens)]
@@ -63,7 +63,8 @@ multiplets = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [1, 2], [2, 1], [
 # perform and save chiral extrapolation on Lambda
 # Lambda_fit = np.zeros((len(multiplets), n_mom, n_ens, n_boot), dtype = np.float64)    # last two indices are Superboot boots shape
 Lambda_fit = np.zeros((n_ens, n_boot, n_mom, 5, 5), dtype = np.float64)
-mass_list = np.array(mpi_list)
+# mass_list = np.array(mpi_list)
+mass_list = np.array(amq_list)
 for ii, mult_idx in enumerate(multiplets):
     print('Fitting Lambda' + str(mult_idx[0]) + str(mult_idx[1]))
     Lambda_mult = []
@@ -74,8 +75,8 @@ for ii, mult_idx in enumerate(multiplets):
             tmp = Superboot(n_ens)
             tmp.populate_ensemble(Lambda_list[ii][mult_idx[0], mult_idx[1], mom_idx], ii)
             fitdata_superboot.append(tmp)
-        # fit_data, chi2, y_extrap = uncorr_lin_fit(mass_list, fitdata_superboot, 0.140)
-        chi2, y_extrap = uncorr_const_fit(mass_list, fitdata_superboot, 0.140)
+        fit_data, chi2, y_extrap = uncorr_linear_fit(mass_list, fitdata_superboot, 0)
+        # chi2, y_extrap = uncorr_const_fit(mass_list, fitdata_superboot, 0.140)
         Lambda_fit[:, :, mom_idx, mult_idx[0], mult_idx[1]] = y_extrap.boots    # just reput them into new superboot objects when we read them in
 
 # Process as a Z factor
@@ -104,3 +105,5 @@ print('Chiral extrapolation saved at: ' + chi_extrap_path)
 fchi_out.close()
 
 # Compute anomalous dimension and run Z factors to the matching scale
+
+# interpolate each Z factor to get Z(3 GeV). Fit the functional form in (ap)^2
