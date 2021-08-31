@@ -233,10 +233,23 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
 end
 
 --[[
+  Computes the operator O_{\alpha\beta} for direction \alpha \beta. prop should be computed with
+  a wall source of momentum p to form G = \sum e^{ip(x - y)} S(x,z) J(z,z') S(z',y) where J is
+  the quark EMT current.
+]]
+function quarkEMT(U, prop, antiprop, alpha, beta)
+  local D_prop = 0.5 * (U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) -
+            U[nu + 1]:shift(nu, "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward")))
+  local antiprop_D = 0.5 * ((antiprop:shift(nu, "from_forward") * gamma{mu = nu}) * U[nu + 1]:adjoin()
+          - (antiprop:shift(nu, "from_backward") * gamma{mu = nu}) * U[nu + 1]:shift(nu, "from_backward"))
+  return (antiprop * D_prop - antiprop_D * prop):sum()
+end
+
+--[[
  Computes the three point function G_\mu(p) and the two point propagator S(p) by
  directly inverting a momentum source of e^{-ipx}.
 ]]
-function compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum)
+function compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc)
   local bvec = {0, 0, 0, 0.5}
   print("Computing through sink.")
 
@@ -261,21 +274,34 @@ function compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list, hypervolume,
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
-    -- compute momentum projected Green's function G(p)
-    -- Construct operator and get three point functions
+    -- Compute momentum projected Green's function G_qq for a quark EMT insertion
+    -- on a quark line
+    for alpha = 0, #L - 1 do
+      for beta = 0, #L - 1 do
+        local Gqq_comp1 = (((antiprop * gamma{mu = alpha}) * U[beta + 1]) * prop:shift(beta, "from_forward")):sum()
+        local Gqq_comp2 = (((antiprop:shift(beta, "from_forward") * gamma{mu = alpha}) * U[beta + 1]) * prop):sum()
+        local Gqq = (Gqq_comp1 - Gqq_comp2) / hypervolume
+        local Gqq_path = string.format("Gqq%d%d/p%d%d%d%d", alpha + 1, beta + 1, p[1], p[2], p[3], p[4])
+        h5_force_write(writer, Gqq_path, Gqq)
+        printf("Matrix element Gqq%d%d (quark EMT insertion on quark line) written at: %s\n", alpha + 1, beta + 1, Gqq_path)
+      end
+    end
+
+    -- Compute momentum projected Green's function G_qg for a glue EMT insertion
+    -- on a quark line.
     local F = getFmunuComponents(L, Uflowed, Nc)
     for mu = 1, #L do
       for nu = 1, #L do
-        local Omunu = 0
+        local glueEMT = 0
         for alpha = 1, #L do
           for a = 1, Nc * Nc - 1 do
-            Omunu = Omunu + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
+            glueEMT = glueEMT + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
           end
         end
-        local Gmunu = Omunu * mom4_prop
-        local op_path = string.format("O%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
-        h5_force_write(writer, op_path, Gmunu)
-        printf("Matrix element O%d%d written at: %s\n", mu, mu, op_path)
+        local Gqg_munu = glueEMT * mom4_prop
+        local Gqg_path = string.format("Gqg%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
+        h5_force_write(writer, Gqg_path, Gqg_munu)
+        printf("Matrix element Gqg%d%d (glue EMT insertion on quark line) written at: %s\n", mu, nu, Gqg_path)
       end
     end
   end
@@ -293,11 +319,11 @@ else
 end
 
 -- Set parameters
-Lx = 16
-Lt = 48
+Lx = 48
+Lt = 96
 
 beta = 6.1
-mq = -0.2450
+mq = -0.2416    -- TODO figure out how to update for 2 + 1 quark flavors
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
@@ -319,7 +345,7 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
-local csw = 1.2493
+local csw = 1.2493    -- TODO update this
 --local csw = 1    -- uncomment after testing is done
 local bcs = {1, 1, 1, -1}
 
@@ -335,8 +361,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
 local p_list_NPR = {}
-local a = 0
-local b = 3
+local a = 1
+local b = 2
 for i = a, b do
  for j = a, b do
    for k = a, b do
@@ -349,8 +375,8 @@ end
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
-local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
 
 status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
@@ -367,7 +393,8 @@ if status1 and status2 then
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
   print("Gauge file read. Computing NPR.")
-  compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
+  -- compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
+  compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
 
   writer:close()
 else

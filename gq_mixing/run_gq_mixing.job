@@ -5,7 +5,7 @@
 #SBATCH --job-name=gq_mixing
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod
+#SBATCH --partition=long
 
 set -x
 
@@ -17,9 +17,8 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-cfgpath="/data/d10b/ensembles/isoClover/"
-cfgbase="cl3_16_48_b6p1_m0p2450"
-gf=true
+cfgpath="/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
+cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
 gpu=true
 
 home=/home/poare/lqcd/gq_mixing
@@ -30,7 +29,7 @@ mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
 for cfg in `seq 1000 10 1010`
