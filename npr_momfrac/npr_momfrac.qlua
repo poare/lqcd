@@ -344,11 +344,16 @@ end
 --Lx = 24
 --Lt = 24
 
-Lx = 32
-Lt = 48
+-- Lx = 32
+-- Lt = 48
 
-beta = 6.1
-mq = -0.2450
+-- beta = 6.1
+-- mq = -0.2450
+Lx = 48
+Lt = 96
+beta = 6.3
+mq = -0.2416
+
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
@@ -401,11 +406,12 @@ end
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 local gauge_file
-if gf then
-    gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-else
-    gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
-end
+-- if gf then
+--     gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- else
+--     gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- end
+gauge_file = string.format("/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/cl21_48_96_b6p3_m0p2416_m0p2050/cfgs/cl21_48_96_b6p3_m0p2416_m0p2050_cfg_%d.lime", cfgnum)
 print("Reading gauge file at: %s\n", gauge_file)
 
 status, U, finfo, info = pcall(load_conf, L, gauge_file)
