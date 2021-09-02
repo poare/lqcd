@@ -360,13 +360,24 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
+-- local p_list_NPR = {}
+-- local a = 1
+-- local b = 3
+-- for i = a, b do
+--  for j = a, b do
+--    for k = a, b do
+--      for l = a, b do
+--         p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
+--       end
+--     end
+--   end
+-- end
+
 local p_list_NPR = {}
-local a = 1
-local b = 3
-for i = a, b do
- for j = a, b do
-   for k = a, b do
-     for l = a, b do
+for i = -6, 6 do
+ for j = -6, 6 do
+   for k = -6, 6 do
+     for l = -6, 6 do
         p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
       end
     end
