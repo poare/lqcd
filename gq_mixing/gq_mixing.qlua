@@ -357,9 +357,9 @@ end
 -- Set parameters
 Lx = 48
 Lt = 96
-
 beta = 6.3
 mq = -0.2416    -- TODO figure out how to update for 2 + 1 quark flavors
+
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
@@ -424,8 +424,14 @@ printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 --local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 --local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+
 local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
 local flowed_file = gauge_file
+
+-- for testing
+-- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450_smeared_gf/landau/cl3_32_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
+-- local flowed_file = gauge_file
+
 print("Reading gauge file at: %s\n", gauge_file)
 
 status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
@@ -444,8 +450,8 @@ if status1 and status2 then
   print("Gauge file read. Computing NPR.")
   -- compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
 
-  -- compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
-  compute_npr_momsource(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
+  compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
+  -- compute_npr_momsource(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
 
   writer:close()
 else
