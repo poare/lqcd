@@ -122,7 +122,7 @@ print("Smeared gauge field.")
 -- U = load_conf(L, gauge_file)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
-filename = string.format("/data/d10b/users/poare/misc/gpu_test/dimitra_stout.h5", jobid)
+filename = string.format("/data/d10b/users/poare/misc/gpu_test/qlua_stout.h5", jobid)
 printf("OUTPUT FILE WILL WRITE TO: %s.\n", filename)
 hdf5params = { method = "phdf5" }
 writer = qcd.hdf5.Writer(filename, hdf5params)
