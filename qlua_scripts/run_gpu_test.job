@@ -27,4 +27,4 @@ logs=${home}/logs/gpu_test
 
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "jobid = ${SLURM_JOB_ID}" ${home}/gpu_test.qlua > ${logs}/job${SLURM_JOB_ID}.txt
+mpirun -np 16 $EXE -e "jobid = ${SLURM_JOB_ID}" ${home}/gpu_test.qlua > ${logs}/job${SLURM_JOB_ID}.txt
