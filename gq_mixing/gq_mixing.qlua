@@ -422,11 +422,11 @@ end
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
---local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
---local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
-local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
-local flowed_file = gauge_file
+-- local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- local flowed_file = gauge_file
 
 -- for testing
 -- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450_smeared_gf/landau/cl3_32_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
