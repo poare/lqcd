@@ -5,7 +5,7 @@
 #SBATCH --job-name=prop_gpu_test
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=devel
+#SBATCH --partition=prod
 
 set -x
 
