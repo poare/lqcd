@@ -3,9 +3,9 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=prop_gpu_test
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=devel4
+#SBATCH --partition=devel
 
 set -x
 

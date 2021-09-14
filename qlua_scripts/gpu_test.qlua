@@ -10,6 +10,24 @@ require "lib/su-n"
 
 require "lib/quda"
 
+function show_propagator(m)
+  local nc = m:colors()
+  for ci = 0, nc - 1 do
+    for cj = 0, nc - 1 do
+      for si = 0, qcd.Ns - 1 do
+        printf("U[%d,%d,%d,.] ", ci,cj,si)
+        for sj = 0, qcd.Ns - 1 do
+          local zv = m[{c=ci,d=si}]
+          local z = zv[{c=cj,d=sj}]
+          printf("  [%1.12e %1.12e]", z[{0, 0, 0, 0}]:real(), z[{0, 0, 0, 0}]:imag())
+        end
+        printf("\n")
+      end
+    end
+  end
+  printf("\n")
+end
+
 --[[
 function random_generator(lat, sseed, pshift)
    local x = lat:Int(0)
@@ -58,10 +76,10 @@ end
 ]]
 
 -- Set parameters
-Lx = 16
-Lt = 48
+Lx = 48
+Lt = 96
 
-mq = -0.2450
+mq = -0.2416
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
@@ -91,11 +109,14 @@ d = 4    -- Number of dimensions?
 lat_rand = make_seq_and_lat_rnds(seed, d)
 init_weak_field(L, lat_rand, group, 3, U)
 ]]
-gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_240.lime"
+-- gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_240.lime"
+gauge_file = "/data/d10c/projects/qgff_170MeV/glue_dimitra/170MeV/chroma_stout_fixed_14.lime"
+-- gauge_file = "/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/cl21_48_96_b6p3_m0p2416_m0p2050/smeared_gf/landau/cl21_48_96_b6p3_m0p2416_m0p2050_cfg_1000.lime"
+
 U = load_conf(L, gauge_file)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
-filename = string.format("/data/d10b/users/poare/misc/gpu_test/job%s.h5", jobid)
+filename = string.format("/data/d10b/users/poare/misc/gpu_test/dimitra_stout.h5", jobid)
 printf("OUTPUT FILE WILL WRITE TO: %s.\n", filename)
 hdf5params = { method = "phdf5" }
 writer = qcd.hdf5.Writer(filename, hdf5params)
@@ -114,6 +135,9 @@ mom4_prop = (FT * prop) : sum()
 prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
 h5_force_write(writer, prop_path, mom4_prop)
 printf("Propagator written at path: %s\n", prop_path)
+
+print("Propagator is:\n")
+show_propagator(mom4_prop)
 
 writer:close()
 
