@@ -7,6 +7,7 @@ require "lib/group"
 require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
+require "lib/stout-smear"
 
 require "lib/quda"
 
@@ -110,10 +111,15 @@ lat_rand = make_seq_and_lat_rnds(seed, d)
 init_weak_field(L, lat_rand, group, 3, U)
 ]]
 -- gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_240.lime"
-gauge_file = "/data/d10c/projects/qgff_170MeV/glue_dimitra/170MeV/chroma_stout_fixed_14.lime"
+-- gauge_file = "/data/d10c/projects/qgff_170MeV/glue_dimitra/170MeV/chroma_stout_fixed_14.lime"
 -- gauge_file = "/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/cl21_48_96_b6p3_m0p2416_m0p2050/smeared_gf/landau/cl21_48_96_b6p3_m0p2416_m0p2050_cfg_1000.lime"
+gauge_file = "/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/cl21_48_96_b6p3_m0p2416_m0p2050/cfgs/cl21_48_96_b6p3_m0p2416_m0p2050_cfg_1000.lime"
+U1 = load_conf(L, gauge_file)
+print("About to smear.")
+U = stout_smear_full(U1, 0.125, 1, -1)
+print("Smeared gauge field.")
 
-U = load_conf(L, gauge_file)
+-- U = load_conf(L, gauge_file)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
 filename = string.format("/data/d10b/users/poare/misc/gpu_test/dimitra_stout.h5", jobid)
@@ -136,8 +142,8 @@ prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
 h5_force_write(writer, prop_path, mom4_prop)
 printf("Propagator written at path: %s\n", prop_path)
 
-print("Propagator is:\n")
-show_propagator(mom4_prop)
+-- print("Propagator is:\n")
+-- show_propagator(mom4_prop)
 
 writer:close()
 
