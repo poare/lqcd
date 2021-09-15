@@ -5,12 +5,13 @@ base=/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050
 #stem=cl3_16_48_b6p1_m0p2450
 #stem=cl3_32_48_b6p1_m0p2450
 stem=cl21_48_96_b6p3_m0p2416_m0p2050
-exe=/data/d10b/wombat/users/djmurphy/Software/GLU/bin/GLU
+#exe=/data/d10b/wombat/users/djmurphy/Software/GLU/bin/GLU
+exe=/home/dpefkou/GLU/install/bin/GLU
 #writeto=/home/poare/lqcd/gf/testing/${stem}_smeared_gf
 #smeared=/data/d10b/users/poare/gf/${stem}_smeared
 #writeto=/data/d10b/users/poare/gf/${stem}_smeared_gf
-smeared=${base}/${stem}_smeared
-writeto=${base}/${stem}_smeared_gf
+smeared=${base}/${stem}/smeared
+writeto=${base}/${stem}/smeared_gf
 
 export OMP_NUM_THREADS=64
 
