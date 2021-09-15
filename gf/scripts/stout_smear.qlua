@@ -1,0 +1,37 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+require "lib/stout-smear"
+
+-- Set parameters
+Lx = 48
+Lt = 96
+
+mq = -0.2416
+kappa = 1 / (2 * mq + 8)
+
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+-- U = {}
+local rho = 0.125
+gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+flowed_file = string.format(cfgpath..cfgbase.."/smeared/"..cfgbase.."_cfg_%d.lime", cfgnum)
+U, finfo, info = load_conf(L, gauge_file)
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+print("Smearing.")
+Usmeared = stout_smear_full(U, rho, 1, -1)
+print("Smeared gauge field.")
+
+-- gaugeInfo = info
+save_conf(L, flowed_file, finfo, Usmeared, info)
+
+print("Smeared configuration saved at: "..flowed_file)
