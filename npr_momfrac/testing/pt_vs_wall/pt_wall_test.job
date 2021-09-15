@@ -28,4 +28,4 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "$parameters" ${home}/pt_wall_test.qlua > ${logs}/job${SLURM_JOB_ID}.txt
+mpirun -np 4 $EXE -e "$parameters" ${home}/pt_vs_wall/pt_wall_test.qlua > ${logs}/job${SLURM_JOB_ID}.txt

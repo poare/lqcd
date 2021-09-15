@@ -96,7 +96,7 @@ function compute_npr_op(L, U, ferm_prop, p_list, hypervolume, group, clover, wri
       end
       local FT = FTarg:expi()
 
-      if i == 1 do
+      if i == 1 then
         mom4_prop = (FT * prop):sum()
       else
         mom4_prop = mom4_prop + (FT * prop):sum()
@@ -137,13 +137,6 @@ end
 ------------------------------------------------------------------
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
-
--- Read in input from bash script.
-if jobid then
-    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid)
-else
-    print("No jobid entered.")
-end
 
 Lx = 2
 Lt = 4
@@ -194,7 +187,6 @@ d = 4    -- Number of dimensions?
 rands = make_seq_and_lat_rnds(seed, d)    -- {seq_rand, lat_rand}
 lat_rand = rands[2]
 init_weak_field(L, lat_rand, group, 3, U)
-if status then
   -- project gauge configuration onto SU(3)
   for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
@@ -209,10 +201,6 @@ if status then
   compute_npr_op(L, U, ferm_prop, p_list_NPR, vol, group, clover, writer, Nc)
 
   writer:close()
-else
-  printf("No gauge field configuration at %s.\n", gauge_file)
-  print(U)
-end
 
 if gpu then
     qcd.quda.fini()

@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --partition=long
-#SBATCH -t 144:00:00
+#SBATCH -t 72:00:00
 
 set -x
 
