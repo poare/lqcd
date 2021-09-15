@@ -31,13 +31,12 @@ output=${cfgpath}/${cfgbase}/smeared
 
 mkdir ${logs}
 mkdir ${logs}/no_output
-mkdir ${output}
+# mkdir ${output}
 
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-# for cfg in `seq 1000 10 5500`
-for cfg in `seq 1000 10 1010`
+for cfg in `seq 1020 10 5500`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/scripts/stout_smear.qlua > ${logs}/cfg${cfg}.txt
 done
