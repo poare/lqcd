@@ -180,31 +180,48 @@ end
   Computes the propagator S(p) and the three point function through approximating S(p) with
   point sources.
 ]]
-function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum, jobid)
+function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, nsrc, cfgnum, jobid)
   print("Computing through the operator.")
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
 
-  -- Computes a random point propagator.
+  -- Computes N point propagators
+  local N = nsrc    -- number of points to compute propagators at
   local seed = cfgnum + jobid
+  -- local seed = os.time()
   math.randomseed(seed)
-  local y = {}
-  for mu = 0, #L - 1 do
-    y[mu + 1] = math.random(0, L[mu] - 1)    -- integer in range 0, L[d] - 1
+  local S_list = {}
+  local pts = {}
+  printf("Computing %d random point sources.", N)
+  for i = 1, N do
+    local y = {}
+    for mu = 0, #L - 1 do
+      y[mu + 1] = math.random(0, L[mu] - 1)
+    end
+    pts[i] = y
+    local src = compute_point_source(U, y)
+    printf("Computing for propagator %d at point (%d, %d, %d, %d).\n", i, y[1], y[2], y[3], y[4])
+    S_list[i] = compute_propagator(U, ferm_prop, src)
   end
-  local src = compute_point_source(U, y)
-  local prop = compute_propagator(U, ferm_prop, src)
-  printf("Point source computed at (%d, %d, %d, %d).", y[1], y[2], y[3], y[4])
+  print("Point source propagators computed.")
 
   for pidx = 1, #p_list do
     printf("p index: %d\n", pidx)
     local p = p_list[pidx]
     printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
-    local FTarg = L:Real(0)
-    for mu = 0, #L - 1 do
-      FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+
+    -- compute momentum projected propagator
+    local mom4_prop = L:DiracPropagatorN(Nc)
+    for i = 1, #S_list do
+      local prop = S_list[i]
+      local y = pts[i]
+      local FTarg = L:Real(0)
+      for mu = 0, #L - 1 do
+        FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      end
+      local FT = FTarg:expi()    -- e^{ip(x - y_i)}
+      mom4_prop = mom4_prop + (FT * prop) : sum()
     end
-    local FT = FTarg:expi()
 
     -- Write momentum projected propagator to file
     local mom4_prop = (FT * prop):sum()
@@ -212,37 +229,84 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
-    -- Construct operator and get three point functions
+    -- Compute momentum projected Green's function G_qg for a glue EMT insertion on a quark line.
+    print("Computing glue EMT insertion on quark line.")
     local F = getFmunuComponents(L, Uflowed, Nc)
     for mu = 1, #L do
       for nu = 1, #L do
-        local Omunu = 0
+        local glueEMT = 0
         for alpha = 1, #L do
           for a = 1, Nc * Nc - 1 do
-            Omunu = Omunu + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
+            glueEMT = glueEMT + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
           end
         end
-        local Gmunu = Omunu * mom4_prop
-        local op_path = string.format("O%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
-        h5_force_write(writer, op_path, Gmunu)
-        printf("Matrix element O%d%d written at: %s\n", mu, mu, op_path)
+        local Gqg_munu = glueEMT * mom4_prop
+        local Gqg_path = string.format("Gqg%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
+        h5_force_write(writer, Gqg_path, Gqg_munu)
+        printf("Matrix element Gqg%d%d written at: %s\n", mu, nu, Gqg_path)
       end
     end
 
-  end
-end
+    print("Constructing sequential sources for Gqq.")
+    local b = {{}, {}, {}, {}}
+    for mu1 = 0, #L - 1 do
+      for nu1 = 0, #L - 1 do
+        local bmunu = L:DiracFermionN(Nc)
+        for i = 1, #S_list do
+          local prop = S_list[i]
+          local y = pts[i]
+          local arg = 0.0
+          for alpha = 0, #L - 1 do
+            arg = arg - (p[alpha + 1] + bvec[alpha + 1]) * y[alpha + 1]    -- this might have some type issues
+          end
+          local phase = complex(math.cos(arg), math.sin(arg))    -- e^{-i p y_i}
+          bmunu = bmunu + phase * (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
+                  - gamma{mu = mu1} * (U[nu1 + 1]:shift(nu1, "from_backward") * prop:shift(nu1, "from_backward")))
+        end
+        b[mu1 + 1][nu1 + 1] = bmunu
+      end
+    end
 
---[[
-  Computes the operator O_{\alpha\beta} for direction \alpha \beta. prop should be computed with
-  a wall source of momentum p to form G = \sum e^{ip(x - y)} S(x,z) J(z,z') S(z',y) where J is
-  the quark EMT current.
-]]
-function quarkEMT(U, prop, antiprop, alpha, beta)
-  local D_prop = 0.5 * (U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) -
-            U[nu + 1]:shift(nu, "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward")))
-  local antiprop_D = 0.5 * ((antiprop:shift(nu, "from_forward") * gamma{mu = nu}) * U[nu + 1]:adjoin()
-          - (antiprop:shift(nu, "from_backward") * gamma{mu = nu}) * U[nu + 1]:shift(nu, "from_backward"))
-  return (antiprop * D_prop - antiprop_D * prop):sum()
+    print("Projecting sequential sources onto 3 and 6 dimensional H(4) irreps and inverting sequential sources.")
+    local FTarg = L:Real(0)
+    for mu = 0, #L - 1 do
+      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+    end
+    local FT = FTarg:expi()   -- e^{ipx}
+
+    local b3dim = {
+      (b[3][3] - b[4][4]) / math.sqrt(2),
+      (b[1][1] - b[2][2]) / math.sqrt(2),
+      (b[1][1] + b[2][2] - b[3][3] - b[4][4]) / 2.0
+    }
+    for i = 1, #b3dim do
+      printf("Inverting operator %d of the 3-dim irrep.", i)
+      local M = compute_propagator(U, ferm_prop, b3dim[i])
+      local Gqq3 = (FT * M) : sum() / hypervolume
+      local Gqq3_path = string.format("Gqq/3%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
+      h5_force_write(writer, Gqq3_path, Gqq3)
+      printf("Component %d of 3-dim irrep for Gqq written at: %s\n", i, Gqq3_path)
+    end
+
+    local b6dim = {
+      (b[1][2] + b[2][1]) / math.sqrt(2),
+      (b[1][3] + b[3][1]) / math.sqrt(2),
+      (b[1][4] + b[4][1]) / math.sqrt(2),
+      (b[2][3] + b[3][2]) / math.sqrt(2),
+      (b[2][4] + b[4][2]) / math.sqrt(2),
+      (b[3][4] + b[4][3]) / math.sqrt(2),
+    }
+    for i = 1, #b6dim do
+      printf("Inverting operator %d of the 6-dim irrep.", i)
+      local M = compute_propagator(U, ferm_prop, b6dim[i])
+      local Gqq6 = (FT * M) : sum() / hypervolume
+      local Gqq6_path = string.format("Gqq/6%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
+      h5_force_write(writer, Gqq6_path, Gqq6)
+      printf("Component %d of 6-dim irrep for Gqq written at: %s\n", i, Gqq6_path)
+    end
+
+  end
+
 end
 
 --[[
@@ -307,42 +371,6 @@ function compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list, hypervolume,
   end
 end
 
--- just here to see if this runs
-function compute_npr_momsource(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc)
-  local bvec = {0,0,0,0.5}
-  print("Computing through sink.")
-
-  for pidx = 1, #p_list do
-    printf("p index: %d\n", pidx)
-    local p = p_list[pidx]
-    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
-    local FTarg = L:Real(0)
-    for mu = 0, #L - 1 do
-      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-    end
-    local FT = FTarg:expi()
-
-    -- Compute a source of e^{-ipx}
-    local src = compute_spacetime_wall_source_antiperiodicBC(U, p)
-    local prop = compute_propagator(U, ferm_prop, src)    -- S_p(x)
-    local antiprop = gamma{mu = 5} * prop:adjoin() * gamma{mu = 5}
-    local mom4_prop = (FT * prop):sum()
-
-    -- Write momentum projected propagator to file (?)
-    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
-    h5_force_write(writer, prop_path, mom4_prop)
-    printf("Propagator written at path: %s\n", prop_path)
-
-    -- compute momentum projected Green's function G(p)
-    for mu = 0, #L - 1 do
-      local matrix_element = O(U, prop, antiprop, mu)
-      local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4])
-      h5_force_write(writer, op_path, matrix_element)
-      printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
-    end
-  end
-end
-
 ------------------------------------------------------------------
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
@@ -396,24 +424,14 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
-local p_list_NPR = {}
-local a = 1
-local b = 3
-for i = a, b do
- for j = a, b do
-   for k = a, b do
-     for l = a, b do
-        p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
-      end
-    end
-  end
-end
-
+local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {10, 10, 10, 10}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
 -- local p_list_NPR = {}
--- for i = -6, 6 do
---  for j = -6, 6 do
---    for k = -6, 6 do
---      for l = -6, 6 do
+-- local a = 1
+-- local b = 3
+-- for i = a, b do
+--  for j = a, b do
+--    for k = a, b do
+--      for l = a, b do
 --         p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
 --       end
 --     end
@@ -447,12 +465,13 @@ if status1 and status2 then
   local hdf5params = { method = "phdf5" }
   local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-  print("Gauge file read. Computing NPR.")
-  -- compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, cfgnum, jobid)
-
-  compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
+  nsrc = 1
+  printf("Gauge file read. Computing NPR with %d point sources.", nsrc)
+  compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+  -- compute_mixing_momsource(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
   -- compute_npr_momsource(L, U, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc)
 
+  print("Finished.")
   writer:close()
 else
   printf("No gauge field configuration at %s or %s.\n", gauge_file, flowed_file)
