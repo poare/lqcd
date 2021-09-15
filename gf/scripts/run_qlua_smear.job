@@ -39,5 +39,5 @@ export OMP_NUM_THREADS=6
 # for cfg in `seq 1000 10 5500`
 for cfg in `seq 1000 10 1010`
 do
-	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/stout_smear.qlua > ${logs}/cfg${cfg}.txt
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/scripts/stout_smear.qlua > ${logs}/cfg${cfg}.txt
 done
