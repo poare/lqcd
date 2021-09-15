@@ -248,77 +248,90 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
       end
     end
 
-    print("Constructing sequential sources for Gqq.")
-    local b = {{}, {}, {}, {}}
-    for mu1 = 0, #L - 1 do
-      for nu1 = 0, #L - 1 do
-        local bmunu = L:DiracPropagatorN(Nc)
-        for i = 1, #S_list do
-          local prop = S_list[i]
-          local y = pts[i]
-          local arg = 0.0
-          for alpha = 0, #L - 1 do
-            arg = arg - (p[alpha + 1] + bvec[alpha + 1]) * y[alpha + 1]    -- this might have some type issues
-          end
-          local phase = complex(math.cos(arg), math.sin(arg))    -- e^{-i p y_i}
-          bmunu = bmunu + phase * (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
-                  - gamma{mu = mu1} * (U[nu1 + 1]:shift(nu1, "from_backward") * prop:shift(nu1, "from_backward")))
+  end
+
+  print("Constructing sequential sources for Gqq.")
+  local b = {{}, {}, {}, {}}
+  for mu1 = 0, #L - 1 do
+    for nu1 = 0, #L - 1 do
+      local bmunu = L:DiracPropagatorN(Nc)
+      for i = 1, #S_list do
+        local prop = S_list[i]
+        local y = pts[i]
+        local arg = 0.0
+        for alpha = 0, #L - 1 do
+          arg = arg - (p[alpha + 1] + bvec[alpha + 1]) * y[alpha + 1]    -- this might have some type issues
         end
-        b[mu1 + 1][nu1 + 1] = bmunu
+        local phase = complex(math.cos(arg), math.sin(arg))    -- e^{-i p y_i}
+        bmunu = bmunu + phase * (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
+                - gamma{mu = mu1} * (U[nu1 + 1]:shift(nu1, "from_backward"):adjoin() * prop:shift(nu1, "from_backward")))
       end
+      b[mu1 + 1][nu1 + 1] = bmunu
     end
+  end
 
-    print("Projecting sequential sources onto 3 and 6 dimensional H(4) irreps and inverting sequential sources.")
-    local FTarg = L:Real(0)
-    for mu = 0, #L - 1 do
-      FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-    end
-    local FT = FTarg:expi()   -- e^{ipx}
+  print("Projecting sequential sources onto 3 and 6 dimensional H(4) irreps and inverting sequential sources.")
+  -- for mu = 0, #L - 1 do
+  --   for nu = 0, #L - 1 do
+  --     printf("Inverting component (%d, %d) of Gqq.", mu, nu)
+  --     local M = compute_propagator(U, ferm_prop, b[mu + 1][nu + 1])
+  --     for pidx = 1, #p_list do
+  --       local FTarg = L:Real(0)
+  --       for mu = 0, #L - 1 do
+  --         FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+  --       end
+  --       local FT = FTarg:expi()   -- e^{ipx}
+  --       local Gqq = (FT * M) : sum()
+  --       local Gqq_path = string.format("Gqq/%d%d/p%d%d%d%d", mu + 1, nu + 1, p[1], p[2], p[3], p[4])
+  --       h5_force_write(writer, Gqq_path, Gqq)
+  --       printf("Component (%d, %d) of 3-dim irrep for Gqq written at: %s\n", mu, nu, Gqq_path)
+  --     end
+  --   end
+  -- end
 
-    for mu = 0, #L - 1 do
-      for nu = 0, #L - 1 do
-        printf("Inverting component (%d, %d) of Gqq.", mu, nu)
-        local M = compute_propagator(U, ferm_prop, b[mu + 1][nu + 1])
-        local Gqq = (FT * M) : sum()
-        local Gqq_path = string.format("Gqq/%d%d/p%d%d%d%d", mu + 1, nu + 1, p[1], p[2], p[3], p[4])
-        h5_force_write(writer, Gqq_path, Gqq)
-        printf("Component (%d, %d) of 3-dim irrep for Gqq written at: %s\n", mu, nu, Gqq_path)
+  local b3dim = {
+    (b[3][3] - b[4][4]) / math.sqrt(2),
+    (b[1][1] - b[2][2]) / math.sqrt(2),
+    (b[1][1] + b[2][2] - b[3][3] - b[4][4]) / 2.0
+  }
+  for i = 1, #b3dim do
+    printf("Inverting operator %d of the 3-dim irrep.", i)
+    local M = compute_propagator(U, ferm_prop, b3dim[i])
+    for pidx = 1, #p_list do
+      local FTarg = L:Real(0)
+      for mu = 0, #L - 1 do
+        FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       end
-    end
-
-    --[[
-    local b3dim = {
-      (b[3][3] - b[4][4]) / math.sqrt(2),
-      (b[1][1] - b[2][2]) / math.sqrt(2),
-      (b[1][1] + b[2][2] - b[3][3] - b[4][4]) / 2.0
-    }
-    for i = 1, #b3dim do
-      printf("Inverting operator %d of the 3-dim irrep.", i)
-      local M = compute_propagator(U, ferm_prop, b3dim[i])
+      local FT = FTarg:expi()   -- e^{ipx}
       local Gqq3 = (FT * M) : sum() / hypervolume
       local Gqq3_path = string.format("Gqq/3%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
       h5_force_write(writer, Gqq3_path, Gqq3)
       printf("Component %d of 3-dim irrep for Gqq written at: %s\n", i, Gqq3_path)
     end
+  end
 
-    local b6dim = {
-      (b[1][2] + b[2][1]) / math.sqrt(2),
-      (b[1][3] + b[3][1]) / math.sqrt(2),
-      (b[1][4] + b[4][1]) / math.sqrt(2),
-      (b[2][3] + b[3][2]) / math.sqrt(2),
-      (b[2][4] + b[4][2]) / math.sqrt(2),
-      (b[3][4] + b[4][3]) / math.sqrt(2),
-    }
-    for i = 1, #b6dim do
-      printf("Inverting operator %d of the 6-dim irrep.", i)
-      local M = compute_propagator(U, ferm_prop, b6dim[i])
+  local b6dim = {
+    (b[1][2] + b[2][1]) / math.sqrt(2),
+    (b[1][3] + b[3][1]) / math.sqrt(2),
+    (b[1][4] + b[4][1]) / math.sqrt(2),
+    (b[2][3] + b[3][2]) / math.sqrt(2),
+    (b[2][4] + b[4][2]) / math.sqrt(2),
+    (b[3][4] + b[4][3]) / math.sqrt(2),
+  }
+  for i = 1, #b6dim do
+    printf("Inverting operator %d of the 6-dim irrep.", i)
+    local M = compute_propagator(U, ferm_prop, b6dim[i])
+    for pidx = 1, #p_list do
+      local FTarg = L:Real(0)
+      for mu = 0, #L - 1 do
+        FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      end
+      local FT = FTarg:expi()   -- e^{ipx}
       local Gqq6 = (FT * M) : sum() / hypervolume
       local Gqq6_path = string.format("Gqq/6%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
       h5_force_write(writer, Gqq6_path, Gqq6)
       printf("Component %d of 6-dim irrep for Gqq written at: %s\n", i, Gqq6_path)
     end
-    ]]
-
   end
 
 end
