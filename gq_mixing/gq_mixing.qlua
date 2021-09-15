@@ -187,8 +187,8 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
 
   -- Computes N point propagators
   local N = nsrc    -- number of points to compute propagators at
-  local seed = cfgnum + jobid
-  -- local seed = 10     -- for testing
+  -- local seed = cfgnum + jobid
+  local seed = 10     -- for testing
   -- local seed = os.time()
   math.randomseed(seed)
   local S_list = {}
