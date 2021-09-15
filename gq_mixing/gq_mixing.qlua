@@ -188,6 +188,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
   -- Computes N point propagators
   local N = nsrc    -- number of points to compute propagators at
   local seed = cfgnum + jobid
+  -- local seed = 10     -- for testing
   -- local seed = os.time()
   math.randomseed(seed)
   local S_list = {}
@@ -251,7 +252,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     local b = {{}, {}, {}, {}}
     for mu1 = 0, #L - 1 do
       for nu1 = 0, #L - 1 do
-        local bmunu = L:DiracFermionN(Nc)
+        local bmunu = L:DiracPropagatorN(Nc)
         for i = 1, #S_list do
           local prop = S_list[i]
           local y = pts[i]
@@ -449,7 +450,7 @@ local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbas
 local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
 -- for testing
--- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
 -- local flowed_file = gauge_file
 
 print("Reading gauge file at: %s\n", gauge_file)
