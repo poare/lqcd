@@ -275,6 +275,18 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     end
     local FT = FTarg:expi()   -- e^{ipx}
 
+    for mu = 0, #L - 1 do
+      for nu = 0, #L - 1 do
+        printf("Inverting component (%d, %d) of Gqq.", mu, nu)
+        local M = compute_propagator(U, ferm_prop, b[mu + 1][nu + 1])
+        local Gqq = (FT * M) : sum()
+        local Gqq_path = string.format("Gqq/%d%d/p%d%d%d%d", mu + 1, nu + 1, p[1], p[2], p[3], p[4])
+        h5_force_write(writer, Gqq_path, Gqq)
+        printf("Component (%d, %d) of 3-dim irrep for Gqq written at: %s\n", mu, nu, Gqq_path)
+      end
+    end
+
+    --[[
     local b3dim = {
       (b[3][3] - b[4][4]) / math.sqrt(2),
       (b[1][1] - b[2][2]) / math.sqrt(2),
@@ -305,6 +317,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
       h5_force_write(writer, Gqq6_path, Gqq6)
       printf("Component %d of 6-dim irrep for Gqq written at: %s\n", i, Gqq6_path)
     end
+    ]]
 
   end
 
