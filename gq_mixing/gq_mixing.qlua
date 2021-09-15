@@ -384,15 +384,15 @@ else
 end
 
 -- Set parameters
-Lx = 48
-Lt = 96
-beta = 6.3
-mq = -0.2416    -- TODO figure out how to update for 2 + 1 quark flavors
+-- Lx = 48
+-- Lt = 96
+-- beta = 6.3
+-- mq = -0.2416    -- TODO figure out how to update for 2 + 1 quark flavors
 
--- Lx = 16
--- Lt = 48
--- beta = 6.1
--- mq = -0.2450
+Lx = 16
+Lt = 48
+beta = 6.1
+mq = -0.2450
 
 kappa = 1 / (2 * mq + 8)
 
@@ -446,12 +446,13 @@ local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {10,
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
-local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- uncomment to actually run
+-- local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
 -- for testing
--- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
--- local flowed_file = gauge_file
+local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
+local flowed_file = gauge_file
 
 print("Reading gauge file at: %s\n", gauge_file)
 
