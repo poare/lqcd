@@ -294,11 +294,11 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     M3[i] = {}
     M6[i] = {}
     print("Constructing sequential propagators for 3-dim H(4) irrep.")
-    for k = 1, #b3_dim do
+    for k = 1, #b3dim do
       M3[i][k] = compute_propagator(U, ferm_prop, b3dim[i][k])
     end
     print("Constructing sequential propagators for 6-dim H(4) irrep.")
-    for l = 1, #b6_dim do
+    for l = 1, #b6dim do
       M6[i][l] = compute_propagator(U, ferm_prop, b6dim[i][l])
     end
   end
