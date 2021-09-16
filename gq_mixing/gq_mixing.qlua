@@ -183,12 +183,11 @@ end
 function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, nsrc, cfgnum, jobid)
   print("Computing through the operator.")
   local bvec = {0, 0, 0, 0.5}
-  local origin = {0, 0, 0, 0}
 
   -- Computes N point propagators
   local N = nsrc    -- number of points to compute propagators at
-  -- local seed = cfgnum + jobid
-  local seed = 10     -- for testing
+  local seed = cfgnum + jobid
+  -- local seed = 10     -- for testing
   -- local seed = os.time()
   math.randomseed(seed)
   local S_list = {}
@@ -199,8 +198,6 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     local y = {}
     for mu = 0, #L - 1 do
       y[mu + 1] = math.random(0, L[mu] - 1)
-      -- print("Using origin for testing y = (0, 0, 0, 0).")
-      -- y[mu + 1] = 0
     end
     pts[i] = y
     local src = compute_point_source(U, y)
@@ -254,7 +251,6 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
   end
 
   print("Constructing sequential sources for Gqq and projecting to H(4) irreps.")
-  -- local b = {{}, {}, {}, {}}
   local b = {}
   for i = 1, #S_list do
     b[i] = {}
@@ -265,7 +261,6 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
       for nu1 = 0, #L - 1 do
         b[i][mu1 + 1][nu1 + 1] = (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
                 - gamma{mu = mu1} * (U[nu1 + 1]:shift(nu1, "from_backward"):adjoin() * prop:shift(nu1, "from_backward")))
-        -- M[i][mu1 + 1][nu1 + 1] = compute_propagator(U, ferm_prop, b)
       end
     end
   end
@@ -343,77 +338,6 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     end
   end
 
-  -- -- print("Projecting sequential sources onto 3 and 6 dimensional H(4) irreps and inverting sequential sources.")
-  -- print("Constructing Gqq.")
-  -- for mu = 0, #L - 1 do
-  --   for nu = 0, #L - 1 do
-  --     for pidx = 1, #p_list do
-  --       local p = p_list[pidx]
-  --       local Gqq = qcd.DiracPropagatorN(Nc)
-  --       for i = 1, #S_list do
-  --         local y = pts[i]
-  --         local FTarg = L:Real(0)
-  --         for rho = 0, #L - 1 do
-  --           FTarg = FTarg + (L:Real(L:pcoord(rho)) - L:Real(y[rho + 1])) * (p[rho + 1] + bvec[rho + 1]) * 2 * math.pi / L[rho]
-  --         end
-  --         local FT = FTarg:expi()   -- e^{ipx}
-  --         Gqq = Gqq + (FT * M[i][mu + 1][nu + 1]) : sum()
-  --       end
-  --       local Gqq_path = string.format("Gqq/%d%d/p%d%d%d%d", mu + 1, nu + 1, p[1], p[2], p[3], p[4])
-  --       h5_force_write(writer, Gqq_path, Gqq)
-  --       printf("Component (%d, %d) of Gqq written at: %s\n", mu, nu, Gqq_path)
-  --     end
-  --   end
-  -- end
-
-  -- implement this earlier, before the inversions
-  --[[
-  local b3dim = {
-    (b[3][3] - b[4][4]) / math.sqrt(2),
-    (b[1][1] - b[2][2]) / math.sqrt(2),
-    (b[1][1] + b[2][2] - b[3][3] - b[4][4]) / 2.0
-  }
-  for i = 1, #b3dim do
-    printf("Inverting operator %d of the 3-dim irrep.", i)
-    local M = compute_propagator(U, ferm_prop, b3dim[i])
-    for pidx = 1, #p_list do
-      local FTarg = L:Real(0)
-      for mu = 0, #L - 1 do
-        FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      end
-      local FT = FTarg:expi()   -- e^{ipx}
-      local Gqq3 = (FT * M) : sum() / hypervolume
-      local Gqq3_path = string.format("Gqq/3%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
-      h5_force_write(writer, Gqq3_path, Gqq3)
-      printf("Component %d of 3-dim irrep for Gqq written at: %s\n", i, Gqq3_path)
-    end
-  end
-
-  local b6dim = {
-    (b[1][2] + b[2][1]) / math.sqrt(2),
-    (b[1][3] + b[3][1]) / math.sqrt(2),
-    (b[1][4] + b[4][1]) / math.sqrt(2),
-    (b[2][3] + b[3][2]) / math.sqrt(2),
-    (b[2][4] + b[4][2]) / math.sqrt(2),
-    (b[3][4] + b[4][3]) / math.sqrt(2),
-  }
-  for i = 1, #b6dim do
-    printf("Inverting operator %d of the 6-dim irrep.", i)
-    local M = compute_propagator(U, ferm_prop, b6dim[i])
-    for pidx = 1, #p_list do
-      local FTarg = L:Real(0)
-      for mu = 0, #L - 1 do
-        FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      end
-      local FT = FTarg:expi()   -- e^{ipx}
-      local Gqq6 = (FT * M) : sum() / hypervolume
-      local Gqq6_path = string.format("Gqq/6%d/p%d%d%d%d", i, p[1], p[2], p[3], p[4])
-      h5_force_write(writer, Gqq6_path, Gqq6)
-      printf("Component %d of 6-dim irrep for Gqq written at: %s\n", i, Gqq6_path)
-    end
-  end
-  ]]
-
 end
 
 --[[
@@ -490,15 +414,15 @@ else
 end
 
 -- Set parameters
--- Lx = 48
--- Lt = 96
--- beta = 6.3
--- mq = -0.2416    -- TODO figure out how to update for 2 + 1 quark flavors
+Lx = 48
+Lt = 96
+beta = 6.3
+mq = -0.2416    -- TODO figure out how to update for 2 + 1 quark flavors
 
-Lx = 16
-Lt = 48
-beta = 6.1
-mq = -0.2450
+-- Lx = 16        -- for testing
+-- Lt = 48
+-- beta = 6.1
+-- mq = -0.2450
 
 kappa = 1 / (2 * mq + 8)
 
@@ -521,8 +445,7 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
--- local csw = 1.20536588031793    -- TODO update this
-local csw = 1    -- uncomment after testing is done
+local csw = 1.20536588031793
 local bcs = {1, 1, 1, -1}
 
 local clover
@@ -536,7 +459,7 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
-local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {10, 10, 10, 10}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
+local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
 -- local p_list_NPR = {}
 -- local a = 1
 -- local b = 3
@@ -553,12 +476,12 @@ local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {10,
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 -- uncomment to actually run
--- local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
--- local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
 -- for testing
-local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
-local flowed_file = gauge_file
+-- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
+-- local flowed_file = gauge_file
 
 print("Reading gauge file at: %s\n", gauge_file)
 
