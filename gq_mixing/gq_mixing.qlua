@@ -263,7 +263,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     for mu1 = 0, #L - 1 do
       b[i][mu1 + 1] = {}
       for nu1 = 0, #L - 1 do
-        local b[i][mu1 + 1][nu1 + 1] = (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
+        b[i][mu1 + 1][nu1 + 1] = (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
                 - gamma{mu = mu1} * (U[nu1 + 1]:shift(nu1, "from_backward"):adjoin() * prop:shift(nu1, "from_backward")))
         -- M[i][mu1 + 1][nu1 + 1] = compute_propagator(U, ferm_prop, b)
       end
