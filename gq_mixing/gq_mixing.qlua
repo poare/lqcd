@@ -284,10 +284,10 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
       -- printf("Inverting component (%d, %d) of Gqq.", mu, nu)
       -- local M = compute_propagator(U, ferm_prop, b[mu + 1][nu + 1])
       for pidx = 1, #p_list do
+        local p = p_list[pidx]
         local Gqq = qcd.DiracPropagatorN(Nc)
         for i = 1, #S_list do
           local y = pts[i]
-          local p = p_list[pidx]
           local FTarg = L:Real(0)
           for rho = 0, #L - 1 do
             FTarg = FTarg + (L:Real(L:pcoord(rho)) - L:Real(y[rho + 1])) * (p[rho + 1] + bvec[rho + 1]) * 2 * math.pi / L[rho]
