@@ -275,8 +275,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
     end
   end
 
-  -- TODO update this so that it only computes H(4) irreps instead of mu nu. First test it with mu nu to make sure it agrees
-  -- with npr_momfrac.
+
 
   -- print("Projecting sequential sources onto 3 and 6 dimensional H(4) irreps and inverting sequential sources.")
   print("Constructing Gqq.")
@@ -287,6 +286,7 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
       for pidx = 1, #p_list do
         local Gqq = qcd.DiracPropagatorN(Nc)
         for i = 1, #S_list do
+          local y = pts[i]
           local FTarg = L:Real(0)
           for rho = 0, #L - 1 do
             FTarg = FTarg + (L:Real(L:pcoord(rho)) - L:Real(y[rho + 1])) * (p[rho + 1] + bvec[rho + 1]) * 2 * math.pi / L[rho]
