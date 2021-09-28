@@ -268,8 +268,8 @@ def corr_linear_fit(fit_region, data, x_extrap, nfits = n_boot):
 
 # performs an uncorrelated fit to superboot objects. This performs (n_boot x n_ens) fits,
 # where n_ens is the
-# fit form is y_i = c_0 * x_i + c_1
-def uncorr_linear_fit(fit_region, superboot_data, x_extrap):
+# fit form is y_i = c_1 * x_i + c_0
+def uncorr_linear_fit(fit_region, superboot_data, x_extrap, label = 'Lambda_ij'):
     n_ens = len(superboot_data)
     nb = superboot_data[0].n_boot
     assert n_ens == superboot_data[0].n_ens
@@ -288,14 +288,15 @@ def uncorr_linear_fit(fit_region, superboot_data, x_extrap):
             fit_params[1].boots[k, b] = c1
             chi2_boots.boots[k, b] = chi2(out['x'], data_fit, sigma_fit)
             y_extrap.boots[k, b] = c0 * x_extrap + c1
-    for i in range(n_ens):
+    # for i in range(n_ens):
+    for i in range(2):      # two fit coefficients
         fit_params[i].compute_mean()
         fit_params[i].compute_std()
     chi2_boots.compute_mean()
     chi2_boots.compute_std()
     y_extrap.compute_mean()
     y_extrap.compute_std()
-    print('Extrapolated result for Lambda_ij: ' + str(y_extrap.mean) + ' \pm ' + str(y_extrap.std))
+    print('Extrapolated result for ' + label + ': ' + str(y_extrap.mean) + ' \pm ' + str(y_extrap.std))
     return fit_params, chi2_boots, y_extrap
 
 # performs an uncorrelated fit to superboot objects. This performs (n_boot x n_ens) fits,
@@ -327,7 +328,7 @@ def uncorr_const_fit(fit_region, superboot_data, x_extrap): # TODO constant fit 
 # Performs a correlated fit in powers of (ap)^2 to the data. Assumes that data
 # is a MATRIX of shape [len(fit_range), Superboot.boots], i.e. indexed by (momenta, ens_idx, boot)
 # order is what power of \mu^2 to fit to. mu1 = 3 GeV is the matching point
-def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1):
+def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1, label = 'Z_ij / Z_V^2'):
     n_pts = len(fit_region)
     assert n_pts == data.shape[0]
     n_ens = data.shape[1]
@@ -366,8 +367,8 @@ def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1):
             chi2_fits[k, b] = chi2(out['x'], data_fit, sigma_fit)
             y_extrap[k, b] = np.sum(out['x'] * mu1_moments)
             print(fit_coeffs[:, k, b])
-            print(chi2_fits[k, b])
-            print(y_extrap[k, b])
+            print('Chi^2: ' + str(chi2_fits[k, b]))
+            print('Extrapolated ' + label + ' = ' + str(y_extrap[k, b]))
     return fit_coeffs, chi2_fits, y_extrap
 
 # data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
@@ -421,8 +422,13 @@ def weighted_sum_bootstrap(meff, weights):
     return np.einsum('fb,f->b', meff, weights)
 
 # spreads a dataset in a correlated way to have standard deviation new_std.
-def spread_boots(data, new_std):
-    return 0
+def spread_boots(data, new_std, boot_axis = 0):
+    old_std = np.std(data, axis = boot_axis, ddof = 1)
+    mu = np.mean(data, axis = boot_axis)
+    spread_data = np.full(data.shape, mu, dtype = data.dtype)
+    spread_factor = new_std / old_std
+    spread_data += spread_factor * (data - spread_data)
+    return spread_data
 
 # VarPro code
 

@@ -7,7 +7,7 @@ n_boot = 50
 from utils import *
 
 ################################## PARAMETERS #################################
-jobid = 89127
+jobid = 89346
 base = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/meas/'
 stem = 'cl21_48_96_b6p3_m0p2416_m0p2050_' + str(jobid)
 data_dir = base + stem
@@ -31,19 +31,19 @@ print('Reading ' + str(n_cfgs) + ' configs.')
 
 start = time.time()
 Zq = np.zeros((len(k_list), n_boot), dtype = np.complex64)
-Gamma_qg_list = np.zeros((len(q_list), 4, 4, n_boot, 3, 4, 3, 4), dtype = np.complex64)
-Gamma_qq3_list = np.zeros((len(q_list), 3, n_boot, 3, 4, 3, 4), dtype = np.complex64)
-Gamma_qq6_list = np.zeros((len(q_list), 6, n_boot, 3, 4, 3, 4), dtype = np.complex64)
+Gamma_qg_list = np.zeros((len(k_list), 4, 4, n_boot, 3, 4, 3, 4), dtype = np.complex64)
+Gamma_qq3_list = np.zeros((len(k_list), 3, n_boot, 3, 4, 3, 4), dtype = np.complex64)
+Gamma_qq6_list = np.zeros((len(k_list), 6, n_boot, 3, 4, 3, 4), dtype = np.complex64)
 for k_idx, k in enumerate(k_list):
     print('Momentum index: ' + str(k_idx))
-    k_lat = to_lattice_momentum(k + bvec)
+    k_lat = L.to_lattice_momentum(k + bvec)
     props, Gqg, Gqq3, Gqq6 = readfiles(cfgs, k)
     props_b = bootstrap(props)
-    Gqg_boot = np.array([[bootstrap(Gqq[mu][nu]) for nu in range(4)] for mu in range(4)])    # TODO figure out order of (mu, nu) (although won't matter bc symmetrizing)
+    Gqg_boot = np.array([[bootstrap(Gqg[mu][nu]) for nu in range(4)] for mu in range(4)])    # TODO figure out order of (mu, nu) (although won't matter bc symmetrizing)
     Gqq3_boot, Gqq6_boot = np.array([bootstrap(Gqq3[a]) for a in range(3)]), np.array([bootstrap(Gqq6[a]) for a in range(6)])
     props_inv = invert_props(props_b)
     Zq[k_idx] = quark_renorm(props_inv, k_lat)
-    GammaV, GammaA = np.zeros(GV_boot.shape, dtype = np.complex64), np.zeros(GA_boot.shape, dtype = np.complex64)
+    print(Zq[k_idx])
     Gamma_qg, Gamma_qq3, Gamma_qq6 = np.zeros(Gqg_boot.shape, dtype = np.complex64), np.zeros(Gqq3_boot.shape, np.complex64), np.zeros(Gqq6_boot.shape, np.complex64)
     for mu, nu in itertools.product(range(4), repeat = 2):
         Gamma_qg[mu, nu] = amputate_threepoint(props_inv, props_inv, Gqg_boot[mu, nu])
