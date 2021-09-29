@@ -4,6 +4,8 @@
 #include <vector>
 #include <fstream>
 #include <gmpxx.h>
+// #include "gmp.h"
+// #include <gmp.h>
 #include <cmath>
 #include <algorithm>
 #include <Eigen/Dense>
@@ -11,7 +13,7 @@
 
 //precision class is used to define typenames
 //template T can be any precision type, e.g. double or mpf_class
-template <class T> 
+template <class T>
 class precision_ {
 protected:
     using nev_real = T;
@@ -43,7 +45,7 @@ public:
             freq_[i] = nev_complex{0., freq};
             val_[i] = (val - I) / (val + I); //Mobius transform from NG to theta
         }
-        //reverse input frequency order (decreasing then) and the corresponding thetas, 
+        //reverse input frequency order (decreasing then) and the corresponding thetas,
         //which tests to be the most robust interpolation order with Schur algorithm
         std::reverse(freq_.begin(),freq_.end());
         std::reverse(val_.begin(), val_.end());

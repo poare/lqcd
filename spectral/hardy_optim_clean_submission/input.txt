@@ -1,0 +1,1 @@
+/Users/theoares/lqcd/spectral/hardy_optim_clean_submission/test/freqs.txt 2 /Users/theoares/lqcd/spectral/hardy_optim_clean_submission/test/out.txt
