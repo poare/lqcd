@@ -3,6 +3,11 @@ from scipy.optimize import root
 import h5py
 import os
 import xml.etree.ElementTree as ET
+
+import sys
+home = '/Users/theoares/'
+# home = '/Users/poare/'
+sys.path.append(home + 'lqcd/0nubb/python_scripts')
 from utils import *
 
 Nd = 4

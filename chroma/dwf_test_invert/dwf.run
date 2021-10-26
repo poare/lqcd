@@ -8,7 +8,8 @@
 echo "hee"
 
 source /usr/local/Modules/init/bash
-TOPDIR=/data/d10a/projects/wdetmold_viz
+# TOPDIR=/data/d10a/projects/wdetmold_viz
+TOPDIR=/home/poare/lqcd/chroma/dwf_test_invert
 
 set -x
 
@@ -31,4 +32,4 @@ export QUDA_REORDER_LOCATION=GPU #GPU/CPU
 export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
 #mpirun -np $nCores $application -i dwf.ini   -qmpgeom ${GEOM}  -geom ${GEOM}
-mpirun -np $nCores $application -i /home/poare/lqcd/chroma/dwf_test_invert/prec_qudanef.ini.xml -o /data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/will_viz_test.out.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
+mpirun -np $nCores $application -i prec_qudanef.ini.xml -o /data/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/will_viz_test.out.xml  -qmpgeom ${GEOM}  -geom ${GEOM}

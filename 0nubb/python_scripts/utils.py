@@ -409,6 +409,7 @@ def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
 # weights should not be normalized, this will make sure it is.
 def analyze_accepted_fits(meff, weights):
     weights = weights / np.sum(weights)
+    # probs get the bootstrap samples here
     meff_mu_f, meff_sigma_f = np.mean(meff, axis = 1), np.std(meff, axis = 1, ddof = 1)
     meff_bar = np.sum(weights * meff_mu_f)
     dmeff_stat_sq = np.sum(weights * (meff_sigma_f ** 2))

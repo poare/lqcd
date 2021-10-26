@@ -7,6 +7,7 @@ import re
 import itertools
 import io
 import random
+import matplotlib.pyplot as plt
 
 # Set precision for gmpy2 and initialize complex numbers
 prec = 128
@@ -22,6 +23,31 @@ def conj(z):
     """Returns the conjugate of a gmp.mpc value z. For some reason, the built in mpc function .conj
     breaks when it is called."""
     return gmp.mpc(z.real, -z.imag)
+
+def is_zero(z, epsilon = 1e-10):
+    """
+    Returns whether a gmp.mpc number z is consistent with 0 to the precision epsilon in both the
+    real and imaginary parts.
+    """
+    return np.abs(np.float64(z.real)) < epsilon and np.abs(np.float64(z.imag)) < epsilon
+
+def hardy(k):
+    """
+    Returns the kth basis element f^k for the standard Hardy space basis.
+
+    Parameters
+    ----------
+    k : int
+        Element of the Hardy basis to return.
+
+    Returns
+    -------
+    function fk : gmp.mpc -> gmp.mpc
+        kth basis function for the Hardy space.
+    """
+    def fk(z):
+        return 1 / (gmp.sqrt(gmp.const_pi()) * (z + I)) * ((z - I) / (z + I)) ** k
+    return fk
 
 def read_txt_input(data_path):
     """
@@ -99,7 +125,7 @@ def construct_phis(Y, lam):
     Parameters
     ----------
     Y : np.array[gmp.mpc]
-        Matsubara frequencies the correlator is measured at.
+        Mobius transform of Matsubara frequencies the correlator is measured at.
     lam : np.array[gmp.mpc]
         Mobius transform of the input correlator.
 
@@ -111,6 +137,7 @@ def construct_phis(Y, lam):
     Npts = len(Y)
     abcd_bar_lst = []
     for k in range(Npts - 1):
+    # for k in range(Npts):
         id = np.array([
             [gmp.mpc(1, 0), gmp.mpc(0, 0)],
             [gmp.mpc(0, 0), gmp.mpc(1, 0)]
@@ -120,7 +147,9 @@ def construct_phis(Y, lam):
     phi[0] = lam[0]
     for k in range(Npts - 1):
         for j in range(k, Npts - 1):
+        # for j in range(k, Npts):
             xik = (Y[j + 1] - Y[k]) / (Y[j + 1] - conj(Y[k]))
+            # xik = (Y[j] - Y[k]) / (Y[j] - conj(Y[k]))
             factor = np.array([
                 [xik, phi[k]],
                 [conj(phi[k]) * xik, gmp.mpc(1, 0)]
@@ -128,7 +157,12 @@ def construct_phis(Y, lam):
             abcd_bar_lst[j] = abcd_bar_lst[j] @ factor
         num = lam[k + 1] * abcd_bar_lst[k][1, 1] - abcd_bar_lst[k][0, 1]
         denom = abcd_bar_lst[k][0, 0] - lam[k + 1] * abcd_bar_lst[k][1, 0]
-        phi[k + 1] = num / denom
+        # num = lam[k + 1] * abcd_bar_lst[k + 1][1, 1] - abcd_bar_lst[k + 1][0, 1]
+        # denom = abcd_bar_lst[k + 1][0, 0] - lam[k + 1] * abcd_bar_lst[k + 1][1, 0]
+        if is_zero(num):
+            phi[k + 1] = gmp.mpc(0, 0)
+        else:
+            phi[k + 1] = num / denom
     return phi
 
 def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
@@ -143,7 +177,7 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
     phi : np.array[gmp.mpc]
         Vector of phi[k] = theta_k(Y_k) values to input.
     zspace : np.array[np.float64]
-        Linspace to evaluate the analytic continuation at.
+        Linspace to evaluate the analytic continuation at, defined on C+
     theta_mp1 : Function
         Free function theta_{M + 1}(z) to fix in the algorithm.
 
@@ -160,7 +194,9 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
             [gmp.mpc(0, 0), gmp.mpc(1, 0)]
         ])
         for k in range(Npts):
+            # print('k: ' + str(k))
             xikz = (z - Y[k]) / (z - conj(Y[k]))
+            # print('xi' + str(k) + ' is ' + str(xikz))
             factor = np.array([
                 [xikz, phi[k]],
                 [conj(phi[k]) * xikz, gmp.mpc(1, 0)]
@@ -168,7 +204,10 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
             abcd = abcd @ factor
         num = abcd[0, 0] * theta_mp1(z) + abcd[0, 1]
         denom = abcd[1, 0] * theta_mp1(z) + abcd[1, 1]
-        theta = num / denom         # contractive function theta(z)
+        if is_zero(num):
+            theta = gmp.mpc(0, 0)
+        else:
+            theta = num / denom         # contractive function theta(z)
         cont[idx] = hinv(theta)
     return cont
 
@@ -188,6 +227,7 @@ def write_txt_output(out_path, data, Nreal, omega, eta):
         Pair of values [omega_min, omega_max] with the minimum and maximum values of omega.
     eta : float
         Imaginary part of evaluation line, i.e. the function is evaluated at f(x + i\eta) with x real.
+
     Returns
     -------
     """

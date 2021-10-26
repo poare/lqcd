@@ -1,12 +1,13 @@
 
 ################################################################################
-# This script saves a list of all common utility functions that I may need to  #
-# use in my python code. To import the script, simply add the path with sys    #
-# before importing. For example, if lqcd/ is in /Users/theoares:               #
+# This script saves a list of common utility functions for general data        #
+# processing that I may need to use in my python code. To import the script,   #
+# simply add the path with sys before importing. For example, if lqcd/ is in   #
+# /Users/theoares:                                                             #
 #                                                                              #
-# import sys
-# sys.path.append('/Users/theoares/lqcd/utilities')
-# from pytools import *
+# import sys                                                                   #
+# sys.path.append('/Users/theoares/lqcd/utilities')                            #
+# from pytools import *                                                        #
 ################################################################################
 
 from __main__ import *
