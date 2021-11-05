@@ -186,13 +186,14 @@ def plot_complex2D(ax, redom, imdom, dat, col = 'hot', title = 'Plot of function
     ax.set_ylabel(ax_label[1])
     return ax, graph
 
-def add_points(ax, redom, imdom, dat, col = 'r'):
+def add_points(ax, redom, imdom, dat, col = 'r', size = 10, lw = 8):
     if type(ax) == Axes3D:
         # ax.plot(redom, imdom, dat, marker = 'x', markersize = 5, c = col)    # this has a problem rendering
         for ii in range(len(dat)):
             add_point_3D(ax, redom[ii], imdom[ii], dat[ii], c = col)
     else: # then it's a 2D axes object
-        ax.scatter(redom, imdom, dat, marker = 'x', c = col, linewidth = 8)
+        # ax.scatter(redom, imdom, dat, marker = 'x', c = col, linewidth = lw)
+        ax.scatter(redom, imdom, s = size, marker = 'x', c = col, linewidth = lw)
 
 def add_point_3D(ax, x, y, z, c = 'r', radius = 0.05):
     xy_len, z_len = ax.get_figure().get_size_inches()

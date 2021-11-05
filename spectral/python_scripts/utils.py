@@ -24,6 +24,14 @@ def conj(z):
     breaks when it is called."""
     return gmp.mpc(z.real, -z.imag)
 
+def to_mpfr(z):
+    """Reformats a np.real number into a gmpy2.mpfr number"""
+    return gmp.mpfr(z)
+
+def to_mpc(z):
+    """Reformats a np.complex number into a gmpy2.mpc number"""
+    return gmp.mpc(z)
+
 def is_zero(z, epsilon = 1e-10):
     """
     Returns whether a gmp.mpc number z is consistent with 0 to the precision epsilon in both the
@@ -46,6 +54,7 @@ def hardy(k):
         kth basis function for the Hardy space.
     """
     def fk(z):
+        """kth basis element for the standard Hardy space basis. Acts on gmpy2.mpc numbers."""
         return 1 / (gmp.sqrt(gmp.const_pi()) * (z + I)) * ((z - I) / (z + I)) ** k
     return fk
 
@@ -113,11 +122,39 @@ def construct_Pick(Y, lam):
     for i, j in itertools.product(range(Npts), repeat = 2):
         num = 1 - lam[i] * conj(lam[j])
         denom = 1 - h(Y[i]) * conj(h(Y[j]))
+        print(num)
+        print(denom)
         Pick[i, j] = num / denom
     return Pick
 
+def is_soluble(Y, lam, prec = 1e-10):
+    """
+    Determines if there is a Nevanlinna interpolant to this set of Y and lambda values.
+
+    Parameters
+    ----------
+    Y : np.array[gmp.mpc]
+        Matsubara frequencies the correlator is measured at.
+    lam : np.array[gmp.mpc]
+        Mobius transform of the input correlator.
+
+    Returns
+    -------
+    bool
+        True if there is a Nevanlinna interpolant, False otherwise.
+    """
+    Pick = construct_Pick(Y, lam)
+    Pick_np = np.complex64(Pick)
+    eigs, _ = np.linalg.eigh(Pick_np)
+    soluble = True
+    for eig in eigs:
+        if eig < 0 and not np.abs(eig) < prec:
+            soluble = False
+    return soluble
+
 def construct_phis(Y, lam):
     """
+    This is the indexing I've been using.
     Constructs the phi[k] values needed to perform the Nevanlinna analytic continuation.
     At each iterative step k, phi[k] is defined as theta_k(Y_k), where theta_k is the kth
     iterative approximation to the continuation.
@@ -137,7 +174,6 @@ def construct_phis(Y, lam):
     Npts = len(Y)
     abcd_bar_lst = []
     for k in range(Npts - 1):
-    # for k in range(Npts):
         id = np.array([
             [gmp.mpc(1, 0), gmp.mpc(0, 0)],
             [gmp.mpc(0, 0), gmp.mpc(1, 0)]
@@ -147,9 +183,7 @@ def construct_phis(Y, lam):
     phi[0] = lam[0]
     for k in range(Npts - 1):
         for j in range(k, Npts - 1):
-        # for j in range(k, Npts):
             xik = (Y[j + 1] - Y[k]) / (Y[j + 1] - conj(Y[k]))
-            # xik = (Y[j] - Y[k]) / (Y[j] - conj(Y[k]))
             factor = np.array([
                 [xik, phi[k]],
                 [conj(phi[k]) * xik, gmp.mpc(1, 0)]
@@ -157,12 +191,60 @@ def construct_phis(Y, lam):
             abcd_bar_lst[j] = abcd_bar_lst[j] @ factor
         num = lam[k + 1] * abcd_bar_lst[k][1, 1] - abcd_bar_lst[k][0, 1]
         denom = abcd_bar_lst[k][0, 0] - lam[k + 1] * abcd_bar_lst[k][1, 0]
-        # num = lam[k + 1] * abcd_bar_lst[k + 1][1, 1] - abcd_bar_lst[k + 1][0, 1]
-        # denom = abcd_bar_lst[k + 1][0, 0] - lam[k + 1] * abcd_bar_lst[k + 1][1, 0]
+        print('k: ' + str(k))
+        print('abcd|_{Y_k} is: ' + str(abcd_bar_lst[k]))
+        print('num is: ' + str(num))
+        print('denom is: ' + str(denom))
         if is_zero(num):
             phi[k + 1] = gmp.mpc(0, 0)
         else:
             phi[k + 1] = num / denom
+        print('phi_{k + 1}: ' + str(phi[k + 1]))
+    return phi
+
+def construct_phis_theirs(Y, lam):
+    """
+    This is the indexing used in the code from the Nevanlinna paper.
+    Constructs the phi[k] values needed to perform the Nevanlinna analytic continuation.
+    At each iterative step k, phi[k] is defined as theta_k(Y_k), where theta_k is the kth
+    iterative approximation to the continuation.
+
+    Parameters
+    ----------
+    Y : np.array[gmp.mpc]
+        Mobius transform of Matsubara frequencies the correlator is measured at.
+    lam : np.array[gmp.mpc]
+        Mobius transform of the input correlator.
+
+    Returns
+    -------
+    np.array[gmp.mpc]
+        Values of phi[k] = theta_k(Y_k).
+    """
+    Npts = len(Y)
+    abcd_bar_lst = []
+    for k in range(Npts):
+        id = np.array([
+            [gmp.mpc(1, 0), gmp.mpc(0, 0)],
+            [gmp.mpc(0, 0), gmp.mpc(1, 0)]
+        ])
+        abcd_bar_lst.append(id)
+    phi = np.full((Npts), gmp.mpc(0, 0), dtype = object)
+    phi[0] = lam[0]
+    for j in range(Npts - 1):
+        for k in range(j, Npts):
+            xik = (Y[k] - Y[j]) / (Y[k] - conj(Y[j]))
+            factor = np.array([
+                [xik, phi[j]],
+                [conj(phi[j]) * xik, gmp.mpc(1, 0)]
+            ])
+            abcd_bar_lst[k] = abcd_bar_lst[k] @ factor
+        num = -abcd_bar_lst[j + 1][1, 1] * lam[j + 1] + abcd_bar_lst[j + 1][0, 1]
+        denom = abcd_bar_lst[j + 1][1, 0] * lam[j + 1] - abcd_bar_lst[j + 1][0, 0]
+        if is_zero(num):
+            phi[j + 1] = gmp.mpc(0, 0)
+        else:
+            phi[j + 1] = num / denom
     return phi
 
 def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
@@ -208,6 +290,7 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
             theta = gmp.mpc(0, 0)
         else:
             theta = num / denom         # contractive function theta(z)
+        print(theta)    # theta(z) should have norm <= 1
         cont[idx] = hinv(theta)
     return cont
 
