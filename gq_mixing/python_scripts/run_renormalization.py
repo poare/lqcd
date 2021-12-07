@@ -7,7 +7,8 @@ n_boot = 50
 from utils import *
 
 ################################## PARAMETERS #################################
-jobid = 89346
+# jobid = 89346
+jobid = 90712
 base = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/meas/'
 stem = 'cl21_48_96_b6p3_m0p2416_m0p2050_' + str(jobid)
 data_dir = base + stem
@@ -28,6 +29,8 @@ for idx, cfg in enumerate(cfgs):
     cfgs[idx] = data_dir + '/' + cfgs[idx]
 n_cfgs = len(cfgs)
 print('Reading ' + str(n_cfgs) + ' configs.')
+
+irrep = 3    # 3 or 6
 
 start = time.time()
 Zq = np.zeros((len(k_list), n_boot), dtype = np.complex64)

@@ -3,8 +3,8 @@ import sys
 sys.path.append('/Users/theoares/lqcd/utilities')
 from pytools import *
 
-# n_boot = 50
-# set_boots(n_boot)
+n_boot = 50
+set_boots(n_boot)
 
 def readfiles(cfgs, k):
     props = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
@@ -12,10 +12,10 @@ def readfiles(cfgs, k):
     Gqq3 = np.zeros((3, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
     Gqq6 = np.zeros((6, len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
     for idx, file in enumerate(cfgs):
-        print(file)
+        # print(file)
         f = h5py.File(file, 'r')
         kstr = klist_to_string(k, 'p')
-        print('prop/' + kstr)
+        # print('prop/' + kstr)
         props[idx] = np.einsum('ijab->aibj', f['prop/' + kstr][()])
         for mu, nu in itertools.product(range(4), repeat = 2):
             Gqg[mu, nu, idx] = np.einsum('ijab->aibj', f['Gqg' + str(mu + 1) + str(nu + 1) + '/' + kstr][()])
