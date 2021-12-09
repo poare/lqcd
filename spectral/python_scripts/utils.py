@@ -9,6 +9,10 @@ import io
 import random
 import matplotlib.pyplot as plt
 
+################################################################################
+################################## Nevanlinna ##################################
+################################################################################
+
 # Set precision for gmpy2 and initialize complex numbers
 prec = 128
 gmp.get_context().allow_complex = True
@@ -119,12 +123,11 @@ def construct_Pick(Y, lam):
     """
     Npts = len(Y)
     Pick = np.empty((Npts, Npts), dtype = object)
-    for i, j in itertools.product(range(Npts), repeat = 2):
-        num = 1 - lam[i] * conj(lam[j])
-        denom = 1 - h(Y[i]) * conj(h(Y[j]))
-        print(num)
-        print(denom)
-        Pick[i, j] = num / denom
+    for i in range(Npts):
+        for j in range(Npts):
+            num = 1 - lam[i] * conj(lam[j])
+            denom = 1 - h(Y[i]) * conj(h(Y[j]))
+            Pick[i, j] = num / denom
     return Pick
 
 def is_soluble(Y, lam, prec = 1e-10):
@@ -191,15 +194,11 @@ def construct_phis(Y, lam):
             abcd_bar_lst[j] = abcd_bar_lst[j] @ factor
         num = lam[k + 1] * abcd_bar_lst[k][1, 1] - abcd_bar_lst[k][0, 1]
         denom = abcd_bar_lst[k][0, 0] - lam[k + 1] * abcd_bar_lst[k][1, 0]
-        print('k: ' + str(k))
-        print('abcd|_{Y_k} is: ' + str(abcd_bar_lst[k]))
-        print('num is: ' + str(num))
-        print('denom is: ' + str(denom))
         if is_zero(num):
             phi[k + 1] = gmp.mpc(0, 0)
         else:
             phi[k + 1] = num / denom
-        print('phi_{k + 1}: ' + str(phi[k + 1]))
+        # print('phi_{k + 1}: ' + str(phi[k + 1]))
     return phi
 
 def construct_phis_theirs(Y, lam):
@@ -290,7 +289,7 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
             theta = gmp.mpc(0, 0)
         else:
             theta = num / denom         # contractive function theta(z)
-        print(theta)    # theta(z) should have norm <= 1
+        # print(theta)    # theta(z) should have norm <= 1
         cont[idx] = hinv(theta)
     return cont
 
@@ -322,3 +321,252 @@ def write_txt_output(out_path, data, Nreal, omega, eta):
         f.write(s)
     f.close()
     return True
+
+################################################################################
+################################ Sparse Modeling ###############################
+################################################################################
+
+def hc(M):
+    """
+    Returns the hermitian conjugate of a numpy array M.
+    """
+    return M.conj().T
+
+def svals_to_mat(svals, Ntau, Nomega):
+    """
+    Embeds a vector of singular values into the diagonal of an Ntau x Nomega matrix S.
+    """
+    return np.pad(np.diag(svals), [(0, 0), (0, Nomega - Ntau)])
+
+def laplace_kernel(taus, omegas):
+    """
+    Returns the Laplace kernel at discretized tau and omega points, K_ij = e^{-omega_j tau_i}.
+
+    Parameters
+    ----------
+    taus : np.array [Ntau]
+        Times to evaluate the kernel at.
+    omegas : np.array [Nomega]
+        Freqencies to evaluate the kernel at.
+
+    Returns
+    -------
+    np.array [Ntau, Nomega]
+        Laplace kernel, evaluated at the given times and frequencies.
+    """
+    Ntau, Nomega = len(taus), len(omegas)
+    kernel = np.zeros((Ntau, Nomega), np.float64)
+    for n, tau in enumerate(taus):
+        for k, omega in enumerate(omegas):
+            kernel[n, k] = np.exp(- omega * tau)
+    return kernel
+
+def lpnorm(p):
+    """
+    Returns the L^p norm function of a vector.
+
+    Parameters
+    ----------
+    p : int
+        p-norm to return
+
+    Returns
+    -------
+    function : np.array --> float
+        Function which returns the p-norm of a vector x, defined as ||x||_p^p = \sum_k | x_k |^p
+    """
+    def pnorm(x):
+        return np.sum(np.abs(x) ** p) ** (1 / float(p))
+    return pnorm
+
+def lin_combo(*args):
+    """
+    Returns a function representing the linear combination of passed in functions. Input should be
+    of the form [c1, f1], ..., [cn, fn] and returns the linear combination c1 * f1(x) + ... + cn * fn(x).
+    """
+    def fn(x):
+        res = 0.
+        for (cn, fn) in args:
+            res += cn * fn(x)
+        return res
+    return fn
+
+def soft_threshold(x, beta):
+    """
+    Soft thresholding operator with parameter beta. This function either returns the
+    soft threshold of x, or performs the operation element-wise. Formally, this is:
+    S_beta(x) = \begin{cases}
+        x - \beta       && x > \beta \\
+        0               && \beta > x > -\beta \\
+        x + \beta       && x < -\beta
+    \end{cases}
+
+    Parameters
+    ----------
+    x : np.array
+        Function value for soft-thresholding
+    beta : float
+        Parameter for soft-threshold function.
+
+    Returns
+    -------
+    float
+        Value of the function.
+    """
+    thresh = np.maximum(np.abs(x) - beta, 0)
+    return thresh * np.sign(x)
+
+def proj_nneg(z):
+    """
+    Projection P_+ of a vector onto the non-negative quadrant of R^n.
+
+    Parameters
+    ----------
+    z : np.array
+        Vector to project.
+
+    Returns
+    -------
+    np.array
+        Projection of vector, with components max(z_j, 0).
+    """
+    return np.array([zk if zk >= 0.0 else 0.0 for zk in z])
+
+class ADMMParams:
+    """
+    Class to hold parameters for ADMM. Holds the following parameters:
+
+    Fields
+    ------
+    lam : float
+        Multiplier for the L_1 regularizer.
+    mu : float
+        Lagrange multiplier for non-negativity constraint.
+    mup : float
+        Lagrange multiplier for the sum rule constraint.
+    max_iters : int
+        Maximum number of iterations.
+    eps : float
+        Tolerance for convergance of the algorithm.
+    xp0 : np.array
+        Vector to optimize over, i.e. rho'.
+    zp0 : np.array
+        Auxiliary vector for the constraint z' = x', which implements the sum rule.
+    up0 : np.array
+        Vector to implement Lagrange multiplier on sum rule constraint.
+    z0 : np.array
+        Auxiliary vector for the constraint z = V x', which implements non-negativity.
+    u0 : np.array
+        Vector to implement Lagrange multiplier on non-negativity constraint.
+    dim : [2]
+        Dimension (Ntau, Nomega) of optimization problem.
+    """
+
+    def __init__(self, lam, mu, mup, max_iters, eps, xp0, zp0, up0, z0, u0, dim = None):
+        self.lam = lam
+        self.mu = mu
+        self.mup = mup
+
+        self.max_iters = max_iters
+        self.eps = eps
+
+        self.xp0 = xp0
+        self.zp0 = zp0
+        self.up0 = up0
+        self.z0 = z0
+        self.u0 = u0
+
+        self.dim = dim
+
+    def set_dim(self, dim):
+        self.dim = dim
+
+    @staticmethod
+    def default_params(Nomega):
+        """
+        Default parameters for ADMM.
+        """
+        return ADMMParams(1., 1., 1., 10000, 1e-8, np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64), \
+                    np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64))
+
+def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
+    """
+    Implements the Alternating Direction Method of Multipliers (ADMM) to solve the
+    minimization:
+        \hat{\rho} = argmin_x || G - K x ||_2^2 + lambda || x' ||_1
+    where x' = V^dagger x is the IR representation of x. Convergence is defined
+    by z converging to V x' with respect to the resid_norm, which can be specified.
+
+    Parameters
+    ----------
+    G : np.array [Ntau]
+        Input data for the Green's function.
+    taus : np.array [Ntau]
+        Euclidean times the correlator is evaluated at.
+    omegas : np.array [Nomega]
+        Frequencies to evaluate spectral function at.
+    params : ADMMParams
+        Parameters for initialization for ADMM algorithm.
+    resid_norm : function (default = lpnorm(2))
+        Norm function to use for residual term ||z - V x'||.
+    disp_iters : int
+        Number of iterations to display an update to residual and time.
+
+    Returns
+    -------
+    np.array
+        Projection of vector, with components max(z_j, 0).
+    """
+    # initialize kernel
+    Ntau, Nomega = params.dim
+    K = laplace_kernel(taus, omegas)
+    U, svals, Vdag = np.linalg.svd(kernel)
+    V = hc(Vdag)
+    S = svals_to_mat(svals, Ntau, Nomega)
+    S = np.pad(np.diag(svals), [(0, 0), (0, len(omegas) - len(taus))])
+
+    # initialize vectors and parameters
+    lam, mu, mup = params.lam0, params.mu0, params.mup0
+    max_iters, eps = params.max_iters, params.eps
+    xp = params.xp0
+    zp, up = params.zp0, params.up0
+    z, u = params.z0, params.u0
+
+    # run optimization
+    ii = 0
+    resid = eps + 1          # start with something > epsilon
+    start = time.time()
+    print('Starting solver.')
+    while (ii < max_iters) and resid > eps:
+        xp, zp, up, z, u = admm_update(xp, zp, up, z, u, params, svals, V)
+        resid = resid_norm(z - (V @ xp))
+        ii += 1
+        if ii % disp_iters == 0:
+            print('Iteration ' + str(ii) + ': Residual = ' + str(resid) + ', elapsed time = ' + str(time.time() - start))
+    print('Run complete. \n   Iterations: ' + str(ii) + '\n   Residual: ' + str(resid) + '\n   Elapsed time: ' + str(time.time() - start))
+    rho = V @ xp
+    return rho, xp, resid, ii
+
+def admm_update(xp, zp, up, z, u, params, svals, V):
+    Ntau, Nomega = params.dim
+    lam, mu, mup = params.lam, params.mu, params.mup
+    VT = V.T
+    e = np.ones((Nomega), dtype = np.float64)
+    # inverse_mat = np.zeros((Nomega, Nomega), dtype = np.float64)
+    inverse_mat_vec = np.zeros((Nomega), dtype = np.float64)
+    for idx in range(Nomega):
+        mat_val = mu + mup
+        if idx <= len(svals):
+            mat_val += svals[idx] * svals[idx].conj() / lam
+        # inverse_mat[idx, idx] = 1 / mat_val
+        inverse_mat_vec[idx] = 1 / mat_val
+        # Cheaper to implement diagonal matrix product as vector elementwise multiplication.
+    xi1 = inverse_mat_vec * (mup * (zp - up) + mu * (VT @ (z - u)))
+    xi2 = inverse_mat_vec * (VT @ e)
+    nu = (1 - np.sum(V @ xi1)) / np.sum(V @ xi2)
+    xp = xi1 + nu * xi2
+    zp = soft_threshold(xp + up, 1 / mup)
+    up = up + xp - zp
+    z = proj_nneg(V @ xp + u)
+    u = u + (V @ xp) - z
+    return xp, zp, up, z, u
