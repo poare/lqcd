@@ -482,12 +482,13 @@ class ADMMParams:
         self.dim = dim
 
     @staticmethod
-    def default_params(Nomega):
+    def default_params(Nomega, d = None):
         """
         Default parameters for ADMM.
         """
         return ADMMParams(1., 1., 1., 10000, 1e-8, np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64), \
-                    np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64))
+                    np.zeros((Nomega), dtype = np.float64), np.zeros((Nomega), dtype = np.float64), \
+                    np.zeros((Nomega), dtype = np.float64), dim = d)
 
 def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     """
@@ -520,13 +521,13 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     # initialize kernel
     Ntau, Nomega = params.dim
     K = laplace_kernel(taus, omegas)
-    U, svals, Vdag = np.linalg.svd(kernel)
+    U, svals, Vdag = np.linalg.svd(K)
     V = hc(Vdag)
     S = svals_to_mat(svals, Ntau, Nomega)
     S = np.pad(np.diag(svals), [(0, 0), (0, len(omegas) - len(taus))])
 
     # initialize vectors and parameters
-    lam, mu, mup = params.lam0, params.mu0, params.mup0
+    lam, mu, mup = params.lam, params.mu, params.mup
     max_iters, eps = params.max_iters, params.eps
     xp = params.xp0
     zp, up = params.zp0, params.up0
@@ -556,7 +557,7 @@ def admm_update(xp, zp, up, z, u, params, svals, V):
     inverse_mat_vec = np.zeros((Nomega), dtype = np.float64)
     for idx in range(Nomega):
         mat_val = mu + mup
-        if idx <= len(svals):
+        if idx < len(svals):
             mat_val += svals[idx] * svals[idx].conj() / lam
         # inverse_mat[idx, idx] = 1 / mat_val
         inverse_mat_vec[idx] = 1 / mat_val

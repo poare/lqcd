@@ -126,8 +126,27 @@ def slash(k):
 def norm(p):
     return np.sqrt(np.abs(square(p)))
 
-# Bootstraps an input tensor. Pass in a tensor with the shape (ncfgs, tensor_shape)
+#  Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boot):
+    """
+    Bootstraps an input tensor.
+
+    Parameters
+    ----------
+    S : np.array [ncfgs, ...]
+        Input tensor to bootstrap. ncfgs is the number of configurations.
+    seed : int (default = 10)
+        Seed of random number generator for bootstrapping.
+    weights : np.array [Nb] (default = None)
+        Weights for bootstrap sample to generate.
+    Nb : int (default = n_boot)
+        Length of propagator object.
+
+    Returns
+    -------
+    np.array [Nb, ...]
+        Bootstrapped tensor.
+    """
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
     bootshape = [Nb]
     bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
@@ -143,14 +162,47 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
 
 # Invert propagators to get S^{-1} required for amputation.
 def invert_props(props, Nb = n_boot):
+    """
+    Invert propagators to get S^{-1}, required for amputation.
+
+    Parameters
+    ----------
+    props : np.array [Nb, 3, 4, 3, 4]
+        Propagator object for a single momentum.
+    Nb : int (default = n_boot)
+        Length of propagator object.
+
+    Returns
+    -------
+    np.array [Nb, 3, 4, 3, 4]
+        Inverse propagator object.
+    """
     Sinv = np.zeros(props.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv[b] = np.linalg.tensorinv(props[b])
     return Sinv
 
-# Amputate legs to get vertex function \Gamma(p). Uses first argument to amputate left-hand side and
-# second argument to amputate right-hand side.
 def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
+    """
+    Amputate legs of a three-point function to get vertex function \Gamma(p). Uses first
+    argument to amputate left-hand side and second argument to amputate right-hand side.
+
+    Parameters
+    ----------
+    props_inv_L : np.array [Nb, 3, 4, 3, 4]
+        Inverse propagator to amputate with on the left of the three-point function.
+    props_inv_R : np.array [Nb, 3, 4, 3, 4]
+        Inverse propagator to amputate with on the right of the three-point function.
+    threepts : np.array [Nb, 3, 4, 3, 4]
+        Three-point function for a single momenta to amputate.
+    Nb : int (default = n_boot)
+        Length of propagator object.
+
+    Returns
+    -------
+    np.array [Nb, 3, 4, 3, 4]
+        Amputated vertex function.
+    """
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], threepts[b]
@@ -160,68 +212,51 @@ def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
 # momentum p2, so amputates with p1 on the left and p2 on the right
 def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
+    """
+    Amputate legs of a four-point function to get vertex function \Gamma(p). Uses first
+    argument to amputate left-hand side and second argument to amputate right-hand side.
+
+    Parameters
+    ----------
+    props_inv_L : np.array [Nb, 3, 4, 3, 4]
+        Inverse propagator to amputate with on the left of the four-point function.
+    props_inv_R : np.array [Nb, 3, 4, 3, 4]
+        Inverse propagator to amputate with on the right of the four-point function.
+    fourpoints : np.array [Nb, 3, 4, 3, 4]
+        Four-point function for a single momenta to amputate.
+    Nb : int (default = n_boot)
+        Length of propagator object.
+
+    Returns
+    -------
+    np.array [Nb, 3, 4, 3, 4]
+        Amputated vertex function.
+    """
     Gamma = np.zeros(fourpoints.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], fourpoints[b]
         Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl->aibjckdl', Sinv_L, Sinv_L, G, Sinv_R, Sinv_R)
     return Gamma
 
-# data should be an array of size (n_fits, T) and fit_region gives the times to fit at
-def fit_constant(fit_region, data, nfits = n_boot):
-    if type(fit_region) != np.ndarray:
-        fit_region = np.array([x for x in fit_region])
-    if len(data.shape) == 1:        # if data only has one dimension, add an axis
-        data = np.expand_dims(data, axis = 0)
-    sigma_fit = np.std(data[:, fit_region], axis = 0)
-    c_fit = np.zeros((nfits), dtype = np.float64)
-    chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
-    for i in range(nfits):
-        data_fit = data[i, fit_region]
-        x0 = [1]          # guess to start at
-        out = optimize.minimize(chi2, x0, args=(data_fit, sigma_fit), method = 'Powell')
-        c_fit[i] = out['x']
-        # cov_{ij} = 1/2 * D_i D_j chi^2
-    # return the total chi^2 and dof for the fit. Get chi^2 by using mean values for all the fits.
-    c_mu = np.mean(c_fit)
-    data_mu = np.mean(data, axis = 0)
-    chi2_mu = chi2([c_mu], data_mu[fit_region], sigma_fit)
-    ndof = len(fit_region) - 1    # since we're just fitting a constant, n_params = 1
-    return c_fit, chi2_mu, ndof
-
-# data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
-# by p value of the fit. cut is the pvalue to cut at.
-def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
-    TT = data.shape[1]
-    fit_ranges = []
-    for t1 in range(TT):
-        for t2 in range(t1 + TT_min, TT):
-            fit_ranges.append(range(t1, t2))
-    f_acc = []        # for each accepted fit, store [fidx, fit_region]
-    stats_acc = []    # for each accepted fit, store [pf, chi2, ndof]
-    meff_acc = []     # for each accepted fit, store [meff_f, meff_sigma_f]
-    weights = []
-    print('Accepted fits\nfit index | fit range | p value | meff mean | meff sigma | weight ')
-    for f, fit_region in enumerate(fit_ranges):
-        meff_ens_f, chi2_f, ndof_f = fit_constant(fit_region, data)
-        pf = chi2.sf(chi2_f, ndof_f)
-        if pf > cut:
-            # TODO change so that we store m_eff_mu as an ensemble, want to compute m_eff_bar ensemble
-            meff_mu_f = np.mean(meff_ens_f)
-            meff_sigma_f = np.std(meff_ens_f, ddof = 1)
-            weight_f = pf * (meff_sigma_f ** (-2))
-            print(f, fit_region, pf, meff_mu_f, meff_sigma_f, weight_f)
-            f_acc.append([f, fit_region])
-            stats_acc.append([pf, chi2_f, ndof_f])
-            # meff_acc.append([meff_mu_f, meff_sigma_f])
-            meff_acc.append(meff_ens_f)
-            weights.append(weight_f)
-    print('Number of accepted fits: ' + str(len(f_acc)))
-    weights, meff_acc, stats_acc = np.array(weights), np.array(meff_acc), np.array(stats_acc)
-    # weights = weights / np.sum(weights)    # normalize to 1
-    return f_acc, stats_acc, meff_acc, weights
-
-# q is the lattice momentum that should be passed in
 def quark_renorm(props_inv_q, q, Nb = n_boot):
+    """
+    Computes the quark field renormalization Zq at momentum q,
+        Zq = i Tr[q^mu gamma^mu S^{-1}(q)] / (12 q^2).
+
+    Parameters
+    ----------
+    props_inv_q : np.array [Nb, 3, 4, 3, 4]
+        Inverse propagator to compute Zq with.
+    q : np.array [4]
+        Lattice momentum to compute Zq at.
+    Nb : int (default = n_boot)
+        Length of propagator object.
+
+    Returns
+    -------
+    np.array [Nb]
+        Quark field renormalization computed at each bootstrap.
+    """
     Zq = np.zeros((Nb), dtype = np.complex64)
     for b in range(Nb):
         Sinv = props_inv_q[b]
@@ -230,19 +265,89 @@ def quark_renorm(props_inv_q, q, Nb = n_boot):
 
 # Returns the adjoint of a bootstrapped propagator object
 def adjoint(S):
+    """
+    Returns the adjoint of a bootstrapped propagator
+
+    Parameters
+    ----------
+    S : np.array [Nb, 3, 4, 3, 4]
+        Propagator to take adjoint of.
+
+    Returns
+    -------
+    np.array [Nb, 3, 4, 3, 4]
+        Adjoint of propagator.
+    """
     return np.conjugate(np.einsum('...aibj->...bjai', S))
 
 def antiprop(S):
+    """
+    Returns the antipropagator of a propagator S, antiprop = gamma_5 S^dagger gamma_5.
+
+    Parameters
+    ----------
+    S : np.array [Nb, 3, 4, 3, 4]
+        Propagator to take adjoint of.
+
+    Returns
+    -------
+    np.array [Nb, 3, 4, 3, 4]
+        Antipropagator of S.
+    """
     Sdagger = adjoint(S)
     return np.einsum('ij,zajbk,kl->zaibl', gamma5, Sdagger, gamma5)
 
-# Returns a in units of GeV^{-1}
 def fm_to_GeV(a):
+    """
+    Returns a in units of GeV^{-1}.
+
+    Parameters
+    ----------
+    a : float
+        Lattice spacing in fm.
+
+    Returns
+    -------
+    float
+        Lattice spacing in GeV^{-1}.
+    """
     return a / hbarc
 
 # returns mu for mode k at lattice spacing A fm, on lattice L
 def get_energy_scale(k, a, L):
     return 2 * (hbarc / a) * np.linalg.norm(np.sin(np.pi * k / L.LL))
+
+def form_2d_sym_irreps(T):
+    """
+    Given a rank two tensor T_{mu nu}, returns the 3-dimensional H(4) irrep
+    tau_1^{(3)} and 6-dimensional H(4) irrep tau_3^{(6)}.
+
+    Parameters
+    ----------
+    T : np.array [float or complex]
+        Tensor to organize into H(4) irreps. The first two components should be 4 x 4.
+
+    Returns
+    -------
+    np.array [float or complex]
+        Tensor components in the tau_1^{(3)} irrep.
+    np.array [float or complex]
+        Tensor components in the tau_3^{(6)} irrep.
+    """
+    tau3 = np.array([
+        (T[2, 2] - T[3, 3]) / np.sqrt(2),
+        (T[0, 0] - T[1, 1]) / np.sqrt(2),
+        (T[0, 0] + T[1, 1] - T[2, 2] - T[3, 3]) / 2.
+    ])
+    tau6 = np.array([
+        (T[0, 1] + T[1, 0]) / np.sqrt(2),
+        (T[0, 2] + T[2, 0]) / np.sqrt(2),
+        (T[0, 3] + T[3, 0]) / np.sqrt(2),
+        (T[1, 2] + T[2, 1]) / np.sqrt(2),
+        (T[1, 3] + T[3, 1]) / np.sqrt(2),
+        (T[2, 3] + T[3, 2]) / np.sqrt(2)
+    ])
+    return tau3, tau6
 
 # TODO not sure if the following functions work, should test them
 # partition k_list into orbits by O(3) norm and p[3]

@@ -215,7 +215,126 @@ def fold(C, T, sym = True):
         folded[:, T // 2] = np.abs(C[:, T // 2])    # midpoint for asymmetric shouldn't be folded into itself
     return folded
 
+def get_covariance(R, dof = 1):
+    """
+    Returns the covariance matrix for correlator data {R_b(t)}. Assumes that R comes in the shape
+    (n_boot, n_t), where n_t is some number of time slices to compute the covariance over. The
+    covariance for data of this form is defined as:
+    $$
+        Cov(t_1, t_2) = \frac{1}{n_b - dof} \sum_b (R_b(t_1) - \overline{R}(t_1)) (R_b(t_2) - \overline{R}(t_2))
+    $$
+
+    Parameters
+    ----------
+    R : np.array (n_boot, n_t)
+        Correlator data to fit plateau to. The first index should be bootstrap, and the second should be time.
+    dof : int
+        Number of degrees of freedom to compute the variance with. dof = 1 is the default and gives an unbiased
+        estimator of the population from a sample.
+
+    Returns
+    -------
+    np.array (n_t, n_t)
+        Covariance matrix from data.
+    """
+    nb = R.shape[0]
+    mu = np.mean(R, axis = 0)
+    cov = np.einsum('bi,bj->ij', R - mu, R - mu) / (nb - dof)
+    assert np.max(cov - np.cov(R.T, ddof = 1)) < 1e-10
+    return cov
+
+def fit_const(fit_region, data, cov):
+    """
+    data should be either an individual bootstrap or the averages \overline{R}(t), i.e. a vector
+    of size T, where T = len(fit_range). cov should have shape (T, T) (so it should already be
+    restricted to the fit range).
+    """
+    if type(fit_region) != np.ndarray:
+        fit_region = np.array([x for x in fit_region])
+    def chi2(params, data_f, cov_f):
+        # return np.einsum('i,ij,j->', (data - np.sum(params * moments), np.linalg.inv(cov), np.sum(params * moments))
+        return np.einsum('i,ij,j->', data_f - params[0], np.linalg.inv(cov_f), data_f - params[0])
+    params0 = [1.]
+    out = optimize.minimize(chi2, params0, args = (data, cov), method = 'Powell')
+    c_fit = out['x'][()]
+    chi2_min = chi2([c_fit], data, cov)
+    ndof = len(fit_region) - 1    # can change this to more parameters later
+    return c_fit, chi2_min, ndof
+
+def fit_const_allrange(data, corr = True, TT_min = 4, cut = 0.01):
+    """
+    Performs a correlated fit over every range with size >= TT_min and weights by p value of the fit.
+    Fit is performed to the mean of the data first, and if the p value of this fit is > cut the fit is
+    accepted. A correlated fit is then performed on the bootstraps of each accepted fit to quantify the
+    fitting error, and the accepted fit data is combined in a weighted average. Here n_acc is the
+    number of accepted fits.
+
+    Parameters
+    ----------
+    data : np.array (n_boot, T)
+        Correlator data to fit plateau to. The first index should be bootstrap, and the second should be time.
+    corr : bool
+        True if data is correlated, False if data is uncorrelated.
+    TT_min : int
+        Minimum size to fit plateau to.
+    cut : double
+        Cut on p values. Only accept fits with pf > cut.
+
+    Returns
+    -------
+    [n_acc, 2]
+        For each accepted fit, stores: [fit_index, fit_range]
+    np.array (n_acc, 3)
+        For each accepted fit, stores: [p value, chi2, ndof]
+    np.array (n_acc, nb)
+        For each accepted fit, stores the ensemble of fit parameters from fitting each individual bootstrap.
+    np.array (n_acc, nb)
+        For each accepted fit, stores the ensemble of chi2 values from fitting each individual bootstrap.
+    np.array ()
+        For each accepted fit, stores the weight w_f.
+    """
+    nb, TT = data.shape[0], data.shape[1]
+    fit_ranges = []
+    for t1 in range(TT):
+        for t2 in range(t1 + TT_min, TT):
+            # fit_ranges.append(np.array([x for x in range(t1, t2)]))
+            fit_ranges.append(range(t1, t2))
+    f_acc = []        # for each accepted fit, store [fidx, fit_region]
+    stats_acc = []    # for each accepted fit, store [pf, chi2, ndof]
+    c_ens_acc = []    # for each accepted fit, store ensemble of best fit coefficients c
+    chi2_full = []    # for each accepted fit, store ensemble of chi2
+    weights = []
+    data_mu = np.mean(data, axis = 0)
+    if corr:
+        cov = get_covariance(data)
+    else:
+        cov = np.zeros((TT, TT))   # check using diagonal covariance matrix
+        for t in range(TT):
+           cov[t, t] = np.std(data[:, t], ddof = 1) ** 2
+    print('Accepted fits:\nfit index | fit range | p value | c_fit mean | c_fit sigma | weight ')
+    for f, fit_region in enumerate(fit_ranges):
+        cov_sub = cov[np.ix_(fit_region, fit_region)]
+        c_fit, chi2_fit, ndof = fit_const(fit_region, data_mu[fit_region], cov_sub)
+        pf = chi2.sf(chi2_fit, ndof)
+        if pf > cut:    # then accept the fit and fit each individual bootstrap
+            f_acc.append([f, fit_region])
+            stats_acc.append([pf, chi2_fit, ndof])
+            c_ens, chi2_ens = np.zeros((nb), dtype = np.float64), np.zeros((nb), dtype = np.float64)
+            for b in range(nb):
+                c_ens[b], chi2_ens[b], _ = fit_const(fit_region, data[b, fit_region], cov_sub)
+            c_ens_acc.append(c_ens)
+            chi2_full.append(chi2_ens)
+            c_ens_mu = np.mean(c_ens)
+            c_ens_sigma = np.std(c_ens, ddof = 1)
+            weight_f = pf * (c_ens_sigma ** (-2))
+            weights.append(weight_f)
+            print(f, fit_region, pf, c_ens_mu, c_ens_sigma, weight_f)
+    print('Number of accepted fits: ' + str(len(f_acc)))
+    weights, c_ens_acc, chi2_full, stats_acc = np.array(weights), np.array(c_ens_acc), np.array(chi2_full), np.array(stats_acc)
+    return f_acc, stats_acc, c_ens_acc, chi2_full, weights
+
 # data should be an array of size (n_fits, T) and fit_region gives the times to fit at
+# TODO this is old code, probably drop it
 def fit_constant(fit_region, data, nfits = n_boot):
     if type(fit_region) != np.ndarray:
         fit_region = np.array([x for x in fit_region])
@@ -371,7 +490,8 @@ def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1, label = 'Z_i
             print('Extrapolated ' + label + ' = ' + str(y_extrap[k, b]))
     return fit_coeffs, chi2_fits, y_extrap
 
-# data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
+# TODO deprecated, use fit_const_allrange instead.
+# data should be an array of size (n_b, T). Fits over every range with size >= TT_min and weights
 # by p value of the fit. cut is the pvalue to cut at.
 def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
     TT = data.shape[1]
@@ -403,19 +523,20 @@ def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
     # weights = weights / np.sum(weights)    # normalize to 1
     return f_acc, stats_acc, meff_acc, weights
 
-# Inputs should all be in the same format as above. meff = list of meff_f ensembles, each of
+# Inputs should all be in the same format as above. c_ens = list of c_ens_f ensembles, each of
 # shape n_boot, so meff has shape (# accepted fits, n_boot)
-# for each accepted fit, weights = pf (\delta meff)^-2 for each accepted fit. Note that
-# weights should not be normalized, this will make sure it is.
-def analyze_accepted_fits(meff, weights):
+# for each accepted fit, weights = pf (\delta c_ens)^-2 for each accepted fit. Note that
+# weights need not be normalized, this will make sure it is.
+def analyze_accepted_fits(c_ens, weights):
     weights = weights / np.sum(weights)
-    # probs get the bootstrap samples here
-    meff_mu_f, meff_sigma_f = np.mean(meff, axis = 1), np.std(meff, axis = 1, ddof = 1)
-    meff_bar = np.sum(weights * meff_mu_f)
-    dmeff_stat_sq = np.sum(weights * (meff_sigma_f ** 2))
-    dmeff_sys_sq = np.sum(weights * ((meff_mu_f - meff_bar) ** 2))
-    meff_sigma = np.sqrt(dmeff_stat_sq + dmeff_sys_sq)
-    return meff_bar, meff_sigma
+    c_ens_mu, c_ens_sigma = np.mean(c_ens, axis = 1), np.std(c_ens, axis = 1, ddof = 1)
+    cbar = np.sum(weights * c_ens_mu)
+    dmeff_stat_sq = np.sum(weights * (c_ens_sigma ** 2))
+    dmeff_sys_sq = np.sum(weights * ((c_ens_mu - cbar) ** 2))
+    c_sigma = np.sqrt(dmeff_stat_sq + dmeff_sys_sq)
+    c_boot = np.einsum('f,fb->b', weights, c_ens)
+    c_boot = spread_boots(c_boot, c_sigma)
+    return cbar, c_sigma, c_boot
 
 # returns a bootstrap ensemble by summing fits over their weight
 def weighted_sum_bootstrap(meff, weights):
