@@ -18,9 +18,12 @@ module load openmpi/3.1.5-gcc.7.3.0
 export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:/opt/software/hdf5-1.10.6/lib:$LD_LIBRARY_PATH
 export application=/data/d10b/users/poare/software/poare_build/install/chroma-double/bin/chroma
 
-nCores=8
-export GEOM="2 2 2 1"
-export OMP_NUM_THREADS=8
+# nCores=8
+# export GEOM="2 2 2 1"
+# export OMP_NUM_THREADS=8
+nCores=4
+export GEOM="2 2 1 1"
+export OMP_NUM_THREADS=4
 cpus=$nodes
 echo "=== Run MPI application on $nCores cores ==="
 
