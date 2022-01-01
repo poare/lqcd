@@ -5,6 +5,8 @@
 
 from utils import *
 
+# TODO make a function which runs given a set of parameters, and do a parameter scan to see if
+# anything comes close to the original
 def main():
     Ntau = 8
     Nomega = 100

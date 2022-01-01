@@ -525,6 +525,8 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     V = hc(Vdag)
     S = svals_to_mat(svals, Ntau, Nomega)
     S = np.pad(np.diag(svals), [(0, 0), (0, len(omegas) - len(taus))])
+    DelOmega = (omegas[-1] - omegas[0]) / Nomega
+    print(DelOmega)
 
     # initialize vectors and parameters
     lam, mu, mup = params.lam, params.mu, params.mup
@@ -539,7 +541,7 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     start = time.time()
     print('Starting solver.')
     while (ii < max_iters) and resid > eps:
-        xp, zp, up, z, u = admm_update(xp, zp, up, z, u, params, svals, V)
+        xp, zp, up, z, u = admm_update(xp, zp, up, z, u, params, svals, V, DelOmega)
         resid = resid_norm(z - (V @ xp))
         ii += 1
         if ii % disp_iters == 0:
@@ -548,7 +550,7 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     rho = V @ xp
     return rho, xp, resid, ii
 
-def admm_update(xp, zp, up, z, u, params, svals, V):
+def admm_update(xp, zp, up, z, u, params, svals, V, DelOmega = 1.):
     Ntau, Nomega = params.dim
     lam, mu, mup = params.lam, params.mu, params.mup
     VT = V.T
@@ -564,7 +566,9 @@ def admm_update(xp, zp, up, z, u, params, svals, V):
         # Cheaper to implement diagonal matrix product as vector elementwise multiplication.
     xi1 = inverse_mat_vec * (mup * (zp - up) + mu * (VT @ (z - u)))
     xi2 = inverse_mat_vec * (VT @ e)
-    nu = (1 - np.sum(V @ xi1)) / np.sum(V @ xi2)
+    # c = 1 / DelOmega
+    c = 1
+    nu = (c - np.sum(V @ xi1)) / np.sum(V @ xi2)
     xp = xi1 + nu * xi2
     zp = soft_threshold(xp + up, 1 / mup)
     up = up + xp - zp
