@@ -32,14 +32,14 @@ export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
 ini_dir=/home/poare/lqcd/0nubb/nnpp/input
 
-ini_file=${ini_dir}/cfg_0/mom_1.ini.xml    # to test if this runs
-mpirun -np $nCores $application -i ${ini_file}  -qmpgeom ${GEOM}  -geom ${GEOM}
+# ini_file=${ini_dir}/cfg_0/mom_1.ini.xml    # to test if this runs
+# mpirun -np $nCores $application -i ${ini_file}  -qmpgeom ${GEOM}  -geom ${GEOM}
 
-# for cfg_idx in `seq 0 9`
-# do
-#   for k in `seq 2 5`
-#   do
-#     ini_file=${ini_dir}/cfg_${cfg_idx}/mom_${k}.ini.xml
-#     mpirun -np $nCores $application -i ${ini_file}  -qmpgeom ${GEOM}  -geom ${GEOM}
-#   done
-# done
+for cfg_idx in `seq 0 10`
+do
+  for k in `seq 2 6`
+  do
+    ini_file=${ini_dir}/cfg_${cfg_idx}/mom_${k}.ini.xml
+    mpirun -np $nCores $application -i ${ini_file}  -qmpgeom ${GEOM}  -geom ${GEOM}
+  done
+done
