@@ -5,8 +5,8 @@
 #SBATCH --job-name=0nubb_npr
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long4
-#SBATCH -t 144:00:00
+#SBATCH --partition=long
+#SBATCH -t 96:00:00
 
 set -x
 
@@ -27,7 +27,8 @@ EXE=qlua
 #EXE=/home/poare/qlua-20210106/qlua/bin/qlua
 
 cfgpath="/data/d10b/ensembles/isoClover/"
-cfgbase="cl3_16_48_b6p1_m0p2450"
+# cfgbase="cl3_16_48_b6p1_m0p2450"
+cfgbase="cl3_32_48_b6p1_m0p2450"
 dwf=false
 
 # cfgpath="/data/d10b/ensembles/RBC/RBC_UKQCD_24_64/"
@@ -49,7 +50,7 @@ parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}
 export OMP_NUM_THREADS=6
 
 # for cfg in `seq 500 5 1000`
-for cfg in `seq 1120 10 1150`
+for cfg in `seq 1010 10 1200`
 do
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 done
