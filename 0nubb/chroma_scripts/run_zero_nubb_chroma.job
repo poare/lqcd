@@ -2,7 +2,7 @@
 #ulimit -c unlimited
 #SBATCH --job-name=0nubb_npr
 #SBATCH --nodes=1
-#SBATCH --time=72:00:00
+#SBATCH --time=96:00:00
 #SBATCH --partition=long
 
 source /usr/local/Modules/init/bash
@@ -28,10 +28,11 @@ export QUDA_REORDER_LOCATION=GPU #GPU/CPU
 export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
 ini_dir=/home/poare/lqcd/0nubb/chroma_scripts/input
-# ens=${ini_dir}/24I/ml0p01    # change this for each different ensemble
-# ens=${ini_dir}/24I/ml0p005    # change this for each different ensemble
+#ens=${ini_dir}/24I/ml0p01    # change this for each different ensemble
+#ens=${ini_dir}/24I/ml0p005    # change this for each different ensemble
 #ens=${ini_dir}/32I/ml0p006
-ens=${ini_dir}/32I/ml0p004
+#ens=${ini_dir}/32I/ml0p004
+ens=${ini_dir}/32I/ml0p008
 
 # path to configs is /data/d10b/ensembles/RBC/RBC_UKQCD_24_64/2+1f_24nt64_IWASAKI_b2.13_ls16_M1.8_ms0.04_mu0.005
 

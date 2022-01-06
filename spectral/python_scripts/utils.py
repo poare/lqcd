@@ -575,3 +575,48 @@ def admm_update(xp, zp, up, z, u, params, svals, V, DelOmega = 1.):
     z = proj_nneg(V @ xp + u)
     u = u + (V @ xp) - z
     return xp, zp, up, z, u
+
+def parameter_scan(G, taus, omegas, lam_list, mu_list, mup_list, max_iters, eps = 1e-5):
+    """
+    Runs the ADMM algorithm over the range of (lambda, mu, mup) given as input.
+
+    Parameters
+    ----------
+    G : np.array [Ntau]
+        Input data for the Green's function.
+    taus : np.array [Ntau]
+        Euclidean times the correlator is evaluated at.
+    omegas : np.array [Nomega]
+        Frequencies to evaluate spectral function at.
+    lam_list : np.array [Nlam]
+        Values of hyperparameter lambda to scan over.
+    mu_list : np.array [Nmu]
+        Values of hyperparameter mu to scan over.
+    mup_list : np.array [Nmup]
+        Values of hyperparameter mup to scan over.
+    max_iters : int
+        Maximum number of iterations for each ADMM run.
+
+    Returns
+    -------
+    np.array [Nlam, Nmu, Nmup, Nomega]
+        Spectral function recons for each triple of parameters (lambda, mu, mup).
+    """
+    Nomega, Ntau = len(omegas), len(taus)
+    rho_recons = np.zeros((len(lam_list), len(mu_list), len(mup_list), Nomega))
+    resids = np.zeros((len(lam_list), len(mu_list), len(mup_list)))
+    for lidx, lam in enumerate(lam_list):
+        for muidx, mu in enumerate(mu_list):
+            for mupidx, mup in enumerate(mup_list):
+                print('(lambda, mu, mup) = ' + str((lam, mu, mup)))
+                params = ADMMParams.default_params(Nomega, d = (Ntau, Nomega))
+                params.lam = lam
+                params.mu = mu
+                params.mup = mup
+                params.max_iters = max_iters
+                params.eps = eps
+                print(Nomega)
+                tmp = admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 1000)
+                rho_recons[lidx, muidx, mupidx] = tmp[0]
+                resids = tmp[2]
+    return rho_recons, resids
