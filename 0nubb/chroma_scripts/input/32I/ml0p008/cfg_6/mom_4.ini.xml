@@ -306,7 +306,7 @@
 </RNG>
 
 <Cfg>
-  <cfg_type>NERSC</cfg_type>
+  <cfg_type>SCIDAC</cfg_type>
   <cfg_file>/data/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.008/Coulomb/gfix_lat.1080</cfg_file>
 </Cfg>
 </chroma>
