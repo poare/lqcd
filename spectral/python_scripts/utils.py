@@ -326,6 +326,55 @@ def write_txt_output(out_path, data, Nreal, omega, eta):
 ################################ Sparse Modeling ###############################
 ################################################################################
 
+def supnorm(x):
+    """
+    Returns the supnorm ||x||_\infty of a matrix x, defined as the maximum element of the absolute
+    value of x.
+    """
+    return np.max(np.abs(x))
+
+def lpnorm(p):
+    """
+    Returns the L^p norm function of a vector.
+
+    Parameters
+    ----------
+    p : int
+        p-norm to return
+
+    Returns
+    -------
+    function : np.array --> float
+        Function which returns the p-norm of a vector x, defined as ||x||_p^p = \sum_k | x_k |^p
+    """
+    def pnorm(x):
+        return np.sum(np.abs(x) ** p) ** (1 / float(p))
+    return pnorm
+
+def check_mat_equal(A, B, eps = 1e-8, norm = supnorm):
+    """
+    Checks that two matrices are equal element-wise up to tolerance epsilon. Returns if they are equal,
+    and either the deviation or the indices where they are not equal.
+
+    Parameters
+    ----------
+    A, B : np.array
+        Matrices to compare.
+    eps : float (default = 1e-8)
+        Tolerance to compare to
+    norm : function (default = supnorm)
+        Norm to use for the comparison.
+
+    Returns
+    -------
+    bool
+        True if equal, False if not equal.
+    float
+        Deviation of A - B from 0.
+    """
+    dev = norm(A - B)
+    return dev < eps, dev
+
 def hc(M):
     """
     Returns the hermitian conjugate of a numpy array M.
@@ -360,24 +409,6 @@ def laplace_kernel(taus, omegas):
         for k, omega in enumerate(omegas):
             kernel[n, k] = np.exp(- omega * tau)
     return kernel
-
-def lpnorm(p):
-    """
-    Returns the L^p norm function of a vector.
-
-    Parameters
-    ----------
-    p : int
-        p-norm to return
-
-    Returns
-    -------
-    function : np.array --> float
-        Function which returns the p-norm of a vector x, defined as ||x||_p^p = \sum_k | x_k |^p
-    """
-    def pnorm(x):
-        return np.sum(np.abs(x) ** p) ** (1 / float(p))
-    return pnorm
 
 def lin_combo(*args):
     """
@@ -522,11 +553,10 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     Ntau, Nomega = params.dim
     K = laplace_kernel(taus, omegas)
     U, svals, Vdag = np.linalg.svd(K)
-    V = hc(Vdag)
-    S = svals_to_mat(svals, Ntau, Nomega)
-    S = np.pad(np.diag(svals), [(0, 0), (0, len(omegas) - len(taus))])
+    S = svals_to_mat(svals, Ntau, Nomega)       # K = U S Vdag
+    Udag, V = hc(U), hc(Vdag)
+    Gp = Udag @ G
     DelOmega = (omegas[-1] - omegas[0]) / Nomega
-    print(DelOmega)
 
     # initialize vectors and parameters
     lam, mu, mup = params.lam, params.mu, params.mup
@@ -537,34 +567,39 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
 
     # run optimization
     ii = 0
-    resid = eps + 1          # start with something > epsilon
+    dual_resid = eps + 1          # start with something > epsilon
     start = time.time()
     print('Starting solver.')
-    while (ii < max_iters) and resid > eps:
-        xp, zp, up, z, u = admm_update(xp, zp, up, z, u, params, svals, V, DelOmega)
-        resid = resid_norm(z - (V @ xp))
+    while (ii < max_iters) and dual_resid > eps:
+        xp, zp, up, z, u = admm_update(Gp, xp, zp, up, z, u, params, svals, V, DelOmega)
+        primal_resid = resid_norm(Gp - S @ xp)    # G' - S rho'
+        dual_resid = resid_norm(z - (V @ xp))
         ii += 1
         if ii % disp_iters == 0:
-            print('Iteration ' + str(ii) + ': Residual = ' + str(resid) + ', elapsed time = ' + str(time.time() - start))
-    print('Run complete. \n   Iterations: ' + str(ii) + '\n   Residual: ' + str(resid) + '\n   Elapsed time: ' + str(time.time() - start))
+            print('Iteration ' + str(ii) + ': primal residual = ' + str(primal_resid) + ', dual resid = ' \
+                    + str(dual_resid) + ', elapsed time = ' + str(time.time() - start))
+    print('Run complete. \n   Iterations: ' + str(ii) + '\n   Primal residual: ' + str(primal_resid) + '\n   Dual residual: ' \
+            + str(dual_resid) + '\n   Elapsed time: ' + str(time.time() - start))
     rho = V @ xp
-    return rho, xp, resid, ii
+    return rho, xp, primal_resid, dual_resid, ii
 
-def admm_update(xp, zp, up, z, u, params, svals, V, DelOmega = 1.):
+def admm_update(Gp, xp, zp, up, z, u, params, svals, V, DelOmega = 1.):
     Ntau, Nomega = params.dim
     lam, mu, mup = params.lam, params.mu, params.mup
     VT = V.T
     e = np.ones((Nomega), dtype = np.float64)
     # inverse_mat = np.zeros((Nomega, Nomega), dtype = np.float64)
     inverse_mat_vec = np.zeros((Nomega), dtype = np.float64)
+    StGp = np.zeros((Nomega), dtype = np.float64)
     for idx in range(Nomega):
         mat_val = mu + mup
         if idx < len(svals):
             mat_val += svals[idx] * svals[idx].conj() / lam
+            StGp[idx] = svals[idx] * Gp[idx]
         # inverse_mat[idx, idx] = 1 / mat_val
         inverse_mat_vec[idx] = 1 / mat_val
         # Cheaper to implement diagonal matrix product as vector elementwise multiplication.
-    xi1 = inverse_mat_vec * (mup * (zp - up) + mu * (VT @ (z - u)))
+    xi1 = inverse_mat_vec * (StGp / lam + mup * (zp - up) + mu * (VT @ (z - u)))
     xi2 = inverse_mat_vec * (VT @ e)
     # c = 1 / DelOmega
     c = 1
@@ -604,7 +639,8 @@ def parameter_scan(G, taus, omegas, lam_list, mu_list, mup_list, max_iters, eps 
     """
     Nomega, Ntau = len(omegas), len(taus)
     rho_recons = np.zeros((len(lam_list), len(mu_list), len(mup_list), Nomega))
-    resids = np.zeros((len(lam_list), len(mu_list), len(mup_list)))
+    p_resids = np.zeros((len(lam_list), len(mu_list), len(mup_list)))
+    d_resids = np.zeros((len(lam_list), len(mu_list), len(mup_list)))
     for lidx, lam in enumerate(lam_list):
         for muidx, mu in enumerate(mu_list):
             for mupidx, mup in enumerate(mup_list):
@@ -615,8 +651,35 @@ def parameter_scan(G, taus, omegas, lam_list, mu_list, mup_list, max_iters, eps 
                 params.mup = mup
                 params.max_iters = max_iters
                 params.eps = eps
-                print(Nomega)
-                tmp = admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 1000)
+                tmp = admm(G, taus, omegas, params, disp_iters = max_iters / 10)
                 rho_recons[lidx, muidx, mupidx] = tmp[0]
-                resids = tmp[2]
-    return rho_recons, resids
+                p_resids[lidx, muidx, mupidx] = tmp[2]
+                d_resids[lidx, muidx, mupidx] = tmp[3]
+    return rho_recons, p_resids, d_resids
+
+def min_indices(A, k):
+    """Returns the indices corresponding to the k minimum values of a multi-dimensional array A."""
+    return np.array([np.unravel_index(x, A.shape) for x in np.argsort(A.flatten())[:k]])
+
+def parse_resids(rho_recons, resids, Nbest = 8):
+    """
+    Returns the indices of the Nbest minimal residuals in the list resids after a parameter scan.
+    Assumes that resids has the same shape as output by parameter_scan, i.e. is of shape (N_lam, N_mu, N_mup).
+
+    Parameters
+    ----------
+    resids : np.array [Nlam, Nmu, Nmup]
+        Residual list to parse.
+    Nbest : int (default = 8)
+        Returns the indices of the Nbest smallest residuals.
+
+    Returns
+    -------
+    np.array [Nbest]
+        Indices of the Nbest smallest residuals.
+    np.array [Nbest]
+        Rho recon of Nbest smallest residuals.
+    """
+    idxs = min_indices(resids, Nbest)
+    best_rhos = np.array([rho_recons[idx[0], idx[1], idx[2]] for idx in idxs])
+    return best_rhos, idxs
