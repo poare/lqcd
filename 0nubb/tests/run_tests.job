@@ -22,7 +22,7 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-gpu=false
+gpu=true
 # dwf=true
 dwf=false
 

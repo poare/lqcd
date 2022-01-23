@@ -316,16 +316,15 @@ end
 -- Set parameters
 -- Lx = 16
 -- Lt = 48
-Lx = 4
-Lt = 8
+Lx = 32
+Lt = 48
 
 ml = 0.1
 M = 1.8
 -- M = 1.6
-Ls = 8
--- mq = -0.2450
-mq = ml       -- TODO checking out if this changes anything
--- kappa = 1 / (2 * mq + 8)
+-- Ls = 8
+mq = -0.2450
+kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
@@ -359,8 +358,8 @@ local bcs = {1, 1, 1, -1}
 print("Running at one q value; run at more q once this works.")
 -- local k1_list_NPR = {{-2, 0, 2, 0}}
 -- local k2_list_NPR = {{0, 2, 2, 0}}
-local k1_list_NPR = {{-1, 0, 1, 0}}
-local k2_list_NPR = {{0, 1, 1, 0}}
+local k1_list_NPR = {{-3, 0, 3, 0}}
+local k2_list_NPR = {{0, 3, 3, 0}}
 
 print("Initializing solver.")
 if gpu then
@@ -387,17 +386,17 @@ local solver
 -- gauge_file_name = string.format("/data/d10b/users/poare/0nubb/weak_field_%d.lime", jobid)
 -- save_conf(L, gauge_file_name, "weak_field", U, "weak_field")
 
--- local U = init_id_field(L)
-local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
+local U = init_id_field(L)
+-- local gauge_file = "/home/dpefkou/random_chroma/dumped.lime"
 -- local gauge_file = "/home/agrebe/wombat/0vbb/qlua-cross-check/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
 -- local gauge_file = "/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_1000.lime"
-local U, finfo, ginfo = load_conf(L, gauge_file)
-print("file info:")
-print(finfo)
-print("gauge info:")
-print(ginfo)
+-- local U, finfo, ginfo = load_conf(L, gauge_file)
+-- print("file info:")
+-- print(finfo)
+-- print("gauge info:")
+-- print(ginfo)
 
-local kappa = 0.12
+-- local kappa = 0.12
 
 print("Initializing free field")
 if dwf then
