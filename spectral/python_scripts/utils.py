@@ -493,7 +493,13 @@ class ADMMParams:
         Dimension (Ntau, Nomega) of optimization problem.
     """
 
-    def __init__(self, lam, mu, mup, max_iters, eps, xp0, zp0, up0, z0, u0, dim = None):
+    default_constraints = {
+        'nneg'          : True,
+        'sum_rule'      : True,
+        'states'        : []
+    }
+
+    def __init__(self, lam, mu, mup, max_iters, eps, xp0, zp0, up0, z0, u0, dim = None, constraints = default_constraints):
         self.lam = lam
         self.mu = mu
         self.mup = mup
@@ -508,6 +514,7 @@ class ADMMParams:
         self.u0 = u0
 
         self.dim = dim
+        self.constraints = constraints
 
     def set_dim(self, dim):
         self.dim = dim
@@ -571,7 +578,7 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
     start = time.time()
     print('Starting solver.')
     while (ii < max_iters) and dual_resid > eps:
-        xp, zp, up, z, u = admm_update(Gp, xp, zp, up, z, u, params, svals, V, DelOmega)
+        xp, zp, up, z, u = admm_update(Gp, xp, zp, up, z, u, params, svals, V, params.constraints, DelOmega)
         primal_resid = resid_norm(Gp - S @ xp)    # G' - S rho'
         dual_resid = resid_norm(z - (V @ xp))
         ii += 1
@@ -580,10 +587,12 @@ def admm(G, taus, omegas, params, resid_norm = lpnorm(2), disp_iters = 100):
                     + str(dual_resid) + ', elapsed time = ' + str(time.time() - start))
     print('Run complete. \n   Iterations: ' + str(ii) + '\n   Primal residual: ' + str(primal_resid) + '\n   Dual residual: ' \
             + str(dual_resid) + '\n   Elapsed time: ' + str(time.time() - start))
-    rho = V @ xp
+    # rho = V @ xp
+    # rho = proj_nneg(V @ xp)
+    rho = z    # TODO: what's the difference between these three ways to get rho?
     return rho, xp, primal_resid, dual_resid, ii
 
-def admm_update(Gp, xp, zp, up, z, u, params, svals, V, DelOmega = 1.):
+def admm_update(Gp, xp, zp, up, z, u, params, svals, V, constraints, DelOmega = 1.):
     Ntau, Nomega = params.dim
     lam, mu, mup = params.lam, params.mu, params.mup
     VT = V.T
@@ -607,7 +616,10 @@ def admm_update(Gp, xp, zp, up, z, u, params, svals, V, DelOmega = 1.):
     xp = xi1 + nu * xi2
     zp = soft_threshold(xp + up, 1 / mup)
     up = up + xp - zp
-    z = proj_nneg(V @ xp + u)
+    # z = proj_nneg(V @ xp + u)
+    z = V @ xp + u
+    if constraints['nneg']:
+        z = proj_nneg(z)
     u = u + (V @ xp) - z
     return xp, zp, up, z, u
 
@@ -681,5 +693,6 @@ def parse_resids(rho_recons, resids, Nbest = 8):
         Rho recon of Nbest smallest residuals.
     """
     idxs = min_indices(resids, Nbest)
+    print('Lowest residuals: ' + str([resids[idx[0], idx[1], idx[2]] for idx in idxs]))
     best_rhos = np.array([rho_recons[idx[0], idx[1], idx[2]] for idx in idxs])
     return best_rhos, idxs

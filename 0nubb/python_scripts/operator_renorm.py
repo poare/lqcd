@@ -6,20 +6,27 @@ from utils import *
 
 ################################## PARAMETERS #################################
 base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
-ens = '24I/ml0p01'
+
+# uncomment for pipi and chroma output
+# ens = '24I/ml0p01'
 # ens = '24I/ml0p005'
 # ens = '32I/ml0p006'
 # ens = '32I/ml0p004'
-data_dir = base + ens + '/hdf5'
+# data_dir = base + ens + '/hdf5'
 
-l = 24
-# l = 32
+# uncomment nnpp and qlua output
+ens = 'cl3_32_48_b6p1_m0p2450_99999'
+data_dir = base + 'nnpp/' + ens
+
+# l = 24
+l = 32
 t = 64
 L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-for n in range(2, 10):
+# for n in range(2, 10):
+for n in range(1, 7):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
@@ -51,6 +58,7 @@ for q_idx, q in enumerate(q_list):
     # q_lat = np.sin(L.to_linear_momentum(q + bvec))
     q = -q
     q_lat = np.sin(L.to_linear_momentum(q))
+    
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
     GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
     props_k1_inv, props_k2_inv, props_q_inv = invert_props(props_k1_b), invert_props(props_k2_b), invert_props(props_q_b)
@@ -104,7 +112,8 @@ for q_idx, q in enumerate(q_list):
 
 ################################## SAVE DATA ##################################
 # out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '_Lambda.h5'
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '_Lambda.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/' + ens + '/Z_' + scheme + '.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV

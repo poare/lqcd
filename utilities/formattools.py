@@ -34,7 +34,7 @@ class Entry:
         self._entry = entry
         self._T = type(entry)
         self._type = Entry.inv_types[self._T]
-        self._has_err = (sigma is not -1)
+        self._has_err = (sigma != -1)
         self._err = sigma
         self._sf = sf
         self._string_rep = self.gen_string_rep()
@@ -85,7 +85,7 @@ class Table:
             Entries = np.empty(entries.shape, dtype = object)
             for i in range(entries.shape[0]):
                 for j in range(entries.shape[1]):
-                    Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma is -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
+                    Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma == -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
             self._entries = Entries
         self.update()
 
@@ -250,7 +250,7 @@ def export_float_latex(mu, sigma = -1, sf = 2):
     string
         Formatted latex string.
     """
-    if sigma is -1:
+    if sigma == -1:
         prec = '.' + str(sf) + 'f'
         return f'{mu:{prec}}'
     sigma_scinot = f'{sigma:e}'

@@ -92,11 +92,9 @@ def add_line(ax, val, orientation = 'v', **kwargs):
         Axes which the line is added to
     """
     if orientation == 'v':
-        lims = ax.get_ylim()
-        ax.axvline(val, lims[0], lims[1], **kwargs)
+        ax.axvline(val, **kwargs)
     elif orientation == 'h':
-        lims = ax.get_xlim()
-        ax.axhline(val, lims[0], lims[1], **kwargs)
+        ax.axhline(val, **kwargs)
     else:
         raise Exception('Orientation must be h or v')
     return ax
