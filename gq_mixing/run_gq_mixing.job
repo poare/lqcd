@@ -5,8 +5,8 @@
 #SBATCH --job-name=gq_mixing
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
-#SBATCH -t 144:00:00
+#SBATCH --partition=prod
+#SBATCH -t 48:00:00
 
 set -x
 
@@ -35,7 +35,7 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 1000 10 1200`
+for cfg in `seq 1140 10 1500`
 do
 	mpirun -np 16 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
 done
