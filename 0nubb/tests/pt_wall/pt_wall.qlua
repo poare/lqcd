@@ -1,0 +1,169 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+if gpu then
+  require "lib/quda"
+end
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+-- Prints a qcd.DiracPropagator object
+function show_propagator(name, m)
+    local nc = m:colors()
+    for ci = 0, nc - 1 do
+    for cj = 0, nc - 1 do
+        for si = 0, qcd.Ns - 1 do
+            printf("%s[%d,%d,%d,.] ", name, ci,cj,si)
+            for sj = 0, qcd.Ns - 1 do
+              local zv = m[{c=ci,d=si}]
+              local z = zv[{c=cj,d=sj}]
+              printf("  [%1.12e %1.12e]", z:real(), z:imag())
+            end
+            printf("\n")
+          end
+        end
+      end
+      printf("\n")
+    end
+
+function init_id_field(L)
+  local U = {}
+  for mu = 0, #L - 1 do
+    local A = L:ColorMatrixN(Nc, 0.0)
+    U[mu+1] = (A*complex(0,1)):exp()
+  end
+  return U
+end
+
+function load_nersc(file_name, Lattice)
+  local U, msg;
+  U, msg = qcd.nersc.read_gauge(Lattice, file_name)
+  printf("HEADER of %q BEGIN\n", file_name)
+  for i, v in pairs(msg) do
+    printf("  %s = %s\n", i, tostring(v))
+  end
+  printf("END of %q HEADER\n", file_name)
+  return U
+end
+
+-- compute all color-unmixed bilinears with all gamma matrices.
+function run_pt_wall_test(L, U, solver, k1_list, k2_list, vol, writer, dwf, gpu)
+  local bvec = {0,0,0,0.5}
+
+  local tm = 5
+  local tO = 15
+  local tp = 25
+
+  for kidx = 1, #k1_list do
+    printf("p index: %d\n", kidx)
+    local k1 = k1_list[kidx]
+    local k2 = k2_list[kidx]
+    local q = {}
+    for mu = 0, #L - 1 do
+        q[mu + 1] = k2[mu + 1] - k1[mu + 1]
+      end
+    printf("k1 is (%d, %d, %d, %d), k2 is (%d, %d, %d, %d), q is (%d, %d, %d, %d).", k1[1], k1[2], k1[3], k1[4],
+              k2[1], k2[2], k2[3], k2[4], q[1], q[2], q[3], q[4])
+
+    -- Write k1 and k2 to file and make a map q <--> k1, k2. Might have errors since k1 / k2 aren't lattice fields.
+    local L_vec = qcd.lattice{4}
+    local k1_lat = L_vec:Int(0)
+    local k2_lat = L_vec:Int(0)
+    for mu = 0, #L - 1 do
+      k1_lat[{mu}] = k1[mu + 1]
+      k2_lat[{mu}] = k2[mu + 1]
+    end
+    local k1_path = string.format("moms/q%d%d%d%d/k1", q[1], q[2], q[3], q[4])
+    local k2_path = string.format("moms/q%d%d%d%d/k2", q[1], q[2], q[3], q[4])
+    h5_force_write(writer, k1_path, k1_lat)
+    h5_force_write(writer, k2_path, k2_lat)
+
+    local srck1 = compute_spacetime_wall_source_antiperiodicBC(U, k1)
+    local srck2 = compute_spacetime_wall_source_antiperiodicBC(U, k2)
+    local srcq = compute_spacetime_wall_source_antiperiodicBC(U, q)
+
+    -- COMPUTE PROPAGATORS
+    print("Inverting propagators.")
+    local S_k1 = solver(srck1)
+    local S_k2 = solver(srck2)
+    local S_q = solver(srcq)
+
+    -- local antiprop_k2 = gamma{mu = 5} * S_k2:adjoin() * gamma{mu = 5}
+
+    local Sk1_path = string.format("prop_k1/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local Sk2_path = string.format("prop_k2/q%d%d%d%d", q[1], q[2], q[3], q[4])
+    local Sq_path = string.format("prop_q/q%d%d%d%d", q[1], q[2], q[3], q[4])
+
+    h5_force_write(writer, Sk1_path, S_k1)
+    h5_force_write(writer, Sk2_path, S_k2)
+    h5_force_write(writer, Sq_path, S_q)
+
+    print("Done.")
+  end
+end
+
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Set parameters
+Lx = 24
+Lt = 64
+Ls = 16
+
+beta = 2.13
+M = 1.8
+ml = 0.01
+
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+lqcd_dir = "/home/lqcd/poare"
+
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+-- Paths to output file.
+folder = "/work/lqcd/d10b/users/poare/0nubb/output/tests"
+out_folder = string.format("%s/pt_wall_%d", folder, jobid)
+filename = string.format("%s/cfg_%d.h5", out_folder, cfg)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+local bcs = {1, 1, 1, -1}
+
+print("Running at one q value; run at more q once this works.")
+local k1_list_NPR = {{-1, 0, 1, 0}}
+local k2_list_NPR = {{0, 1, 1, 0}}
+
+-- Paths to input file
+gauge_file = string.format("/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_24_64/Sea_m0.01/gf/coulomb/ckpoint_lat.IEEE64BIG.%d", cfg)
+U = load_nersc(gauge_file, L)
+
+-- local U = read at /data/d10b/ensembles/RBC/RBC_UKQCD_24_64/Sea_m0.01/Configs
+
+print("Initializing solver.")
+local DWF = qcd.MDWF.Shamir(U, bcs, Ls, M, ml, 1.0)
+local solver = DWF:mixed_solver(1e-10, 5000, 1e-20, 50000)
+
+-- project gauge configuration onto SU(3)
+for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
+
+-- Open file writer
+local hdf5params = { method = "phdf5" }
+local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+run_pt_wall_test(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf, gpu)
+
+writer:close()

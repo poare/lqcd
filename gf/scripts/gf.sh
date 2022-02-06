@@ -20,7 +20,7 @@ writeto=${base}/gf
 # export OMP_NUM_THREADS=64
 export OMP_NUM_THREADS=12
 
-for ((traj=1000; traj<=1200; traj++)); do
+for ((traj=1500; traj<=1700; traj++)); do
   if [ -f ${smeared}/${stem}.${traj} ]; then
     echo "--- Gauge fixing ${stem}.${traj}"
   # if [ -f ${smeared}/${stem}-a_cfg_${traj}.lime ]; then

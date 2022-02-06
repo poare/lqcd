@@ -1,0 +1,44 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=free_field_test
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=prod
+#SBATCH -t 24:00:00
+
+set -x
+
+# cd /data/wombat/users/mlwagman/mosaic
+cd /home/lqcd/poare/lqcd/mosaic
+
+bash
+module load openmpi/3.1.5
+#module load qlua
+# module load qlua/20200107
+module load qlua/20200107-gpu1080
+#module load qlua/20201002
+
+EXE=qlua
+
+home=/home/lqcd/poare/lqcd/0nubb
+logs=${home}/logs/tests/pt_wall_${SLURM_JOB_ID}
+output=/work/lqcd/d10b/users/poare/0nubb/output/tests/pt_wall_${SLURM_JOB_ID}
+
+cfg_in=/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_24_64/Sea_m0.01/gf/coulomb
+stem=ckpoint_lat.IEEE64BIG
+
+mkdir ${logs}
+mkdir ${output}
+
+parameters="jobid = ${SLURM_JOB_ID}"
+export OMP_NUM_THREADS=6
+
+for cfg in `seq 1010 5 1200`
+do
+  if [ -f ${cfg_in}/${stem}.${traj} ]; then
+    echo "--- Running pt_wall on ${stem}.${traj}"
+    mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/tests/pt_wall/pt_wall.qlua > ${logs}/cfg${cfg}.txt
+  fi
+done
