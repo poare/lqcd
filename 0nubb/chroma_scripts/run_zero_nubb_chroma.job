@@ -5,7 +5,8 @@
 #SBATCH --time=96:00:00
 #SBATCH --partition=long
 
-source /usr/local/Modules/init/bash
+# source /usr/local/Modules/init/bash
+
 # TOPDIR=/home/poare/0nubb/chroma_scripts
 
 set -x
@@ -27,7 +28,7 @@ echo "=== Run MPI application on $nCores cores ==="
 export QUDA_REORDER_LOCATION=GPU #GPU/CPU
 export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
-ini_dir=/home/poare/lqcd/0nubb/chroma_scripts/input
+ini_dir=/home/lqcd/poare/lqcd/0nubb/chroma_scripts/input
 #ens=${ini_dir}/24I/ml0p01    # change this for each different ensemble
 #ens=${ini_dir}/24I/ml0p005    # change this for each different ensemble
 #ens=${ini_dir}/32I/ml0p006
@@ -38,7 +39,7 @@ ens=${ini_dir}/32I/ml0p008
 
 #for cfg_idx in `seq 0 9`
 #do
-cfg_idx=0
+cfg_idx=1
   for k in `seq 2 5`
   do
     ini_file=${ens}/cfg_${cfg_idx}/mom_${k}.ini.xml
