@@ -502,7 +502,7 @@ print("Running free field test")
 status1 = true
 status2 = true
 U = init_id_field(L)
-U_flowed = init_id_field(L)
+Uflowed = init_id_field(L)
 
 if status1 and status2 then
   -- project gauge configuration onto SU(3)
