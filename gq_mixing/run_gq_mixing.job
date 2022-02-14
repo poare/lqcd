@@ -39,7 +39,8 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 1000 10 3000`
-do
+# for cfg in `seq 1000 10 3000`
+# do
+cfg=1010
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
-done
+# done

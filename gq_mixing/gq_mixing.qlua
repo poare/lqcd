@@ -493,15 +493,14 @@ printf("Number of momenta to compute at: %d.", #p_list_NPR)
 local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
 local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
 
--- for testing
--- local gauge_file = string.format("/data/d10b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450_smeared_gf/landau/cl3_16_48_b6p1_m0p2450_cfg_%d.lime", cfgnum)
--- local flowed_file = gauge_file
-
 print("Reading gauge file at: %s\n", gauge_file)
 
 -- status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
 -- status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
+
 print("Running free field test")
+status1 = true
+status2 = true
 U = init_id_field(L)
 U_flowed = init_id_field(L)
 
