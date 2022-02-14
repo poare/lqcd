@@ -35,6 +35,15 @@ function show_propagator(name, m)
       printf("\n")
     end
 
+function init_id_field(L)
+  local U = {}
+  for mu = 0, #L - 1 do
+    local A = L:ColorMatrixN(Nc, 0.0)
+    U[mu + 1] = (A * complex(0, 1)):exp()
+  end
+  return U
+end
+
 function compute_Zq_sink(L, U, ferm_prop, p_list, hypervolume, group, clover, writer, Nc)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
@@ -460,6 +469,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
 -- local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
+
+--[[
 local p_list_NPR = {}
 local a = 1
 local b = 6
@@ -472,12 +483,13 @@ for i = a, b do
     end
   end
 end
+]]
+
+local p_list_NPR = {{3, 0, 0, 0}}    -- free field test
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 -- uncomment to actually run
--- local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
--- local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
 local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
 
@@ -487,8 +499,12 @@ local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgba
 
 print("Reading gauge file at: %s\n", gauge_file)
 
-status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
-status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
+-- status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
+-- status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
+print("Running free field test")
+U = init_id_field(L)
+U_flowed = init_id_field(L)
+
 if status1 and status2 then
   -- project gauge configuration onto SU(3)
   for mu = 0, #L-1 do
