@@ -3,7 +3,7 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=gq_mixing
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --partition=prod
 #SBATCH -t 48:00:00
@@ -16,6 +16,8 @@ bash
 module load openmpi/3.1.5
 module load qlua/20200107-gpu1080
 #module load qlua/20200107
+
+# note for the 48^3, we needed 4 nodes and had -np 16
 
 EXE=qlua
 
@@ -39,5 +41,5 @@ export OMP_NUM_THREADS=6
 
 for cfg in `seq 1000 10 3000`
 do
-	mpirun -np 16 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
 done
