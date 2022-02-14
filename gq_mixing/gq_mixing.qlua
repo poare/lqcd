@@ -485,7 +485,7 @@ for i = a, b do
 end
 ]]
 
-local p_list_NPR = {{3, 0, 0, 0}}    -- free field test
+local p_list_NPR = {{1, 1, 1, 1}, {3, 0, 0, 0}}    -- free field test
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
