@@ -573,7 +573,8 @@ local bcs = {1, 1, 1, -1}
 local k1_list_NPR = {}
 local k2_list_NPR = {}
 print("Initializing momenta.")
-for m = 1, 6 do
+-- for m = 1, 6 do
+for m = 7, 10 do
   local minusM = -m
   k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
   k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
@@ -614,6 +615,7 @@ if dwf then
   end
 else
   local csw = 1.2493
+  -- local csw = 1.24930970916466
   local clover
   if gpu then
       clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
