@@ -548,7 +548,7 @@ kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
-lqcd_dir = "/home/poare"
+lqcd_dir = "/home/lqcd/poare"
 
 vol = 1        -- hypervolume
 for i = 0, #L - 1 do
