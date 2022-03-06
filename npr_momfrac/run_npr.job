@@ -5,8 +5,8 @@
 #SBATCH --job-name=npr_momfrac
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod
-#SBATCH -t 24:00:00
+#SBATCH --partition=devel
+#SBATCH -t 00:30:00
 
 set -x
 
@@ -21,14 +21,15 @@ module load openmpi/3.1.5
 
 EXE=qlua
 
-cfgpath="/data/d10b/ensembles/isoClover/"
-# cfgbase="cl3_32_48_b6p1_m0p2450"
-cfgbase="cl3_16_48_b6p1_m0p2450"
+# cfgpath="/data/d10b/ensembles/isoClover/"
+# cfgbase="cl3_16_48_b6p1_m0p2450"
+cfgpath="/work/lqcd/d10b/ensembles/isoClover/"
+cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
 gf=true
 gpu=true
 #gpu=false
 
-home=/home/poare/lqcd/npr_momfrac
+home=/home/lqcd/poare/lqcd/npr_momfrac
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
 output=/data/d10b/users/poare/npr_momfrac/output/${cfgbase}_${SLURM_JOB_ID}
 
@@ -39,7 +40,8 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 1000 10 1010`
-do
+# for cfg in `seq 1000 10 1010`
+# do
+cfg=1010
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/npr_momfrac.qlua > ${logs}/cfg${cfg}.txt
-done
+# done

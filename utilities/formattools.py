@@ -85,7 +85,7 @@ class Table:
             Entries = np.empty(entries.shape, dtype = object)
             for i in range(entries.shape[0]):
                 for j in range(entries.shape[1]):
-                    Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma == -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
+                    Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma is -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
             self._entries = Entries
         self.update()
 
@@ -250,7 +250,13 @@ def export_float_latex(mu, sigma = -1, sf = 2):
     string
         Formatted latex string.
     """
-    if sigma == -1:
+    if type(mu) is np.ndarray:
+        fmt_str = '[\n   '
+        for i in range(len(mu)):
+            fmt_str += export_float_latex(mu[i], sigma[i], sf)
+            fmt_str += '\n   '
+        return fmt_str + ']'
+    if sigma is -1:
         prec = '.' + str(sf) + 'f'
         return f'{mu:{prec}}'
     sigma_scinot = f'{sigma:e}'
@@ -268,6 +274,15 @@ def export_float_latex(mu, sigma = -1, sf = 2):
     # mu_fmt = format(mu, '0.' + str(n_digits + mu_power) + 'f')
     mu_fmt = format(mu, '0.' + str(n_digits - 1) + 'f')
     return mu_fmt + '(' + s + ')'
+
+def mat_to_pmat(M):
+    n, m = M.shape
+    fmtstring = '\\begin{pmatrix}'
+    for i in range(n):
+        for j in range(m):
+            if j == 0:
+                fmt_string = fmt_string + ' '
+            fmtstring = fmtstring + ' & '
 
 def export_matrix_latex(M, sigmaM = None, sf = 2, epsilon = 1e-8):
     """
@@ -293,23 +308,28 @@ def export_matrix_latex(M, sigmaM = None, sf = 2, epsilon = 1e-8):
         Formatted latex string.
     """
     n, m = M.shape
-    if sigmaM is None:
-        # TODO method stub
-        fmtstring = a
-    else:
-        fmtstring = '\\begin{pmatrix} '
-        for i in range(n):
-            for j in range(m):
-                if np.abs(M[i, j]) < epsilon:
-                    Mij = '0'
+    # if sigmaM is None:
+    #     # TODO method stub
+    #     fmtstring = a
+    # else:
+    fmtstring = '\\begin{pmatrix} '
+    for i in range(n):
+        for j in range(m):
+            if np.abs(M[i, j]) < epsilon:
+                Mij = '0'
+            else:
+                if sigmaM is None:
+                    sg = -1
                 else:
-                    Mij = export_float_latex(M[i, j], sigmaM[i, j], sf)
-                fmtstring += Mij
-                if j < m - 1:    # check for end of string
-                    fmtstring += ' & '
-            if i < n - 1:
-                fmtstring += ' \\\\ '
-        fmtstring += ' \\end{pmatrix}'
+                    sg = sigmaM[i, j]
+                # Mij = export_float_latex(M[i, j], sigmaM[i, j], sf)
+                Mij = export_float_latex(M[i, j], sg, sf)
+            fmtstring += Mij
+            if j < m - 1:    # check for end of string
+                fmtstring += ' & '
+        if i < n - 1:
+            fmtstring += ' \\\\ '
+    fmtstring += ' \\end{pmatrix}'
     return fmtstring
 
 # TODO move these into the Table class and add other formatting options. Default should be

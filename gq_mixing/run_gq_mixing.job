@@ -5,8 +5,8 @@
 #SBATCH --job-name=gq_mixing
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod
-#SBATCH -t 48:00:00
+#SBATCH --partition=devel
+#SBATCH -t 00:30:00
 
 set -x
 

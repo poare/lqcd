@@ -195,8 +195,8 @@ function compute_mixing_ptsource(L, U, Uflowed, ferm_prop, p_list, hypervolume, 
 
   -- Computes N point propagators
   local N = nsrc    -- number of points to compute propagators at
-  local seed = cfgnum + jobid
-  -- local seed = 10     -- for testing
+  -- local seed = cfgnum + jobid
+  local seed = 10     -- for testing
   -- local seed = os.time()
   math.randomseed(seed)
   local S_list = {}
@@ -428,7 +428,7 @@ end
 -- beta = 6.3
 -- mq = -0.2416
 
-Lx = 12        -- for testing
+Lx = 12
 Lt = 24
 beta = 6.1
 mq = -0.2450
@@ -495,14 +495,14 @@ local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgba
 
 print("Reading gauge file at: %s\n", gauge_file)
 
--- status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
--- status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
+status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
+status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
 
-print("Running free field test")
-status1 = true
-status2 = true
-U = init_id_field(L)
-Uflowed = init_id_field(L)
+-- print("Running free field test")
+-- status1 = true
+-- status2 = true
+-- U = init_id_field(L)
+-- Uflowed = init_id_field(L)
 
 if status1 and status2 then
   -- project gauge configuration onto SU(3)

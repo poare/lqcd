@@ -147,6 +147,7 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
     np.array [Nb, ...]
         Bootstrapped tensor.
     """
+    print(Nb)
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
     bootshape = [Nb]
     bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
@@ -160,7 +161,6 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
         samples[boot_id] = np.mean(S[cfg_ids], axis = 0)
     return samples
 
-# Invert propagators to get S^{-1} required for amputation.
 def invert_props(props, Nb = n_boot):
     """
     Invert propagators to get S^{-1}, required for amputation.
