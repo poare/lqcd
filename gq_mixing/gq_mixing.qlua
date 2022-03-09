@@ -488,8 +488,8 @@ end
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 -- uncomment to actually run
-local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
-local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
 print("Reading gauge file at: %s\n", gauge_file)
 

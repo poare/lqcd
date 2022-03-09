@@ -21,7 +21,7 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-cfgpath="/work/lqcd/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050"
+cfgpath="/work/lqcd/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
 cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
 # cfgpath="/work/lqcd/d10b/ensembles/isoClover/"
 # cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
