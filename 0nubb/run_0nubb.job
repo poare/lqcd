@@ -51,6 +51,6 @@ export OMP_NUM_THREADS=6
 
 #for cfg in `seq 1010 10 1030`
 #do
-cfg=1010
+cfg=1230
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
 #done
