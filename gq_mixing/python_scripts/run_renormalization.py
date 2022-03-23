@@ -19,10 +19,19 @@ L = Lattice(l, t)
 
 # k_list = [[2, 2, 2, 2], [4, 4, 4, 4], [6, 6, 6, 6], [8, 8, 8, 8], [3, 0, 0, 0], [6, 0, 0, 0], [9, 0, 0, 0]]
 
+eps = 1e-8
 kmin, kmax = 1, 7
 k_list = []
 for i, j, k, l in itertools.product(range(kmin, kmax), repeat = 4):
     k_list.append([i, j, k, l])
+    kk = np.array([i, j, k, l])
+    p_lat = L.to_lattice_momentum(kk)
+    if np.abs(detA(p_lat, get_inner(3))) < eps:
+        print(kk)
+    # if np.abs(detA) >= eps:     # if A(p) is invertible
+    #     mom_tot.append(k)
+    # else:
+    #     removed.append(k)
 k_list = np.array(k_list)
 # k_list = np.array([[1, 1, 1, 6], [1, 1, 6, 1], [1, 6, 1, 1], [6, 1, 1, 1]])
 print('Number of total momenta: ' + str(len(k_list)))
@@ -65,6 +74,12 @@ Zq = np.zeros((len(k_list), n_boot), dtype = np.complex64)
 
 Zqq3 = np.zeros((len(k_list), 3, n_boot), dtype = np.complex64)
 Zqq6 = np.zeros((len(k_list), 6, n_boot), dtype = np.complex64)
+
+# results with tensor structure mixing. The first index specifies the irrep, [0] is tau_1^3 and [1] is tau_3^6
+Pi1 = np.zeros((2, len(k_list), n_boot), dtype = np.complex64)
+Pi2 = np.zeros((2, len(k_list), n_boot), dtype = np.complex64)
+Zqq_mix = np.zeros((2, len(k_list), n_boot), dtype = np.complex64)
+
 props_list = np.zeros((len(k_list), n_boot, 3, 4, 3, 4), dtype = np.complex64)
 Gamma_qg3_list = np.zeros((len(k_list), 3, n_boot, 3, 4, 3, 4), dtype = np.complex64)
 Gamma_qg6_list = np.zeros((len(k_list), 6, n_boot, 3, 4, 3, 4), dtype = np.complex64)
@@ -108,13 +123,33 @@ for k_idx, k in enumerate(k_list):
     Tr_Zqq6 = np.einsum('tzaiaj,tji->tz', Gamma_qq6, Gamma_qq6_tree_inv)
     Zqq6[k_idx] = 12 * np.einsum('z,tz->tz', Zq[k_idx], 1 / Tr_Zqq6)
 
-    # print Zqq to terminal
-    print('Zqq3 = ' + str(np.mean(np.real(Zqq3[k_idx]), axis = 1)))
-    print('Zqq6 = ' + str(np.mean(np.real(Zqq6[k_idx]), axis = 1)))
+    # print Zqq with no tensor mixing
+    print('Zqq3, no tensor mixing = ' + str(np.mean(np.real(Zqq3[k_idx]), axis = 1)))
+    print('Zqq6, no tensor mixing = ' + str(np.mean(np.real(Zqq6[k_idx]), axis = 1)))
+
+    # run analysis with tensor structure mixing for Zqq on both irreps
+    irrep_dims = [3, 6]
+    Gamma_qq_irreps = [Gamma_qq3, Gamma_qq6]
+    L1, L2 = Gamma_qq_1(p_lat), Gamma_qq_2(p_lat)
+    for ii, dim in enumerate(irrep_dims):
+        irr_label = irrep_label(dim)
+        # print('Evaluating Zqq with tensor mixing on irrep: ' + irr_label)
+        TrC_Gammaqq = np.einsum('tzaiaj->ztij', Gamma_qq_irreps[ii]) / 3.
+        inner = get_inner(dim)
+        Ainv = A_inv_ab(p_lat, inner)
+        for b in range(n_boot):
+            vb = np.array([
+                inner(L1, TrC_Gammaqq[b]),
+                inner(L2, TrC_Gammaqq[b])
+            ])
+            Pi1[ii, k_idx, b], Pi2[ii, k_idx, b] = Ainv @ vb
+            Zqq_mix[ii, k_idx, b] = Zq[k_idx, b] / Pi1[ii, k_idx, b]
+        # print('Zqq on irrep ' + irr_label + ' = ' + str(np.mean(np.real(Zqq_mix[ii, k_idx]))))
+        print('Zqq on irrep ' + irr_label + ' = ' + \
+            export_float_latex(np.mean(np.real(Zqq_mix[ii, k_idx])), np.std(np.real(Zqq_mix[ii, k_idx]), ddof = 1)))
 
     # Time per iteration
     print('Elapsed time: ' + str(time.time() - start))
-
 
 ################################## SAVE DATA ##################################
 # out_file = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/analysis_output/Z_' + str(jobid) + '.h5'
@@ -127,6 +162,10 @@ f['props'] = props_list
 f['Zq'] = Zq
 f['Zqq3'] = Zqq3
 f['Zqq6'] = Zqq6
+
+f['Pi1'] = Pi1
+f['Pi2'] = Pi2
+f['Zqq_mix'] = Zqq_mix
 
 f['Gamma_qg3'] = Gamma_qg3_list
 f['Gamma_qg6'] = Gamma_qg6_list

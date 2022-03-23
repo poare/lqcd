@@ -24,6 +24,50 @@ import random
 from scipy import optimize
 from scipy.stats import chi2
 
+# all lengths are in point unless otherwise specified
+"""
+styles is a dictionary which contains measurements necessary to create figures for
+different styles of papers. Currently implemented are:
+  - 'prd_twocol'            : Single-column figure of a two-column PRD paper.
+  - 'prd_twocol*'           : Double-column figure of a two-column PRD paper.
+
+The parameters in each style dictionary are (as well as units):
+  - 'colwidth'              : Width of a single column in this format (inches).
+  - 'textwidth'             : Width of text size on page in this format (inches).
+  - 'fontsize'              : Font size of paper (pts)
+  - 'tickwidth'             : Width of tick in figure (pts)
+  - 'ticklength'            : Length of tick in figure (pts)
+  - 'axeswidth'             : Thickness of axes in figure (pts)
+  - 'markersize'            : Size of markers (pts)
+  - 'ebar_width'            : Thickness of error bars (pts)
+  - 'capsize'               : Size of endcaps for error bars (pts)
+"""
+pts_per_inch = 72.27    # inches to pts
+styles = {
+    'prd_twocol' : {
+        'colwidth'          : 246.0 / pts_per_inch,         # inches
+        'textwidth'         : 510.0 / pts_per_inch,         # inches
+        'fontsize'          : 10.0,                         # pts
+        'tickwidth'         : 0.5,                          # pts
+        'ticklength'        : 2.0,                          # pts
+        'axeswidth'         : 0.5,                          # pts
+        'markersize'        : 1.0,                          # pts
+        'ebar_width'        : 0.5,                          # pts
+        'endcaps'           : 1.0                           # pts
+    },
+    'prd_twocol*' : {
+        'colwidth'          : 510.0 / pts_per_inch,
+        'textwidth'         : 510.0 / pts_per_inch,
+        'fontsize'          : 10.0,
+        'tickwidth'         : 0.5,
+        'ticklength'        : 2.0,
+        'spinewidth'        : 0.5,
+    }
+}
+
+"""List of all spines in matplotlib."""
+spinedirs = ['top', 'bottom', 'left', 'right']
+
 class Entry:
 
     # enum for possible types an entry can have
@@ -335,7 +379,7 @@ def export_matrix_latex(M, sigmaM = None, sf = 2, epsilon = 1e-8):
 # TODO move these into the Table class and add other formatting options. Default should be
 # fmt = 'latex', but can also use fmt = 'notebook' and add other options as we go
 
-def export_vert_table_latex(data, col_labels, row_labels = np.empty((), dtype = str)):
+def export_vert_table_latex(data, col_labels, row_labels = np.empty((), dtype = str), header = None, hline_idxs = None):
     """
     Formats a data table in the vertical direction, i.e. the first row is a set of column labels.
     data should either be a Table class instance or an array of string representations of the data.
@@ -358,10 +402,13 @@ def export_vert_table_latex(data, col_labels, row_labels = np.empty((), dtype = 
     n = (1 if len(row_labels.shape) == 1 else row_labels.shape[1])
     m = data.shape[1]
     assert n_cols == n + m
-    header = '\\begin{tabular}{|'
-    for ii in range(len(col_labels)):
-        header += 'c|'
-    header += '} \\hline '
+    if header is None:
+        header = '\\begin{tabular}{|'
+        for ii in range(len(col_labels)):
+            header += 'c|'
+        header += '} \\hline \\hline '
+    if hline_idxs is None:
+        hline_idxs = list(range(n_rows))
     all_labels = np.empty((n_rows, n_cols), dtype = object)
     all_labels.fill('')
     all_labels[0, :] = col_labels
@@ -373,8 +420,9 @@ def export_vert_table_latex(data, col_labels, row_labels = np.empty((), dtype = 
         for l in range(n_cols):
             body += all_labels[k, l]
             body += ' \\\\ ' if l == n_cols - 1 else ' & '
-        body += ' \\hline '
-    body += ' \\end{tabular} '
+        if k in hline_idxs:
+            body += ' \\hline '
+    body += ' \\hline \\hline \\end{tabular} '
     return header + body
 
 def export_hor_table_latex(data, row_labels, col_labels = np.empty((), dtype = str)):

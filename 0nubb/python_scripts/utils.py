@@ -9,6 +9,7 @@ import io
 import random
 from scipy import optimize
 from scipy.stats import chi2
+import sys
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
   # b is the boostrap index
@@ -72,6 +73,13 @@ for a, b in itertools.product(range(Nc), repeat = 2):
                 tree[4, a, alpha, a, beta, b, gam, b, sigma] += 2 * (gammaGamma[mu, nu, alpha, beta] * gammaGamma[mu, nu, gam, sigma])
                 tree[4, a, alpha, b, beta, b, gam, a, sigma] -= 2 * (gammaGamma[mu, nu, alpha, sigma] * gammaGamma[mu, nu, gam, beta])
 
+# Plotting conventions
+# latex_labels = ['\\mathcal{O}_1', '\\mathcal{O}_2', '\\mathcal{O}_3', '\\mathcal{O}_1\'', '\\mathcal{O}_2\'']
+latex_labels = ['O_1', 'O_2', 'O_3', 'O_{1\'}', 'O_{2\'}']
+op_labels = ['O1', 'O2', 'O3', 'O1p', 'O2p']
+colors = [(1., .20, 0), (.80, .60, .70), (0, .45, .90), (0, .60, .50), (.95, .90, .25)]
+markers = ['o', 'v', '^', '_', 'x']
+
 # Saves the dimensions of a lattice.
 class Lattice:
     def __init__(self, l, t):
@@ -130,7 +138,7 @@ def norm(p):
 # read in 3 point functions for operator renormalization; if it is False, then
 # will only read in 3 point functions for quark / vector / axial renormalization,
 # and will return an empty list for G0
-def readfiles(cfgs, q, op_renorm = True):
+def readfiles(cfgs, q, op_renorm = True, chroma = True):
     props_k1 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
     props_k2 = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
     props_q = np.zeros((len(cfgs), 3, 4, 3, 4), dtype = np.complex64)
@@ -152,9 +160,11 @@ def readfiles(cfgs, q, op_renorm = True):
             GA[mu, idx] = np.einsum('ijab->aibj', f['GA' + str(mu + 1) + '/' + qstr][()])
         if op_renorm:
             for n in range(16):
-                # TODO be careful about this with the chroma input
-                # GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])      # for chroma
-                GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])    # for qlua
+                # Chroma output is saved as the transpose of qlua output
+                if chroma:
+                    GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])      # for chroma
+                else:
+                    GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])    # for qlua
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
 # Read an Npt function in David's format
@@ -360,15 +370,17 @@ def fit_constant(fit_region, data, nfits = n_boot):
     ndof = len(fit_region) - 1    # since we're just fitting a constant, n_params = 1
     return c_fit, chi2_mu, ndof
 
-# data should have length n_boot and data[b] should consist of a list {y_i} with the same size as fit_region.
-# We're trying to fit y_i = a x_i + c, where fit_region = {x_i}
-# Performs a linear fit to the (x_i, y_i) data for each bootstrap and extrapolates to the point
-# x_0.
-# @return
-# fit_params : array of fit parameters (a, c) for each bootstrap
-# chi2 : list of chi2 values for each fit for each bootstrap
-# y_extrap : list of extrapolated Lambda values for each bootstrap
 def corr_linear_fit(fit_region, data, x_extrap, nfits = n_boot):
+    """
+    data should have length n_boot and data[b] should consist of a list {y_i} with the same size as fit_region.
+    We're trying to fit y_i = a x_i + c, where fit_region = {x_i}
+    Performs a linear fit to the (x_i, y_i) data for each bootstrap and extrapolates to the point
+    x_0.
+    @return
+    fit_params : array of fit parameters (a, c) for each bootstrap
+    chi2 : list of chi2 values for each fit for each bootstrap
+    y_extrap : list of extrapolated Lambda values for each bootstrap
+    """
     sigma_fit = np.std(data, axis = 0, ddof = 1)
     chi2 = lambda x, dat, sigma : np.sum((dat - (x[0] * fit_region + x[1] * np.ones(len(fit_region)))) ** 2 / (sigma ** 2))
     fit_params = np.zeros((n_boot, 2), dtype = np.float64)    # 2 fit params
@@ -446,8 +458,9 @@ def uncorr_const_fit(fit_region, superboot_data, x_extrap): # TODO constant fit 
 
 # Performs a correlated fit in powers of (ap)^2 to the data. Assumes that data
 # is a MATRIX of shape [len(fit_range), Superboot.boots], i.e. indexed by (momenta, ens_idx, boot)
-# order is what power of \mu^2 to fit to. mu1 = 3 GeV is the matching point
-def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1, label = 'Z_ij / Z_V^2'):
+# order is what power of \mu^2 to fit to. mu1 = 3 GeV is the matching point. If quad = True, use a
+# fit form starting with only even terms in (ap)^2
+def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1, quad = False, label = 'Z_ij / Z_V^2'):
     n_pts = len(fit_region)
     assert n_pts == data.shape[0]
     n_ens = data.shape[1]
@@ -464,7 +477,10 @@ def corr_superboot_fit_apsq(fit_region, data, mu1 = 3.0, order = 1, label = 'Z_i
     mu1_moments = np.ones((order + 1), dtype = np.float64)
     print('Fitting c0')
     for i in range(order):
-        power = 2 * (i + 1)
+        if quad:
+            power = 2 * (i + 1)
+        else:
+            power = i + 1
         print('+ c' + str(i + 1) + ' \mu^' + str(power))
         moments[i + 1] = fit_region ** power
         mu1_moments[i + 1] = mu1 ** power
@@ -543,14 +559,25 @@ def weighted_sum_bootstrap(meff, weights):
     weights = weights / np.sum(weights)
     return np.einsum('fb,f->b', meff, weights)
 
-# spreads a dataset in a correlated way to have standard deviation new_std.
 def spread_boots(data, new_std, boot_axis = 0):
+    """
+    Spreads a bootstrap dataset to have a new std by preserving its correlation
+    and mean.
+    """
     old_std = np.std(data, axis = boot_axis, ddof = 1)
     mu = np.mean(data, axis = boot_axis)
     spread_data = np.full(data.shape, mu, dtype = data.dtype)
     spread_factor = new_std / old_std
     spread_data += spread_factor * (data - spread_data)
     return spread_data
+
+def shift_boots(data, new_mean, boot_axis = 0):
+    """
+    Shifts bootstrap data to a new mean, preserving its correlation and variance.
+    """
+    shift = new_mean - np.mean(data, axis = boot_axis)
+    shift_data = shift + data
+    return shift_data
 
 # VarPro code
 

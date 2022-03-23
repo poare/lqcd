@@ -5,15 +5,13 @@ import os
 from utils import *
 
 ################################## PARAMETERS #################################
+# Read the ensemble index. Can also manually set it to choose the ensemble to run on.
+ens_idx = int(sys.argv[1])
+ens = ['24I/ml0p01', '24I/ml0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
 base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
-ens = '24I/ml0p01'
-# ens = '24I/ml0p005'
-# ens = '32I/ml0p006'
-# ens = '32I/ml0p004'
 data_dir = base + ens + '/hdf5'
 
-l = 24
-# l = 32
+l = [24, 24, 32, 32, 32][ens_idx]
 t = 64
 L = Lattice(l, t)
 
@@ -44,7 +42,7 @@ Zq = np.zeros((len(q_list), n_boot), dtype = np.complex64)
 ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
-    k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, False)
+    k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, False, chroma = True)
     q = -q
     q_lat = np.sin(L.to_linear_momentum(q))
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
@@ -67,9 +65,10 @@ for q_idx, q in enumerate(q_list):
     ZV[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,ji->z', qDotV, qlat_slash)
     ZA[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,jk,ki->z', qDotA, gamma5, qlat_slash)
 
+    print('ZV ~ ' + str(np.mean(ZV[q_idx])))
+
     # Time per iteration
     print('Elapsed time: ' + str(time.time() - start))
-
 
 ################################## SAVE DATA ##################################
 out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/AVcurrents.h5'

@@ -37,7 +37,7 @@ class Model:
     @staticmethod
     def const_model():
         """
-        Initializes a constant fit model, y = c0. Should replicate quadratic_model(0).
+        Initializes a constant fit model, y = c0. Should replicate power_model(0).
         """
         def const_fn(params):
             def model(t):
@@ -46,25 +46,59 @@ class Model:
         m = Model(const_fn, 1)
         return m
 
+    # @staticmethod
+    # def power_model(n):
+    #     """
+    #     Returns a power law fit model to the nth power in x, where x is a scalar input.
+    #
+    #     Examples:
+    #     power_model(0) : y = c0
+    #     power_model(1) : y = c0 + c1 x
+    #     power_model(2) : y = c0 + c1 x + c2 x^2
+    #     """
+    #     def model_fn(params):
+    #         assert len(params) == n + 1
+    #         def model(x):
+    #             sum = 0.
+    #             for ii, c in enumerate(params):
+    #                 sum += c * (x ** ii)
+    #             return sum
+    #         return model
+    #     m = Model(model_fn, n + 1)
+    #     return m
     @staticmethod
     def power_model(n):
         """
-        Returns a power law fit model to the nth power in x, where x is a scalar input.
+        Returns a power law fit model with the powers in n.
+
+        Parameters
+        ----------
+        n : iterable, or int.
+            Powers of x to use for the fit model. If an integer is passed in, uses all possible
+            powers up to n.
+
+        Returns
+        -------
+        Model object with the corersponding power law as its model function.
 
         Examples:
-        quadratic_model(0) : y = c0
-        quadratic_model(1) : y = c0 + c1 x
-        quadratic_model(2) : y = c0 + c1 x + c2 x^2
+        power_model(0) : y = c0
+        power_model(1) : y = c0 + c1 x
+        power_model(2) : y = c0 + c1 x + c2 x^2
         """
+        if type(n) == int:
+            n = list(range(0, n + 1))
+        n_params = len(n)
+        print('Defining power law with ' + str(n_params) + ' parameters.')
         def model_fn(params):
-            assert len(params) == n + 1
+            assert len(params) == n_params
             def model(x):
                 sum = 0.
                 for ii, c in enumerate(params):
-                    sum += c * (x ** ii)
+                    sum += c * (x ** n[ii])
                 return sum
             return model
-        m = Model(model_fn, n + 1)
+        m = Model(model_fn, n_params)
         return m
 
 
@@ -128,62 +162,6 @@ class BootstrapFitter:
         chi2_min = self.chi2(params_fit, self.mean, self.covar)
         ndof = len(self.fit_region) - 1
         return params_fit, chi2_min, ndof
-
-# TODO don't need functions like this since it reduces to a correlated fit with a diagonal covariance.
-
-# # data should be an array of size (n_fits, T) and fit_region gives the times to fit at
-# def fit_constant_uncorr(fit_region, data, nfits = n_boot):
-#     if type(fit_region) != np.ndarray:
-#         fit_region = np.array([x for x in fit_region])
-#     if len(data.shape) == 1:        # if data only has one dimension, add an axis
-#         data = np.expand_dims(data, axis = 0)
-#     sigma_fit = np.std(data[:, fit_region], axis = 0)
-#     c_fit = np.zeros((nfits), dtype = np.float64)
-#     chi2 = lambda x, data, sigma : np.sum((data - x[0]) ** 2 / (sigma ** 2))     # x[0] = constant to fit to
-#     for i in range(nfits):
-#         data_fit = data[i, fit_region]
-#         x0 = [1]          # guess to start at
-#         out = optimize.minimize(chi2, x0, args=(data_fit, sigma_fit), method = 'Powell')
-#         c_fit[i] = out['x']
-#         # cov_{ij} = 1/2 * D_i D_j chi^2
-#     # return the total chi^2 and dof for the fit. Get chi^2 by using mean values for all the fits.
-#     c_mu = np.mean(c_fit)
-#     data_mu = np.mean(data, axis = 0)
-#     chi2_mu = chi2([c_mu], data_mu[fit_region], sigma_fit)
-#     ndof = len(fit_region) - 1    # since we're just fitting a constant, n_params = 1
-#     return c_fit, chi2_mu, ndof
-
-# # data should be an array of size (n_fits, T). Fits over every range with size >= TT_min and weights
-# # by p value of the fit. cut is the pvalue to cut at.
-# def fit_constant_allrange(data, TT_min = 4, cut = 0.01):
-#     TT = data.shape[1]
-#     fit_ranges = []
-#     for t1 in range(TT):
-#         for t2 in range(t1 + TT_min, TT):
-#             fit_ranges.append(range(t1, t2))
-#     f_acc = []        # for each accepted fit, store [fidx, fit_region]
-#     stats_acc = []    # for each accepted fit, store [pf, chi2, ndof]
-#     meff_acc = []     # for each accepted fit, store [meff_f, meff_sigma_f]
-#     weights = []
-#     print('Accepted fits\nfit index | fit range | p value | meff mean | meff sigma | weight ')
-#     for f, fit_region in enumerate(fit_ranges):
-#         meff_ens_f, chi2_f, ndof_f = fit_constant(fit_region, data)
-#         pf = chi2.sf(chi2_f, ndof_f)
-#         if pf > cut:
-#             # TODO change so that we store m_eff_mu as an ensemble, want to compute m_eff_bar ensemble
-#             meff_mu_f = np.mean(meff_ens_f)
-#             meff_sigma_f = np.std(meff_ens_f, ddof = 1)
-#             weight_f = pf * (meff_sigma_f ** (-2))
-#             print(f, fit_region, pf, meff_mu_f, meff_sigma_f, weight_f)
-#             f_acc.append([f, fit_region])
-#             stats_acc.append([pf, chi2_f, ndof_f])
-#             # meff_acc.append([meff_mu_f, meff_sigma_f])
-#             meff_acc.append(meff_ens_f)
-#             weights.append(weight_f)
-#     print('Number of accepted fits: ' + str(len(f_acc)))
-#     weights, meff_acc, stats_acc = np.array(weights), np.array(meff_acc), np.array(stats_acc)
-#     # weights = weights / np.sum(weights)    # normalize to 1
-#     return f_acc, stats_acc, meff_acc, weights
 
 def get_covariance(R, dof = 1):
     """

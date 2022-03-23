@@ -6,21 +6,39 @@ from scipy.special import zeta
 import time
 import re
 import itertools
+import sys
 
 from utils import *
 
 Pi_Pi = '/Users/theoares/Pi_Pi/'
 
-# Choose lattice to run analysis on and initialize parameters
-# config = '24I/ml_0p01'
-config = '24I/ml_0p005'
-# config = '32I/ml0p008'
-# config = '32I/ml0p006'
-# config = '32I/ml0p004'
+"""
+Run sd_analysis on a given ensemble from the command line with python3 short_distance_analysis.py ${cfg_idx}.
+If you run the script sd_run.sh from the command line, it will run all 5 ensembles.
+"""
+ens_list = [
+    '24I/ml_0p01',
+    '24I/ml_0p005',
+    '32I/ml0p008',
+    '32I/ml0p006',
+    '32I/ml0p004'
+]
+ens_idx = int(sys.argv[1])
+ensemble = ens_list[ens_idx]
+print('Running ensemble: ' + ensemble)
 
-resultsA = Pi_Pi + config + '/resultsA'
+"""
+Alternatively, choose an ensemble to run analysis by uncommenting one of the following ensembles.
+"""
+# ensemble = '24I/ml_0p01'
+# ensemble = '24I/ml_0p005'
+# ensemble = '32I/ml0p008'
+# ensemble = '32I/ml0p006'
+# ensemble = '32I/ml0p004'
+
+resultsA = Pi_Pi + ensemble + '/resultsA'
 resultsA_tavg = resultsA + '.tavg'
-if config[:3] == '24I':
+if ensemble[:3] == '24I':
     dt = 40
     l, t, Ls = 24, 64, 16
     ms = 0.04                           # lattice units
@@ -31,23 +49,23 @@ else:
     ms = 0.03                           # lattice units
     ainv, sig_ainv = 2.382, 8           # GeV
 
-if config == '24I/ml_0p01':
+if ensemble == '24I/ml_0p01':
     tmin, tmax = 1460, 3500         # should have 52 files, matches with the number of lines in mpi_jacks.dat
     ml = 0.01               # lattice units
     m_pi = 432.2            # MeV
     sig_m_pi = 1.4          # MeV
-elif config == '24I/ml_0p005':
+elif ensemble == '24I/ml_0p005':
     tmin, tmax = 900, 2980          # should have 53 files
     ml = 0.005               # lattice units
     m_pi = 339.6            # MeV
     sig_m_pi = 1.2          # MeV
-elif config == '32I/ml0p008':
+elif ensemble == '32I/ml0p008':
     # tmin, tmax = 520, 1180
     tmin, tmax = 520, 1160      # The pion mass fits only go up to file 1160, not to 1180 (check fits/xml/fit_mres.xml)
     ml = 0.008               # lattice units
     m_pi = 410.8            # MeV
     sig_m_pi = 1.5          # MeV
-elif config == '32I/ml0p006':
+elif ensemble == '32I/ml0p006':
     # tmin, tmax = 1000, 1840         # should be 43 files
     tmin, tmax = 1000, 1820           # fits only go up to 1820
     ml = 0.006               # lattice units
@@ -64,10 +82,13 @@ filenums = [i for i in range(tmin, tmax + 1, dt)]
 n_ops = 5
 
 # If you need to remove a specific file because of input problems, edit this code
-if config == '32I/ml0p004':
-    print('Deleting configuration 840')
+if ensemble == '32I/ml0p004':
+    print('Deleting ensembleuration 840')
     err_idx = int((840 - tmin) / dt)
     del filenums[err_idx]
+
+# print(len(filenums))    # uncomment if we want the number of files
+# raise Exception('Stopping')
 
 ################################################################################
 ############################# TWO POINT ANALYSIS ###############################
@@ -117,7 +138,7 @@ for idx, stem in enumerate(stems):
     meff_stem = meff_fns[idx](C2_stem_boot[stem])
     meff_stem_folded = fold_meff(meff_stem, L.T)
     fits_stem, stats_stem, meff_stem_ens, weights_stem = fit_constant_allrange(meff_stem_folded)
-    ampi_stem_bar, ampi_stem_sigma = analyze_accepted_fits(meff_stem_ens, weights_stem)
+    ampi_stem_bar, ampi_stem_sigma, ampi_stem_boot = analyze_accepted_fits(meff_stem_ens, weights_stem)
     print('meff on ' + stem + ', avg over all fit ranges with cut ϵ = 0.01 on pvals: ' + str(ampi_stem_bar) \
           + ' \pm ' + str(ampi_stem_sigma))
     meff_ens_list.append(meff_stem_ens)
@@ -197,15 +218,6 @@ for t1, t2 in itertools.product(range(L.T), repeat = 2):
 # Get operator structures from C3pt_tavg and C3pt_refl.
 Cbar = (C3pt_tavg + C3pt_refl) / 2          # average time-averaged with time reflected data
 Cnpt = np.zeros((5, C3pt.shape[0], L.T, L.T), dtype = np.complex64)
-# 4 multiplies C because these are for SS and PP, they don't have a sum on mu
-# cont = {
-#     'SS' : [4 * Cbar[:, i, :, :] for i in range(4)],
-#     'PP' : [4 * Cbar[:, i, :, :] for i in range(4, 8)],
-#     'VV' : [Cbar[:, i, :, :] for i in range(8, 12)],
-#     'VA' : [Cbar[:, i, :, :] for i in range(12, 16)],
-#     'AV' : [Cbar[:, i, :, :] for i in range(16, 20)],
-#     'AA' : [Cbar[:, i, :, :] for i in range(20, 24)]
-# }
 cont = {
     'SS' : [Cbar[:, i, :, :] for i in range(4)],
     'PP' : [Cbar[:, i, :, :] for i in range(4, 8)],
@@ -214,32 +226,27 @@ cont = {
     'AV' : [Cbar[:, i, :, :] for i in range(16, 20)],
     'AA' : [Cbar[:, i, :, :] for i in range(20, 24)]
 }
-# TODO figure out why we multiply these by -2 and -4
-Cnpt[0] = -2 * (cont['VV'][0] - cont['VV'][1] - cont['AV'][0] + cont['AV'][1] + cont['VA'][0] - cont['VA'][1] - cont['AA'][0] + cont['AA'][1])
-Cnpt[1] = -4 * (cont['SS'][0] - cont['SS'][1] + cont['PP'][0] - cont['PP'][1])
-Cnpt[2] = -4 * (cont['VV'][0] - cont['VV'][1] + cont['AA'][0] - cont['AA'][1])
-Cnpt[3] = -2 * (cont['VV'][2] - cont['VV'][3] - cont['AV'][2] + cont['AV'][3] + cont['VA'][2] - cont['VA'][3] - cont['AA'][2] + cont['AA'][3])
-Cnpt[4] = -4 * (cont['SS'][2] - cont['SS'][3] + cont['PP'][2] - cont['PP'][3])
+Cnpt[0] = -(1./4.) * (cont['VV'][0] - cont['VV'][1] - cont['AV'][0] + cont['AV'][1] + cont['VA'][0] - cont['VA'][1] - cont['AA'][0] + cont['AA'][1])
+Cnpt[1] = -(1./2.) * (cont['SS'][0] - cont['SS'][1] + cont['PP'][0] - cont['PP'][1])
+Cnpt[2] = -(1./2.) * (cont['VV'][0] - cont['VV'][1] + cont['AA'][0] - cont['AA'][1])
+Cnpt[3] = -(1./4.) * (cont['VV'][2] - cont['VV'][3] - cont['AV'][2] + cont['AV'][3] + cont['VA'][2] - cont['VA'][3] - cont['AA'][2] + cont['AA'][3])
+Cnpt[4] = -(1./2.) * (cont['SS'][2] - cont['SS'][3] + cont['PP'][2] - cont['PP'][3])
 
-Cnpt = np.einsum('ifst->fits', Cnpt)            # reindex to match David's code for reading off later
+Cnpt = np.einsum('ifst->fits', Cnpt)                # reindex to match David's code for reading off later
 print("Constructed operator contractions")
 
 # construct R ratio. Cnpt -> (CFG, op_idx, tplus, tminus) where (tminus, tx, tplus) is how the columns in the
 # original file were read off. tminus is identified with the separation time sep in david's code, and tplus
 # is the time t in his code.
-# R = np.zeros((n_files, n_ops, L.T, L.T), dtype = np.complex64)
 R = np.zeros((n_boot, n_ops, L.T, L.T), dtype = np.complex64)
-# for fidx in range(n_files):
 for bidx in range(n_boot):
     for i in range(n_ops):
-        # for t in range(L.T // 2):
-        #     R[fidx, i, t] = 2 * pi_masses[fidx] * Cnpt[fidx, i, t, 2 * t] / C2_neg_mode[fidx, 2 * t]
         for t, delta in itertools.product(range(L.T), repeat = 2):
             R[bidx, i, t, delta] = 2 * mpi_boot[bidx] * Cnpt[bidx, i, t, delta] / C2_neg_mode[bidx, delta]
 
 # Write three point functions here
 # add 'nomult' to the path if we aren't multiplying the operators by -2 or -4
-f3pt_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + config + '/SD_output.h5'
+f3pt_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/analysis_output/' + ensemble + '/SD_output.h5'
 f3pt = h5py.File(f3pt_path, 'w')
 f3pt['L'], f3pt['T'] = L.L, L.T
 f3pt['ml'], f3pt['ms'] = ml, ms
