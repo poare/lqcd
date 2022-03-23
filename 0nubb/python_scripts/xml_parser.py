@@ -28,12 +28,14 @@ Nc = 3
 # INPUT PARAMETERS
 home = '/Users/theoares'
 mom_idx_list = range(2, 10)                                          #[1, 2, ..., 6]
-cfgs = [3, 5, 6, 7, 8, 9]
+# mom_idx_list = range(2, 6)
+cfgs = [0, 1, 2, 3, 5, 6, 7, 8, 9]
 
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p005/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p006/'
-parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p004/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p004/'
+parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p008/'
 
 # uncomment to parse test files
 # parent = '/Users/theoares/Dropbox (MIT)/research/0nubb/tests/coulomb_landau_test/'

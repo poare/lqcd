@@ -15,11 +15,11 @@ from __main__ import *
 import matplotlib as mpl
 import matplotlib.font_manager as font_manager
 mpl.rcParams['font.family']='serif'
-# cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
-cmfont = font_manager.FontProperties('/Users/theoares/Library/Fonts/cmunrm.otf')
+cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
 mpl.rcParams['font.serif']=cmfont.get_name()
 mpl.rcParams['mathtext.fontset']='cm'
 mpl.rcParams['axes.unicode_minus']=False
+mpl.rcParams['axes.formatter.use_mathtext'] = True
 
 import numpy as np
 import matplotlib.pyplot as plt

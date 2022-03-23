@@ -5,18 +5,18 @@ import os
 from utils import *
 
 # parameters for 24I
-ensembles = ['24I/ml0p005/', '24I/ml0p01/']
-l, t = 24, 64
-ainv = 1.784                              # GeV
-mpi_list = [0.3396, 0.4322]               # GeV
-amq_list = [0.005, 0.01]
+# ensembles = ['24I/ml0p005/', '24I/ml0p01/']
+# l, t = 24, 64
+# ainv = 1.784                              # GeV
+# mpi_list = [0.3396, 0.4322]               # GeV
+# amq_list = [0.005, 0.01]
 
 # parameters for 32I
-# ensembles = ['32I/ml0p004/', '32I/ml0p006/']
-# l, t = 32, 64
-# ainv = 2.382                                # GeV
-# mpi_list = [0.3020, 0.3597]                 # GeV
-# amq_list = [0.004, 0.006]
+ensembles = ['32I/ml0p004/', '32I/ml0p006/', '32I/ml0p008/']
+l, t = 32, 64
+ainv = 2.382                                # GeV
+mpi_list = [0.3020, 0.3597, 0.4108]                 # GeV
+amq_list = [0.004, 0.006, 0.008]
 
 L = Lattice(l, t)
 a_fm = hbarc / ainv
@@ -25,6 +25,9 @@ ampi_list = [mpi_list[i] / ainv for i in range(n_ens)]
 
 file_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + 'Z_gamma.h5' for ens in ensembles]
 out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ensembles[0][:3] + '/chiral_extrap/Z_extrap.h5'
+# file_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + 'AVcurrents.h5' for ens in ensembles]   # for only currents
+# out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ensembles[0][:3] + '/chiral_extrap/currents.h5'
+
 Fs = [h5py.File(fpath, 'r') for fpath in file_paths]
 # k_list = [f['momenta'][()] for f in Fs]
 # mom_list = [[L.to_linear_momentum(k, datatype=np.float64) for k in k_list[i]] for i in range(n_ens)]
@@ -43,6 +46,9 @@ n_mom = len(mom_list)
 Zq_list = [np.real(f['Zq'][()]) for f in Fs]
 ZV_list = [np.real(f['ZV'][()]) for f in Fs]
 ZA_list = [np.real(f['ZA'][()]) for f in Fs]
+print('Zq: ' + str([np.mean(Zq_list[idx], axis = 1) for idx in range(len(Zq_list))]))
+print('ZV: ' + str([np.mean(ZV_list[idx], axis = 1) for idx in range(len(ZV_list))]))
+print('ZA: ' + str([np.mean(ZA_list[idx], axis = 1) for idx in range(len(ZA_list))]))
 Z_list = []
 for idx in range(n_ens):
     Z = np.zeros((5, 5, n_mom, n_boot), dtype = np.float64)

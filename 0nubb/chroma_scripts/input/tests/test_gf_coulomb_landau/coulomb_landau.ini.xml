@@ -33,7 +33,7 @@
       <Frequency>1</Frequency>
       <Param>
         <version>1</version>
-        <GFAccu>1.0e-5</GFAccu>
+        <GFAccu>1.0e-10</GFAccu>
         <GFMax>200</GFMax>
         <OrDo>false</OrDo>
         <OrPara>1.0</OrPara>
