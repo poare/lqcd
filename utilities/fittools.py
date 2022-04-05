@@ -10,7 +10,7 @@
 ################################################################################
 
 from __main__ import *
-n_boot = n_boot
+# n_boot = n_boot
 
 import numpy as np
 import h5py
@@ -23,16 +23,121 @@ import io
 import random
 from scipy import optimize
 from scipy.stats import chi2
+import sympy as sp
+
+# at some point, will want a class Term that represents a single term in a model.
 
 class Model:
 
-    def __init__(self, f, np):
+    def __init__(self, f, np, str_terms = ['_']):
         """
         Initialize a model. f should be an input function which is a function of np parameters c_i, and
         outputs a function of the fitting parameter t. (TODO extend to multivariate).
         """
         self.n_params = np
         self.F = f
+        if type(str_terms) is list:
+            self.str_terms = str_terms
+        else:
+            self.str_terms = [str_terms]
+
+    def get_symbolic_params(self):
+        """
+        Returns symbolic parameters c0, c1, ..., c_{n_params - 1} to use when differentiating
+        the fit model.
+        """
+        sstring = ''
+        for ii in range(self.n_params):
+            sstring += 'c' + str(ii)
+            if ii < self.n_params - 1:
+                sstring += ' '
+        return sp.symbols(sstring)
+
+    def __add__(self, other):
+        """
+        Overloads the + operation for the Model class. The returned Model will have
+        N + M = self.n_params + other.n_params parameters, the first N parameters of which
+        will call self.F(...), and the remaining M parameters will call other.F(...)
+
+        Parameters
+        ----------
+        self : Model
+            Summand 1 for addition.
+        other : Model
+            Summand 2 for addition.
+
+        Returns
+        -------
+        Model
+            Sum of self and other.
+
+        Examples
+        --------
+        def model1(params):
+            return lambda x : params[0] * np.log(x) + params[1] * (x ** 2)
+        M1 = Model(model1, 2)
+        def model2(params):
+            return lambda x : params[0] / x
+        M2 = Model(model2, 1)
+        M3 = model1 + model2
+        M3.n_params             # 3
+        M3([2, 3, 4])(1)        # 2 * np.log(1) + 3 * (1 ** 2) + 4 / 1
+
+        def model_4(params):
+            return lambda x : params[0] * np.log(x) + params[1] * (x ** 2) + params[2] / x
+        M4 = Model(model_4, 3)
+        M3 == M4                    # True
+        """
+        N, M = self.n_params, other.n_params
+        def plus_fn(params):
+            def model(x):
+                return self.F(params[:N])(x) + other.F(params[N:])(x)
+            return model
+        s_terms = self.str_terms.copy()
+        s_terms.extend(other.str_terms)
+        return Model(plus_fn, N + M, s_terms)
+
+    def __mul__(self, c):
+        """
+        Parameters
+        ----------
+        self : Model
+            Model to scalar multiply.
+        other : float, or float-type
+            Scalar to multiply by.
+
+        Returns
+        -------
+        Model
+            Scalar multiple of model with c.
+
+        Examples
+        --------
+        m = Model(lambda params : lambda x : params[0] * (x ** 2), 1)
+        mm = m * 3.0
+        mm.F([4])(0.3)                  # 1.08
+        3.0 * 4 * (0.3 ** 2)            # 1.08
+        """
+        assert type(c) != Model, 'Can only scalar multiply.'
+        def mul_fn(params):
+            def model(x):
+                return c * self.F(params)(x)
+            return model
+        s_terms = [str(c) + '*' + self.str_terms[ii] for ii in self.n_params]
+        return Model(mul_fn, self.n_params, s_terms)
+
+    def __rmul__(self, other):
+        """Overload right multiplication as well."""
+        return self.__mul__(other)
+
+    def __str__(self):
+        """ tostring method. """
+        s = ''
+        for ii in range(self.n_params):
+            s += 'c' + str(ii) + '*' + self.str_terms[ii]
+            if ii < self.n_params - 1:
+                s += ' + '
+        return s
 
     @staticmethod
     def const_model():
@@ -43,29 +148,9 @@ class Model:
             def model(t):
                 return params
             return model
-        m = Model(const_fn, 1)
+        m = Model(const_fn, 1, str_terms = ['(x^0)'])
         return m
 
-    # @staticmethod
-    # def power_model(n):
-    #     """
-    #     Returns a power law fit model to the nth power in x, where x is a scalar input.
-    #
-    #     Examples:
-    #     power_model(0) : y = c0
-    #     power_model(1) : y = c0 + c1 x
-    #     power_model(2) : y = c0 + c1 x + c2 x^2
-    #     """
-    #     def model_fn(params):
-    #         assert len(params) == n + 1
-    #         def model(x):
-    #             sum = 0.
-    #             for ii, c in enumerate(params):
-    #                 sum += c * (x ** ii)
-    #             return sum
-    #         return model
-    #     m = Model(model_fn, n + 1)
-    #     return m
     @staticmethod
     def power_model(n):
         """
@@ -98,15 +183,155 @@ class Model:
                     sum += c * (x ** n[ii])
                 return sum
             return model
-        m = Model(model_fn, n_params)
+        m = Model(model_fn, n_params, str_terms = ['(x^' + str(nn) + ')' for nn in n])
         return m
 
+class Fitter:
+    """
+    Base Fitter class from which all other fitters inhereit and implement instances of
+    """
 
-class BootstrapFitter:
+    def __init__(self):
+        pass
+
+    def set_model(self, m):
+        self.model = m
+        self.chi2 = self.get_chi2()
+        self.chi2_sym = self.get_chi2_sym()
+
+    def shrink_covar(self, lam):
+        if lam == 0:
+            self.corr = False
+        self.covar = shrinkage(self.covar, lam)
+        self.chi2 = self.get_chi2()
+        self.chi2_sym = self.get_chi2_sym()
+
+    def get_chi2(self):
+        def chi2(params, data_f, cov_f):
+            """
+            Chi^2 goodness of fit for the given model. Assumes all input is
+            numpy arrays.
+            """
+            dy = data_f - self.model.F(params)(self.fit_region)
+            return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
+        return chi2
+
+    def get_chi2_sym(self):
+        def chi2_sym(params, data_f, cov_f):
+            """
+            Chi^2 goodness of fit for the given model. Assumes that params is a
+            list of sympy symbols, so that the covariance can be differentiated.
+            Note that this limits the operations we can do.
+
+            Parameters
+            ----------
+            params : [sp.symbol]
+                Symbolic parameters to pass into chi^2 function.
+            data_f : np.array [len(self.fit_region)]
+                Data to pass into chi^2 function
+            cov_f : np.array [len(self.fit_region)]
+                Covariance between data points.
+            """
+            dy = sp.Matrix(data_f - self.model.F(params)(self.fit_region))
+            inv_cov = sp.Matrix(np.linalg.inv(cov_f))
+            chi2_mat = sp.Transpose(dy) * (inv_cov * dy)
+            return chi2_mat[0, 0]
+        return chi2_sym
+
+    def fit(self, params0 = None):
+        """
+        Performs a fit to data self.cvs, with covariance matrix self.covar.
+
+        Parameters
+        ----------
+        params0 : np.array
+            Initial guess for chi^2 minimum to start solver at.
+
+        Returns
+        -------
+        np.array (self.model.n_params)
+            Best fit coefficients, of size self.model.n_params.
+        float
+            Minimum value of the chi^2.
+        int
+            Degrees of freedom for the fit, dof = len(self.fit_region) - self.model.n_params.
+        np.array (self.model.n_params, self.model.n_params)
+            Covariance matrix for the best fit coefficients.
+        """
+        if params0 is None:
+            params0 = np.zeros((self.model.n_params), dtype = np.float64)
+        print('Fitting data: ' + str(self.cvs) + ' at x positions: ' + str(self.fit_region))
+        out = optimize.minimize(self.chi2, params0, args = (self.cvs, self.covar), method = 'Powell')
+        params_fit = out['x']
+        chi2_min = self.chi2(params_fit, self.cvs, self.covar)
+        fit_covar = self.get_fit_covar(params_fit)
+        ndof = len(self.fit_region) - 1
+        return params_fit, chi2_min, ndof, fit_covar
+
+    def get_fit_covar(self, fit_params):
+        """
+        Gets the covariance matrix for the coefficients from a correlated fit.
+
+        Parameters
+        ----------
+        fit_params : np.array [self.model.n_params]
+            Best fit parameters for the fit. Should be the same size as self.cvs.
+
+        Returns
+        -------
+        np.array [self.model.n_params, self.model.n_params]
+            Covariance matrix for the best fit coefficients.
+        """
+        sym_params = self.model.get_symbolic_params()
+        eval_pt = list(zip(sym_params, fit_params))         # evaluate derivative at p = fit_params
+        cov_inv = np.zeros((self.model.n_params, self.model.n_params), dtype = np.float64)
+        sym_chi2 = self.chi2_sym(sym_params, self.cvs, self.covar)
+        for n in range(self.model.n_params):
+            for m in range(self.model.n_params):
+                Dnm = sp.diff(sym_chi2, sym_params[n], sym_params[m])
+                cov_inv[n, m] = (1/2) * Dnm.subs(eval_pt)
+        fit_covar = np.linalg.inv(cov_inv)
+        return fit_covar
+
+    def gen_fit_band(self, fit_params, fit_covar, xrange):
+        """
+        Generates a fit band on domain x_range, based on the results from fout.
+
+        Parameters
+        ----------
+        fit_params : np.array [self.model.n_params]
+            Central values for the best fit coefficients.
+        fit_covar : np.array [self.model.n_params, self.model.n_params]
+            Covariance matrix for the best fit coefficients from the fit.
+        x_range : np.array [npts]
+            X-axis to generate data from
+
+        Returns
+        -------
+        np.array [npts]
+            Central values, generated point in xrange
+        np.array [npts]
+            Uncertainties in central values, generated at each point in xrange
+        """
+        # fit_cvs = np.array([self.model.F(fit_params)(x) for x in xrange], dtype = np.float64)
+        fit_cvs = np.zeros(xrange.shape, dtype = np.float64)
+        fit_sigmas = np.zeros(xrange.shape, dtype = np.float64)
+        param_sigmas = np.sqrt(fit_covar.diagonal())
+        syms = self.model.get_symbolic_params()    # c0, c1, ..., c_{n - 1}
+        eval_pt = list(zip(syms, fit_params))
+        for ii, x in enumerate(xrange):
+            F_sym = self.model.F(syms)(x)
+            fit_cvs[ii] = self.model.F(fit_params)(x)
+            # assert fit_cvs[ii] == F_sym.subs(eval_pt)
+            dF = np.array([sp.diff(F_sym, p) for p in syms], dtype = np.float64)
+            fit_sigmas[ii] = np.sqrt(np.sum((dF * param_sigmas) ** 2))
+        return fit_cvs, fit_sigmas
+
+class BootstrapFitter(Fitter):
 
     def __init__(self, fit_region, data, model, corr = True):
         """
-        Class to perform fits to data. TODO think about how to implement this to multidimensional fits.
+        Class to perform fits to bootstrapped data. TODO think about how to implement this to multidimensional fits.
 
         Parameters
         ----------
@@ -123,7 +348,7 @@ class BootstrapFitter:
         -------
         """
         self.data = data
-        self.mean = np.mean(data, axis = 0)
+        self.cvs = np.mean(data, axis = 0)
         self.corr = corr
         if corr:
             self.covar = get_covariance(data)
@@ -131,37 +356,105 @@ class BootstrapFitter:
             self.covar = np.diag(np.std(data, axis = 0, ddof = 1) ** 2)
         self.fit_region = fit_region
         self.fit_dims = len(fit_region.shape)    # dimensionality of fit data.
-        self.model = model
-        self.chi2 = self.get_chi2()
+        self.set_model(model)
+        # self.model = model
+        # self.chi2 = self.get_chi2()
 
-    def set_model(self, m):
-        self.model = m
-        self.chi2 = self.get_chi2()
+    # def set_model(self, m):
+    #     self.model = m
+    #     self.chi2 = self.get_chi2()
+    #
+    # def shrink_covar(self, lam):
+    #     if lam == 0:
+    #         self.corr = False
+    #     self.covar = shrinkage(self.covar, lam)
+    #     self.chi2 = self.get_chi2()
+    #
+    # def get_chi2(self):
+    #     def chi2(params, data_f, cov_f):
+    #         """
+    #         Chi^2 goodness of fit for the given model.
+    #         """
+    #         dy = data_f - self.model.F(params)(self.fit_region)
+    #         return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
+    #     return chi2
+    #
+    # def fit(self, params0 = None):
+    #     if params0 is None:
+    #         params0 = np.zeros((self.model.n_params), dtype = np.float64)
+    #     print('Fitting data: ' + str(self.cvs) + ' at x positions: ' + str(self.fit_region))
+    #     out = optimize.minimize(self.chi2, params0, args = (self.cvs, self.covar), method = 'Powell')
+    #     params_fit = out['x']
+    #     fit_covar = self.get_fit_covar(params_fit)
+    #     chi2_min = self.chi2(params_fit, self.cvs, self.covar)
+    #     ndof = len(self.fit_region) - 1
+    #     return params_fit, chi2_min, ndof
+    #
+    # def get_fit_covar(self, fit_params):
+    #     """
+    #     Gets the covariance matrix for the coefficients from a correlated fit.
+    #
+    #     Parameters
+    #     ----------
+    #     fit_params : np.array [n]
+    #         Best fit parameters for the fit. Should be the same size as self.cvs.
+    #     """
 
-    def shrink_covar(self, lam):
-        if lam == 0:
-            self.corr = False
-        self.covar = shrinkage(self.covar, lam)
-        self.chi2 = self.get_chi2()
 
-    def get_chi2(self):
-        def chi2(params, data_f, cov_f):
-            """
-            Chi^2 goodness of fit for the given model.
-            """
-            dy = data_f - self.model.F(params)(self.fit_region)
-            return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
-        return chi2
+class UncorrFitter(Fitter):
 
-    def fit(self, params0 = None):
-        if params0 is None:
-            params0 = np.zeros((self.model.n_params), dtype = np.float64)
-        print('Fitting data: ' + str(self.mean) + ' at x positions: ' + str(self.fit_region))
-        out = optimize.minimize(self.chi2, params0, args = (self.mean, self.covar), method = 'Powell')
-        params_fit = out['x']
-        chi2_min = self.chi2(params_fit, self.mean, self.covar)
-        ndof = len(self.fit_region) - 1
-        return params_fit, chi2_min, ndof
+    def __init__(self, fit_region, cvs, sigmas, model):
+        """
+        Class to perform fits to bootstrapped data. TODO think about how to implement this to multidimensional fits.
+
+        Parameters
+        ----------
+        fit_region : np.array (N_x1, ..., N_xm)
+            Data range to fit to. N_xi is the number of points in the ith dimension of the fit.
+        cvs : np.array (N_x1, ..., N_xm)
+            Central values for the fit.
+        sigmas : np.array (N_x1, ..., N_xm)
+            Uncertainties for the fit.
+        model : Model
+            Fit model to use.
+        corr : bool
+            True for correlated fit and False for uncorrelated fit.
+
+        Returns
+        -------
+        """
+        self.cvs = cvs
+        self.corr = False
+        self.covar = np.diag(sigmas ** 2)
+        self.fit_region = fit_region
+        self.fit_dims = len(fit_region.shape)    # dimensionality of fit data.
+        self.set_model(model)
+        # self.model = model
+        # self.chi2 = self.get_chi2()
+
+    # def set_model(self, m):
+    #     self.model = m
+    #     self.chi2 = self.get_chi2()
+    #
+    # def get_chi2(self):
+    #     def chi2(params, data_f, cov_f):
+    #         """
+    #         Chi^2 goodness of fit for the given model.
+    #         """
+    #         dy = data_f - self.model.F(params)(self.fit_region)
+    #         return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
+    #     return chi2
+    #
+    # def fit(self, params0 = None):
+    #     if params0 is None:
+    #         params0 = np.zeros((self.model.n_params), dtype = np.float64)
+    #     print('Fitting data: ' + str(self.cvs) + ' at x positions: ' + str(self.fit_region))
+    #     out = optimize.minimize(self.chi2, params0, args = (self.cvs, self.covar), method = 'Powell')
+    #     params_fit = out['x']
+    #     chi2_min = self.chi2(params_fit, self.cvs, self.covar)
+    #     # get covar = d chi^2 / di dj
+    #     ndof = len(self.fit_region) - 1
+    #     return params_fit, chi2_min, ndof
 
 def get_covariance(R, dof = 1):
     """
@@ -307,3 +600,49 @@ def fit_const_allrange(data, corr = True, TT_min = 4, cut = 0.01):
     print('Number of accepted fits: ' + str(len(f_acc)))
     weights, c_ens_acc, chi2_full, stats_acc = np.array(weights), np.array(c_ens_acc), np.array(chi2_full), np.array(stats_acc)
     return f_acc, stats_acc, c_ens_acc, chi2_full, weights
+
+def process_fit_forms_AIC(fit_region, cvs, cov, form_list):
+    """
+    Uses the AIC to choose the optimal fit form for the data, out of the corresponding
+    operands in form_list.
+
+    Parameters
+    ----------
+    fit_region : np.array (n_pts)
+        Domain to fit the data to
+    cvs : np.array (n_pts)
+        Central values to fit to.
+    cov : np.array (n_pts, n_pts)
+        Covariance matrix for the data to fit to.
+    form_list : list (function)
+        Array of functional forms to fit to. A functional form will be generated from the operands in
+        form_list by taking a linear combination sum_i c_i form_list[i] over all possible combinations
+        of the elements in form_list.
+
+
+    Returns
+    -------
+    """
+    ndof = len(fit_region)
+    while ndof > 0:
+        break           # TODO method stub
+    return
+
+def AIC(chi2, ndof):
+    """
+    Returns the Akaike Information Criterion (AIC) for a given fit with total chi^2 chi2
+    (not this is **not** the chi^2 / dof, it is the full chi^2 for the fit).
+
+    Parameters
+    ----------
+    chi2 : float
+        Chi^2 value of the fit.
+    ndof : int
+        Degrees of freedom of the fit.
+
+    Returns
+    -------
+    float
+        AIC for the fit.
+    """
+    return 2 * ndof + chi2

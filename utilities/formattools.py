@@ -41,6 +41,7 @@ The parameters in each style dictionary are (as well as units):
   - 'markersize'            : Size of markers (pts)
   - 'ebar_width'            : Thickness of error bars (pts)
   - 'capsize'               : Size of endcaps for error bars (pts)
+  - 'ecap_width'            : Width of error bar caps (pts)
 """
 pts_per_inch = 72.27    # inches to pts
 styles = {
@@ -53,7 +54,8 @@ styles = {
         'axeswidth'         : 0.5,                          # pts
         'markersize'        : 1.0,                          # pts
         'ebar_width'        : 0.5,                          # pts
-        'endcaps'           : 1.0                           # pts
+        'endcaps'           : 1.0,                          # pts
+        'ecap_width'        : 0.4,                          # pts
     },
     'prd_twocol*' : {
         'colwidth'          : 510.0 / pts_per_inch,
