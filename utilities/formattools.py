@@ -207,74 +207,6 @@ class Table:
         self._string_rep = np.array(string_rep)
         return string_rep
 
-
-
-# class FormatData:
-#     """
-#     FormatData class for formatting.
-#
-#     Fields
-#     ------
-#     _type : np.array[string]
-#         Possibilities are: {'i' : int, 'r' : float, 'c' : np.complex64}
-#     _data : np.array[_type]
-#         Mean of value, or just the value, to print out.
-#     _has_err : np.array[bool]
-#         Whether or not this dataset has error.
-#     _sigma : np.float64
-#         Error on value to print out. This parameter is optional.
-#     _dims : np.array[int]
-#         Dimensions of dataset. Both _data and _sigma (if applicable) should be this
-#         dimension.
-#     _string_rep : str
-#         String representation for the dataset.
-#     """
-#
-#     def __init__(self, data, sigma = -1, type = 'r'):
-#         """
-#         Initializes a dataset with data of type passed in.
-#
-#         Parameters
-#         ----------
-#         x : np.float64
-#             Mean of value, or just the value, to print out.
-#         sigma : np.float64
-#             Error on value to print out. This parameter is optional.
-#         sf : int
-#             Number of significant figures to print the error to. If sigma is not entered,
-#             prints x to sf significant figures. Defaults to 2.
-#
-#         Returns
-#         -------
-#         string
-#             Formatted latex string.
-#         """
-#         self._type = type
-#         self._has_err = (sigma is not -1)
-#         self._data = data
-#         self._sigma = sigma
-#         self._dims = data.shape
-#         self._string_rep = ''
-#         self.gen_string_rep()
-#
-#     def gen_string_rep(self, sf = 2):
-#         """
-#         Generates a string representation of the dataset.
-#         """
-#         string_rep = np.empty(self._dims, dtype = object)
-#         # string_rep = []
-#         for i in range(self._dims[0]):
-#             # string_rep.append([])
-#             for j in range(self._dims[1]):
-#                 if self._has_err is True:
-#                     string_rep[i, j] = export_float_latex(self._data[i, j], self._sigma[i, j], sf)
-#                     # tmp = export_float_latex(self._data[i, j], self._sigma[i, j], sf)
-#                     # string_rep[i].append(tmp)
-#                 else:
-#                     string_rep[i, j] = str(self._data[i, j])
-#         self._string_rep = np.array(string_rep)
-#         return string_rep
-
 def export_float_latex(mu, sigma = -1, sf = 2):
     """
     Returns a latex string that will render a float x up to sf significant figures
@@ -321,7 +253,15 @@ def export_float_latex(mu, sigma = -1, sf = 2):
     mu_fmt = format(mu, '0.' + str(n_digits - 1) + 'f')
     return mu_fmt + '(' + s + ')'
 
+def underline_print(s):
+    """Prints the string s with an underline of the same number of characters."""
+    n_chars = len(s)
+    print(s)
+    print('-' * n_chars)
+    return
+
 def mat_to_pmat(M):
+    """Formats a matrix as a pmatrix for latex output."""
     n, m = M.shape
     fmtstring = '\\begin{pmatrix}'
     for i in range(n):

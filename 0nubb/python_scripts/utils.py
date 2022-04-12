@@ -92,8 +92,8 @@ class Lattice:
         # return np.array([np.complex64(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(4)])
         return np.array([datatype(2 * np.pi * k[mu] / self.LL[mu]) for mu in range(4)])
 
-    def to_lattice_momentum(self, k):
-        return np.array([np.complex64(2 * np.sin(np.pi * k[mu] / self.LL[mu])) for mu in range(4)])
+    def to_lattice_momentum(self, k, datatype = np.complex64):
+        return np.array([datatype(2 * np.sin(np.pi * k[mu] / self.LL[mu])) for mu in range(4)])
     # Converts a wavevector to an energy scale using ptwid. Lattice parameter is a = A femtometers.
     # Shouldn't use this-- should use k_to_mu_p instead and convert at p^2 = mu^2
     def k_to_mu_ptwid(self, k, A = .1167):
