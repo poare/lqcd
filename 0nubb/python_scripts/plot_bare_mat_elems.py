@@ -25,6 +25,7 @@ from utils import *
 import sys
 sys.path.append('/Users/theoares/lqcd/utilities')
 from formattools import *
+style = styles['prd_twocol']
 
 # Read the ensemble index. Can also manually set it to choose the ensemble to run on.
 ens_idx = int(sys.argv[1])
@@ -50,7 +51,6 @@ def safe_arange(start, stop, step):
     return step * np.arange(start / step, stop / step)
 
 if ens_idx == 0:
-    style = styles['prd_twocol']
     box_alpha = 0.5
     def safe_arange(start, stop, step):
         return step * np.arange(start / step, stop / step)
@@ -58,9 +58,11 @@ if ens_idx == 0:
         asp_ratio = 5/3
         fig, ax = plt.subplots(figsize=[style['colwidth'], style['colwidth'] / asp_ratio])
         for i in range(n_ops):
-            ax.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i], \
+            _, caps, _ = ax.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i], \
                         label = '$' + latex_labels[i] + '$', elinewidth = style['ebar_width'], markersize = style['markersize'])
-            ax.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = colors[i], alpha = 0.3)
+            ax.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = colors[i], alpha = 0.2, linewidth = 0.0)
+            for cap in caps:
+                cap.set_markeredgewidth(style['ecap_width'])
         ax.set_xlabel('$t / a$', fontsize = style['fontsize'] * 2/3)
         ax.set_ylabel('$\\langle \mathcal{O}_k^{\mathrm{eff.}} \\rangle$', fontsize = style['fontsize'] * 2/3)#, rotation = 0)
         ax.set_xlim((0, max(list(plot_domain)) // 2 + 1))
@@ -88,10 +90,12 @@ if ens_idx == 0:
         axins.tick_params(axis='x', color = [0, 0, 0, box_alpha])
         axins.tick_params(axis='y', color = [0, 0, 0, box_alpha])
         for i in range(n_ops):
-            axins.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = '.', c = colors[i], \
+            _, caps, _ = axins.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = '.', c = colors[i], \
                            label = '$' + latex_labels[i] + '$', capsize = style['endcaps'], \
                            elinewidth = style['ebar_width'], markersize = style['markersize'])
             axins.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = colors[i], alpha = 0.35)
+            for cap in caps:
+                cap.set_markeredgewidth(style['ecap_width'])
         axins.set_xlim((9.5, 29.5))
         axins.set_ylim((-0.0475 / 8., -0.0445 / 8.))
         axins.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
@@ -111,7 +115,7 @@ if ens_idx == 0:
 # iterate over fit ranges and save figure
 # efflabels = ['$\\langle ' + label + '^{\mathrm{eff. (0)}} \\rangle$' for label in latex_labels]
 # efflabels = ['$\\langle ' + label + '^{\mathrm{eff.}} \\rangle$' for label in latex_labels]
-efflabels = ['$' + label + '^{\mathrm{eff.}}$' for label in latex_labels]
+efflabels = ['$' + label + '^{\mathrm{eff}}$' for label in latex_labels]
 yrange = [
     [[-0.05, -0.038], [-0.085, -0.065], [0.0026, 0.0032], [-0.15, -0.118], [0.0165, 0.021]],
     [[-0.041, -0.034], [-0.07, -0.058], [0.0013, 0.0017], [-0.125, -0.1070], [0.0144, 0.0171]],
@@ -119,7 +123,6 @@ yrange = [
     [[-0.0136, -0.0112], [-0.0215, -0.0180], [0.00043, 0.00055], [-0.043, -0.034], [0.0045, 0.0055]],
     [[-0.01225, -0.01025], [-0.0195, -0.0165], [0.00026, 0.00035], [-0.039, -0.032], [0.0041, 0.0048]]
 ][ens_idx]
-style = styles['prd_twocol']
 asp_ratio = 4/3
 fig_size = (style['colwidth'], style['colwidth'] / asp_ratio)
 for i in range(n_ops):
@@ -127,10 +130,12 @@ for i in range(n_ops):
     assert yrange[i][0] < yrange[i][1], 'Invalid yrange entered'
     with sns.plotting_context('paper'):
         plt.figure(figsize = fig_size)
-        plt.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i], \
+        _, caps, _ = plt.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i], \
                      label = efflabels[i], capsize = style['endcaps'], markersize = style['markersize'], \
                      elinewidth = style['ebar_width'])
-        plt.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = 'b', alpha = 0.2)
+        plt.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = 'b', alpha = 0.2, linewidth = 0.0)
+        for cap in caps:
+            cap.set_markeredgewidth(style['ecap_width'])
         plt.xlabel('$t / a$', fontsize = style['fontsize'])
         plt.ylabel(efflabels[i], fontsize = style['fontsize'])
         ax = plt.gca()
@@ -151,9 +156,14 @@ for i in range(n_ops):
 # Make stacked image for 24I/ml0p01 as well
 if ens_idx == 0:
     from matplotlib import gridspec
-    from matplotlib.ticker import MaxNLocator
+    from matplotlib import rc
+    rc('text', usetex = True)
+    ytick_labels = [['-5.8', '-5.4', '-5.0'], ['-1.0', '-0.9', '-0.8'], ['3.4', '3.6', '3.8'], ['-1.9', '-1.7', '-1.5'], ['2.1', '2.3', '2.5']]
+    pwr = [-3, -2, -4, -2, -3]              # think about doing using \\text{-}
+    ytick_locs = [[round(float(ytick_labels[k][i]) * (10 ** pwr[k]), np.abs(pwr[k]) + 2) for i in range(len(ytick_labels[k]))] for k in range(n_ops)]
+    yaxis_labels = ['$' + latex_labels[ii] + '^{\mathrm{eff}}\\hspace{-1.0mm}\\times \\hspace{-0.5mm} 10^{' + str(pwr[ii]) + '}$' for ii in range(len(latex_labels))]
     print('Generating stacked image.')
-    yrangep = [[-0.0063, -0.0048], [-0.011, -0.008], [0.0003, 0.0004], [-0.019, -0.014], [0.0020, 0.0026]]
+    yrangep = [[-0.0060, -0.0048], [-0.0105, -0.0075], [0.00033, 0.00039], [-0.02, -0.014], [0.0020, 0.0026]]
     reindex = [4, 2, 0, 1, 3]           # reindex to stack them in order of value
     asp_ratio = 3.
     fig = plt.figure(figsize = (style['colwidth'], style['colwidth'] / asp_ratio * n_ops))
@@ -165,24 +175,31 @@ if ens_idx == 0:
             axi = plt.subplot(gs[j])
         else:
             axi = plt.subplot(gs[j], sharex = all_axes[0])
-        axi.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i],\
+        _, caps, _ = axi.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i],\
                              label = efflabels[i], capsize = style['endcaps'], markersize = style['markersize'], \
                              elinewidth = style['ebar_width'])
-        axi.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = 'b', alpha = 0.2)
+        axi.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = 'b', alpha = 0.2, linewidth = 0.0)
+        for cap in caps:
+            cap.set_markeredgewidth(style['ecap_width'])
         for spine in spinedirs:
             axi.spines[spine].set_linewidth(style['axeswidth'])
         axi.set_ylim((yrangep[i][0], yrangep[i][1]))
-        axi.set_ylabel(efflabels[i], fontsize = style['fontsize'])
-        axi.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
+        axi.set_ylabel(yaxis_labels[i], fontsize = style['fontsize'])
+        axi.set_xticks([0, 10, 20, 30])
+        if i < 4:
+            axi.xaxis.set_tick_params(width = style['tickwidth'], length = 2 * style['ticklength'], bottom=True, top=True, \
+                                        labelbottom=True, labeltop=False, direction = 'inout')
+        else:
+            axi.xaxis.set_tick_params(width = style['tickwidth'], length = 2 * style['ticklength'], bottom=True, top=False, \
+                                        labelbottom=True, labeltop=False, direction = 'inout')
         axi.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
-        axi.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
+        axi.set_yticks(ytick_locs[i])
+        axi.set_yticklabels(ytick_labels[i])
         all_axes.append(axi)
     all_axes[4].set_xlim((0, max(list(plot_domain)) // 2 + 0.5))
     all_axes[4].set_xlabel('$t / a$', fontsize = style['fontsize'])
-    for ii in range(n_ops):
-        all_axes[ii].yaxis.set_major_locator(MaxNLocator(nbins = 3, prune = 'lower'))
     for i in range(n_ops - 1):
-        plt.setp(all_axes[i].get_xticklabels(), visible=False)
+        plt.setp(all_axes[i].get_xticklabels(), visible = False)
 
     # remove vertical gap between subplots
     plt.subplots_adjust(hspace = 0.0)
