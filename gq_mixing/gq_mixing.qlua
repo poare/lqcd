@@ -472,7 +472,7 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 local p_list_NPR = {}
 local a = 2
-local b = 9
+local b = 7
 for i = a, b do
  for j = a, b do
    for k = a, b do
