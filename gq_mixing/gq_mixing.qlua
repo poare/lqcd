@@ -423,8 +423,10 @@ else
 end
 
 -- Set parameters
-Lx = 48
-Lt = 96
+-- Lx = 48
+-- Lt = 96
+Lx = 12
+Lt = 24
 beta = 6.3
 mq = -0.2416
 
@@ -471,8 +473,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 -- local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
 
 local p_list_NPR = {}
-local a = 2
-local b = 7
+local a = 1
+local b = 6
 for i = a, b do
  for j = a, b do
    for k = a, b do
@@ -487,9 +489,10 @@ end
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
--- uncomment to actually run
-local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- local gauge_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- local flowed_file = string.format(cfgpath..cfgbase.."/smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 
 print("Reading gauge file at: %s\n", gauge_file)
 

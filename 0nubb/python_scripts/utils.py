@@ -165,6 +165,7 @@ def readfiles(cfgs, q, op_renorm = True, chroma = True):
                     GO[n, idx] = np.einsum('ijklabcd->aibjckdl', f['Gn' + str(n) + '/' + qstr][()])      # for chroma
                 else:
                     GO[n, idx] = np.einsum('ijklabcd->dlckbjai', f['Gn' + str(n) + '/' + qstr][()])    # for qlua
+        f.close()
     return k1, k2, props_k1, props_k2, props_q, GV, GA, GO
 
 # Read an Npt function in David's format

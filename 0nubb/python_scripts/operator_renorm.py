@@ -3,14 +3,14 @@ from scipy.optimize import root
 import h5py
 import os
 from utils import *
+base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 
 ################################## PARAMETERS #################################
-base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
-ens_idx = int(sys.argv[1])
-ens = ['24I/ml0p01', '24I/ml0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
-l, t = [24, 24, 32, 32, 32][ens_idx], 64
-data_dir = base + ens + '/hdf5'
-print('Running operator renormalization on ensemble ' + str(ens))
+# ens_idx = int(sys.argv[1])
+# ens = ['24I/ml0p01', '24I/ml0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
+# l, t = [24, 24, 32, 32, 32][ens_idx], 64
+# data_dir = base + ens + '/hdf5'
+# print('Running operator renormalization on ensemble ' + str(ens))
 
 # uncomment for pipi and chroma output
 # ens = '24I/ml0p01'
@@ -22,19 +22,17 @@ print('Running operator renormalization on ensemble ' + str(ens))
 # l = 32
 
 # uncomment nnpp and qlua output
-# ens = 'cl3_32_48_b6p1_m0p2450_99999'
-# data_dir = base + 'nnpp/' + ens
-# l = 32
-# t = 48
+ens = 'cl3_32_48_b6p1_m0p2450_99999'
+data_dir = base + 'nnpp/' + ens
+l = 32
+t = 48
 
 L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
 # for n in range(2, 10):
-# for n in range(1, 7):
-# for n in range(2, 6):
-for n in range(2, 10):
+for n in range(1, 14):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
@@ -63,12 +61,12 @@ for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
     print('Momentum is: ' + str(q))
 
-    k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = True)
-    q = -q
-    q_lat = np.sin(L.to_linear_momentum(q))                 # for chroma
+    # k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = True)
+    # q = -q
+    # q_lat = np.sin(L.to_linear_momentum(q))                 # for chroma
 
-    # k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = False)
-    # q_lat = np.sin(L.to_linear_momentum(q + bvec))          # for qlua
+    k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = False)
+    q_lat = np.sin(L.to_linear_momentum(q + bvec))          # for qlua
 
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
     GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
@@ -122,9 +120,9 @@ for q_idx, q in enumerate(q_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'         # chroma output
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'         # chroma output
 # out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '_Lambda.h5'
-# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/' + ens + '/Z_' + scheme + '.h5'    # nnpp output
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/' + ens + '/Z_' + scheme + '.h5'    # nnpp output
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV

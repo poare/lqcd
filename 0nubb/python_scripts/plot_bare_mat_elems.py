@@ -133,7 +133,7 @@ for i in range(n_ops):
         _, caps, _ = plt.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i], \
                      label = efflabels[i], capsize = style['endcaps'], markersize = style['markersize'], \
                      elinewidth = style['ebar_width'])
-        plt.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = 'b', alpha = 0.2, linewidth = 0.0)
+        plt.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = colors[i], alpha = 0.3, linewidth = 0.0)
         for cap in caps:
             cap.set_markeredgewidth(style['ecap_width'])
         plt.xlabel('$t / a$', fontsize = style['fontsize'])
@@ -178,7 +178,7 @@ if ens_idx == 0:
         _, caps, _ = axi.errorbar(plot_domain, data_plot_mu[i], yerr = data_plot_sigma[i], fmt = markers[i], c = colors[i],\
                              label = efflabels[i], capsize = style['endcaps'], markersize = style['markersize'], \
                              elinewidth = style['ebar_width'])
-        axi.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = 'b', alpha = 0.2, linewidth = 0.0)
+        axi.fill_between(plot_domain, c[i] - sigmac[i], c[i] + sigmac[i], color = colors[i], alpha = 0.3, linewidth = 0.0)
         for cap in caps:
             cap.set_markeredgewidth(style['ecap_width'])
         for spine in spinedirs:

@@ -20,8 +20,10 @@ for n in range(16):
     key_list.extend(['Gn' + str(n)])
 
 # write files
-paths1 = ['q' + str(k) + str(k) + '00' for k in range(1, 7)]
-paths2 = ['q' + str(k) + str(k) + '00' for k in range(7, 11)]
+# paths1 = ['q' + str(k) + str(k) + '00' for k in range(1, 7)]
+# paths2 = ['q' + str(k) + str(k) + '00' for k in range(7, 11)]
+paths1 = ['q' + str(k) + str(k) + '00' for k in range(10, 14)]
+paths2 = ['q' + str(k) + str(k) + '00' for k in range(1, 9)]
 for cfg in cfg_list:
     filename = '/cfg' + str(cfg) + '.h5'
     fout = h5py.File(out_dir + filename, 'w')

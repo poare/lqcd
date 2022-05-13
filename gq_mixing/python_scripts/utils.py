@@ -39,6 +39,7 @@ def readfiles(cfgs, k):
             Gqq3[a, idx] = np.einsum('ijab->aibj', f['Gqq/3' + str(a + 1) + '/' + kstr][()])
         for a in range(6):
             Gqq6[a, idx] = np.einsum('ijab->aibj', f['Gqq/6' + str(a + 1) + '/' + kstr][()])
+        f.close()
     return props, Gqg, Gqq3, Gqq6
 
 def tau13_irrep(O, n):

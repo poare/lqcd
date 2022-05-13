@@ -3,7 +3,7 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=gq_mixing
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --partition=long
 #SBATCH -t 96:00:00
@@ -21,10 +21,14 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-cfgpath="/work/lqcd/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
-cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
+# cfgpath="/work/lqcd/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
+# cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
 # cfgpath="/work/lqcd/d10b/ensembles/isoClover/"
 # cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
+cfgpath="/work/lqcd/d10d/projects/nucleon_pressure_170MeV/ensemble_generation/"
+# cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b/cfgs"
+cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b"
+
 gpu=true
 # gpu=false
 
@@ -39,7 +43,7 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-for cfg in `seq 1010 10 1200`
+for cfg in `seq 1000 20 2270`
 do
-	mpirun -np 16 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
 done

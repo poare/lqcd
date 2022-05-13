@@ -235,7 +235,7 @@ class Fitter:
             numpy arrays.
             """
             dy = data_f - self.model.F(params)(self.fit_region)
-            return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
+            return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy) / 2.
         return chi2
 
     def get_chi2_sym(self):
@@ -256,7 +256,7 @@ class Fitter:
             """
             dy = sp.Matrix(data_f - self.model.F(params)(self.fit_region))
             inv_cov = sp.Matrix(np.linalg.inv(cov_f))
-            chi2_mat = sp.Transpose(dy) * (inv_cov * dy)
+            chi2_mat = sp.Transpose(dy) * (inv_cov * dy) / 2.
             return chi2_mat[0, 0]
         return chi2_sym
 
@@ -288,7 +288,7 @@ class Fitter:
         params_fit = out['x']
         chi2_min = self.chi2(params_fit, self.cvs, self.covar)
         fit_covar = self.get_fit_covar(params_fit)
-        ndof = len(self.fit_region) - 1
+        ndof = len(self.fit_region) - self.model.n_params
         # return params_fit, chi2_min, ndof, fit_covar
         return [params_fit, chi2_min, ndof, fit_covar]
 
@@ -382,46 +382,6 @@ class BootstrapFitter(Fitter):
         self.fit_dims = len(fit_region.shape)    # dimensionality of fit data.
         self.set_model(model)
 
-    # def set_model(self, m):
-    #     self.model = m
-    #     self.chi2 = self.get_chi2()
-    #
-    # def shrink_covar(self, lam):
-    #     if lam == 0:
-    #         self.corr = False
-    #     self.covar = shrinkage(self.covar, lam)
-    #     self.chi2 = self.get_chi2()
-    #
-    # def get_chi2(self):
-    #     def chi2(params, data_f, cov_f):
-    #         """
-    #         Chi^2 goodness of fit for the given model.
-    #         """
-    #         dy = data_f - self.model.F(params)(self.fit_region)
-    #         return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
-    #     return chi2
-    #
-    # def fit(self, params0 = None):
-    #     if params0 is None:
-    #         params0 = np.zeros((self.model.n_params), dtype = np.float64)
-    #     print('Fitting data: ' + str(self.cvs) + ' at x positions: ' + str(self.fit_region))
-    #     out = optimize.minimize(self.chi2, params0, args = (self.cvs, self.covar), method = 'Powell')
-    #     params_fit = out['x']
-    #     fit_covar = self.get_fit_covar(params_fit)
-    #     chi2_min = self.chi2(params_fit, self.cvs, self.covar)
-    #     ndof = len(self.fit_region) - 1
-    #     return params_fit, chi2_min, ndof
-    #
-    # def get_fit_covar(self, fit_params):
-    #     """
-    #     Gets the covariance matrix for the coefficients from a correlated fit.
-    #
-    #     Parameters
-    #     ----------
-    #     fit_params : np.array [n]
-    #         Best fit parameters for the fit. Should be the same size as self.cvs.
-    #     """
-
 class CorrFitter(Fitter):
 
     def __init__(self, fit_region, cvs, cov, model):
@@ -479,30 +439,6 @@ class UncorrFitter(Fitter):
         self.fit_region = fit_region
         self.fit_dims = len(fit_region.shape)    # dimensionality of fit data.
         self.set_model(model)
-
-    # def set_model(self, m):
-    #     self.model = m
-    #     self.chi2 = self.get_chi2()
-    #
-    # def get_chi2(self):
-    #     def chi2(params, data_f, cov_f):
-    #         """
-    #         Chi^2 goodness of fit for the given model.
-    #         """
-    #         dy = data_f - self.model.F(params)(self.fit_region)
-    #         return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)
-    #     return chi2
-    #
-    # def fit(self, params0 = None):
-    #     if params0 is None:
-    #         params0 = np.zeros((self.model.n_params), dtype = np.float64)
-    #     print('Fitting data: ' + str(self.cvs) + ' at x positions: ' + str(self.fit_region))
-    #     out = optimize.minimize(self.chi2, params0, args = (self.cvs, self.covar), method = 'Powell')
-    #     params_fit = out['x']
-    #     chi2_min = self.chi2(params_fit, self.cvs, self.covar)
-    #     # get covar = d chi^2 / di dj
-    #     ndof = len(self.fit_region) - 1
-    #     return params_fit, chi2_min, ndof
 
 def get_covariance(R, dof = 1):
     """
@@ -679,12 +615,11 @@ def process_fit_forms_AIC_best(fit_region, cvs, cov, form_list_full, base = Mode
     form_list = deepcopy(form_list_full)            # don't mutate form_list_full
     cur_model = base
     fitter = lambda m : CorrFitter(fit_region, cvs, cov, m).fit(disp_output = False)
-    # fitter = CorrFitter(fit_region, cvs, cov, cur_model)
-    # cur_params, cur_chi2, cur_dof, cur_fit_covar = fitter.fit()
     [cur_params, cur_chi2, cur_dof, cur_fit_covar] = fitter(cur_model)
-    cur_AIC = AIC(cur_chi2, cur_dof)
-    while cur_dof > 0:
+    cur_AIC = AIC(cur_chi2, cur_model.n_params)
+    while cur_dof > 1:
         print('Current summands to add to model: ' + str(form_list))
+        print('Current degrees of freedom: ' + str(cur_dof))
         acc_forms = []
         for tmp_model_idx, form in enumerate(form_list):
             tmp_model = cur_model + form
@@ -692,7 +627,7 @@ def process_fit_forms_AIC_best(fit_region, cvs, cov, form_list_full, base = Mode
             tmp_fit_out = fitter(tmp_model)
             tmp_chi2, tmp_dof = tmp_fit_out[1], tmp_fit_out[2]
             print('Trying model: ' + str(tmp_model) + '. chi^2 / ndof = ' + str(tmp_chi2 / tmp_dof))
-            tmp_AIC = AIC(tmp_chi2, tmp_dof)
+            tmp_AIC = AIC(tmp_chi2, tmp_model.n_params)
             tmp_fit_out.extend([tmp_AIC, tmp_model, tmp_model_idx])
             if tmp_AIC - cur_AIC < - A * tmp_dof:                       # then it satisfies the AIC
                 print('Accepted model: ' + str(tmp_model))
@@ -707,15 +642,17 @@ def process_fit_forms_AIC_best(fit_region, cvs, cov, form_list_full, base = Mode
     print('Best fit parameters: ' + str(cur_params))
     print('Parameter covariance: ' + str(cur_fit_covar))
     print('Chi^2 / ndof: ' + str(cur_chi2 / cur_dof))
-    return cur_params, cur_chi2, cur_dof, cur_fit_covar, cur_AIC, cur_model
+    return cur_params, cur_chi2, cur_dof, cur_fit_covar, cur_model
 
-def process_fit_forms_AIC_tree(fit_region, cvs, cov, form_list, base = [Model.const_model()], A = 0.1):
+def powerset(L, min_length = 0):
+    """Constructs the power set of L."""
+    return list(itertools.chain.from_iterable(itertools.combinations(L, r) for r in range(min_length, len(L) + 1)))
+
+def process_fit_forms_AIC_all(fit_region, cvs, cov, form_list_full, base = Model.const_model()):
     """
     Uses the Akaike Information Criterion (AIC) to choose the optimal fit form for the data, out of the corresponding
-    operands in form_list. For each accepted fit, creates a new branch of the calculation and performs the AIC on that branch.
-
-    Probably want to do this with a stack: for each new form that uses the AIC, put on the top of the stack
-    TODO check for duplicates at each step. Will want to implement __equals__ for the Model class
+    operands in form_list. Iterates over all possible forms that can be constructed from form_list and returns the one
+    which minimizes the AIC.
 
     Parameters
     ----------
@@ -725,19 +662,100 @@ def process_fit_forms_AIC_tree(fit_region, cvs, cov, form_list, base = [Model.co
         Central values to fit to.
     cov : np.array (n_pts, n_pts)
         Covariance matrix for the data to fit to.
-    form_list : list (function)
+    form_list_full : list (function)
         Array of functional forms to fit to. A functional form will be generated from the operands in
         form_list by taking a linear combination sum_i c_i form_list[i] over all possible combinations
         of the elements in form_list.
     base : list [Model]
         All Models in base will be kept in the functional form at all times. For example, for fitting Z(p^2) = Z0 + ...,
         Z0 should always be included in the fit form, so pin_idx = [Model.const_model()].
-    A : float
-        The proportionality constant for the AIC. Accepts a fit model G over a fit model F if and only if AIC(G) - AIC(F) < -A ndof(G).
     """
-    return None     # TODO method stub
+    form_list = deepcopy(form_list_full)            # don't mutate form_list_full
+    all_models = []
+    pwr_set = powerset(form_list, min_length = 1)
+    for subset in pwr_set:
+        if len(subset) + base.n_params >= len(fit_region):          # too many parameters
+            continue
+        sum_form = deepcopy(base)
+        for summand in subset:
+            sum_form += summand
+        all_models.append(sum_form)
+    # print(len(all_models))
+    # print(all_models)
+    fitter = lambda m : CorrFitter(fit_region, cvs, cov, m).fit(disp_output = False)
+    print('Fitting base model = ' + str(base))
+    best_data = fitter(base)
+    best_data.extend([base])
+    best_AIC = AIC(best_data[1], base.n_params)
+    best_chi2_ndof = best_data[1] / best_data[2]
+    for model in all_models:
+        tmp_data = fitter(model)
+        tmp_data.extend([model])
+        tmp_AIC = AIC(tmp_data[1], model.n_params)
+        tmp_chi2_ndof = tmp_data[1] / tmp_data[2]
+        # if tmp_chi2_ndof < best_chi2_ndof:          # minimize chi2 / ndof
+        if tmp_AIC < best_AIC:                    # minimize AIC
+            print('Using model ' + str(model))                                  # then this is the best fit so far
+            best_data = tmp_data
+            best_AIC = tmp_AIC
+            best_chi2_ndof = tmp_chi2_ndof
+    [cur_params, cur_chi2, cur_dof, cur_fit_covar, cur_model] = best_data
+    print('Best fit form is: ' + str(cur_model))
+    print('Best fit parameters: ' + str(cur_params))
+    print('Parameter covariance: ' + str(cur_fit_covar))
+    print('Chi^2 / ndof: ' + str(cur_chi2 / cur_dof))
+    return cur_params, cur_chi2, cur_dof, cur_fit_covar, cur_model
 
-def AIC(chi2, ndof):
+def process_fit_forms_all(fit_region, cvs, cov, form_list_full, base = Model.const_model(), max_chi2_dof = 50):
+    """
+    Fits all possible fit forms to the data. Iterates over all possible forms that can be constructed from form_list and
+    returns the fit value and error for each one. Returns all fits with chi^2/ndof < max_chi2_dof
+
+    Parameters
+    ----------
+    fit_region : np.array (n_pts)
+        Domain to fit the data to
+    cvs : np.array (n_pts)
+        Central values to fit to.
+    cov : np.array (n_pts, n_pts)
+        Covariance matrix for the data to fit to.
+    form_list_full : list (function)
+        Array of functional forms to fit to. A functional form will be generated from the operands in
+        form_list by taking a linear combination sum_i c_i form_list[i] over all possible combinations
+        of the elements in form_list.
+    base : list [Model]
+        All Models in base will be kept in the functional form at all times. For example, for fitting Z(p^2) = Z0 + ...,
+        Z0 should always be included in the fit form, so pin_idx = [Model.const_model()].
+    """
+    form_list = deepcopy(form_list_full)            # don't mutate form_list_full
+    all_forms = []
+    pwr_set = powerset(form_list)
+    for subset in pwr_set:
+        if len(subset) + base.n_params >= len(fit_region):          # too many parameters
+            continue
+        sum_form = deepcopy(base)
+        for summand in subset:
+            sum_form += summand
+        all_forms.append(sum_form)
+    fitter = lambda m : CorrFitter(fit_region, cvs, cov, m).fit(disp_output = False)
+    all_params, all_chi2, all_dof, all_fit_covar, all_models = [], [], [], [], []
+    for model in all_forms:
+        tmp_data = fitter(model)
+        tmp_data.extend([model])
+        tmp_AIC = AIC(tmp_data[1], model.n_params)
+        tmp_chi2_ndof = tmp_data[1] / tmp_data[2]
+        # if tmp_chi2_ndof < best_chi2_ndof:          # minimize chi2 / ndof
+        if tmp_chi2_ndof < max_chi2_dof:                    # minimize AIC
+            print('Adding model ' + str(model))                                  # then this is the best fit so far
+            all_params.append(tmp_data[0])
+            all_chi2.append(tmp_data[1])
+            all_dof.append(tmp_data[2])
+            all_fit_covar.append(tmp_data[3])
+            all_models.append(tmp_data[4])
+    print('Number of fits with chi^2 / dof < ' + str(max_chi2_dof) + ': ' + str(len(all_params)))
+    return all_params, np.array(all_chi2), np.array(all_dof), all_fit_covar, all_models
+
+def AIC(chi2, nparams):
     """
     Returns the Akaike Information Criterion (AIC) for a given fit with total chi^2 chi2
     (not this is **not** the chi^2 / dof, it is the full chi^2 for the fit).
@@ -746,7 +764,7 @@ def AIC(chi2, ndof):
     ----------
     chi2 : float
         Chi^2 value of the fit.
-    ndof : int
+    nparams : int
         Degrees of freedom of the fit.
 
     Returns
@@ -754,4 +772,4 @@ def AIC(chi2, ndof):
     float
         AIC for the fit.
     """
-    return 2 * ndof + chi2
+    return 2 * nparams + chi2
