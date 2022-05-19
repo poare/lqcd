@@ -4,7 +4,30 @@ import h5py
 import os
 from utils import *
 
-# parameters for 24I
+import sys
+sys.path.append('/Users/theoares/lqcd/utilities')
+from fittools import *
+from formattools import *
+
+# set parameters
+sp_idx = int(sys.argv[1])
+ensembles = [
+    ['24I/ml0p005/', '24I/ml0p01/'],
+    ['32I/ml0p004/', '32I/ml0p006/', '32I/ml0p008/']
+][sp_idx]
+l = [24, 32][sp_idx]
+t = 64
+ainv = [1.784, 2.382][sp_idx]
+mpi_list = [
+    [0.3396, 0.4322],
+    [0.3020, 0.3597, 0.4108]
+][sp_idx]
+amq_list = [
+    [0.005, 0.01],
+    [0.004, 0.006, 0.008]
+][sp_idx]
+mu0_idx = [3, 3][sp_idx]                # index of mu0 mode
+
 # ensembles = ['24I/ml0p005/', '24I/ml0p01/']
 # l, t = 24, 64
 # ainv = 1.784                              # GeV
@@ -12,11 +35,11 @@ from utils import *
 # amq_list = [0.005, 0.01]
 
 # parameters for 32I
-ensembles = ['32I/ml0p004/', '32I/ml0p006/', '32I/ml0p008/']
-l, t = 32, 64
-ainv = 2.382                                # GeV
-mpi_list = [0.3020, 0.3597, 0.4108]                 # GeV
-amq_list = [0.004, 0.006, 0.008]
+# ensembles = ['32I/ml0p004/', '32I/ml0p006/', '32I/ml0p008/']
+# l, t = 32, 64
+# ainv = 2.382                                # GeV
+# mpi_list = [0.3020, 0.3597, 0.4108]                 # GeV
+# amq_list = [0.004, 0.006, 0.008]
 
 L = Lattice(l, t)
 a_fm = hbarc / ainv
@@ -57,6 +80,8 @@ for idx in range(n_ens):
         key = 'Z' + str(i + 1) + str(j + 1)
         Z[i, j] = np.real(f[key][()])
     Z_list.append(Z)
+
+# TODO modify the chiral extrapolation to use an UncorrelatedFitter
 
 # chirally extrapolate Zq
 print('Chiral extrapolation for Zq.')
@@ -131,7 +156,9 @@ for mom_idx in range(n_mom):
         Z_boot.compute_std()
         print('Z' + str(mult_idx) + ' at mom_idx ' + str(mom_idx) + ' = ' + str(Z_boot.mean) + ' \pm ' + str(Z_boot.std))
 
-# fit Zq and Zq / ZV to extract ZV
+# TODO plot extrapolated RCs at momentum idx = mu0_idx (should be 3 for both)
+
+# TODO probably don't need these, comment them out
 print('Fitting Zq and Zq / ZV.')
 Zq_by_ZV = Zq_fit / ZV_fit
 mom_subset = [3, 4, 5, 6, 7]

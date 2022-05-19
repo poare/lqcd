@@ -31,7 +31,6 @@ L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-# for n in range(2, 10):
 for n in range(1, 14):
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])

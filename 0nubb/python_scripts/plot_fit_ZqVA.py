@@ -120,6 +120,11 @@ print('32I mu list: ' + str(mu_list_32I))
 print('24I mu^2 list: ' + str(musq_list_24I))
 print('32I mu^2 list: ' + str(musq_list_32I))
 
+# print('ZA mean: ' + str(ZA_extrap_mu[:, 2]))
+# print('ZA std: ' + str(ZA_extrap_sigma[:, 2]))
+# print('ZV mean: ' + str(ZV_extrap_mu[:, 2]))
+# print('ZV std: ' + str(ZV_extrap_sigma[:, 2]))
+
 # apsq = True         # x axis to plot against. If apsq, plots against (ap)^2, else plots against mu^2.
 apsq = False
 # x_axis = [apsq_list_24I, apsq_list_32I] if apsq else [mu_list_24I, mu_list_32I]
@@ -128,7 +133,8 @@ x_axis = [apsq_list_24I, apsq_list_32I] if apsq else [musq_list_24I, musq_list_3
 xlabel = '$(ap)^2$' if apsq else '$\\mu^2\;(\\mathrm{GeV}^2)$'
 # xlimits = [[0.0, 4.0], [0.0, 2.5]] if apsq else [[1.0, 4.1], [1.0, 4.4]]
 xlimits = [[0.0, 4.0], [0.0, 2.5]] if apsq else [[0., 12.], [0., 12.]]
-sp_colors = colors[:2]
+# sp_colors = colors[:2]
+sp_colors = [colors[0], colors[0]]
 sp_labels = ['a = 0.11 fm', 'a = 0.08 fm']
 asp_ratio = 4/3
 
@@ -211,7 +217,8 @@ def fit_data_model(sp_idx, cvs_all, sigmas_all, subset_idxs, model): #, x_axis =
 # fill_color = 'b'
 fill_color = (0, 0, 1, 0.3)
 # Z0_color = (1, 1, 1, 0.3)
-Z0_color = 'k'
+# Z0_color = 'k'
+Z0_color = 'g'
 # Z0_color = '0.8'
 a_labels = ['0.11 fm', '0.08 fm']
 def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_known = False):
@@ -229,9 +236,9 @@ def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_k
         plt.fill_between(x_band, fx_cvs + fx_sigmas, fx_cvs - fx_sigmas, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
         if plt_known:
             plt.fill_between(x_band, ZA0_mu[sp_idx] + ZA0_std[sp_idx], ZA0_mu[sp_idx] - ZA0_std[sp_idx], color = Z0_color, alpha = 1.0, linewidth = 0.0, \
-                    label = '$\\mathcal{Z}_A$, Ref. [30]')
+                    label = '$\\mathcal{Z}_A$, Ref. [31]')
         plt.xlabel(xlabel, fontsize = style['fontsize'])
-        plt.ylabel(ylabel + '(a = ' + a_labels[sp_idx] + ')', fontsize = style['fontsize'])
+        plt.ylabel(ylabel + ' (a = ' + a_labels[sp_idx] + ')', fontsize = style['fontsize'])
         plt.xlim(xlimits[sp_idx])
         plt.ylim(ylimits)
         ax = plt.gca()

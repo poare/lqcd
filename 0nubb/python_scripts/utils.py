@@ -152,6 +152,7 @@ def readfiles(cfgs, q, op_renorm = True, chroma = True):
         if idx == 0:            # just choose a specific config to get these on, since they should be the same
             k1 = f['moms/' + qstr + '/k1'][()]
             k2 = f['moms/' + qstr + '/k2'][()]
+        # print(f['moms'].keys())
         props_k1[idx] = np.einsum('ijab->aibj', f['prop_k1/' + qstr][()])
         props_k2[idx] = np.einsum('ijab->aibj', f['prop_k2/' + qstr][()])
         props_q[idx] = np.einsum('ijab->aibj', f['prop_q/' + qstr][()])
@@ -860,6 +861,9 @@ def fm_to_GeV(a):
 # returns mu for mode k at lattice spacing A fm, on lattice L
 def get_energy_scale(k, a, L):
     return 2 * (hbarc / a) * np.linalg.norm(np.sin(np.pi * k / L.LL))
+
+def get_energy_scale_linear(k, a, L):
+    return (hbarc / a) * np.linalg.norm(2 * np.pi * k / L.LL)
 
 def load_data_h5(file):
     print('Loading ' + str(file) + '.')
