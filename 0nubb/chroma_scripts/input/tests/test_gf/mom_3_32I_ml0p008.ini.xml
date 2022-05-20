@@ -100,7 +100,7 @@
         <FermionAction>
          <FermAct>NEF</FermAct>
          <OverMass>1.8</OverMass>
-         <Mass>0.004</Mass>
+         <Mass>0.008</Mass>
          <N5>16</N5>
          <b5>1.0</b5>
          <c5>0.0</c5>
@@ -120,7 +120,7 @@
           <invType>QUDA_NEF_INVERTER</invType>
           <NEFParams>
             <OverMass>1.8</OverMass>
-            <Mass>0.004</Mass>
+            <Mass>0.008</Mass>
             <N5>16</N5>
             <b5>1.0</b5>
             <c5>0.0</c5>
@@ -161,7 +161,7 @@
         <FermionAction>
          <FermAct>NEF</FermAct>
          <OverMass>1.8</OverMass>
-         <Mass>0.004</Mass>
+         <Mass>0.008</Mass>
          <N5>16</N5>
          <b5>1.0</b5>
          <c5>0.0</c5>
@@ -181,7 +181,7 @@
           <invType>QUDA_NEF_INVERTER</invType>
           <NEFParams>
             <OverMass>1.8</OverMass>
-            <Mass>0.004</Mass>
+            <Mass>0.008</Mass>
             <N5>16</N5>
             <b5>1.0</b5>
             <c5>0.0</c5>
@@ -222,7 +222,7 @@
         <FermionAction>
          <FermAct>NEF</FermAct>
          <OverMass>1.8</OverMass>
-         <Mass>0.004</Mass>
+         <Mass>0.008</Mass>
          <N5>16</N5>
          <b5>1.0</b5>
          <c5>0.0</c5>
@@ -242,7 +242,7 @@
           <invType>QUDA_NEF_INVERTER</invType>
           <NEFParams>
             <OverMass>1.8</OverMass>
-            <Mass>0.004</Mass>
+            <Mass>0.008</Mass>
             <N5>16</N5>
             <b5>1.0</b5>
             <c5>0.0</c5>
@@ -290,7 +290,7 @@
           </elem>
         </sink_pairs>
       </NamedObject>
-      <xml_file>/work/lqcd/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/gf_test/mom_3_32I_ml0p004.dat.xml</xml_file>
+      <xml_file>/work/lqcd/d10b/users/poare/0nubb/chroma_dwf_inversions/tests/gf_test/mom_3_32I_ml0p008.dat.xml</xml_file>
     </elem>
 
   </InlineMeasurements>
@@ -307,7 +307,7 @@
 </RNG>
 
 <Cfg>
-  <cfg_type>NERSC</cfg_type>
-  <cfg_file>/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.004/Configs_gf/landau/ckpoint_lat.IEEE64BIG.1015</cfg_file>
+  <cfg_type>SCIDAC</cfg_type>
+  <cfg_file>/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.008/Landau/gfix_lat.1000</cfg_file>
 </Cfg>
 </chroma>

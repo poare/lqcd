@@ -337,18 +337,15 @@ class Fitter:
         np.array [npts]
             Uncertainties in central values, generated at each point in xrange
         """
-        # fit_cvs = np.array([self.model.F(fit_params)(x) for x in xrange], dtype = np.float64)
         fit_cvs = np.zeros(xrange.shape, dtype = np.float64)
         fit_sigmas = np.zeros(xrange.shape, dtype = np.float64)
-        param_sigmas = np.sqrt(fit_covar.diagonal())
         syms = self.model.get_symbolic_params()    # c0, c1, ..., c_{n - 1}
         eval_pt = list(zip(syms, fit_params))
         for ii, x in enumerate(xrange):
             F_sym = self.model.F(syms)(x)
             fit_cvs[ii] = self.model.F(fit_params)(x)
-            # assert fit_cvs[ii] == F_sym.subs(eval_pt)
             dF = np.array([sp.diff(F_sym, p) for p in syms], dtype = np.float64)
-            fit_sigmas[ii] = np.sqrt(np.sum((dF * param_sigmas) ** 2))
+            fit_sigmas[ii] = np.sqrt(dF.T @ fit_covar @ dF)
         return fit_cvs, fit_sigmas
 
 class BootstrapFitter(Fitter):
