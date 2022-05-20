@@ -26,8 +26,8 @@ echo "=== Run MPI application on $nCores cores ==="
 export QUDA_REORDER_LOCATION=GPU #GPU/CPU
 export QUDA_RESOURCE_PATH="/data/d10a/projects/wdetmold_viz/"
 
-ini_dir=/home/poare/lqcd/0nubb/chroma_scripts/input
+ini_dir=/home/lqcd/poare/lqcd/0nubb/chroma_scripts/input
 
-mpirun -np $nCores $application -i ${ini_dir}/tests/test_gf_coulomb_landau/mom_3_32I_ml0p004.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
-mpirun -np $nCores $application -i ${ini_dir}/tests/test_gf_coulomb_landau/mom_3_32I_ml0p006.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
-mpirun -np $nCores $application -i ${ini_dir}/tests/test_gf_coulomb_landau/mom_3_32I_ml0p008.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
+mpirun -np $nCores $application -i ${ini_dir}/tests/test_gf/mom_3_32I_ml0p004.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
+mpirun -np $nCores $application -i ${ini_dir}/tests/test_gf/mom_3_32I_ml0p006.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
+#mpirun -np $nCores $application -i ${ini_dir}/tests/test_gf/mom_3_32I_ml0p008.ini.xml  -qmpgeom ${GEOM}  -geom ${GEOM}
