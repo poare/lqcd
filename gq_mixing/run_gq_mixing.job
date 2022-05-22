@@ -27,7 +27,9 @@ EXE=qlua
 # cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
 cfgpath="/work/lqcd/d10d/projects/nucleon_pressure_170MeV/ensemble_generation/"
 # cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b/cfgs"
-cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b"
+# cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b"
+cfgbase="cl21_16_16_b6p3_m0p2416m0p2050-a"
+# cfgbase="cl21_18_18_b6p3_m0p2416m0p2050-a"
 
 gpu=true
 # gpu=false

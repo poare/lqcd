@@ -235,7 +235,7 @@ class Fitter:
             numpy arrays.
             """
             dy = data_f - self.model.F(params)(self.fit_region)
-            return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy) / 2.
+            return np.einsum('i,ij,j->', dy, np.linalg.inv(cov_f), dy)# / 2.
         return chi2
 
     def get_chi2_sym(self):
@@ -256,7 +256,7 @@ class Fitter:
             """
             dy = sp.Matrix(data_f - self.model.F(params)(self.fit_region))
             inv_cov = sp.Matrix(np.linalg.inv(cov_f))
-            chi2_mat = sp.Transpose(dy) * (inv_cov * dy) / 2.
+            chi2_mat = sp.Transpose(dy) * (inv_cov * dy)# / 2.
             return chi2_mat[0, 0]
         return chi2_sym
 
@@ -314,7 +314,7 @@ class Fitter:
             for m in range(self.model.n_params):
                 Dnm = sp.diff(sym_chi2, sym_params[n], sym_params[m])
                 cov_inv[n, m] = (1/2) * Dnm.subs(eval_pt)
-        fit_covar = np.linalg.inv(cov_inv)
+        fit_covar = np.linalg.inv(cov_inv)# / 2.
         return fit_covar
 
     def gen_fit_band(self, fit_params, fit_covar, xrange):
@@ -346,6 +346,7 @@ class Fitter:
             fit_cvs[ii] = self.model.F(fit_params)(x)
             dF = np.array([sp.diff(F_sym, p) for p in syms], dtype = np.float64)
             fit_sigmas[ii] = np.sqrt(dF.T @ fit_covar @ dF)
+            # fit_sigmas[ii] = np.sqrt(dF.T @ fit_covar @ dF / 2.)
         return fit_cvs, fit_sigmas
 
 class BootstrapFitter(Fitter):
