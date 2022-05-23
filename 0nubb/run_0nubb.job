@@ -5,8 +5,8 @@
 #SBATCH --job-name=0nubb_npr
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod
-#SBATCH -t 48:00:00
+#SBATCH --partition=long
+#SBATCH -t 96:00:00
 
 set -x
 
@@ -50,7 +50,9 @@ parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}
 export OMP_NUM_THREADS=6
 
 #for cfg in `seq 1010 10 1030`
-#do
-cfg=1230
+for cfg in '1010' '1020' '1030' '1110'
+#for cfg in '1210' '1220' '1230'
+do
+#cfg=1230
 	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
-#done
+done
