@@ -67,8 +67,10 @@ ZA_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
 Z_extrap_mu = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)          # [24I/32I, i, j, q_idx]
 Z_extrap_sigma = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)
 
-chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap.h5', \
-                    '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
+# chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap.h5', \
+#                     '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
+chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap_old.h5', \
+                    '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap_old.h5']
 for idx in range(n_spacings):
     print(chi_extrap_lin_paths[idx])
     f = h5py.File(chi_extrap_lin_paths[idx], 'r')

@@ -64,7 +64,19 @@ styles = {
         'tickwidth'         : 0.5,
         'ticklength'        : 2.0,
         'spinewidth'        : 0.5,
-    }
+    },
+    'notebook' : {
+        'colwidth'          : 7,         # inches
+        'textwidth'         : 510.0 / pts_per_inch,         # inches
+        'fontsize'          : 20.0,                         # pts
+        'tickwidth'         : 1.0,                          # pts
+        'ticklength'        : 4.0,                          # pts
+        'axeswidth'         : 1.0,                          # pts
+        'markersize'        : 2.0,                          # pts
+        'ebar_width'        : 1.0,                          # pts
+        'endcaps'           : 2.0,                          # pts
+        'ecap_width'        : 1.0,                          # pts
+    },
 }
 
 """List of all spines in matplotlib."""

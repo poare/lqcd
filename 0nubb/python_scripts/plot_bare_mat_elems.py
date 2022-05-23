@@ -29,12 +29,17 @@ from formattools import *
 style = styles['prd_twocol']
 
 # Read the ensemble index. Can also manually set it to choose the ensemble to run on.
-ens_idx = int(sys.argv[1])
+try:
+    ens_idx = int(sys.argv[1])
+    print('Plotting bare matrix elements for ensemble: ' + str(ensemble))
+except:
+    ens_idx = 0
+    print("No input read. Defaulting to ensemble 0.")
+# ens_idx = int(sys.argv[1])
 ensemble = ['24I/ml_0p01', '24I/ml_0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
 ens_path = ['24I/ml0p01', '24I/ml0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
 f_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/short_distance/bare_matrix_elements/' + ensemble + '/fit_params.h5'
 n_ops = 5
-print('Plotting bare matrix elements for ensemble: ' + str(ensemble))
 
 # set specific ranges and labels
 ytick_labels = [

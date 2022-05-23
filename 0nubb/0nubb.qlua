@@ -574,7 +574,8 @@ local k1_list_NPR = {}
 local k2_list_NPR = {}
 print("Initializing momenta.")
 -- for m = 1, 6 do
-for m = 7, 10 do
+-- for m = 7, 10 do
+for m = 14, 18 do
   local minusM = -m
   k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
   k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}

@@ -34,7 +34,10 @@ class Model:
         """
         Initialize a model. f should be an input function which is a function of np parameters c_i, and
         outputs a function of the fitting parameter t. (TODO extend to multivariate).
-        '_' is a placeholder
+        '_' is a placeholder.
+
+        TODO modify how this works for non-polynomial models, i.e. an exponential fit.
+        The code should work but the string representation might not.
         """
         self.n_params = np
         self.F = f
