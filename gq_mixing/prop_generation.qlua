@@ -1,0 +1,197 @@
+#!/usr/bin/env qlua
+
+require "stdlib"
+require "lib/fermion"
+require "lib/clover_ferm"
+require "lib/group"
+require "lib/musing"
+require "lib/propagator"
+require "lib/su-n"
+require "lib/toAdjoint3"
+if gpu then
+  require "lib/quda"
+end
+
+-------------------------------------------------------------------
+------------------------ UTILITY FUNCTIONS ------------------------
+-------------------------------------------------------------------
+
+--[[
+  Computes the propagator S(p) and the three point function through approximating S(p) with
+  point sources.
+]]
+function compute_props(L, U, Uflowed, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+  print("Computing through the operator.")
+  local bvec = {0, 0, 0, 0.5}
+
+  -- Computes N point propagators
+  local N = nsrc    -- number of points to compute propagators at
+  -- local seed = cfgnum + jobid
+  local seed = 10     -- for testing
+  -- local seed = os.time()
+  math.randomseed(seed)
+  local S_list = {}
+  local pts = {}
+  printf("Computing %d random point sources.", N)
+
+  for i = 1, N do
+    local y = {}
+    for mu = 0, #L - 1 do
+      y[mu + 1] = math.random(0, L[mu] - 1)
+    end
+    pts[i] = y
+    local src = compute_point_source(U, y)
+    printf("Computing for propagator %d at point (%d, %d, %d, %d).\n", i, y[1], y[2], y[3], y[4])
+    S_list[i] = compute_propagator(U, ferm_prop, src)
+  end
+  print("Point-to-all propagator computed.")
+
+  for pidx = 1, #p_list do
+    printf("p index: %d\n", pidx)
+    local p = p_list[pidx]
+    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
+
+    -- compute momentum projected propagator
+    -- local mom4_prop = L:DiracPropagatorN(Nc)
+    local mom4_prop = qcd.DiracPropagatorN(Nc)
+    for i = 1, #S_list do
+      local prop = S_list[i]
+      local y = pts[i]
+      local FTarg = L:Real(0)
+      for mu = 0, #L - 1 do
+        FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      end
+      local FT = FTarg:expi()    -- e^{ip(x - y_i)}
+      mom4_prop = mom4_prop + (FT * prop):sum()
+    end
+
+    -- Write momentum projected propagator to file
+    local prop_path = string.format("cfg%d/p%d%d%d%d", cfgnum, p[1], p[2], p[3], p[4])
+    h5_force_write(writer, prop_path, mom4_prop)
+    printf("Propagator written at path: %s\n", prop_path)
+
+  end
+
+end
+
+------------------------------------------------------------------
+-------------------------- BEGIN SCRIPT --------------------------
+------------------------------------------------------------------
+
+-- Read in input from bash script.
+if jobid and cfgpath and cfgbase then
+    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
+else
+    print("No jobid, cfgpath, cfgbase entered.")
+end
+
+-- Set parameters
+Lx = 12
+Lt = 24
+beta = 6.1
+mq = -0.2450
+
+kappa = 1 / (2 * mq + 8)
+
+Nc = 3    -- qcd.Nc
+L = qcd.lattice{Lx, Lx, Lx, Lt}
+L_mom = qcd.lattice{Lt}
+lqcd_dir = "/home/lqcd/poare"    -- specify what the file path to lqcd is
+
+vol = 1        -- hypervolume
+for i = 0, #L - 1 do
+  vol = vol * L[i]
+end
+
+-- iterate over configurations here so we don't need to initialize QUDA everytime
+local cfg_list = {}
+cfg_min = 1010
+cfg_max = 9900
+-- cfg_min = 10000
+-- cfg_max = 30000
+for cfg_idx = cfg_min, cfg_max, 10 do
+  cfg_list[#cfg_list + 1] = cfg_idx
+end
+printf("Number of configurations to compute propagators on: %d.", #cfg_list)
+
+-- Paths to output file.
+--folder = string.format("%s/lqcd/npr_momfrac/output", lqcd_dir)
+folder = string.format("/work/lqcd/d10b/users/poare/gq_mixing/props")
+out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+filename = string.format("%s/props_%d_%d.h5", out_folder, cfg_min, cfg_max)
+printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
+
+local group = group.get(Nc)    -- group = SU3 in su-n.qlua
+
+local csw = 1.20536588031793
+local bcs = {1, 1, 1, -1}
+
+local clover
+if gpu then
+    qcd.quda.init(L)
+    clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
+else
+    clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
+end
+
+local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+-- momenta to compute Z(p) at
+-- local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
+
+local p_list_NPR = {}
+-- local a = 1
+-- local b = 6
+local a = 1
+local b = 6
+for i = a, b do
+ for j = a, b do
+   for k = a, b do
+     for l = a, b do
+        p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
+      end
+    end
+  end
+end
+printf("Number of momenta to compute at: %d.", #p_list_NPR)
+
+for cfg_idx = 1, #cfg_list do
+  cfgnum = cfg_list[cfg_idx]
+
+  -- Read gauge file. TODO do we need to worry about reinitializing U?
+  gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+  flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+  print("Reading gauge file at: %s\n", gauge_file)
+  status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
+  status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
+
+  if status1 and status2 then
+    -- project gauge configuration onto SU(3)
+    for mu = 0, #L-1 do
+      U[mu + 1] = group.toGroup(U[mu + 1])
+      Uflowed[mu + 1] = group.toGroup(Uflowed[mu + 1])
+    end
+
+    -- Open file writer
+    local hdf5params = { method = "phdf5" }
+    local writer = qcd.hdf5.Writer(filename, hdf5params)
+
+    nsrc = 1
+    printf("Gauge file read. Computing NPR with %d point sources.", nsrc)
+    compute_props(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+
+    printf("Configuration %d written.", cfgnum)
+    writer:close()
+  else
+    printf("No gauge field configuration at %s or %s.\n", gauge_file, flowed_file)
+    logs_dir = string.format("%s/lqcd/npr_momfrac/logs/%s_%d", lqcd_dir, cfgbase, jobid)
+    os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
+    print(U)
+    print(Uflowed)
+  end
+
+end
+
+if gpu then
+    qcd.quda.fini()
+end

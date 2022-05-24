@@ -1,0 +1,46 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=gq_mixing
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=long
+#SBATCH -t 96:00:00
+
+set -x
+
+cd /home/lqcd/poare/lqcd/mosaic
+
+bash
+module load openmpi/3.1.5
+module load qlua/20200107-gpu1080
+#module load qlua/20200107
+
+EXE=qlua
+
+# cfgpath="/work/lqcd/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
+# cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
+cfgpath="/work/lqcd/d10b/ensembles/isoClover/"
+cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
+# cfgpath="/work/lqcd/d10d/projects/nucleon_pressure_170MeV/ensemble_generation/"
+# cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b/cfgs"
+# cfgbase="cl21_12_24_b6p3_m0p2416m0p2050-b"
+# cfgbase="cl21_16_16_b6p3_m0p2416m0p2050-a"
+# cfgbase="cl21_18_18_b6p3_m0p2416m0p2050-a"
+
+gpu=true
+# gpu=false
+
+home=/home/lqcd/poare/lqcd/gq_mixing
+logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
+output=/work/lqcd/d10b/users/poare/gq_mixing/props/${cfgbase}_${SLURM_JOB_ID}
+
+mkdir ${logs}
+mkdir ${logs}/no_output
+mkdir ${output}
+
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
+export OMP_NUM_THREADS=6
+
+mpirun -np 4 $EXE -e "$parameters" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
