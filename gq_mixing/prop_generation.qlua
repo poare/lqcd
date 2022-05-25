@@ -105,10 +105,11 @@ end
 
 -- iterate over configurations here so we don't need to initialize QUDA everytime
 local cfg_list = {}
-cfg_min = 1010
-cfg_max = 9900
+local cfg_min = 1010
+local cfg_max = 9900
 -- cfg_min = 10000
 -- cfg_max = 30000
+print("Setting configurations to run")
 for cfg_idx = cfg_min, cfg_max, 10 do
   cfg_list[#cfg_list + 1] = cfg_idx
 end
@@ -155,12 +156,16 @@ for i = a, b do
 end
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
+-- Open file writer
+hdf5params = { method = "phdf5" }
+writer = qcd.hdf5.Writer(filename, hdf5params)
+
 for cfg_idx = 1, #cfg_list do
-  cfgnum = cfg_list[cfg_idx]
+  local cfgnum = cfg_list[cfg_idx]
 
   -- Read gauge file. TODO do we need to worry about reinitializing U?
-  gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-  flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+  local gauge_file = string.format(cfgpath..cfgbase.."-a_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
+  local flowed_file = string.format(cfgpath..cfgbase.."-a_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
   print("Reading gauge file at: %s\n", gauge_file)
   status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
   status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
@@ -172,25 +177,17 @@ for cfg_idx = 1, #cfg_list do
       Uflowed[mu + 1] = group.toGroup(Uflowed[mu + 1])
     end
 
-    -- Open file writer
-    local hdf5params = { method = "phdf5" }
-    local writer = qcd.hdf5.Writer(filename, hdf5params)
-
     nsrc = 1
     printf("Gauge file read. Computing NPR with %d point sources.", nsrc)
     compute_props(L, U, Uflowed, ferm_prop, p_list_NPR, vol, L_mom, group, clover, writer, Nc, nsrc, cfgnum, jobid)
 
     printf("Configuration %d written.", cfgnum)
-    writer:close()
   else
     printf("No gauge field configuration at %s or %s.\n", gauge_file, flowed_file)
-    logs_dir = string.format("%s/lqcd/npr_momfrac/logs/%s_%d", lqcd_dir, cfgbase, jobid)
-    os.execute(string.format("mv %s/cfg%d.txt %s/no_output", logs_dir, cfgnum, logs_dir))
-    print(U)
-    print(Uflowed)
   end
-
 end
+
+writer:close()
 
 if gpu then
     qcd.quda.fini()

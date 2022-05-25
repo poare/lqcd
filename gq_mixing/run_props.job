@@ -2,11 +2,11 @@
 
 ##ulimit -c unlimited
 
-#SBATCH --job-name=gq_mixing
+#SBATCH --job-name=prop_gen
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
-#SBATCH -t 96:00:00
+#SBATCH --partition=prod
+#SBATCH -t 48:00:00
 
 set -x
 
@@ -43,4 +43,4 @@ mkdir ${output}
 parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "$parameters" ${home}/gq_mixing.qlua > ${logs}/cfg${cfg}.txt
+mpirun -np 4 $EXE -e "$parameters" ${home}/prop_generation.qlua > ${logs}/log_${SLURM_JOB_ID}.txt
