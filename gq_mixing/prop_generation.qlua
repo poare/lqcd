@@ -105,10 +105,10 @@ end
 
 -- iterate over configurations here so we don't need to initialize QUDA everytime
 local cfg_list = {}
-local cfg_min = 1010
-local cfg_max = 9900
--- cfg_min = 10000
--- cfg_max = 30000
+--local cfg_min = 1010
+--local cfg_max = 9900
+cfg_min = 20000
+cfg_max = 29990
 print("Setting configurations to run")
 for cfg_idx = cfg_min, cfg_max, 10 do
   cfg_list[#cfg_list + 1] = cfg_idx
@@ -163,7 +163,7 @@ writer = qcd.hdf5.Writer(filename, hdf5params)
 for cfg_idx = 1, #cfg_list do
   local cfgnum = cfg_list[cfg_idx]
 
-  -- Read gauge file. TODO do we need to worry about reinitializing U?
+  -- Read gauge file.
   local gauge_file = string.format(cfgpath..cfgbase.."-a_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
   local flowed_file = string.format(cfgpath..cfgbase.."-a_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
   print("Reading gauge file at: %s\n", gauge_file)
