@@ -437,8 +437,9 @@ mq = -0.2416
 -- Lx = 12
 -- Lt = 24
 -- beta = 6.1
--- mq = -0.2450
+-- mq = -0.2800
 
+printf("Light quark mass: %d, beta: %d", mq, beta)
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc

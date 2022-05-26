@@ -89,7 +89,8 @@ end
 Lx = 12
 Lt = 24
 beta = 6.1
-mq = -0.2450
+-- mq = -0.2450
+mq = -0.2800
 
 kappa = 1 / (2 * mq + 8)
 
@@ -105,10 +106,10 @@ end
 
 -- iterate over configurations here so we don't need to initialize QUDA everytime
 local cfg_list = {}
---local cfg_min = 1010
---local cfg_max = 9900
-cfg_min = 20000
-cfg_max = 29990
+cfg_min = 1010
+cfg_max = 14990
+-- cfg_min = 15000
+-- cfg_max = 29990
 print("Setting configurations to run")
 for cfg_idx = cfg_min, cfg_max, 10 do
   cfg_list[#cfg_list + 1] = cfg_idx
