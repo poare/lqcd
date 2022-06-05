@@ -32,6 +32,8 @@ cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
 gpu=true
 # gpu=false
 
+stream="-d"
+
 home=/home/lqcd/poare/lqcd/gq_mixing
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
 output=/work/lqcd/d10b/users/poare/gq_mixing/props/${cfgbase}_${SLURM_JOB_ID}
@@ -40,7 +42,7 @@ mkdir ${logs}
 mkdir ${logs}/no_output
 mkdir ${output}
 
-parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu} stream=${stream}"
 export OMP_NUM_THREADS=6
 
 mpirun -np 4 $EXE -e "$parameters" ${home}/prop_generation.qlua > ${logs}/log_${SLURM_JOB_ID}.txt

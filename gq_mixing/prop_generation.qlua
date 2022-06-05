@@ -79,8 +79,8 @@ end
 ------------------------------------------------------------------
 
 -- Read in input from bash script.
-if jobid and cfgpath and cfgbase then
-    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
+if jobid and cfgpath and cfgbase and stream then
+    printf("Job ID: %d.\nEvaluating configurations at: %s%s%s.\n", jobid, cfgpath, cfgbase, stream)
 else
     print("No jobid, cfgpath, cfgbase entered.")
 end
@@ -119,7 +119,7 @@ printf("Number of configurations to compute propagators on: %d.", #cfg_list)
 -- Paths to output file.
 --folder = string.format("%s/lqcd/npr_momfrac/output", lqcd_dir)
 folder = string.format("/work/lqcd/d10b/users/poare/gq_mixing/props")
-out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+out_folder = string.format("%s/%s%s_%d", folder, cfgbase, stream, jobid)
 filename = string.format("%s/props_%d_%d.h5", out_folder, cfg_min, cfg_max)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
@@ -164,8 +164,8 @@ writer = qcd.hdf5.Writer(filename, hdf5params)
 for cfg_idx = 1, #cfg_list do
   local cfgnum = cfg_list[cfg_idx]
   -- Read gauge file.
-  local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase.."-c_smeared_gf/landau/"..cfgbase.."-c_cfg_%d.lime", cfgnum)
-  local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase.."-c_smeared_gf/landau/"..cfgbase.."-c_cfg_%d.lime", cfgnum)
+  local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase..stream.."_smeared_gf/landau/"..cfgbase..stream.."_cfg_%d.lime", cfgnum)
+  local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase..stream.."_smeared_gf/landau/"..cfgbase..stream.."_cfg_%d.lime", cfgnum)
   print("Reading gauge file at: %s\n", gauge_file)
   status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
   status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
