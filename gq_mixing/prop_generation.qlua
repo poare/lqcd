@@ -107,9 +107,9 @@ end
 -- iterate over configurations here so we don't need to initialize QUDA everytime
 local cfg_list = {}
 cfg_min = 1010
-cfg_max = 14990
--- cfg_min = 15000
--- cfg_max = 29990
+cfg_max = 29990
+--cfg_min = 15000
+--cfg_max = 29990
 print("Setting configurations to run")
 for cfg_idx = cfg_min, cfg_max, 10 do
   cfg_list[#cfg_list + 1] = cfg_idx
@@ -163,10 +163,9 @@ writer = qcd.hdf5.Writer(filename, hdf5params)
 
 for cfg_idx = 1, #cfg_list do
   local cfgnum = cfg_list[cfg_idx]
-
   -- Read gauge file.
-  local gauge_file = string.format(cfgpath..cfgbase.."-a_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
-  local flowed_file = string.format(cfgpath..cfgbase.."-a_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
+  local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase.."-c_smeared_gf/landau/"..cfgbase.."-c_cfg_%d.lime", cfgnum)
+  local flowed_file = string.format(cfgpath..cfgbase.."_smeared_gf/"..cfgbase.."-c_smeared_gf/landau/"..cfgbase.."-c_cfg_%d.lime", cfgnum)
   print("Reading gauge file at: %s\n", gauge_file)
   status1, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
   status2, Uflowed, finfo2, info2 = pcall(load_conf, L, flowed_file)
