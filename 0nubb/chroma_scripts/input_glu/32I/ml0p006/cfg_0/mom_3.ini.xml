@@ -8,7 +8,7 @@
 </annotation>
 <Param>
   <InlineMeasurements>
-    
+
     <elem>
       <Name>MAKE_SOURCE</Name>
       <Frequency>1</Frequency>
@@ -288,6 +288,6 @@
 
 <Cfg>
   <cfg_type>NERSC</cfg_type>
-  <cfg_file>/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.006/Configs_gf/landau_gf/landau/ckpoint_lat.IEEE64BIG.1000</cfg_file>
+  <cfg_file>/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.006/Configs_gf/landau/ckpoint_lat.IEEE64BIG.1000</cfg_file>
 </Cfg>
 </chroma>
