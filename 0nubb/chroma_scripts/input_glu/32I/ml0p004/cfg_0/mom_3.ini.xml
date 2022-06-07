@@ -24,7 +24,7 @@
         </Source>
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <source_id>mom_source_k1</source_id>
       </NamedObject>
     </elem>
@@ -44,7 +44,7 @@
         </Source>
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <source_id>mom_source_k2</source_id>
       </NamedObject>
     </elem>
@@ -64,7 +64,7 @@
         </Source>
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <source_id>mom_source_q</source_id>
       </NamedObject>
     </elem>
@@ -124,7 +124,7 @@
 
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <source_id>mom_source_k1</source_id>
         <prop_id>mom_prop_k1</prop_id>
       </NamedObject>
@@ -185,7 +185,7 @@
 
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <source_id>mom_source_k2</source_id>
         <prop_id>mom_prop_k2</prop_id>
       </NamedObject>
@@ -246,7 +246,7 @@
 
       </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <source_id>mom_source_q</source_id>
         <prop_id>mom_prop_q</prop_id>
       </NamedObject>
@@ -261,7 +261,7 @@
         <ferm_bc>false</ferm_bc>
        </Param>
       <NamedObject>
-        <gauge_id>landau_cfg</gauge_id>
+        <gauge_id>default_gauge_field</gauge_id>
         <sink_pairs>
           <elem>
             <first_id>mom_prop_k1</first_id>

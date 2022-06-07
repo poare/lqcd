@@ -288,6 +288,6 @@
 
 <Cfg>
   <cfg_type>SCIDAC</cfg_type>
-  <cfg_file>/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.008/Landau/gfix_lat.1090</cfg_file>
+  <cfg_file>/work/lqcd/d10b/ensembles/RBC/RBC_UKQCD_32_64/Sea_m0.008/Landau/gfix_lat.1510</cfg_file>
 </Cfg>
 </chroma>
