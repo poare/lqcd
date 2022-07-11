@@ -27,32 +27,39 @@ Nc = 3
 
 # INPUT PARAMETERS
 home = '/Users/theoares'
-mom_idx_list = range(2, 10)                                          #[1, 2, ..., 6]
+# mom_idx_list = range(2, 10)                                          #[1, 2, ..., 6]
 # mom_idx_list = range(2, 6)
-cfgs = [0, 1, 2, 3, 5, 6, 7, 8, 9]
+mom_idx_list = [3, 4]
+# cfgs = [0, 1, 2, 3, 5, 6, 7, 8, 9]
+cfgs = [0, 1, 2, 3, 5, 6, 8, 9]
 
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p005/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p006/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p004/'
-# parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p008/'
+parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p008/'
+
+# for GLU gf'ing
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p004/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p006/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p008/'
 
 # uncomment to parse test files
-parent = '/Users/theoares/Dropbox (MIT)/research/0nubb/tests/coulomb_landau_test/'
-files = ['coul_landau', 'landau']
-mom_idx_list = [3]
-cfgs = [0, 1]
+# parent = '/Users/theoares/Dropbox (MIT)/research/0nubb/tests/gf_test/'
+# files = ['mom_3_32I_ml0p004', 'mom_3_32I_ml0p006', 'mom_3_32I_ml0p008']
+# mom_idx_list = [3]
+# cfgs = [0, 1, 2]
 
 for cfg in cfgs:
     cfg_root = 'cfg_' + str(cfg)                                # 'cfg_0'
-    # dir = parent + cfg_root                                   # meas/24I/ml0p01/cfg200
-    # out_file = parent + 'hdf5/' + cfg_root + '.h5'            # production code
-    dir = parent                                                # these two lines for testing
-    out_file = dir + 'hdf5/' + files[cfg] + '.h5'
+    dir = parent + cfg_root                                   # ex meas/24I/ml0p01/cfg200
+    out_file = parent + 'hdf5/' + cfg_root + '.h5'            # production code
+    # dir = parent                                                # these two lines for testing
+    # out_file = dir + 'hdf5/' + files[cfg] + '.h5'
     f = h5py.File(out_file, 'w')
     for mom_idx in mom_idx_list:
-        # xml_file = dir + '/mom_' + str(mom_idx) + '.dat.xml'              # use this for real parser
-        xml_file = dir + files[cfg] + '.dat.xml'
+        xml_file = dir + '/mom_' + str(mom_idx) + '.dat.xml'              # use this for real parser
+        # xml_file = dir + files[cfg] + '.dat.xml'                          # for testing
         print('Reading data from ' + xml_file)
         tree = ET.parse(xml_file)
         root = tree.getroot()

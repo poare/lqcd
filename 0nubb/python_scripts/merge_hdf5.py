@@ -21,9 +21,7 @@ for n in range(16):
 
 # write files
 # paths1 = ['q' + str(k) + str(k) + '00' for k in range(1, 7)]
-# paths2 = ['q' + str(k) + str(k) + '00' for k in range(7, 11)]
-# paths1 = ['q' + str(k) + str(k) + '00' for k in range(10, 14)]
-# paths2 = ['q' + str(k) + str(k) + '00' for k in range(1, 9)]
+# paths2 = ['q' + str(k) + str(k) + '00' for k in range(7, 11)] 
 paths1 = ['q' + str(k) + str(k) + '00' for k in [9]]
 paths2 = ['q' + str(k) + str(k) + '00' for k in [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13]]
 for cfg in cfg_list:

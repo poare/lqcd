@@ -3,24 +3,39 @@ from scipy.optimize import root
 import h5py
 import os
 
+# n_boot = 50
 n_boot = 200
 from utils import *
 
 ################################## PARAMETERS #################################
-jobid = 106539
-# jobid = 107395
 base = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/meas/'
-stem = 'cl21_12_24_b6p1_m0p2800m0p2450_' + str(jobid)
+
+# jobid = 114141                                                                  # 12^3, beta 6.1, heavy ensemble
+# stem = 'cl21_12_24_b6p1_m0p2800m0p2450-a_' + str(jobid)
+# l = 12
+# t = 24
+
+# jobid = 106539                                                                # old 12^3 heavy (wrong mass for quark propagators)
+# stem = 'cl21_12_24_b6p1_m0p2800m0p2450_' + str(jobid)
+# l = 12
+# t = 24
+
+# jobid = 113030                                                                # light 12^3
+# stem = 'cl21_12_24_b6p3_m0p2416m0p2050-b_' + str(jobid)
+# l = 12
+# t = 24
+
+jobid = 113356                                                                # 16^4, need more configs though
+stem = 'cl21_16_16_b6p3_m0p2416m0p2050-a_' + str(jobid)
+l = 16
+t = 16
+
 data_dir = base + stem
-
-l = 12
-t = 24
 L = Lattice(l, t)
-
-# k_list = [[2, 2, 2, 2], [4, 4, 4, 4], [6, 6, 6, 6], [8, 8, 8, 8], [3, 0, 0, 0], [6, 0, 0, 0], [9, 0, 0, 0]]
 
 eps = 1e-8
 kmin, kmax = 1, 7
+# kmin, kmax = 2, 5
 k_list = []
 for i, j, k, l in itertools.product(range(kmin, kmax), repeat = 4):
     k_list.append([i, j, k, l])
@@ -45,6 +60,7 @@ for (dirpath, dirnames, file) in os.walk(data_dir):
         unsorted_cfgids.append(int(fi[3 : 7]))    # slicing only good for cfgs in the 1000's
 for idx, cfg in enumerate(unsorted_cfgs):
     unsorted_cfgs[idx] = data_dir + '/' + unsorted_cfgs[idx]
+# unsorted_cfgs = unsorted_cfgs[:30]
 n_cfgs = len(unsorted_cfgs)
 print('Reading ' + str(n_cfgs) + ' configs.')
 print(unsorted_cfgids)
@@ -152,7 +168,7 @@ for k_idx, k in enumerate(k_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-# out_file = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/analysis_output/Z_' + str(jobid) + '.h5'
+# out_file = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/analysis_output/Zqq_' + str(jobid) + '_30cfgs.h5'
 out_file = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/analysis_output/Zqq_' + str(jobid) + '.h5'
 f = h5py.File(out_file, 'w')
 f['cfgnum'] = n_cfgs

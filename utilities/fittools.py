@@ -471,7 +471,11 @@ def get_covariance(R, dof = 1):
 
 def shrinkage(covar, lam):
     """
-    Performs linear shrinkage on a covariance matrix. Returns the regulated covariance matrix
+    Performs linear shrinkage on a covariance matrix. Returns the regulated covariance matrix,
+    $$
+        cov(x, y; λ) = λ*cov(x, y) + (1 - λ)*diag(cov)(x, y)
+    $$
+    where x and y individually index the domain of the data.
     """
     uncorr_covar = np.zeros(covar.shape, dtype = covar.dtype)
     for i in range(covar.shape[0]):

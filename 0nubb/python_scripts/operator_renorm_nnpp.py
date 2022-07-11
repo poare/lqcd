@@ -2,55 +2,49 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
-# from test_utils import *
-import time
-import itertools
-import test_utils
 from utils import *
+base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 
 ################################## PARAMETERS #################################
-# job_num = 105624
-job_num = 105925    # what size lattice was this run on? Looks like 4^4
-# job_num = 105926    # this is the QLUA output on the 4^4 lattice
-# job_num = 4444    # this is the free field propagators with the corr functions computed in python, these are correct
-# if this job gives the wrong output, either I read everything out from the notebook wrong or the canned renorm script (here) is wrong
-# L, T = 4, 4
-L, T = 4, 4
-data_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_' + str(job_num)
-# /Users/theoares/Dropbox (MIT)/research/0nubb/meas/free_field_105624
+# ens = 'cl3_32_48_b6p1_m0p2450_99999'
+# ens = 'cl3_32_48_b6p1_m0p2450_113400'
+ens = 'cl3_32_48_b6p1_m0p2450_114105'
+data_dir = base + 'nnpp/' + ens
+l = 32
+t = 48
 
-# L, T = 4, 8
-# L, T = 24, 64
-# L, T = 8, 8
-# home = '/Users/theoares/'
-# home = '/Users/poare/'
-# data_dir = home + 'Dropbox (MIT)/research/0nubb/tests/hdf5'
-# data_dir = home + 'Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/hdf5'
+L = Lattice(l, t)
 
-L = Lattice(L, T)
-
-# k1_list = [[-3, 0, 3, 0]]
-# k2_list = [[0, 3, 3, 0]]
-k1_list = [[-1, 0, 1, 0]]
-k2_list = [[0, 1, 1, 0]]
-# k1_list = [[-2, 0, 2, 0]]
-# k2_list = [[0, 2, 2, 0]]
-
+k1_list = []
+k2_list = []
+for n in range(1, 22):
+    k1_list.append([-n, 0, n, 0])
+    k2_list.append([0, n, n, 0])
 k1_list = np.array(k1_list)
 k2_list = np.array(k2_list)
 q_list = k2_list - k1_list
 print('Number of total momenta: ' + str(len(q_list)))
 
+# store all the momenta that we already know
+q_known = [[k, k, 0, 0] for k in range(1, 18)]
+f_known = h5py.File('/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_113400/Z_gamma.h5', 'r')
+Zq_known = f_known['Zq'][()]
+ZV_known = f_known['ZV'][()]
+ZA_known = f_known['ZA'][()]
+Lambda_known = f_known['Lambda'][()]
+Z_known = np.zeros((5, 5, Zq_known.shape[0], n_boot), dtype = np.complex64)
+for i, j in itertools.product(range(5), repeat = 2):
+    Z_known[i, j] = f_known['Z' + str(i + 1) + str(j + 1)][()]
+f_known.close()
+
 ############################### PERFORM ANALYSIS ##############################
-cfgs = ['free_field.h5']                           # run qlua output
-# cfgs = ['cfgEXAMPLE.h5']                                    # run chroma output
-# cfgs = ['cfg_0.h5']                                    # run chroma output
-# cfgs = ['weak_field.h5']                             # output from running on cfg = dumped.lime
-# for (dirpath, dirnames, file) in os.walk(data_dir):
-#     cfgs.extend(file)
+cfgs = []
+for (dirpath, dirnames, file) in os.walk(data_dir):
+    cfgs.extend(file)
 for idx, cfg in enumerate(cfgs):
     cfgs[idx] = data_dir + '/' + cfgs[idx]
 n_cfgs = len(cfgs)
+print('Reading ' + str(n_cfgs) + ' configs.')
 
 scheme = 'gamma'                # scheme == 'gamma' or 'qslash'
 F = getF(L, scheme)                # tree level projections
@@ -59,21 +53,26 @@ start = time.time()
 Zq = np.zeros((len(q_list), n_boot), dtype = np.complex64)
 ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_list), n_boot), dtype = np.complex64)
 Z = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
+Lambda_list = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
     print('Momentum index: ' + str(q_idx))
-    k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True)
+    print('Momentum is: ' + str(q))
+
+    if q.tolist() in q_known:
+        print('Momentum q = ' + str(q) + ' already computed. Saving arrays.')
+        Zq[q_idx, :] = Zq_known[q_idx, :]
+        ZV[q_idx, :] = ZV_known[q_idx, :]
+        ZA[q_idx, :] = ZA_known[q_idx, :]
+        Lambda_list[:, :, q_idx, :] = Lambda_known[:, :, q_idx, :]
+        Z[:, :, q_idx, :] = Z_known[:, :, q_idx, :]
+        continue
+
+    k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = False)
+    q_lat = np.sin(L.to_linear_momentum(q + bvec))          # for qlua
+
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
-    # print(props_q[0])
-    GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), \
-        np.array([bootstrap(GO[n]) for n in range(16)])
+    GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
     props_k1_inv, props_k2_inv, props_q_inv = invert_props(props_k1_b), invert_props(props_k2_b), invert_props(props_q_b)
-    print(props_q_inv[0])
-
-    # q = -q
-    q_lat = np.sin(L.to_linear_momentum(q + bvec))            # choice of lattice momentum will affect how artifacts look, but numerics should look roughly the same
-    # q = -q                                                  # for chroma
-    # q_lat = np.sin(L.to_linear_momentum(q))
-
     Zq[q_idx] = quark_renorm(props_q_inv, q_lat)
     GammaV, GammaA = np.zeros(GV_boot.shape, dtype = np.complex64), np.zeros(GA_boot.shape, dtype = np.complex64)
     qDotV, qDotA = np.zeros(GV_boot.shape[1:]), np.zeros(GA_boot.shape[1:])
@@ -86,12 +85,11 @@ for q_idx, q in enumerate(q_list):
     ZV[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,ji->z', qDotV, qlat_slash)
     ZA[q_idx] = 12 * Zq[q_idx] * square(q_lat) / np.einsum('zaiaj,jk,ki->z', qDotA, gamma5, qlat_slash)
 
-    print('Zq ~ ' + str(Zq[q_idx, 0]))
-    print('ZV ~ ' + str(ZV[q_idx, 0]))
-    print('ZA ~ ' + str(ZA[q_idx, 0]))
+    print('Zq ~ ' + str(np.mean(Zq[q_idx])) + ' \pm ' + str(np.std(Zq[q_idx], ddof = 1)))
+    print('ZV ~ ' + str(np.mean(ZV[q_idx])) + ' \pm ' + str(np.std(ZV[q_idx], ddof = 1)))
+    print('ZA ~ ' + str(np.mean(ZA[q_idx])) + ' \pm ' + str(np.std(ZA[q_idx], ddof = 1)))
 
     # Amputate and get scalar / vector / pseudoscalar / axial / tensor green's functions from G^n
-    # print(GO[3, 0])
     GammaO = np.zeros(GO_boot.shape, dtype = np.complex64)
     for n in range(16):
         print('Amputating Green\'s function for n = ' + str(n) + '.')
@@ -110,9 +108,8 @@ for q_idx, q in enumerate(q_list):
     P = projectors(scheme, L.to_linear_momentum(q), L.to_linear_momentum(k1), L.to_linear_momentum(k2))
     Lambda = np.einsum('nbjaidlck,mzaibjckdl->zmn', P, Gamma)    # Lambda is n_boot x 5 x 5
     print('Lambda ~ ' + str(Lambda[0, :, :]))       # projected 4 pt function
-    # Lambda_inv = np.array([np.linalg.inv(Lambda[b, :, :]) for b in range(n_boot)])
-    # Z[:, :, q_idx, :] = (Zq[q_idx] ** 2) * np.einsum('ik,zkj->ijz', F, Lambda_inv)
     for b in range(n_boot):
+        Lambda_list[:, :, q_idx, b] = Lambda[b]         # save Lambda for chiral extrapolation
         Lambda_inv = np.linalg.inv(Lambda[b, :, :])
         Z[:, :, q_idx, b] = (Zq[q_idx, b] ** 2) * np.einsum('ik,kj->ij', F, Lambda_inv)
 
@@ -122,14 +119,13 @@ for q_idx, q in enumerate(q_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/tests/free_field_' + str(job_num) + '/Z_' + scheme + '.h5'
-
-# out_file = home + 'Dropbox (MIT)/research/0nubb/analysis_output/tests/qlua_out/Z_' + scheme + '.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/' + ens + '/Z_' + scheme + '.h5'    # nnpp output
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV
 f['ZA'] = ZA
 f['Zq'] = Zq
+f['Lambda'] = Lambda_list
 for i, j in itertools.product(range(5), repeat = 2):
     f['Z' + str(i + 1) + str(j + 1)] = Z[i, j]
 f['cfgnum'] = n_cfgs

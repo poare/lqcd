@@ -47,10 +47,12 @@ pts_per_inch = 72.27    # inches to pts
 styles = {
     'prd_twocol' : {
         'colwidth'          : 246.0 / pts_per_inch,         # inches
+        # 'colwidth'          : 220.0 / pts_per_inch,         # inches
         'textwidth'         : 510.0 / pts_per_inch,         # inches
         'fontsize'          : 10.0,                         # pts
         'tickwidth'         : 0.5,                          # pts
         'ticklength'        : 2.0,                          # pts
+        'spinewidth'        : 0.5,                          # pts
         'axeswidth'         : 0.5,                          # pts
         'markersize'        : 1.0,                          # pts
         'ebar_width'        : 0.5,                          # pts
@@ -61,9 +63,14 @@ styles = {
         'colwidth'          : 510.0 / pts_per_inch,
         'textwidth'         : 510.0 / pts_per_inch,
         'fontsize'          : 10.0,
-        'tickwidth'         : 0.5,
+        'tickwidth'         : 1.0,
         'ticklength'        : 2.0,
-        'spinewidth'        : 0.5,
+        'spinewidth'        : 1.0,
+        'axeswidth'         : 1.0,                          # pts
+        'markersize'        : 1.0,                          # pts
+        'ebar_width'        : 1.0,                          # pts
+        'endcaps'           : 1.0,                          # pts
+        'ecap_width'        : 0.4,                          # pts
     },
     'notebook' : {
         'colwidth'          : 7,         # inches

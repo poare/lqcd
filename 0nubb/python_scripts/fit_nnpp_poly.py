@@ -32,26 +32,27 @@ apsq = True                                             # x axis to plot against
 RIsMOM = True                                           # True to fit RI/sMOM data, False to fit MSbar data.
 
 if RIsMOM:
-    finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_99999/Z_gamma.h5'
+    # finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_99999/Z_gamma.h5'
+    finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_114105/Z_gamma.h5'
     foutpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/fit_dists_RI.h5'
     stem = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/plots/RIsMOM/fit_distributions'
-    Zq_range = np.array([0.66, 0.86])                   # Ranges for plotting
-    ZV_range = np.array([0.56, 0.82])
-    ZA_range = np.array([0.7, 0.87])
+    Zq_range = np.array([0.66, 0.91])                   # Ranges for plotting
+    ZV_range = np.array([0.56, 0.88])
+    ZA_range = np.array([0.7, 0.95])
     ZqbyZV_range = np.array([1.05, 1.16])
     Z_range = np.array([
-        [[0.42, 0.70], [-0.12, 0.0], [-0.015, 0.0], [0.0, 0.05], [0.005, 0.022]],
-        [[-0.10, 0.0], [0.4, 0.70], [0.06, 0.16], [-0.10, 0.0], [0.0, 0.008]],
-        [[0.0, 0.015], [0.0, 0.02], [0.2, 0.7], [0.0, 0.16], [-0.005, 0.0]],
-        [[0.001, 0.011], [-0.002, 0.001], [0.0, 0.12], [0.35, 0.70], [-0.016, -0.002]],
-        [[0.005, 0.02], [-0.003, 0.003], [0.0, 0.06], [-0.12, -0.05], [0.55, 0.75]]
+        [[0.42, 0.82], [-0.12, 0.0], [-0.015, 0.0], [0.0, 0.05], [0.005, 0.022]],
+        [[-0.10, 0.0], [0.4, 0.80], [-0.05, 0.16], [-0.10, 0.0], [0.0, 0.008]],
+        [[0.0, 0.015], [0.0, 0.02], [0.2, 0.75], [0.0, 0.16], [-0.005, 0.0]],
+        [[0.001, 0.011], [-0.002, 0.001], [0.0, 0.12], [0.35, 0.80], [-0.016, -0.002]],
+        [[0.005, 0.02], [-0.003, 0.003], [0.0, 0.06], [-0.12, 0.05], [0.55, 0.82]]
     ])
     ZbyZVsq_range = np.array([
-        [[1.05, 1.35], [-0.30, 0.0], [-0.032, 0.0], [0.0, 0.15], [0.0, 0.08]],
-        [[-0.25, 0.0], [1.05, 1.3], [0.10, 0.35], [-0.30, 0.0], [0.0, 0.008]],
+        [[1.0, 1.35], [-0.30, 0.0], [-0.032, 0.0], [0.0, 0.15], [0.0, 0.08]],
+        [[-0.25, 0.0], [0.95, 1.3], [-0.10, 0.35], [-0.30, 0.0], [0.0, 0.008]],
         [[0.0, 0.04], [0.0, 0.035], [0.8, 1.05], [0.0, 0.4], [-0.01, 0.0]],
-        [[0.0, 0.03], [-0.003, 0.001], [0.0, 0.3], [1.01, 1.07], [-0.03, -0.005]],
-        [[0.0, 0.06], [-0.008, 0.005], [0.0, 0.15], [-0.32, -0.08], [1.1, 1.6]]
+        [[0.0, 0.03], [-0.003, 0.001], [0.0, 0.3], [0.95, 1.1], [-0.03, -0.005]],
+        [[0.0, 0.06], [-0.008, 0.005], [0.0, 0.15], [-0.32, 0.08], [1.0, 1.6]]
     ])
 else:
     finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_99999/Z_gamma.h5'
@@ -250,9 +251,11 @@ ap8 = Model(lambda params : lambda apsq : params[0] * (apsq ** 4), 1, '(x^4)', '
 apm2 = Model(lambda params : lambda apsq : params[0] / apsq, 1, '(1/x)', 'c5')
 
 # loop over subsets: figure out which models to choose at each step. Then look at the distribution of Z0 for each one and save it to dist_dir
-all_subsets = [list(range(n, 8)) for n in range(2, 6)]
+# all_subsets = [list(range(n, 8)) for n in range(2, 6)]
+# all_subsets = [list(range(n, 15)) for n in range(2, 12)]
+all_subsets = [list(range(n, 15)) for n in range(3, 12)]
 subs_labels = ['p' + str(subs[0]) + 'to' + str(subs[-1]) for subs in all_subsets]
-subset_colors = ['r', 'g', 'b', 'c']
+subset_colors = ['r', 'g', 'b', 'c', 'k', 'tab:olive', 'tab:orange', 'tab:pink', 'tab:purple']
 # all_forms = [
 #     [ap2, ap4, ap6, ap8],
 #     [ap2, ap4, ap6, ap8],

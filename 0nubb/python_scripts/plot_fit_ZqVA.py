@@ -30,6 +30,7 @@ style = styles['prd_twocol']
 
 # Read out chiral extrapolation data
 n_boot = 50
+n_samp = n_boot
 n_spacings = 2
 n_ens_sp = [2, 3]    # 2 ensembles per lattice spacing
 n_momenta = [8, 8, 8, 8, 8]
@@ -53,24 +54,27 @@ print('Extrapolation from RBC/UKQCD values: ')
 print('24I: ' + str(ZA0_mu[0]) + ' \pm ' + str(ZA0_std[0]))
 print('32I: ' + str(ZA0_mu[1]) + ' \pm ' + str(ZA0_std[1]))
 
-Zq_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
-ZV_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
-ZA_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
-Z_extrap_lin = [np.zeros((5, 5, n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
+# Zq_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
+# ZV_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
+# ZA_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
+# Z_extrap_lin = [np.zeros((5, 5, n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
 
-Zq_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
-Zq_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
-ZV_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
-ZV_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
-ZA_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
-ZA_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
-Z_extrap_mu = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)          # [24I/32I, i, j, q_idx]
-Z_extrap_sigma = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)
+# Zq_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# Zq_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZV_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZV_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZA_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZA_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# Z_extrap_mu = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)          # [24I/32I, i, j, q_idx]
+# Z_extrap_sigma = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)
 
-# chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap.h5', \
-#                     '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
-chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap_old.h5', \
-                    '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap_old.h5']
+Zq_extrap = np.zeros((n_spacings, n_mom, n_boot), dtype = np.float64)
+ZV_extrap = np.zeros((n_spacings, n_mom, n_boot), dtype = np.float64)
+ZA_extrap = np.zeros((n_spacings, n_mom, n_boot), dtype = np.float64)
+Z_extrap = np.zeros((n_spacings, 5, 5, n_mom, n_boot), dtype = np.float64)
+
+chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap.h5', \
+                    '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
 for idx in range(n_spacings):
     print(chi_extrap_lin_paths[idx])
     f = h5py.File(chi_extrap_lin_paths[idx], 'r')
@@ -81,28 +85,80 @@ for idx in range(n_spacings):
     for i, j in itertools.product(range(5), repeat = 2):
         key = 'Z' + str(i + 1) + str(j + 1)
         try:
-            Z_extrap_lin[idx][i, j] = np.real(f[key][()])
+            Z_extrap[idx, i, j] = np.real(f[key][()])
         except:
             print('no key at ' + key)
-for sp_idx in range(n_spacings):
-    for mom_idx in range(n_mom):
-        Zq_tmp = Superboot(n_ens_sp[sp_idx])
-        Zq_tmp.boots = Zq_extrap[sp_idx][mom_idx]
-        Zq_extrap_mu[sp_idx, mom_idx] = Zq_tmp.compute_mean()
-        Zq_extrap_sigma[sp_idx, mom_idx] = Zq_tmp.compute_std()
-        ZV_tmp = Superboot(n_ens_sp[sp_idx])
-        ZV_tmp.boots = ZV_extrap[sp_idx][mom_idx]
-        ZV_extrap_mu[sp_idx, mom_idx] = ZV_tmp.compute_mean()
-        ZV_extrap_sigma[sp_idx, mom_idx] = ZV_tmp.compute_std()
-        ZA_tmp = Superboot(n_ens_sp[sp_idx])
-        ZA_tmp.boots = ZA_extrap[sp_idx][mom_idx]
-        ZA_extrap_mu[sp_idx, mom_idx] = ZA_tmp.compute_mean()
-        ZA_extrap_sigma[sp_idx, mom_idx] = ZA_tmp.compute_std()
-        for i, j in itertools.product(range(5), repeat = 2):
-            Z_tmp = Superboot(n_ens_sp[sp_idx])
-            Z_tmp.boots = Z_extrap_lin[sp_idx][i, j, mom_idx]
-            Z_extrap_mu[sp_idx, i, j, mom_idx] = Z_tmp.compute_mean()
-            Z_extrap_sigma[sp_idx, i, j, mom_idx] = Z_tmp.compute_std()
+print(Zq_extrap.shape)
+Zq_extrap_mu = np.mean(Zq_extrap, axis = 2)
+Zq_extrap_sigma = np.std(Zq_extrap, axis = 2, ddof = 1)
+ZV_extrap_mu = np.mean(ZV_extrap, axis = 2)
+ZV_extrap_sigma = np.std(ZV_extrap, axis = 2, ddof = 1)
+ZA_extrap_mu = np.mean(ZA_extrap, axis = 2)
+ZA_extrap_sigma = np.std(ZA_extrap, axis = 2, ddof = 1)
+Z_extrap_mu = np.mean(Z_extrap, axis = 4)
+Z_extrap_sigma = np.std(Z_extrap, axis = 4, ddof = 1)
+
+# ZV_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZV_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZA_extrap_mu = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# ZA_extrap_sigma = np.zeros((n_spacings, n_mom), dtype = np.float64)
+# Z_extrap_mu = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)          # [24I/32I, i, j, q_idx]
+# Z_extrap_sigma = np.zeros((n_spacings, 5, 5, n_mom), dtype = np.float64)
+
+# for sp_idx in range(n_spacings):
+#     for mom_idx in range(n_mom):
+#         Zq_tmp = Superboot(n_ens_sp[sp_idx])
+#         Zq_tmp.boots = Zq_extrap[sp_idx][mom_idx]
+#         Zq_extrap_mu[sp_idx, mom_idx] = Zq_tmp.compute_mean()
+#         Zq_extrap_sigma[sp_idx, mom_idx] = Zq_tmp.compute_std()
+#         ZV_tmp = Superboot(n_ens_sp[sp_idx])
+#         ZV_tmp.boots = ZV_extrap[sp_idx][mom_idx]
+#         ZV_extrap_mu[sp_idx, mom_idx] = ZV_tmp.compute_mean()
+#         ZV_extrap_sigma[sp_idx, mom_idx] = ZV_tmp.compute_std()
+#         ZA_tmp = Superboot(n_ens_sp[sp_idx])
+#         ZA_tmp.boots = ZA_extrap[sp_idx][mom_idx]
+#         ZA_extrap_mu[sp_idx, mom_idx] = ZA_tmp.compute_mean()
+#         ZA_extrap_sigma[sp_idx, mom_idx] = ZA_tmp.compute_std()
+#         for i, j in itertools.product(range(5), repeat = 2):
+#             Z_tmp = Superboot(n_ens_sp[sp_idx])
+#             Z_tmp.boots = Z_extrap_lin[sp_idx][i, j, mom_idx]
+#             Z_extrap_mu[sp_idx, i, j, mom_idx] = Z_tmp.compute_mean()
+#             Z_extrap_sigma[sp_idx, i, j, mom_idx] = Z_tmp.compute_std()
+
+# chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap_old.h5', \
+#                     '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap_old.h5']
+# for idx in range(n_spacings):
+#     print(chi_extrap_lin_paths[idx])
+#     f = h5py.File(chi_extrap_lin_paths[idx], 'r')
+#     Zq_extrap[idx] = np.real(f['Zq/values'][()])
+#     ZV_extrap[idx] = np.real(f['ZV/value'][()])
+#     ZA_extrap[idx] = np.real(f['ZA/value'][()])
+#     print(f['Z11'][()])
+#     for i, j in itertools.product(range(5), repeat = 2):
+#         key = 'Z' + str(i + 1) + str(j + 1)
+#         try:
+#             Z_extrap_lin[idx][i, j] = np.real(f[key][()])
+#         except:
+#             print('no key at ' + key)
+# for sp_idx in range(n_spacings):
+#     for mom_idx in range(n_mom):
+#         Zq_tmp = Superboot(n_ens_sp[sp_idx])
+#         Zq_tmp.boots = Zq_extrap[sp_idx][mom_idx]
+#         Zq_extrap_mu[sp_idx, mom_idx] = Zq_tmp.compute_mean()
+#         Zq_extrap_sigma[sp_idx, mom_idx] = Zq_tmp.compute_std()
+#         ZV_tmp = Superboot(n_ens_sp[sp_idx])
+#         ZV_tmp.boots = ZV_extrap[sp_idx][mom_idx]
+#         ZV_extrap_mu[sp_idx, mom_idx] = ZV_tmp.compute_mean()
+#         ZV_extrap_sigma[sp_idx, mom_idx] = ZV_tmp.compute_std()
+#         ZA_tmp = Superboot(n_ens_sp[sp_idx])
+#         ZA_tmp.boots = ZA_extrap[sp_idx][mom_idx]
+#         ZA_extrap_mu[sp_idx, mom_idx] = ZA_tmp.compute_mean()
+#         ZA_extrap_sigma[sp_idx, mom_idx] = ZA_tmp.compute_std()
+#         for i, j in itertools.product(range(5), repeat = 2):
+#             Z_tmp = Superboot(n_ens_sp[sp_idx])
+#             Z_tmp.boots = Z_extrap_lin[sp_idx][i, j, mom_idx]
+#             Z_extrap_mu[sp_idx, i, j, mom_idx] = Z_tmp.compute_mean()
+#             Z_extrap_sigma[sp_idx, i, j, mom_idx] = Z_tmp.compute_std()
 k_list_chiral = f['momenta'][()]
 f.close()
 mom_list_24I = np.array([Lat_24I.to_linear_momentum(k, datatype = np.float64) for k in k_list_chiral])
@@ -177,11 +233,15 @@ plot_rcs_raw(0, Zq_extrap_mu, Zq_extrap_sigma, '$\mathcal{Z}_q^\mathrm{RI}$', Zq
 plot_rcs_raw(1, Zq_extrap_mu, Zq_extrap_sigma, '$\mathcal{Z}_q^\mathrm{RI}$', Zq32I_range,  \
                         '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/raw_plots/Zq_32I.pdf')
 
+yticks_32I = [0.7, 0.8, 0.9, 1.0]
+ytick_labels_32I = ['0.7', '0.8', '0.9', '1.0']
+
 # ZV
 # ZV24I_range = [0.6, 2.6]
 # ZV32I_range = [0.7, 1.4]
 ZV24I_range = [0.6, 1.4]            # first 4 points
 ZV32I_range = [0.7, 1.0]
+# ZV32I_range = [0.7, 0.95]
 # ZV32I_range = ZV24I_range         # check the error isn't crazily blown up
 plot_rcs_raw(0, ZV_extrap_mu, ZV_extrap_sigma, '$\mathcal{Z}_V$', ZV24I_range,  \
                         '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/raw_plots/ZV_24I.pdf')
@@ -193,6 +253,7 @@ plot_rcs_raw(1, ZV_extrap_mu, ZV_extrap_sigma, '$\mathcal{Z}_V$', ZV32I_range,  
 # ZA32I_range = [0.7, 1.4]
 ZA24I_range = [0.6, 1.4]
 ZA32I_range = [0.7, 1.0]
+# ZA32I_range = [0.7, 0.95]
 # ZA32I_range = ZA24I_range
 plot_rcs_raw(0, ZA_extrap_mu, ZA_extrap_sigma, '$\mathcal{Z}_A$', ZA24I_range,  \
                         '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/raw_plots/ZA_24I.pdf')
@@ -223,7 +284,7 @@ fill_color = (0, 0, 1, 0.3)
 Z0_color = 'g'
 # Z0_color = '0.8'
 a_labels = ['0.11 fm', '0.08 fm']
-def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_known = False):
+def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_known = False, ytick_locs = None, ytick_labels = None):
     x_band = np.linspace(xlimits[sp_idx][0], xlimits[sp_idx][1])
     fx_cvs, fx_sigmas = fitter.gen_fit_band(fout[0], fout[3], x_band)
     # print(x_band)
@@ -250,6 +311,9 @@ def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_k
             ax.spines[spine].set_linewidth(style['axeswidth'])
         plt.xticks(fontsize = style['fontsize'])
         plt.yticks(fontsize = style['fontsize'])
+        if ytick_locs:
+            ax.set_yticks(ytick_locs)
+            ax.set_yticklabels(ytick_labels)
         plt.legend(prop={'size': style['fontsize'] * 0.8})
         plt.tight_layout()
         plt.savefig(path, bbox_inches='tight')
@@ -265,7 +329,9 @@ def model_ZV24I(params):
 m_ZV24I = Model(model_ZV24I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
 ZV24I_fout, ZV24I_fitter = fit_data_model(0, ZV_extrap_mu, ZV_extrap_sigma, subset_idxs, m_ZV24I)
 ZV24I_params, ZV24I_cov = ZV24I_fout[0], ZV24I_fout[3]
-print('ZV for 24I = ' + export_float_latex(ZV24I_params[0], np.sqrt(ZV24I_cov[0, 0]), sf = 2))
+ZV24I_cv, ZV24I_std = ZV24I_params[0], np.sqrt(ZV24I_cov[0, 0])
+ZV24I_dist = gen_fake_ensemble([ZV24I_cv, ZV24I_std], n_samples = n_samp)
+print('ZV for 24I = ' + export_float_latex(ZV24I_cv, ZV24I_std, sf = 2))
 plot_fit_out(0, ZV_extrap_mu, ZV_extrap_sigma, ZV24I_fitter, ZV24I_fout, '$\mathcal{Z}_V$', ZV24I_range, \
                 '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_24I.pdf')
 
@@ -278,9 +344,11 @@ def model_ZV32I(params):
 m_ZV32I = Model(model_ZV32I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
 ZV32I_fout, ZV32I_fitter = fit_data_model(1, ZV_extrap_mu, ZV_extrap_sigma, subset_idxs, m_ZV32I)
 ZV32I_params, ZV32I_cov = ZV32I_fout[0], ZV32I_fout[3]
-print('ZV for 32I = ' + export_float_latex(ZV32I_params[0], np.sqrt(ZV32I_cov[0, 0]), sf = 2))
+ZV32I_cv, ZV32I_std = ZV32I_params[0], np.sqrt(ZV32I_cov[0, 0])
+ZV32I_dist = gen_fake_ensemble([ZV32I_cv, ZV32I_std], n_samples = n_samp)
+print('ZV for 32I = ' + export_float_latex(ZV32I_cv, ZV32I_std, sf = 2))
 plot_fit_out(1, ZV_extrap_mu, ZV_extrap_sigma, ZV32I_fitter, ZV32I_fout, '$\mathcal{Z}_V$', ZV32I_range, \
-                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_32I.pdf')
+                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_32I.pdf', ytick_locs = yticks_32I, ytick_labels = ytick_labels_32I)
 
 # ZA for 24I
 subset_idxs = [0, 1, 2, 3]
@@ -291,7 +359,9 @@ def model_ZA24I(params):
 m_ZA24I = Model(model_ZA24I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
 ZA24I_fout, ZA24I_fitter = fit_data_model(0, ZA_extrap_mu, ZA_extrap_sigma, subset_idxs, m_ZA24I)
 ZA24I_params, ZA24I_cov = ZA24I_fout[0], ZA24I_fout[3]
-print('ZA for 24I = ' + export_float_latex(ZA24I_params[0], np.sqrt(ZA24I_cov[0, 0]), sf = 2))
+ZA24I_cv, ZA24I_std = ZA24I_params[0], np.sqrt(ZA24I_cov[0, 0])
+ZA24I_dist = gen_fake_ensemble([ZA24I_cv, ZA24I_std], n_samples = n_samp)
+print('ZA for 24I = ' + export_float_latex(ZA24I_cv, ZA24I_std, sf = 2))
 plot_fit_out(0, ZA_extrap_mu, ZA_extrap_sigma, ZA24I_fitter, ZA24I_fout, '$\mathcal{Z}_A$', ZA24I_range, \
                 '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_24I.pdf', plt_known = True)
 
@@ -304,6 +374,32 @@ def model_ZA32I(params):
 m_ZA32I = Model(model_ZA32I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
 ZA32I_fout, ZA32I_fitter = fit_data_model(1, ZA_extrap_mu, ZA_extrap_sigma, subset_idxs, m_ZA32I)
 ZA32I_params, ZA32I_cov = ZA32I_fout[0], ZA32I_fout[3]
-print('ZA for 32I = ' + export_float_latex(ZA32I_params[0], np.sqrt(ZA32I_cov[0, 0]), sf = 2))
+ZA32I_cv, ZA32I_std = ZA32I_params[0], np.sqrt(ZA32I_cov[0, 0])
+ZA32I_dist = gen_fake_ensemble([ZA32I_cv, ZA32I_std], n_samples = n_samp)
+print('ZA for 32I = ' + export_float_latex(ZA32I_cv, ZA32I_std, sf = 2))
 plot_fit_out(1, ZA_extrap_mu, ZA_extrap_sigma, ZA32I_fitter, ZA32I_fout, '$\mathcal{Z}_A$', ZA32I_range, \
-                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_32I.pdf', plt_known = True)
+                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_32I.pdf', plt_known = True, ytick_locs = yticks_32I, \
+                ytick_labels = ytick_labels_32I)
+
+out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/ZVA.h5'
+f_out = h5py.File(out_path, 'w')
+f_out['momenta'] = k_list_chiral
+
+f_out['ZV/24I/mean'] = ZV24I_cv
+f_out['ZV/24I/std'] = ZV24I_std
+f_out['ZV/24I/dist'] = ZV24I_dist
+
+f_out['ZV/32I/mean'] = ZV32I_cv
+f_out['ZV/32I/std'] = ZV32I_std
+f_out['ZV/32I/dist'] = ZV32I_dist
+
+f_out['ZA/24I/mean'] = ZA24I_cv
+f_out['ZA/24I/std'] = ZA24I_std
+f_out['ZA/24I/dist'] = ZA24I_dist
+
+f_out['ZA/32I/mean'] = ZA32I_cv
+f_out['ZA/32I/std'] = ZA32I_std
+f_out['ZA/32I/dist'] = ZA32I_dist
+
+print('Results for ZV, ZA saved at: ' + out_path)
+f_out.close()

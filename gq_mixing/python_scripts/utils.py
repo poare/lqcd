@@ -16,6 +16,7 @@ sys.path.append('/Users/theoares/lqcd/utilities')
 from pytools import *         # figure out a way to import pytools without breaking everything
 from formattools import *
 
+# n_boot = 50
 n_boot = 200
 
 # Tree level values

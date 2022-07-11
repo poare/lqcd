@@ -28,48 +28,53 @@ from formattools import *
 style = styles['prd_twocol']
 
 # inputs to toggle
-plot_raw = True                                        # True if we want to plot all raw data, False if only fitted data
+plot_raw = False                                        # True if we want to plot all raw data, False if only fitted data
 apsq = True                                             # x axis to plot against. If apsq, plots against (ap)^2, else plots against mu^2.
-RIsMOM = False                                           # True to fit RI/sMOM data, False to fit MSbar data.
-# subset_idxs = [2, 3, 4, 5, 6, 7]
-subset_idxs = [0, 1, 2, 3, 4, 5, 6, 7]
+RIsMOM = True                                           # True to fit RI/sMOM data, False to fit MSbar data.
+# subset_idxs = None
+subset_idxs = list(range(6, 15))
+
+# MSbar subsets
+# subset_idxs = list(range(2, 13))
+# subset_idxs = list(range(4, 13))
 
 if RIsMOM:
-    finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_99999/Z_gamma.h5'
+    # finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_99999/Z_gamma.h5'
+    finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_114105/Z_gamma.h5'
     foutpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/fitsRI.h5'
     stem = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/plots/RIsMOM/'
-    Zq_range = np.array([0.66, 0.86])                   # Ranges for plotting
-    ZV_range = np.array([0.56, 0.82])
-    ZA_range = np.array([0.7, 0.87])
+    Zq_range = np.array([0.66, 0.91])                   # Ranges for plotting
+    ZV_range = np.array([0.56, 0.88])
+    ZA_range = np.array([0.7, 0.95])
     ZqbyZV_range = np.array([1.05, 1.16])
     Z_range = np.array([
-        [[0.42, 0.70], [-0.12, 0.0], [-0.015, 0.0], [0.0, 0.05], [0.005, 0.022]],
-        [[-0.10, 0.0], [0.4, 0.70], [0.06, 0.16], [-0.10, 0.0], [0.0, 0.008]],
-        [[0.0, 0.015], [0.0, 0.02], [0.2, 0.7], [0.0, 0.16], [-0.005, 0.0]],
-        [[0.001, 0.011], [-0.002, 0.001], [0.0, 0.12], [0.35, 0.70], [-0.016, -0.002]],
-        [[0.005, 0.02], [-0.003, 0.003], [0.0, 0.06], [-0.12, -0.05], [0.55, 0.75]]
+        [[0.42, 0.82], [-0.12, 0.0], [-0.015, 0.0], [0.0, 0.05], [0.005, 0.022]],
+        [[-0.10, 0.0], [0.4, 0.80], [-0.05, 0.16], [-0.10, 0.0], [0.0, 0.008]],
+        [[0.0, 0.015], [0.0, 0.02], [0.2, 0.75], [0.0, 0.16], [-0.005, 0.0]],
+        [[0.001, 0.011], [-0.002, 0.001], [0.0, 0.12], [0.35, 0.80], [-0.016, -0.002]],
+        [[0.005, 0.02], [-0.003, 0.003], [0.0, 0.06], [-0.12, 0.05], [0.55, 0.82]]
     ])
     ZbyZVsq_range = np.array([
-        [[1.05, 1.35], [-0.30, 0.0], [-0.032, 0.0], [0.0, 0.15], [0.0, 0.08]],
-        [[-0.25, 0.0], [1.05, 1.3], [0.10, 0.35], [-0.30, 0.0], [0.0, 0.008]],
+        [[1.0, 1.35], [-0.30, 0.0], [-0.032, 0.0], [0.0, 0.15], [0.0, 0.08]],
+        [[-0.25, 0.0], [0.95, 1.3], [-0.10, 0.35], [-0.30, 0.0], [0.0, 0.008]],
         [[0.0, 0.04], [0.0, 0.035], [0.8, 1.05], [0.0, 0.4], [-0.01, 0.0]],
-        [[0.0, 0.03], [-0.003, 0.001], [0.0, 0.3], [1.01, 1.07], [-0.03, -0.005]],
-        [[0.0, 0.06], [-0.008, 0.005], [0.0, 0.15], [-0.32, -0.08], [1.1, 1.6]]
+        [[0.0, 0.03], [-0.003, 0.001], [0.0, 0.3], [0.95, 1.1], [-0.03, -0.005]],
+        [[0.0, 0.06], [-0.008, 0.005], [0.0, 0.15], [-0.32, 0.08], [1.0, 1.6]]
     ])
 else:
-    finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_99999/Z_gamma.h5'
+    finpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/nnpp/cl3_32_48_b6p1_m0p2450_114105/Z_MSbar.h5'
     foutpath = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/fitsMS.h5'
     stem = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/plots/MSbar/'
-    Zq_range = np.array([0.69, 0.86])                   # Ranges for plotting
-    ZV_range = np.array([0.6, 0.82])
-    ZA_range = np.array([0.7, 0.87])
+    Zq_range = np.array([0.66, 0.91])                   # Ranges for plotting
+    ZV_range = np.array([0.56, 0.88])
+    ZA_range = np.array([0.7, 0.95])
     ZqbyZV_range = np.array([1.05, 1.16])
     Z_range = np.array([
-        [[0.45, 0.70], [-0.12, 0.0], [-0.012, 0.0], [0.0, 0.05], [0.005, 0.022]],
-        [[-0.10, 0.0], [0.45, 0.70], [0.06, 0.14], [-0.10, 0.0], [0.0, 0.006]],
-        [[0.0, 0.015], [0.0, 0.02], [0.28, 0.72], [0.0, 0.16], [-0.005, 0.0]],
-        [[0.001, 0.011], [-0.002, 0.001], [0.0, 0.12], [0.35, 0.70], [-0.016, -0.002]],
-        [[0.005, 0.02], [-0.003, 0.003], [0.0, 0.06], [-0.12, -0.05], [0.55, 0.75]]
+        [[0.45, 0.90], [-0.12, 0.005], [-0.012, 0.005], [0.0, 0.05], [0.005, 0.03]],
+        [[-0.10, 0.005], [0.52, 0.82], [0.02, 0.14], [-0.08, 0.005], [-0.005, 0.0035]],
+        [[-0.005, 0.008], [0.005, 0.03], [0.60, 0.7], [-0.005, 0.11], [-0.003, 0.005]],
+        [[0.002, 0.006], [0.0, 0.0003], [-0.005, 0.08], [0.60, 0.70], [-0.012, 0.02]],
+        [[0.007, 0.022], [-0.0001, 0.002], [-0.005, 0.06], [-0.6, 0.22], [0.55, 1.1]]
     ])
     ZbyZVsq_range = np.array([
         [[1.05, 1.35], [-0.30, 0.0], [-0.032, 0.0], [0.0, 0.15], [0.0, 0.08]],
@@ -127,8 +132,11 @@ ZbyZVsq_sigma = np.std(ZbyZVsq, axis = 3, ddof = 1)
 
 x_axis = apsq_list if apsq else mu_list
 xlabel = '$(ap)^2$' if apsq else '$\\mu\;(\\mathrm{GeV})$'
-xlimits = [0.0, 6.5] if apsq else [1.0, 4.1]
+# xlimits = [0.0, 6.5] if apsq else [1.0, 4.1]
+xlimits = [0.0, 18.0] if apsq else [1.0, 4.1]
 asp_ratio = 4/3
+
+print(xlabel + ' Z is evaluated at: ' + str(x_axis))
 
 # generate plot of raw data
 def plot_rcs_raw(cvs, sigmas, ylabel, ylimits, path, col = 'r'):
@@ -235,11 +243,15 @@ ap2 = Model(lambda params : lambda apsq : params[0] * apsq, 1, '(x)', 'c1')
 ap4 = Model(lambda params : lambda apsq : params[0] * (apsq ** 2), 1, '(x^2)', 'c2')
 ap6 = Model(lambda params : lambda apsq : params[0] * (apsq ** 3), 1, '(x^3)', 'c3')
 ap8 = Model(lambda params : lambda apsq : params[0] * (apsq ** 4), 1, '(x^4)', 'c4')
-apm2 = Model(lambda params : lambda apsq : params[0] / apsq, 1, '(1/x)', 'c5')
+ap10 = Model(lambda params : lambda apsq : params[0] * (apsq ** 5), 1, '(x^5)', 'c5')
+ap12 = Model(lambda params : lambda apsq : params[0] * (apsq ** 6), 1, '(x^6)', 'c6')
+apm2 = Model(lambda params : lambda apsq : params[0] / apsq, 1, '(1/x)', 'c-1')
 logap = Model(lambda params : lambda apsq : params[0] * np.log(apsq), 1, 'log(x)', 'c6')
 aplogap = Model(lambda params : lambda apsq : params[0] * apsq * np.log(apsq), 1, '(x*log(x))', 'c7')
-all_fit_forms = [ap2, ap4, ap6, ap8, aplogap]
-# all_fit_forms = [ap2, ap4, ap6, ap8]
+# all_fit_forms = [ap2, ap4, ap6, ap8, aplogap]
+# all_fit_forms = [ap2, ap4, ap6, ap8, ap10, ap12, apm2]
+# all_fit_forms = [ap2, ap4, ap6, ap8, ap10]
+all_fit_forms = [ap2, ap4, ap6, apm2]
 print('Functional forms: Z0, ' + str(all_fit_forms))
 
 dist_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/nnpp/plots/RIsMOM/fit_distributions'
@@ -261,6 +273,7 @@ if RIsMOM:
                         stem + 'fits/ZqVA/' + ZqAV_stems[ii] + '.pdf')
         ZqAV_fit_vals.append(ZZ_params[0])
         ZqAV_fit_sigmas.append(np.sqrt(ZZ_fit_covar[0, 0]))
+        print(ZqAV_stems[ii] + ' value = ' + export_float_latex(ZZ_params[0], np.sqrt(ZZ_fit_covar[0, 0]), sf = 2))
         ZqAV_fit_chi2_ndof.append(ZZ_chi2 / ZZ_dof)
         fout[ZqAV_stems[ii] + '/fit_params'] = ZZ_params
         fout[ZqAV_stems[ii] + '/fit_param_covar'] = ZZ_fit_covar
@@ -282,12 +295,16 @@ for n, m in itertools.product(range(5), repeat = 2):
                     stem + 'fits/Zops/' + Zlabels[n][m] + '.pdf')
     Z_fit_vals[n, m] = ZZ_params[0]
     Z_fit_sigmas[n, m] = np.sqrt(ZZ_fit_covar[0, 0])
+    print(Zlabels[n][m] + ' value = ' + export_float_latex(ZZ_params[0], np.sqrt(ZZ_fit_covar[0, 0]), sf = 2))
     Z_fit_chi2_ndof[n, m] = ZZ_chi2 / ZZ_dof
     fout[Zlabels[n][m] + '/fit_params'] = ZZ_params
     fout[Zlabels[n][m] + '/fit_param_covar'] = ZZ_fit_covar
     fout[Zlabels[n][m] + '/chi2'] = ZZ_chi2
     fout[Zlabels[n][m] + '/ndof'] = ZZ_dof
     fout[Zlabels[n][m] + '/model'] = str(ZZ_model)
+
+print('Scaling errors by sqrt(chi^2 / dof)')
+Z_fit_sigmas *= np.sqrt(Z_fit_chi2_ndof)
 
 # # Fit Znm/ZV^2
 # ZbyZVsq_fit_vals = np.zeros((5, 5), dtype = np.float64)

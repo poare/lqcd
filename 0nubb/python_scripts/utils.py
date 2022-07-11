@@ -9,6 +9,7 @@ import io
 import random
 from scipy import optimize
 from scipy.stats import chi2
+from scipy.stats import multivariate_normal as mvn
 import sys
 
 # STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
@@ -76,6 +77,8 @@ for a, b in itertools.product(range(Nc), repeat = 2):
 # Plotting conventions
 # latex_labels = ['\\mathcal{O}_1', '\\mathcal{O}_2', '\\mathcal{O}_3', '\\mathcal{O}_1\'', '\\mathcal{O}_2\'']
 latex_labels = ['O_1', 'O_2', 'O_3', 'O_{1\'}', 'O_{2\'}']
+# latex_labels = [r'O_1', r'O_2', r'O_3', r'O_{1^\prime}', r'O_{2^\prime}']
+idx_labels = ['1', '2', '3', '1\'', '2\'']
 op_labels = ['O1', 'O2', 'O3', 'O1p', 'O2p']
 colors = [(1., .20, 0), (.80, .60, .70), (0, .45, .90), (0, .60, .50), (.95, .90, .25)]
 markers = ['o', 'v', '^', '_', 'x']
@@ -607,6 +610,27 @@ def gen_fake_ensemble(val, n_samples = n_boot, s = 20):
         fake_data[i] = random.gauss(mu, sigma)
     return fake_data
 
+def gen_corr_dist(means, covar, n_samples = n_boot):
+    """
+    Generates a correlated distribution of data with given means and covariance. 
+
+    Parameters
+    ----------
+    means : np.array [N]
+        Means of the desired distribution.
+    covar : np.array [N, N]
+        Covariance matrix of desired distribution.
+    n_samples : int
+        Number of samples to draw from the distribution.
+    
+    Returns
+    np.array [N, n_samples]
+        Desired sample data. Note that np.mean(..., axis = 1) for this array should approximate means, and np.cov(..., axis = 1) should 
+        approximate covar.
+    ------
+    """
+    return mvn.rvs(mean = means, cov = covar, size = n_samples).T
+
 # BOOTSTRAP OBJECT: should be an array of size (n_ens, n_boot)
 class Superboot:
 
@@ -863,6 +887,17 @@ def get_energy_scale(k, a, L):
     return 2 * (hbarc / a) * np.linalg.norm(np.sin(np.pi * k / L.LL))
 
 def get_energy_scale_linear(k, a, L):
+    """
+    
+    Parameters
+    ----------
+    k : np.array [4]
+        Momentum mode to get the energy scale of.
+    a : float (fm)
+        Lattice spacing in femtometers
+    L : Lattice
+        Lattice object to use.
+    """
     return (hbarc / a) * np.linalg.norm(2 * np.pi * k / L.LL)
 
 def load_data_h5(file):
