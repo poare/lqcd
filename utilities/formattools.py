@@ -63,10 +63,10 @@ styles = {
         'colwidth'          : 510.0 / pts_per_inch,
         'textwidth'         : 510.0 / pts_per_inch,
         'fontsize'          : 10.0,
-        'tickwidth'         : 1.0,
+        'tickwidth'         : 0.75,
         'ticklength'        : 2.0,
-        'spinewidth'        : 1.0,
-        'axeswidth'         : 1.0,                          # pts
+        'spinewidth'        : 0.5,
+        'axeswidth'         : 0.5,                          # pts
         'markersize'        : 1.0,                          # pts
         'ebar_width'        : 1.0,                          # pts
         'endcaps'           : 1.0,                          # pts
