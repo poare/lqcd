@@ -43,9 +43,8 @@ stem = ['24I', '32I'][sp_idx]
 l = [24, 32][sp_idx]
 t = 64
 ainv = [1.784, 2.382][sp_idx]
-# mu0_idx = [2, 2][sp_idx]                # index of mu0 mode
-mu0_idx = [2, 0][sp_idx]                # delete when we have the full 8 momenta run
-# mu0_idx = [0, 0][sp_idx]                # use this if we only have the (3, 3, 0, 0) mode run
+# mu0_idx = [2, 0][sp_idx]                # delete when we have the full 8 momenta run
+mu0_idx = [2, 2][sp_idx]                # use this once we've finished running k=5 on ml0p008
 
 ensembles = [
     ['24I/ml0p005/', '24I/ml0p01/'],
@@ -85,6 +84,7 @@ mom_list = np.array([L.to_linear_momentum(k, datatype=np.float64) for k in k_lis
 mu_list = np.array([get_energy_scale_linear(q, a_fm, L) for q in k_list])
 print('Energy scales')
 print(mu_list)
+# print(mu_list**2)
 print('NPR scale mu0: mode ' + str(k_list[mu0_idx]) + ' with energy ' + str(mu_list[mu0_idx]) + ' GeV.')
 n_mom = len(mom_list)
 mass_list = np.array(amq_list)
@@ -120,6 +120,8 @@ Z_std = np.einsum('eijq->qije', np.std(Z_list, axis = 4, ddof = 1))
 Lambda_mu = np.einsum('eijq->qije', np.mean(Lambda_list, axis = 4))                        # shape = (n_mom, 5, 5, n_ens)
 Lambda_std = np.einsum('eijq->qije', np.std(Lambda_list, axis = 4, ddof = 1))
 
+print(Z_mu[2, :, :, 0])
+
 n_vars = 3 + n_multiplets
 # shape: (n_vars, n_ens, n_mom, n_boot)
 all_vars = np.concatenate((
@@ -137,9 +139,13 @@ for ii, mult_idx in enumerate(multiplets):
     latex_var_labels.append(r'$F_{' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + r'}')
 
 fill_color = 'b'
+# xlimits = [
+#     [-0.0005, 0.012],
+#     [-0.0005, 0.012]
+# ][sp_idx]
 xlimits = [
-    [-0.0005, 0.012],
-    [-0.0005, 0.012]
+    [0., 0.012],
+    [0., 0.012]
 ][sp_idx]
 x_band = np.linspace(xlimits[0], xlimits[1])
 scale_factors = [0.7, 1.3]          # scale factors for yrange
@@ -157,17 +163,17 @@ def plot_fit_out(cvs, sigmas, extrap_mu, extrap_sigma, fx_dom, fx_lower, fx_uppe
     with sns.plotting_context('paper'):
         fig_size = (style['colwidth'], style['colwidth'] / asp_ratio)
         plt.figure(figsize = fig_size)
-        plt.vlines(0.0, ylimits[0], ylimits[1], linestyles = 'dashed', label = '$am_\ell = 0$', linewidth = style['ebar_width'], color = 'k')
+        # plt.vlines(0.0, ylimits[0], ylimits[1], linestyles = 'dashed', label = '$am_\ell = 0$', linewidth = style['ebar_width'], color = 'k')
         _, caps, _ = plt.errorbar(mass_list, cvs, sigmas, fmt = '.', c = 'r', \
                 label = 'Data', capsize = style['endcaps'], markersize = style['markersize'], \
                 elinewidth = style['ebar_width'])
         for cap in caps:
             cap.set_markeredgewidth(style['ecap_width'])
-        _, caps, _ = plt.errorbar([0.0], [extrap_mu], [extrap_sigma], fmt = '.', c = fill_color, \
-                capsize = style['endcaps'], markersize = style['markersize'], \
-                elinewidth = style['ebar_width'])
-        for cap in caps:
-            cap.set_markeredgewidth(style['ecap_width'])
+        # _, caps, _ = plt.errorbar([0.0], [extrap_mu], [extrap_sigma], fmt = '.', c = fill_color, \
+        #         capsize = style['endcaps'], markersize = style['markersize'], \
+        #         elinewidth = style['ebar_width'])
+        # for cap in caps:
+        #     cap.set_markeredgewidth(style['ecap_width'])
         if plt_band:
             plt.fill_between(fx_dom, fx_lower, fx_upper, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
         plt.xlabel(xlabel, fontsize = style['fontsize'])
@@ -184,9 +190,13 @@ def plot_fit_out(cvs, sigmas, extrap_mu, extrap_sigma, fx_dom, fx_lower, fx_uppe
             ax.spines[spine].set_linewidth(style['axeswidth'])
         plt.xticks(fontsize = style['fontsize'])
         plt.yticks(fontsize = style['fontsize'])
-        plt.legend(prop={'size': style['fontsize'] * 0.8})
-        plt.tight_layout()
-        plt.savefig(path, bbox_inches='tight')
+        # plt.legend(prop={'size': style['fontsize'] * 0.8})
+        plt.gcf().subplots_adjust(
+            bottom = style['bottom_pad'], top = style['top_pad'], left = style['left_pad'], right = style['right_pad']
+        )
+        # plt.tight_layout()
+        # plt.savefig(path, bbox_inches='tight')
+        plt.savefig(path)
         print('Plot ' + ylabel + ' saved at: \n   ' + path)
         plt.close()
 

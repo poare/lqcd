@@ -10,7 +10,8 @@ from utils import *
 ################################## PARAMETERS #################################
 base = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/meas/'
 
-# jobid = 114141                                                                  # 12^3, beta 6.1, heavy ensemble
+# jobid = 114141                                                                 # 12^3, beta 6.1, heavy ensemble 
+# jobid = 117649
 # stem = 'cl21_12_24_b6p1_m0p2800m0p2450-a_' + str(jobid)
 # l = 12
 # t = 24
@@ -25,19 +26,25 @@ base = '/Users/theoares/Dropbox (MIT)/research/gq_mixing/meas/'
 # l = 12
 # t = 24
 
-jobid = 113356                                                                # 16^4, need more configs though
-stem = 'cl21_16_16_b6p3_m0p2416m0p2050-a_' + str(jobid)
-l = 16
-t = 16
+# jobid = 113356                                                                # 16^4, need more configs though
+# stem = 'cl21_16_16_b6p3_m0p2416m0p2050-a_' + str(jobid)
+# l = 16
+# t = 16
+
+jobid = 115282
+stem = 'cl21_48_96_b6p3_m0p2416_m0p2050_' + str(jobid)
+l = 48
+t = 96
 
 data_dir = base + stem
 L = Lattice(l, t)
 
 eps = 1e-8
 kmin, kmax = 1, 7
-# kmin, kmax = 2, 5
+# k_range = range(kmin, kmax)
+k_range = range(2, 13, 2)
 k_list = []
-for i, j, k, l in itertools.product(range(kmin, kmax), repeat = 4):
+for i, j, k, l in itertools.product(k_range, repeat = 4):
     k_list.append([i, j, k, l])
     kk = np.array([i, j, k, l])
     p_lat = L.to_lattice_momentum(kk)

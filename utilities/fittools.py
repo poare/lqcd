@@ -1,12 +1,18 @@
 ################################################################################
 # This script saves a list of common utility functions for data fitting        #
-# that I may need to use in my python code. To import the script, simply add   #
-# the path with sys before importing. For example, if lqcd/ is in              #
-# /Users/theoares:                                                             #
+# that I may need to use in my python code. The functions in this file will    #
+# heavily depend on the gvar, lsqfit, and corrfitter libraries, found at:      #
+#    - gvar         :   https://gvar.readthedocs.io/en/latest/gvar.html        #
+#    - lsqfit       :   https://lsqfit.readthedocs.io/en/latest/lsqfit.html    #
+#    - corrfitter   :   https://corrfitter.readthedocs.io/en/latest/           #
+# To import the script, simply add the path with sys before importing. For     #
+# example, if lqcd/ is in /Users/theoares:                                     #
 #                                                                              #
 # import sys                                                                   #
 # sys.path.append('/Users/theoares/lqcd/utilities')                            #
-# from fittools import *                                                        #
+# from fittools import *                                                       #
+#                                                                              #
+# Author: Patrick Oare                                                         #
 ################################################################################
 
 from __main__ import *
@@ -26,7 +32,9 @@ from scipy.stats import chi2
 import sympy as sp
 from copy import *
 
-# at some point, will want a class Term that represents a single term in a model.
+# TODO: change this file to use lsqfit and gvar
+import lsqfit
+import gvar as gv
 
 class Model:
 

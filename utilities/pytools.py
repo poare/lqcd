@@ -8,6 +8,8 @@
 # import sys                                                                   #
 # sys.path.append('/Users/theoares/lqcd/utilities')                            #
 # from pytools import *                                                        #
+#                                                                              #
+# Author: Patrick Oare                                                         #
 ################################################################################
 
 from __main__ import *
@@ -159,6 +161,54 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
         cfg_ids = np.random.choice(num_configs, p = weights2, size = num_configs, replace = True)
         samples[boot_id] = np.mean(S[cfg_ids], axis = 0)
     return samples
+
+def spread_boots(data, new_std, boot_axis = 0):
+    """
+    Spreads a bootstrap dataset to have a new std by preserving its correlation
+    and mean.
+
+    Parameters
+    ----------
+    data : np.array [..., Nb, ...]
+        Data to spread bootstraps of.
+    new_std : float
+        New standard deviation to spread bootstrap std to.
+    boot_axis : int (default = 0)
+        Bootstrap axis.
+
+    Returns
+    -------
+    np.array [..., Nb, ...]
+        Bootstrap array with original mean and standard deviation new_std, and correlations preserved.
+    """
+    old_std = np.std(data, axis = boot_axis, ddof = 1)
+    mu = np.mean(data, axis = boot_axis)
+    spread_data = np.full(data.shape, mu, dtype = data.dtype)
+    spread_factor = new_std / old_std
+    spread_data += spread_factor * (data - spread_data)
+    return spread_data
+
+def shift_boots(data, new_mean, boot_axis = 0):
+    """
+    Shifts bootstrap data to a new mean, preserving its correlation and variance.
+
+    Parameters
+    ----------
+    data : np.array [..., Nb, ...]
+        Data to spread bootstraps of.
+    new_mean : float
+        New mean to shift boostrap mean to.
+    boot_axis : int (default = 0)
+        Bootstrap axis.
+
+    Returns
+    -------
+    np.array [..., Nb, ...]
+        Bootstrap array with mean new_mean and original standard deviation, and correlations preserved.
+    """
+    shift = new_mean - np.mean(data, axis = boot_axis)
+    shift_data = shift + data
+    return shift_data
 
 def invert_props(props, Nb = n_boot):
     """

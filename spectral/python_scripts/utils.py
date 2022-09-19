@@ -10,6 +10,39 @@ import random
 import matplotlib.pyplot as plt
 
 ################################################################################
+###################################### IO ######################################
+################################################################################
+
+def write_params(fname, rho, G, precision = 64):
+    """
+    Writes parameters to a .txt file to be saved. 
+    """
+    return
+
+def read_param_file(fname):
+    """
+    Reads a .txt parameter file which specifies the number of omega points, tau points, ground truth spectral function, 
+    and Green's function. 
+
+    Parameters
+    ----------
+    fname : string
+        File name to read from.
+    
+    Returns
+    -------
+    int
+        Number of points on the omega line.
+    int
+        Number of temporal points.
+    np.array[float64 or gmpy2.mpc]
+        Spectral function
+
+    """
+    return n_omega, n_tau, rho, G
+
+
+################################################################################
 ################################## Nevanlinna ##################################
 ################################################################################
 
@@ -36,7 +69,8 @@ def to_mpc(z):
     """Reformats a np.complex number into a gmpy2.mpc number"""
     return gmp.mpc(z)
 
-def is_zero(z, epsilon = 1e-10):
+# def is_zero(z, epsilon = 1e-10):
+def is_zero(z, epsilon = 1e-20):
     """
     Returns whether a gmp.mpc number z is consistent with 0 to the precision epsilon in both the
     real and imaginary parts.
@@ -157,10 +191,53 @@ def is_soluble(Y, lam, prec = 1e-10):
 
 def construct_phis(Y, lam):
     """
-    This is the indexing I've been using.
+    This is the indexing used in the code from the Nevanlinna paper.
     Constructs the phi[k] values needed to perform the Nevanlinna analytic continuation.
     At each iterative step k, phi[k] is defined as theta_k(Y_k), where theta_k is the kth
     iterative approximation to the continuation.
+
+    Parameters
+    ----------
+    Y : np.array[gmp.mpc]
+        Mobius transform of Matsubara frequencies the correlator is measured at.
+    lam : np.array[gmp.mpc]
+        Mobius transform of the input correlator.
+
+    Returns
+    -------
+    np.array[gmp.mpc]
+        Values of phi[k] = theta_k(Y_k).
+    """
+    Npts = len(Y)
+    phi = np.full((Npts), gmp.mpc(0, 0), dtype = object)
+    phi[0] = lam[0]
+    for j in range(1, Npts):
+        arr = np.array([
+            [gmp.mpc(1, 0), gmp.mpc(0, 0)],
+            [gmp.mpc(0, 0), gmp.mpc(1, 0)]
+        ])
+        for k in range(0, j):
+            xik = (Y[j] - Y[k]) / (Y[j] - conj(Y[k]))
+            factor = np.array([
+                [xik, phi[k]],
+                [conj(phi[k]) * xik, gmp.mpc(1, 0)]
+            ])
+            arr = arr @ factor
+        [[a, b], [c, d]] = arr
+        print('Num: ' + str(lam[j] * d - b))
+        print('Denom: ' + str(a - lam[j] * c))
+        phi[j] = (lam[j] * d - b) / (a - lam[j] * c)
+    return phi
+
+def construct_phis_non_lex(Y, lam):
+    """
+    Constructs the phi[k] values needed to perform the Nevanlinna analytic continuation.
+    At each iterative step k, phi[k] is defined as theta_k(Y_k), where theta_k is the kth
+    iterative approximation to the continuation.
+
+    This function uses a different ordering to construct each \phi_k value. Instead of computing phi_1, phi_2, phi_3, ... 
+    sequentially, it stores intermediate steps in the product for all \phi_k values at y_1 first, then does y_2, 
+    and so on. 
 
     Parameters
     ----------
@@ -194,56 +271,12 @@ def construct_phis(Y, lam):
             abcd_bar_lst[j] = abcd_bar_lst[j] @ factor
         num = lam[k + 1] * abcd_bar_lst[k][1, 1] - abcd_bar_lst[k][0, 1]
         denom = abcd_bar_lst[k][0, 0] - lam[k + 1] * abcd_bar_lst[k][1, 0]
+        print('num: ' + str(num))
+        print('denom: ' + str(denom))
         if is_zero(num):
             phi[k + 1] = gmp.mpc(0, 0)
         else:
             phi[k + 1] = num / denom
-        # print('phi_{k + 1}: ' + str(phi[k + 1]))
-    return phi
-
-def construct_phis_theirs(Y, lam):
-    """
-    This is the indexing used in the code from the Nevanlinna paper.
-    Constructs the phi[k] values needed to perform the Nevanlinna analytic continuation.
-    At each iterative step k, phi[k] is defined as theta_k(Y_k), where theta_k is the kth
-    iterative approximation to the continuation.
-
-    Parameters
-    ----------
-    Y : np.array[gmp.mpc]
-        Mobius transform of Matsubara frequencies the correlator is measured at.
-    lam : np.array[gmp.mpc]
-        Mobius transform of the input correlator.
-
-    Returns
-    -------
-    np.array[gmp.mpc]
-        Values of phi[k] = theta_k(Y_k).
-    """
-    Npts = len(Y)
-    abcd_bar_lst = []
-    for k in range(Npts):
-        id = np.array([
-            [gmp.mpc(1, 0), gmp.mpc(0, 0)],
-            [gmp.mpc(0, 0), gmp.mpc(1, 0)]
-        ])
-        abcd_bar_lst.append(id)
-    phi = np.full((Npts), gmp.mpc(0, 0), dtype = object)
-    phi[0] = lam[0]
-    for j in range(Npts - 1):
-        for k in range(j, Npts):
-            xik = (Y[k] - Y[j]) / (Y[k] - conj(Y[j]))
-            factor = np.array([
-                [xik, phi[j]],
-                [conj(phi[j]) * xik, gmp.mpc(1, 0)]
-            ])
-            abcd_bar_lst[k] = abcd_bar_lst[k] @ factor
-        num = -abcd_bar_lst[j + 1][1, 1] * lam[j + 1] + abcd_bar_lst[j + 1][0, 1]
-        denom = abcd_bar_lst[j + 1][1, 0] * lam[j + 1] - abcd_bar_lst[j + 1][0, 0]
-        if is_zero(num):
-            phi[j + 1] = gmp.mpc(0, 0)
-        else:
-            phi[j + 1] = num / denom
     return phi
 
 def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
@@ -275,9 +308,7 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
             [gmp.mpc(0, 0), gmp.mpc(1, 0)]
         ])
         for k in range(Npts):
-            # print('k: ' + str(k))
             xikz = (z - Y[k]) / (z - conj(Y[k]))
-            # print('xi' + str(k) + ' is ' + str(xikz))
             factor = np.array([
                 [xikz, phi[k]],
                 [conj(phi[k]) * xikz, gmp.mpc(1, 0)]

@@ -33,8 +33,10 @@ n_boot = 50
 n_samp = n_boot
 n_spacings = 2
 n_ens_sp = [2, 3]    # 2 ensembles per lattice spacing
-n_momenta = [8, 8, 8, 8, 8]
-n_mom = n_momenta[0]
+# n_momenta = [8, 8, 8, 8, 8]
+n_momenta = [8, 8, 4, 4, 4]
+# n_mom = n_momenta[0]
+n_mom = 4
 # avals = [0.11, 0.08]    # fm
 ainv = [1.784, 2.382]       # GeV
 Lat_24I = Lattice(24, 64)
@@ -77,15 +79,16 @@ chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_o
                     '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
 for idx in range(n_spacings):
     print(chi_extrap_lin_paths[idx])
+    print(idx)
     f = h5py.File(chi_extrap_lin_paths[idx], 'r')
-    Zq_extrap[idx] = np.real(f['Zq/values'][()])
-    ZV_extrap[idx] = np.real(f['ZV/value'][()])
-    ZA_extrap[idx] = np.real(f['ZA/value'][()])
+    Zq_extrap[idx] = np.real(f['Zq/values'][()])[:n_mom]
+    ZV_extrap[idx] = np.real(f['ZV/value'][()])[:n_mom]
+    ZA_extrap[idx] = np.real(f['ZA/value'][()])[:n_mom]
     print(f['Z11'][()])
     for i, j in itertools.product(range(5), repeat = 2):
         key = 'Z' + str(i + 1) + str(j + 1)
         try:
-            Z_extrap[idx, i, j] = np.real(f[key][()])
+            Z_extrap[idx, i, j] = np.real(f[key][()])[:n_mom]
         except:
             print('no key at ' + key)
 print(Zq_extrap.shape)
@@ -261,22 +264,28 @@ plot_rcs_raw(1, ZA_extrap_mu, ZA_extrap_sigma, '$\mathcal{Z}_A$', ZA32I_range,  
                         '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/raw_plots/ZA_32I.pdf')
 
 # fit data to model
-def fit_data_model(sp_idx, cvs_all, sigmas_all, subset_idxs, model): #, x_axis = [apsq_list_24I, apsq_list_32I]):
+# def fit_data_model(sp_idx, cvs_all, sigmas_all, subset_idxs, model): #, x_axis = [apsq_list_24I, apsq_list_32I]):
+def fit_data_model(sp_idx, boots, subset_idxs, model): #, x_axis = [apsq_list_24I, apsq_list_32I]):
     """
     Fits data Z to an arbitrary model by minimizing the correlated chi^2.
     lam is the parameter for linear shrinkage, i.e. lam = 0 is the uncorrelated covariance, and lam = 1 is the
     original covariance.
     """
-    cvs, sigmas = np.array(cvs_all[sp_idx]), np.array(sigmas_all[sp_idx])
+    # cvs_all = np.mean(boots, axis = 2)
+    # sigmas_all = np.std(boots, axis = 2, ddof = 1)
+    # cvs, sigmas = np.array(cvs_all[sp_idx]), np.array(sigmas_all[sp_idx])
     x_list = np.array(x_axis[sp_idx])
-    fitter = UncorrFitter(x_list[subset_idxs], cvs[subset_idxs], sigmas[subset_idxs], model)
+    # fitter = UncorrFitter(x_list[subset_idxs], cvs[subset_idxs], sigmas[subset_idxs], model)
+    # print(boots[sp_idx].shape)
+    fitter = BootstrapFitter(x_list[subset_idxs], np.transpose(boots[sp_idx]), model)
+    # fitter.shrink_covar(0.0)
+    print(fitter.covar)
     fit_out = fitter.fit()
     print('Best fit coeffs: ' + str(fit_out[0]))
     print('chi^2 / dof: ' + str(fit_out[1] / fit_out[2]))
     print('Parameter covariance: ' + str(fit_out[3]))
     return fit_out, fitter
 
-# Plot fitted data. TODO add a fit band with the known value of ZA
 # fill_color = 'b'
 fill_color = (0, 0, 1, 0.3)
 # Z0_color = (1, 1, 1, 0.3)
@@ -299,7 +308,7 @@ def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_k
         plt.fill_between(x_band, fx_cvs + fx_sigmas, fx_cvs - fx_sigmas, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
         if plt_known:
             plt.fill_between(x_band, ZA0_mu[sp_idx] + ZA0_std[sp_idx], ZA0_mu[sp_idx] - ZA0_std[sp_idx], color = Z0_color, alpha = 1.0, linewidth = 0.0, \
-                    label = '$\\mathcal{Z}_A$, Ref. [31]')
+                    label = '$\\mathcal{Z}_A$, Ref. [34]')
         plt.xlabel(xlabel, fontsize = style['fontsize'])
         plt.ylabel(ylabel + ' (a = ' + a_labels[sp_idx] + ')', fontsize = style['fontsize'])
         plt.xlim(xlimits[sp_idx])
@@ -314,7 +323,7 @@ def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_k
         if ytick_locs:
             ax.set_yticks(ytick_locs)
             ax.set_yticklabels(ytick_labels)
-        plt.legend(prop={'size': style['fontsize'] * 0.8})
+        plt.legend(prop={'size': style['fontsize'] * 0.9}, loc = 'upper left')
         plt.tight_layout()
         plt.savefig(path, bbox_inches='tight')
         print('Plot ' + ylabel + ' saved at: \n   ' + path)
@@ -327,7 +336,8 @@ def model_ZV24I(params):
         return params[0] * (apsq ** 0) + params[1] * (apsq ** 1) + params[2] * (apsq ** 2)
     return model
 m_ZV24I = Model(model_ZV24I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
-ZV24I_fout, ZV24I_fitter = fit_data_model(0, ZV_extrap_mu, ZV_extrap_sigma, subset_idxs, m_ZV24I)
+# ZV24I_fout, ZV24I_fitter = fit_data_model(0, ZV_extrap_mu, ZV_extrap_sigma, subset_idxs, m_ZV24I)
+ZV24I_fout, ZV24I_fitter = fit_data_model(0, ZV_extrap, subset_idxs, m_ZV24I)
 ZV24I_params, ZV24I_cov = ZV24I_fout[0], ZV24I_fout[3]
 ZV24I_cv, ZV24I_std = ZV24I_params[0], np.sqrt(ZV24I_cov[0, 0])
 ZV24I_dist = gen_fake_ensemble([ZV24I_cv, ZV24I_std], n_samples = n_samp)
@@ -342,7 +352,8 @@ def model_ZV32I(params):
         return params[0] * (apsq ** 0) + params[1] * (apsq ** 1) + params[2] * (apsq ** 2)
     return model
 m_ZV32I = Model(model_ZV32I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
-ZV32I_fout, ZV32I_fitter = fit_data_model(1, ZV_extrap_mu, ZV_extrap_sigma, subset_idxs, m_ZV32I)
+# ZV32I_fout, ZV32I_fitter = fit_data_model(1, ZV_extrap_mu, ZV_extrap_sigma, subset_idxs, m_ZV32I)
+ZV32I_fout, ZV32I_fitter = fit_data_model(1, ZV_extrap, subset_idxs, m_ZV32I)
 ZV32I_params, ZV32I_cov = ZV32I_fout[0], ZV32I_fout[3]
 ZV32I_cv, ZV32I_std = ZV32I_params[0], np.sqrt(ZV32I_cov[0, 0])
 ZV32I_dist = gen_fake_ensemble([ZV32I_cv, ZV32I_std], n_samples = n_samp)
@@ -357,7 +368,8 @@ def model_ZA24I(params):
         return params[0] * (apsq ** 0) + params[1] * (apsq ** 1) + params[2] * (apsq ** 2)
     return model
 m_ZA24I = Model(model_ZA24I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
-ZA24I_fout, ZA24I_fitter = fit_data_model(0, ZA_extrap_mu, ZA_extrap_sigma, subset_idxs, m_ZA24I)
+# ZA24I_fout, ZA24I_fitter = fit_data_model(0, ZA_extrap_mu, ZA_extrap_sigma, subset_idxs, m_ZA24I)
+ZA24I_fout, ZA24I_fitter = fit_data_model(0, ZA_extrap, subset_idxs, m_ZA24I)
 ZA24I_params, ZA24I_cov = ZA24I_fout[0], ZA24I_fout[3]
 ZA24I_cv, ZA24I_std = ZA24I_params[0], np.sqrt(ZA24I_cov[0, 0])
 ZA24I_dist = gen_fake_ensemble([ZA24I_cv, ZA24I_std], n_samples = n_samp)
@@ -372,7 +384,8 @@ def model_ZA32I(params):
         return params[0] * (apsq ** 0) + params[1] * (apsq ** 1) + params[2] * (apsq ** 2)
     return model
 m_ZA32I = Model(model_ZA32I, 3, ['', 'x', 'x^2'], ['c0', 'c1', 'c2'])
-ZA32I_fout, ZA32I_fitter = fit_data_model(1, ZA_extrap_mu, ZA_extrap_sigma, subset_idxs, m_ZA32I)
+# ZA32I_fout, ZA32I_fitter = fit_data_model(1, ZA_extrap_mu, ZA_extrap_sigma, subset_idxs, m_ZA32I)
+ZA32I_fout, ZA32I_fitter = fit_data_model(1, ZA_extrap, subset_idxs, m_ZA32I)
 ZA32I_params, ZA32I_cov = ZA32I_fout[0], ZA32I_fout[3]
 ZA32I_cv, ZA32I_std = ZA32I_params[0], np.sqrt(ZA32I_cov[0, 0])
 ZA32I_dist = gen_fake_ensemble([ZA32I_cv, ZA32I_std], n_samples = n_samp)

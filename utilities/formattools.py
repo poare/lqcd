@@ -1,4 +1,3 @@
-
 ################################################################################
 # This script saves a list of common formatting functions for general data     #
 # processing that I may need to use in my python code. To import the script,   #
@@ -8,6 +7,8 @@
 # import sys                                                                   #
 # sys.path.append('/Users/theoares/lqcd/utilities')                            #
 # from formattools import *                                                    #
+#                                                                              #
+# Author: Patrick Oare                                                         #
 ################################################################################
 
 from __main__ import *
@@ -42,12 +43,19 @@ The parameters in each style dictionary are (as well as units):
   - 'ebar_width'            : Thickness of error bars (pts)
   - 'capsize'               : Size of endcaps for error bars (pts)
   - 'ecap_width'            : Width of error bar caps (pts)
+  - 'bottom_pad'            : Padding on bottom of frame (pts)
+  - 'top_pad'               : Padding on top of frame (pts)
+  - 'left_pad'              : Padding on left of frame (pts)
+  - 'right_pad'             : Padding on right of frame (pts)
+  - 'asp_ratio'             : Aspect ratio of figure.
 """
 pts_per_inch = 72.27    # inches to pts
 styles = {
+    'matplotlib_default' : {
+
+    },
     'prd_twocol' : {
         'colwidth'          : 246.0 / pts_per_inch,         # inches
-        # 'colwidth'          : 220.0 / pts_per_inch,         # inches
         'textwidth'         : 510.0 / pts_per_inch,         # inches
         'fontsize'          : 10.0,                         # pts
         'tickwidth'         : 0.5,                          # pts
@@ -58,6 +66,11 @@ styles = {
         'ebar_width'        : 0.5,                          # pts
         'endcaps'           : 1.0,                          # pts
         'ecap_width'        : 0.4,                          # pts
+        'bottom_pad'        : 0.2,                          # pts
+        'top_pad'           : 0.95,                         # pts
+        'left_pad'          : 0.2,                          # pts
+        'right_pad'         : 0.95,                         # pts
+        'asp_ratio'         : 4/3,
     },
     'prd_twocol*' : {
         'colwidth'          : 510.0 / pts_per_inch,
@@ -71,9 +84,14 @@ styles = {
         'ebar_width'        : 1.0,                          # pts
         'endcaps'           : 1.0,                          # pts
         'ecap_width'        : 0.4,                          # pts
+        'bottom_pad'        : 0.5,                          # pts
+        'top_pad'           : 1.5,                          # pts
+        'left_pad'          : 0.5,                          # pts
+        'right_pad'         : 1.5,                          # pts
+        'asp_ratio'         : 4/3
     },
     'notebook' : {
-        'colwidth'          : 7,         # inches
+        'colwidth'          : 10,         # inches
         'textwidth'         : 510.0 / pts_per_inch,         # inches
         'fontsize'          : 20.0,                         # pts
         'tickwidth'         : 1.0,                          # pts
@@ -83,11 +101,64 @@ styles = {
         'ebar_width'        : 1.0,                          # pts
         'endcaps'           : 2.0,                          # pts
         'ecap_width'        : 1.0,                          # pts
+        'bottom_pad'        : 0.5,                          # pts
+        'top_pad'           : 1.5,                          # pts
+        'left_pad'          : 0.5,                          # pts
+        'right_pad'         : 1.5,                          # pts
+        'asp_ratio'         : 2.0,
+    },
+    'multiplot_nb' : {
+        'colwidth'          : 30,         # inches
+        'textwidth'         : 1500.0 / pts_per_inch,         # inches
+        'fontsize'          : 50.0,                         # pts
+        'tickwidth'         : 3.0,                          # pts
+        'ticklength'        : 10.0,                          # pts
+        'axeswidth'         : 3.0,                          # pts
+        'markersize'        : 5.0,                          # pts
+        'ebar_width'        : 3.0,                          # pts
+        'endcaps'           : 5.0,                          # pts
+        'ecap_width'        : 3.0,                          # pts
+        'bottom_pad'        : 2.0,                          # pts
+        'top_pad'           : 3.0,                          # pts
+        'left_pad'          : 1.0,                          # pts
+        'right_pad'         : 3.0,                          # pts
+        'asp_ratio'         : 2.0,
+    },
+    'talk' : {
+        'colwidth'          : 400.0 / pts_per_inch,
+        'textwidth'         : 400.0 / pts_per_inch,
+        'fontsize'          : 15.0,
+        'tickwidth'         : 0.5,
+        'ticklength'        : 4.0,
+        'spinewidth'        : 0.5,
+        'axeswidth'         : 0.5,                          # pts
+        'markersize'        : 1.0,                          # pts
+        'ebar_width'        : 1.0,                          # pts
+        'endcaps'           : 1.0,                          # pts
+        'ecap_width'        : 1.0,                          # pts
+        'bottom_pad'        : 0.5,                          # pts
+        'top_pad'           : 1.5,                          # pts
+        'left_pad'          : 0.5,                          # pts
+        'right_pad'         : 1.5,                          # pts
+        'asp_ratio'         : 4/3,
     },
 }
 
+# initialize empty keys
+default_style = styles['notebook']
+for sty in styles.values():
+    if sty == default_style:
+        continue
+    for key in default_style:
+        if not key in sty:
+            sty[key] = default_style[key]
+
 """List of all spines in matplotlib."""
 spinedirs = ['top', 'bottom', 'left', 'right']
+
+
+# TODO change over to using pandas
+import pandas as pd
 
 class Entry:
 
@@ -122,7 +193,7 @@ class Table:
     def __init__(self):
         self._entries = -1
 
-    def __init__(self, entries, is_entry = True, sigma = -1, sf = 2):
+    def __init__(self, entries, is_entry = True, sigma = None, sf = 2):
         """
         Initializes a table with data passed in.
 
@@ -134,9 +205,9 @@ class Table:
             Entries to pass in. If is_entry, the type T defaults to Entry.
         is_entry : bool
             True if the entries data passed in is type Entry, false otherwise.
-        sigma : np.array[T] or int
+        sigma : np.array[T] (default = None)
             Error on data. Should only be an array if is_entry is false. Otherwise, defaults
-            to -1.
+            to None.
         sf : Sig figs on data.
 
         Returns
@@ -150,7 +221,8 @@ class Table:
             Entries = np.empty(entries.shape, dtype = object)
             for i in range(entries.shape[0]):
                 for j in range(entries.shape[1]):
-                    Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma is -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
+                    # Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma is -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
+                    Entries[i, j] = Entry(entries[i, j], sf = sf) if not sigma else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
             self._entries = Entries
         self.update()
 
@@ -226,7 +298,7 @@ class Table:
         self._string_rep = np.array(string_rep)
         return string_rep
 
-def export_float_latex(mu, sigma = -1, sf = 2):
+def export_float_latex(mu, sigma = None, sf = 2):
     """
     Returns a latex string that will render a float x up to sf significant figures
     on the error. If no error is passed in, then renders sf significant figures
@@ -236,8 +308,8 @@ def export_float_latex(mu, sigma = -1, sf = 2):
     ----------
     x : np.float64
         Mean of value, or just the value, to print out.
-    sigma : np.float64
-        Error on value to print out. This parameter is optional.
+    sigma : np.float64 (default = None)
+        Error on value to print out. This parameter is optional. If sigma is None, then will just print the data's mean.
     sf : int
         Number of significant figures to print the error to. If sigma is not entered,
         prints x to sf significant figures. Defaults to 2.
@@ -253,7 +325,8 @@ def export_float_latex(mu, sigma = -1, sf = 2):
             fmt_str += export_float_latex(mu[i], sigma[i], sf)
             fmt_str += '\n   '
         return fmt_str + ']'
-    if sigma is -1:
+    # if sigma is -1:
+    if not sigma:
         prec = '.' + str(sf) + 'f'
         return f'{mu:{prec}}'
     sigma_scinot = f'{sigma:e}'

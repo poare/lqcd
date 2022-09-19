@@ -303,33 +303,19 @@ def plot_fit_paper(k, cvs, stds, fit_x, fit_lower, fit_upper, yaxis_label, ylims
     dom = plot_domain[:len(cvs)]    # in case plot_domain needs truncation
     with sns.plotting_context('paper'):
         fig = plt.figure(figsize = fig_size)
-
-        print(fig_size)
-        # h = [Size.Fixed(fig_size[0] - 3.0), Size.Fixed(3.0)]
-        # v = [Size.Fixed(fig_size[1] - 2.0), Size.Fixed(2.0)]
-        h = [Size.Fixed(0.4), Size.Fixed(2.8), Size.Fixed(0.1)]
-        v = [Size.Fixed(0.2), Size.Fixed(2.0), Size.Fixed(0.1)]
-        divider = Divider(fig, (0, 0, 1, 1), h, v, aspect=False)
-        ax = fig.add_axes(divider.get_position(), axes_locator = divider.new_locator(nx = 1, ny = 1))
-
         if Oeff_mu is not None:
-            # plt.fill_between(dom, Oeff_mu - Oeff_sigma, Oeff_mu + Oeff_sigma, color = 'k', alpha = 0.2, \
-            #                 linewidth = 0.0, label = r'$\langle' + latex_labels[k] + r'\rangle$')
-            ax.fill_between(dom, Oeff_mu - Oeff_sigma, Oeff_mu + Oeff_sigma, color = 'k', alpha = 0.2, \
-                             linewidth = 0.0, label = r'$\langle' + latex_labels[k] + r'\rangle$')
-        # _, caps, _ = plt.errorbar(dom, cvs, yerr = stds, fmt = mrk, c = col, label = latex_efflabels[k], \
-        #              capsize = style['endcaps'], markersize = style['markersize'], elinewidth = style['ebar_width'])
-        # plt.fill_between(fit_x, fit_lower, fit_upper, color = col, alpha = 0.4, linewidth = 0.0)#, label = 'Extrapolation')
-        _, caps, _ = ax.errorbar(dom, cvs, yerr = stds, fmt = mrk, c = col, label = latex_efflabels[k], \
+            plt.fill_between(dom, Oeff_mu - Oeff_sigma, Oeff_mu + Oeff_sigma, color = 'k', alpha = 0.2, \
+                            linewidth = 0.0, label = r'$\langle' + latex_labels[k] + r'\rangle$')
+            # ax.fill_between(dom, Oeff_mu - Oeff_sigma, Oeff_mu + Oeff_sigma, color = 'k', alpha = 0.2, \
+            #                  linewidth = 0.0, label = r'$\langle' + latex_labels[k] + r'\rangle$')
+        _, caps, _ = plt.errorbar(dom, cvs, yerr = stds, fmt = mrk, c = col, label = latex_efflabels[k], \
                      capsize = style['endcaps'], markersize = style['markersize'], elinewidth = style['ebar_width'])
-        ax.fill_between(fit_x, fit_lower, fit_upper, color = col, alpha = 0.4, linewidth = 0.0)#, label = 'Extrapolation')
+        plt.fill_between(fit_x, fit_lower, fit_upper, color = col, alpha = 0.4, linewidth = 0.0)
         for cap in caps:
             cap.set_markeredgewidth(style['ecap_width'])
-        # plt.xlabel('$t / a$', fontsize = style['fontsize'])
-        # plt.ylabel(yaxis_label, fontsize = style['fontsize'])
-        ax.set_xlabel('$t / a$', fontsize = style['fontsize'])
-        ax.set_ylabel(yaxis_label, fontsize = style['fontsize'])
-        # ax = plt.gca()
+        plt.xlabel('$t / a$', fontsize = style['fontsize'])
+        plt.ylabel(yaxis_label, fontsize = style['fontsize'])
+        ax = plt.gca()
         ax.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
         ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
         if yt_locs:
@@ -337,17 +323,9 @@ def plot_fit_paper(k, cvs, stds, fit_x, fit_lower, fit_upper, yaxis_label, ylims
             ax.set_yticklabels(yt_labels)
         for spine in spinedirs:
             ax.spines[spine].set_linewidth(style['axeswidth'])
-        # print(ax.get_position())
-        # ax.set_position([0.0, 0.0, 1.0, 1.0])
-        # plt.xticks(fontsize = style['fontsize'])
-        # plt.yticks(fontsize = style['fontsize'])
-        # plt.xlim(0, max(list(plot_domain)) // 2 + 1.5)
-        # if ylims:
-        #     plt.ylim(ylims[0], ylims[1])
-
-        ax.set_xlim(0, max(list(plot_domain)) // 2 + 1.5)
+        plt.xlim(0, max(list(plot_domain)) // 2 + 1.5)
         if ylims:
-            ax.set_ylim(ylims[0], ylims[1])
+            plt.ylim(ylims[0], ylims[1])
         
         # leg_loc = 'upper right' if k != 4 else 'lower right'
         # leg = plt.legend(loc = leg_loc)
@@ -355,12 +333,55 @@ def plot_fit_paper(k, cvs, stds, fit_x, fit_lower, fit_upper, yaxis_label, ylims
         # leg.get_frame().set_linewidth(style['axeswidth'])
         # plt.margins(y=0.0)
 
-        # plt.tight_layout()
+        plt.gcf().subplots_adjust(
+            bottom = style['bottom_pad'], top = style['top_pad'], left = style['left_pad'], right = style['right_pad']
+        )
+
         if saveat:
-            # plt.savefig(saveat, pad_inches = 1.0)
             # plt.savefig(saveat, bbox_inches='tight')
-            plt.savefig(saveat, bbox_inches='tight', pad_inches = 0.2)
-            # plt.savefig(saveat)
+            plt.savefig(saveat)
+        plt.close()
+
+def plot_fits_joint(k, cvs, stds, fit_x, fit_lower, fit_upper, yaxis_label, ylims = None, yt_locs = None, yt_labels = None, \
+             mrk = ['.']*n_ops, col = colors, Oeff_mu = None, Oeff_sigma = None, saveat = None):
+    """
+    Generates all n_ops fits on the same joint x axes, and saves each separately.
+    """
+    fig_size = (style['colwidth'], style['colwidth'] / asp_ratio)
+    with sns.plotting_context('paper'):
+        fig = plt.figure(figsize = fig_size)
+        fig, ax = plt.subplots(1, n_ops, sharex = True, figsize = fig_size)
+
+        for k in range(n_ops):
+            dom = plot_domain[:len(cvs[k])]    # in case plot_domain needs truncation
+            if Oeff_mu is not None:
+                ax[k].fill_between(dom, Oeff_mu - Oeff_sigma, Oeff_mu + Oeff_sigma, color = 'k', alpha = 0.2, \
+                                linewidth = 0.0, label = r'$\langle' + latex_labels[k] + r'\rangle$')
+            _, caps, _ = ax[k].errorbar(dom, cvs[k], yerr = stds[k], fmt = mrk[k], c = col[k], label = latex_efflabels[k], \
+                        capsize = style['endcaps'], markersize = style['markersize'], elinewidth = style['ebar_width'])
+            ax[k].fill_between(fit_x[k], fit_lower[k], fit_upper[k], color = col[k], alpha = 0.4, linewidth = 0.0)
+            for cap in caps:
+                cap.set_markeredgewidth(style['ecap_width'])
+            ax[k].set_xlabel('$t / a$', fontsize = style['fontsize'])
+            ax[k].set_ylabel(yaxis_label[k], fontsize = style['fontsize'])
+            ax[k].xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
+            ax[k].yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
+            if yt_locs:
+                ax[k].set_yticks(yt_locs[k])
+                ax[k].set_yticklabels(yt_labels[k])
+            for spine in spinedirs:
+                ax[k].spines[spine].set_linewidth(style['axeswidth'])
+            ax[k].set_xlim(0, max(list(plot_domain)) // 2 + 1.5)
+            if ylims:
+                ax[k].set_ylim(ylims[k][0], ylims[k][1])
+
+        # for k in range(n_ops):
+        #     if saveat:
+        #         # plt.savefig(saveat, pad_inches = 1.0)
+        #         plt.savefig(saveat, bbox_inches='tight')
+        #         # plt.savefig(saveat, bbox_inches='tight', pad_inches = 0.2)
+        #         # plt.savefig(saveat)
+        plt.savefig(saveat, bbox_inches='tight')
         plt.close()
 
 def const_fit_band(cv, std, xlims = (0, max(list(plot_domain)) // 2 + 1.5)):
@@ -687,6 +708,9 @@ for k in range(n_ops):
     plot_fit_paper(k, data_plot_mu[k], data_plot_sigma[k], fit_x, fit_lower, fit_upper, stack_yaxis_labels[k], ylims = \
                    yrangep[k], yt_locs = ytick_locs[k], yt_labels = ytick_labels[k], col = colors[k], \
                    Oeff_mu = fit_cv[k], Oeff_sigma = fit_std[k], saveat = path)
+# plot_fits_joint(data_plot_mu, data_plot_sigma, fit_x_lst, fit_lower_lst, fit_upper_lst, stack_yaxis_labels, ylims = \
+#                 yrangep, yt_locs = ytick_locs, yt_labels = ytick_labels, col = colors, \
+#                 Oeff_mu = fit_cv, Oeff_sigma = fit_std, saveat = path)
 
 # Stacked plot for Section II.B. 
 print('Generating stacked image.')

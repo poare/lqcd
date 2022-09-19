@@ -10,6 +10,8 @@ import sys
 
 from utils import *
 
+# To get the data for this analysis, pull /work/lqcd/d10b/wombat/users/djmurphy/Pi_Pi.tgz from wombat and specify 
+# where it is locally with the following path. 
 Pi_Pi = '/Users/theoares/Pi_Pi/'
 
 """

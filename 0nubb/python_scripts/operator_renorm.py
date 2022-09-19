@@ -9,16 +9,16 @@ base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 ens_idx = int(sys.argv[1])
 ens = ['24I/ml0p01', '24I/ml0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
 l, t = [24, 24, 32, 32, 32][ens_idx], 64
-data_dir = base + ens + '/hdf5'
+# data_dir = base + ens + '/hdf5'
 # data_dir = base + ens + '_old/hdf5'
-# data_dir = base + 'chroma_glu_dwf_inversions/' + ens + '/hdf5'
+data_dir = base + 'chroma_glu_dwf_inversions/' + ens + '/hdf5'
+# data_dir = base + 'heavy_dwf_inversions/' + ens + '/hdf5'
 print('Running operator renormalization on ensemble ' + str(ens))
-
 L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-# for n in [3, 4]:
+# for n in [2, 3, 4, 5]:
 for n in [4]:
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
@@ -102,8 +102,9 @@ for q_idx, q in enumerate(q_list):
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'         # chroma output
-# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '_glu.h5'         # chroma output
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_' + scheme + '.h5'         # chroma output
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/heavy_quark_test/' + ens + '/Z_' + scheme + '.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/glu_gfing_test/' + ens + '/Z_' + scheme + '.h5'
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
 f['ZV'] = ZV

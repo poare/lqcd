@@ -29,9 +29,10 @@ Nc = 3
 home = '/Users/theoares'
 # mom_idx_list = range(2, 10)                                          #[1, 2, ..., 6]
 # mom_idx_list = range(2, 6)
-mom_idx_list = [3, 4]
-# cfgs = [0, 1, 2, 3, 5, 6, 7, 8, 9]
-cfgs = [0, 1, 2, 3, 5, 6, 8, 9]
+# mom_idx_list = [3, 4]
+
+# mom_idx_list = [2, 3, 4, 5]
+# cfgs = [0, 1, 2, 3, 5, 6, 8, 9]
 
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p005/'
@@ -43,6 +44,12 @@ parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p008/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p004/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p006/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p008/'
+
+# for tests
+mom_idx_list = [4]
+cfgs = [0, 1, 2]
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/heavy_dwf_inversions/24I/ml0p01/'
+parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/24I/ml0p01/'
 
 # uncomment to parse test files
 # parent = '/Users/theoares/Dropbox (MIT)/research/0nubb/tests/gf_test/'
