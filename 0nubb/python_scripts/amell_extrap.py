@@ -1,21 +1,23 @@
 ################################################################################
-##################### Run this instead of msbar_conversion #####################
+# Performs the amell --> 0 extrapolation, keeping into account correlations    #
+# between the RCs computed on the same ensemble.                               #
 ################################################################################
 
 # use CMU Serif
-import matplotlib as mpl
-import matplotlib.font_manager as font_manager
-mpl.rcParams['font.family']='serif'
-cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
-mpl.rcParams['font.serif']=cmfont.get_name()
-mpl.rcParams['mathtext.fontset']='cm'
-mpl.rcParams['axes.unicode_minus']=False
-mpl.rcParams['axes.formatter.use_mathtext'] = True
+# import matplotlib as mpl
+# import matplotlib.font_manager as font_manager
+# mpl.rcParams['font.family']='serif'
+# cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
+# mpl.rcParams['font.serif']=cmfont.get_name()
+# mpl.rcParams['mathtext.fontset']='cm'
+# mpl.rcParams['axes.unicode_minus']=False
+# mpl.rcParams['axes.formatter.use_mathtext'] = True
 
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.optimize import root
+from scipy.linalg import block_diag
 import h5py
 import os
 import itertools
@@ -28,10 +30,14 @@ import sys
 sys.path.append('/Users/theoares/lqcd/utilities')
 from fittools import *
 from formattools import *
+import plottools as pt
+
 style = styles['prd_twocol']
+pt.set_font()
 
 # toggle switch to fit constant or linear in amell
-const = True
+# const = True
+const = False
 extrap_dir = 'const_amell_extrap' if const else 'linear_amell_extrap'
 
 # set parameters
@@ -40,9 +46,8 @@ stem = ['24I', '32I'][sp_idx]
 l = [24, 32][sp_idx]
 t = 64
 ainv = [1.784, 2.382][sp_idx]
-# mu0_idx = [2, 2][sp_idx]                # index of mu0 mode
-mu0_idx = [2, 0][sp_idx]                # delete when we have the full 8 momenta run
-# mu0_idx = [0, 0][sp_idx]                # use this if we only have the (3, 3, 0, 0) mode run
+# mu0_idx = [2, 0][sp_idx]                # delete when we have the full 8 momenta run
+mu0_idx = [2, 2][sp_idx]                # use this once we've finished running k=5 on ml0p008
 
 ensembles = [
     ['24I/ml0p005/', '24I/ml0p01/'],
@@ -75,13 +80,15 @@ plot_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/' + extrap_
 
 Fs = [h5py.File(fpath, 'r') for fpath in file_paths]
 k_list_ens = np.array([f['momenta'][()] for f in Fs])
-print(k_list_ens)
 assert np.array_equal(k_list_ens[0], k_list_ens[1])         # make sure each ensemble has same momentum modes
 k_list = k_list_ens[0]
+print('k_list: ' + str(k_list))
 mom_list = np.array([L.to_linear_momentum(k, datatype=np.float64) for k in k_list])
 mu_list = np.array([get_energy_scale_linear(q, a_fm, L) for q in k_list])
 print('Energy scales')
 print(mu_list)
+# print(mu_list**2)
+print('NPR scale mu0: mode ' + str(k_list[mu0_idx]) + ' with energy ' + str(mu_list[mu0_idx]) + ' GeV.')
 n_mom = len(mom_list)
 mass_list = np.array(amq_list)
 
@@ -102,6 +109,7 @@ Z_list = np.array(Z_list)
 # Get Lambda factor. Lambdas are bootstrapped, but the boots are uncorrelated. Shape is (n_ens, 5, 5, n_mom, n_boot)
 Lambda_list = np.array([np.real(f['Lambda'][()]) for f in Fs])
 multiplets = np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [1, 2], [2, 1], [3, 4], [4, 3]], dtype = object)    # nonzero indices for Lambda
+n_multiplets = len(multiplets)
 
 # get means and stds
 Zq_mu = np.transpose(np.mean(Zq_list, axis = 2))                                # shape = (n_mom, n_ens)
@@ -115,81 +123,32 @@ Z_std = np.einsum('eijq->qije', np.std(Z_list, axis = 4, ddof = 1))
 Lambda_mu = np.einsum('eijq->qije', np.mean(Lambda_list, axis = 4))                        # shape = (n_mom, 5, 5, n_ens)
 Lambda_std = np.einsum('eijq->qije', np.std(Lambda_list, axis = 4, ddof = 1))
 
-# assemble data into correct form
-def make_data(corr, domain = mass_list):
-    """
-    Makes data for lsqfit. corr is an np.array of shape (n_ens, n_boot). Here lam is the shrinkage parameter λ, which is 
-    set to 1 (fully correlated) by default. 
-    """
-    d = {m : corr[ii, :] for ii, m in enumerate(domain)}
-    df = pd.DataFrame(d)
-    mean = np.array(df.mean())
-    full_cov = np.array(df.cov())
-    cov = np.zeros(full_cov.shape, dtype = np.float64)
-    for i in range(full_cov.shape[0]):
-        cov[i, i] = full_cov[i, i]
-    return domain, gv.gvar(mean, cov)
+print(Z_mu[2, :, :, 0])
 
-# assemble data into correct form
-def make_data_bootstrap(corr, bidx, domain = mass_list):
-    """
-    Makes data for lsqfit. corr is an np.array of shape (n_ens, n_boot). Here lam is the shrinkage parameter λ, which is 
-    set to 1 (fully correlated) by default. 
-    """
-    d = {m : corr[ii, :] for ii, m in enumerate(domain)}
-    df = pd.DataFrame(d)
-    # mean = np.array(df.mean())
-    boot = corr[:, bidx]
-    full_cov = np.array(df.cov())
-    cov = np.zeros(full_cov.shape, dtype = np.float64)
-    for i in range(full_cov.shape[0]):
-        cov[i, i] = full_cov[i, i]
-    return domain, gv.gvar(boot, cov)
-
-def fcn(m, p):
-    """Constant or linear fitting function f(m; c) = c0 + c1 m."""
-    c0 = p['c0']
-    if const:
-        return c0 + 0*m
-    c1 = p['c1']
-    return c0 + c1*m
-
-def get_fit_band(params, fcn, xlims):
-    xx = np.linspace(xlims[0], xlims[1], n_band)
-    fx = fcn(xx, params)
-    # print(fx)
-    fx_lower = gv.mean(fx) - gv.sdev(fx)
-    fx_upper = gv.mean(fx) + gv.sdev(fx)
-    return xx, fx_lower, fx_upper, fx
-
-# fit data to model
-def fit_data_model(rcs):
-    """
-    Fits data Z to an arbitrary model by minimizing the uncorrelated chi^2.
-    """
-    dom, Zfit = make_data(rcs)
-    Z_cv = np.mean(Zfit)
-    p0 = {'c0' : Z_cv.mean} if const else {'c0' : Z_cv.mean, 'c1' : 0.0}
-    print('Initial guess: ' + str(p0))
-    fit = lsqfit.nonlinear_fit(data = (dom, Zfit), fcn = fcn, prior = None, p0 = p0)
-    print(fit)
-    return fit
-
-def fit_data_bootstrap(rcs, bidx):
-    """
-    Fits data rcs at bootstrap bidx to an arbitrary model by minimizing the uncorrelated chi^2.
-    """
-    dom, Zfit = make_data_bootstrap(rcs, bidx)
-    Z_cv = np.mean(Zfit)
-    p0 = {'c0' : Z_cv.mean} if const else {'c0' : Z_cv.mean, 'c1' : 0.0}
-    fit = lsqfit.nonlinear_fit(data = (dom, Zfit), fcn = fcn, prior = None, p0 = p0)
-    # print(fit)
-    return fit
+n_vars = 3 + n_multiplets
+# shape: (n_vars, n_ens, n_mom, n_boot)
+all_vars = np.concatenate((
+    np.expand_dims(Zq_list, axis = 0),
+    np.expand_dims(ZV_list, axis = 0),
+    np.expand_dims(ZA_list, axis = 0),
+    np.array([Lambda_list[:, mult_idx[0], mult_idx[1], :, :] for mult_idx in multiplets])
+))
+all_vars_mu = np.mean(all_vars, axis = 3)
+all_vars_std = np.std(all_vars, axis = 3, ddof = 1)
+var_labels = ['Zq', 'ZV', 'ZA', 'F_matrix/F11', 'F_matrix/F22', 'F_matrix/F33', 'F_matrix/F44', 'F_matrix/F55', 'F_matrix/F23', \
+    'F_matrix/F32', 'F_matrix/F45', 'F_matrix/F54']
+latex_var_labels = [r'$\mathcal{Z}_q^\mathrm{RI}', r'$\mathcal{Z}_V', r'$\mathcal{Z}_A']
+for ii, mult_idx in enumerate(multiplets):
+    latex_var_labels.append(r'$F_{' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + r'}')
 
 fill_color = 'b'
+# xlimits = [
+#     [-0.0005, 0.012],
+#     [-0.0005, 0.012]
+# ][sp_idx]
 xlimits = [
-    [-0.0005, 0.012],
-    [-0.0005, 0.012]
+    [0., 0.012],
+    [0., 0.012]
 ][sp_idx]
 x_band = np.linspace(xlimits[0], xlimits[1])
 scale_factors = [0.7, 1.3]          # scale factors for yrange
@@ -207,17 +166,17 @@ def plot_fit_out(cvs, sigmas, extrap_mu, extrap_sigma, fx_dom, fx_lower, fx_uppe
     with sns.plotting_context('paper'):
         fig_size = (style['colwidth'], style['colwidth'] / asp_ratio)
         plt.figure(figsize = fig_size)
-        plt.vlines(0.0, ylimits[0], ylimits[1], linestyles = 'dashed', label = '$am_\ell = 0$', linewidth = style['ebar_width'], color = 'k')
+        # plt.vlines(0.0, ylimits[0], ylimits[1], linestyles = 'dashed', label = '$am_\ell = 0$', linewidth = style['ebar_width'], color = 'k')
         _, caps, _ = plt.errorbar(mass_list, cvs, sigmas, fmt = '.', c = 'r', \
                 label = 'Data', capsize = style['endcaps'], markersize = style['markersize'], \
                 elinewidth = style['ebar_width'])
         for cap in caps:
             cap.set_markeredgewidth(style['ecap_width'])
-        _, caps, _ = plt.errorbar([0.0], [extrap_mu], [extrap_sigma], fmt = '.', c = fill_color, \
-                capsize = style['endcaps'], markersize = style['markersize'], \
-                elinewidth = style['ebar_width'])
-        for cap in caps:
-            cap.set_markeredgewidth(style['ecap_width'])
+        # _, caps, _ = plt.errorbar([0.0], [extrap_mu], [extrap_sigma], fmt = '.', c = fill_color, \
+        #         capsize = style['endcaps'], markersize = style['markersize'], \
+        #         elinewidth = style['ebar_width'])
+        # for cap in caps:
+        #     cap.set_markeredgewidth(style['ecap_width'])
         if plt_band:
             plt.fill_between(fx_dom, fx_lower, fx_upper, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
         plt.xlabel(xlabel, fontsize = style['fontsize'])
@@ -234,157 +193,118 @@ def plot_fit_out(cvs, sigmas, extrap_mu, extrap_sigma, fx_dom, fx_lower, fx_uppe
             ax.spines[spine].set_linewidth(style['axeswidth'])
         plt.xticks(fontsize = style['fontsize'])
         plt.yticks(fontsize = style['fontsize'])
-        plt.legend(prop={'size': style['fontsize'] * 0.8})
-        plt.tight_layout()
-        plt.savefig(path, bbox_inches='tight')
+        # plt.legend(prop={'size': style['fontsize'] * 0.8})
+        plt.gcf().subplots_adjust(
+            bottom = style['bottom_pad'], top = style['top_pad'], left = style['left_pad'], right = style['right_pad']
+        )
+        # plt.tight_layout()
+        # plt.savefig(path, bbox_inches='tight')
+        plt.savefig(path)
         print('Plot ' + ylabel + ' saved at: \n   ' + path)
         plt.close()
 
-Zq_gvar = np.zeros((n_mom), dtype = object)
-Zq_fit_mu = np.zeros((n_mom), dtype = np.float64)
-Zq_fit_std = np.zeros((n_mom), dtype = np.float64)
-Zq_fit = np.zeros((n_mom, n_samp), dtype = np.float64)
-Zq_params = []
-Zq_band_list = np.zeros((n_mom, n_band), dtype = object)
-print('Chiral extrapolation for Zq.')
-for mom_idx in range(n_mom):
-    fout = fit_data_model(Zq_list[:, mom_idx, :])
-    Zq_params.append(fout.p)
-    Zq_gvar[mom_idx] = fout.p['c0']    # this is our value for Zq
-    Zq_fit_mu[mom_idx] = fout.p['c0'].mean
-    Zq_fit_std[mom_idx] = fout.p['c0'].sdev
-    print('Zq '+stem+' at $am_\ell$ = 0 for momentum idx '+str(mom_idx)+': ' + export_float_latex(Zq_fit_mu[mom_idx], Zq_fit_std[mom_idx], sf = 2))
-    Zq_fit[mom_idx, :] = gen_fake_ensemble([Zq_fit_mu[mom_idx], Zq_fit_std[mom_idx]], n_samples = n_samp, s = 2)
-    _, _, _, Zq_band_list[mom_idx, :] = get_fit_band(fout.p, fcn, xlimits)
-xx, fx_lower, fx_upper, Zq_band = get_fit_band(Zq_params[mu0_idx], fcn, xlimits)
-plot_fit_out(Zq_mu[mu0_idx], Zq_std[mu0_idx], Zq_fit_mu[mu0_idx], Zq_fit_std[mu0_idx], xx, fx_lower, fx_upper, \
-            r'$\mathcal{Z}_q^\mathrm{RI}', plot_dir + 'Zq.pdf')
-
-ZV_fit_mu = np.zeros((n_mom), dtype = np.float64)
-ZV_fit_std = np.zeros((n_mom), dtype = np.float64)
-ZV_fit = np.zeros((n_mom, n_samp), dtype = np.float64)
-ZV_params = []
-print('Chiral extrapolation for ZV.')
-for mom_idx in range(n_mom):
-    fout = fit_data_model(ZV_list[:, mom_idx, :])
-    ZV_params.append(fout.p)
-    ZV_fit_mu[mom_idx] = fout.p['c0'].mean
-    ZV_fit_std[mom_idx] = fout.p['c0'].sdev
-    print('ZV '+stem+' at $am_\ell$ = 0 for momentum idx '+str(mom_idx)+': ' + export_float_latex(ZV_fit_mu[mom_idx], ZV_fit_std[mom_idx], sf = 2))
-    ZV_fit[mom_idx, :] = gen_fake_ensemble([ZV_fit_mu[mom_idx], ZV_fit_std[mom_idx]], n_samples = n_samp, s = 3)
-xx, fx_lower, fx_upper, _ = get_fit_band(ZV_params[mu0_idx], fcn, xlimits)
-plot_fit_out(ZV_mu[mu0_idx], ZV_std[mu0_idx], ZV_fit_mu[mu0_idx], ZV_fit_std[mu0_idx], xx, fx_lower, fx_upper, r'$\mathcal{Z}_V', plot_dir + 'ZV.pdf')
-
-ZA_fit_mu = np.zeros((n_mom), dtype = np.float64)
-ZA_fit_std = np.zeros((n_mom), dtype = np.float64)
-ZA_fit = np.zeros((n_mom, n_samp), dtype = np.float64)
-ZA_params = []
-print('Chiral extrapolation for ZA.')
-for mom_idx in range(n_mom):
-    fout = fit_data_model(ZA_list[:, mom_idx, :])
-    ZA_params.append(fout.p)
-    ZA_fit_mu[mom_idx] = fout.p['c0'].mean
-    ZA_fit_std[mom_idx] = fout.p['c0'].sdev
-    print('ZA '+stem+' at $am_\ell$ = 0 for momentum idx '+str(mom_idx)+': ' + export_float_latex(ZA_fit_mu[mom_idx], ZA_fit_std[mom_idx], sf = 2))
-    ZA_fit[mom_idx, :] = gen_fake_ensemble([ZA_fit_mu[mom_idx], ZA_fit_std[mom_idx]], n_samples = n_samp, s = 4)
-xx, fx_lower, fx_upper, _ = get_fit_band(ZA_params[mu0_idx], fcn, xlimits)
-plot_fit_out(ZA_mu[mu0_idx], ZA_std[mu0_idx], ZA_fit_mu[mu0_idx], ZA_fit_std[mu0_idx], xx, fx_lower, fx_upper, r'$\mathcal{Z}_A', plot_dir + 'ZA.pdf')
-
-# TODO think about correlation: Zq and Znm should be correlated, right? May have to change the seeding and add the correlation into the gvars
-# Few things to change: 
-# a) make sure the seeds are the same for each
-# b) Add correlations between Lambda_gvar and Zq_gvar before we construct Z_chiral_gvar. Likely want to get the correlation from bootstrap fits?
-
-Lambda_gvar = np.zeros((n_mom, 5, 5), dtype = object)
-Lambda_fit_mu = np.zeros((n_mom, 5, 5), dtype = np.float64)
-Lambda_fit_std = np.zeros((n_mom, 5, 5), dtype = np.float64)
-Lambda_fit = np.zeros((n_mom, 5, 5, n_samp), dtype = np.float64)
-Lambda_params = np.zeros((n_mom, 5, 5), dtype = object)
-fx_lower_list, fx_upper_list = np.zeros((n_mom, 5, 5, n_band), dtype = np.float64), np.zeros((n_mom, 5, 5, n_band), dtype = np.float64)
-Lambda_x_band = np.zeros((n_mom, 5, 5, n_band), dtype = object)
-print('Chiral extrapolation for F_ij.')
-for mom_idx in range(n_mom):
-    print('Momentum index ' + str(mom_idx))
-    for ii, mult_idx in enumerate(multiplets):
-        print('Fitting F' + str(mult_idx[0]) + str(mult_idx[1]))
-        fout = fit_data_model(Lambda_list[:, mult_idx[0], mult_idx[1], mom_idx, :])
-        Lambda_params[mom_idx, mult_idx[0], mult_idx[1]] = fout.p
-        Lambda_gvar[mom_idx, mult_idx[0], mult_idx[1]] = fout.p['c0']
-        Lambda_fit_mu[mom_idx, mult_idx[0], mult_idx[1]] = fout.p['c0'].mean
-        Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]] = fout.p['c0'].sdev
-        print('F' + str(mult_idx[0]) + str(mult_idx[1]) + ', ' + stem + ' at $am_\ell$ = 0 for momentum idx ' + str(mom_idx) + ': ' \
-                    + export_float_latex(Lambda_fit_mu[mom_idx, mult_idx[0], mult_idx[1]], Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]], sf = 2))
-        Lambda_fit[mom_idx, mult_idx[0], mult_idx[1], :] = gen_fake_ensemble([Lambda_fit_mu[mom_idx, mult_idx[0], mult_idx[1]], \
-                    Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]]], n_samples = n_samp, s = ii + 5)  # different seed --> uncorrelated
-        xx, fx_lower, fx_upper, Lam_x = get_fit_band(fout.p, fcn, xlimits)
-        fx_lower_list[mom_idx, mult_idx[0], mult_idx[1], :] = fx_lower
-        fx_upper_list[mom_idx, mult_idx[0], mult_idx[1], :] = fx_upper
-        Lambda_x_band[mom_idx, mult_idx[0], mult_idx[1], :] = Lam_x
-for ii, mult_idx in enumerate(multiplets):
-    label = r'$F_{' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + r'}'
-    path = plot_dir + 'F_matrix/F' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + '.pdf'
-    plot_fit_out(Lambda_mu[mu0_idx, mult_idx[0], mult_idx[1]], Lambda_std[mu0_idx, mult_idx[0], mult_idx[1]], Lambda_fit_mu[mu0_idx, mult_idx[0], \
-        mult_idx[1]], Lambda_fit_std[mu0_idx, mult_idx[0], mult_idx[1]], xx, fx_lower_list[mu0_idx, mult_idx[0], mult_idx[1]], \
-        fx_upper_list[mu0_idx, mult_idx[0], mult_idx[1]], label, path)
-
-################################################################################
-############################### Add correlations ###############################
-################################################################################
-
-# Important question here: correlations should survive after the uncorrelated 
-# am_ell --> 0 extrapolation, right? If they do, then maybe the best way to do this is 
-# to fit each bootstrap, then spread the bootstrapped ensembles to the correct error, 
-# and use that as our final distribution.
-
-# Fit each bootstrap to get correlations before we solve for Znm
-Zq_dist = np.zeros((n_mom, n_boot), dtype = np.float64)
-ZV_dist = np.zeros((n_mom, n_boot), dtype = np.float64)
-ZA_dist = np.zeros((n_mom, n_boot), dtype = np.float64)
-Lambda_dist = np.zeros((n_mom, 5, 5, n_boot), dtype = np.float64)
-print('Fitting each bootstrap to determine correlations.')
-for mom_idx in range(n_mom):
-    for bidx in range(n_boot):
-        Zq_dist[mom_idx, bidx] = fit_data_bootstrap(Zq_list[:, mom_idx, :], bidx).p['c0'].mean
-        ZV_dist[mom_idx, bidx] = fit_data_bootstrap(ZV_list[:, mom_idx, :], bidx).p['c0'].mean
-        ZA_dist[mom_idx, bidx] = fit_data_bootstrap(ZA_list[:, mom_idx, :], bidx).p['c0'].mean
+all_boots = np.zeros((n_ens, n_mom, n_vars, n_boot), dtype = np.float64)
+# covar = np.zeros((n_ens, n_mom, n_vars, n_vars), dtype = np.float64)
+for ens_idx in range(n_ens):
+    for mom_idx in range(n_mom):
+        all_boots[ens_idx, mom_idx, 0, :] = Zq_list[ens_idx, mom_idx]
+        all_boots[ens_idx, mom_idx, 1, :] = ZV_list[ens_idx, mom_idx]
+        all_boots[ens_idx, mom_idx, 2, :] = ZA_list[ens_idx, mom_idx]
         for ii, mult_idx in enumerate(multiplets):
-            Lambda_dist[mom_idx, mult_idx[0], mult_idx[1], bidx] = \
-                fit_data_bootstrap(Lambda_list[:, mult_idx[0], mult_idx[1], mom_idx, :], bidx).p['c0'].mean
-    print('Spreading sdev on Zq. Original sdev: ' + str(np.std(Zq_dist[mom_idx], ddof = 1)) + ', new sdev: ' + str(Zq_fit_std[mom_idx]))
-    Zq_dist[mom_idx] = spread_boots(Zq_dist[mom_idx], Zq_fit_std[mom_idx])
-    ZV_dist[mom_idx] = spread_boots(ZV_dist[mom_idx], ZV_fit_std[mom_idx])
-    ZA_dist[mom_idx] = spread_boots(ZA_dist[mom_idx], ZA_fit_std[mom_idx])
-    for ii, mult_idx in enumerate(multiplets):
-        Lambda_dist[mom_idx, mult_idx[0], mult_idx[1]] = \
-            spread_boots(Lambda_dist[mom_idx, mult_idx[0], mult_idx[1]], Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]])
+            all_boots[ens_idx, mom_idx, 3 + ii, :] = Lambda_list[ens_idx, mult_idx[0], mult_idx[1], mom_idx]
+        # covar[ens_idx, mom_idx] = np.cov(all_boots[ens_idx, mom_idx])
 
-# print('gvar standard deviation for Zq at all momenta: ' + str(gv.sdev(Zq_gvar)))
-# print('Bootstrap standard deviation for Zq at all momenta: ' + str(np.std(Zq_dist, axis = 1, ddof = 1)))
-# for ii, mult_idx in enumerate(multiplets):
-#     print('gvar standard deviation for Z' + str(mult_idx) + ' at all momenta: ' + str(gv.sdev(Lambda_gvar[:, mult_idx[0], mult_idx[1]])))
-#     print('Bootstrap standard deviation for Z' + str(mult_idx) + ' at all momenta: ' + str(np.std(Lambda_dist[:, mult_idx[0], mult_idx[1], :], axis = 1, ddof = 1)))
+# assemble data into correct form
+def make_data(bootstraps, domain = mass_list, lam = 0.9):
+    """
+    Makes data for lsqfit. 
+    
+    Parameters
+    ----------
+    bootstraps : np.array (n_ens, n_vars, n_boot)
+        Bootstrap data to fit, arranged in order (Zq, ZV, ZA, F11, ..., F55)
+    """
+    cvs = np.mean(bootstraps, axis = 2)
+    mean = np.concatenate(cvs)
+    covar = np.zeros((n_ens, n_vars, n_vars), dtype = np.float64)
+    for ens_idx in range(n_ens):
+        covar[ens_idx] = np.cov(bootstraps[ens_idx])
+    cov = block_diag(*covar)
+    cov = shrinkage(cov, lam)
+    return domain, gv.gvar(mean, cov)
 
-# get covariance between Zq and Lambda_nm
-print('Adding correlations')
+def fcn(m, p):
+    """
+    Constant or linear fitting function f(m; c) = c0 + c1 m. Note that c0 = [c0Zq, c0ZV, ..., c0F55] is 12-dimensional, 
+    so the return should be a 12 * len(m)-dimensional vector. 
+    """
+    c0 = p['c0']        # n_vars = 12 dimensional
+    # filler = np.ones((n_ens), dtype = np.float64)
+    filler = np.ones((len(m)), dtype = np.float64)
+    c0_full = np.kron(filler, c0)
+    if const:
+        # return c0_full + np.zeros(c0_full.shape, dtype = np.float64)*m
+        c1 = np.zeros(c0.shape, dtype = np.float64)
+    else:
+        c1 = p['c1']
+    return c0_full + np.kron(m, c1)
 
-all_boots = np.zeros((n_mom, 3 + len(multiplets), n_boot), dtype = np.float64)
-all_boots[:, 0, :] = Zq_dist[:, :]
-all_boots[:, 1, :] = ZV_dist[:, :]
-all_boots[:, 2, :] = ZA_dist[:, :]
-for ii, mult_idx in enumerate(multiplets):
-    all_boots[:, 3 + ii, :] = Lambda_dist[:, mult_idx[0], mult_idx[1], :]
-# now compute covariance of all_boots
+def get_fit_band(params, fcn, xlims):
+    """
+    Generates a fit band for a given set of parameters from an lsqfit. Note for a multivariate function, the return bands will 
+    be of shape (n_vars, n_band).
+    """
+    xx = np.linspace(xlims[0], xlims[1], n_band)
+    fx = fcn(xx, params)            # shape = (n_vars * len(xx))
+    fx_lower = gv.mean(fx) - gv.sdev(fx)
+    fx_upper = gv.mean(fx) + gv.sdev(fx)
+    lower_reshape = np.reshape(fx_lower, (n_vars, n_band), order = 'F')
+    upper_reshape = np.reshape(fx_upper, (n_vars, n_band), order = 'F')
+    fx_reshape = np.reshape(fx, (n_vars, n_band), order = 'F')
+    return xx, lower_reshape, upper_reshape, fx_reshape
 
-Zq_Lambda_covar = np.zeros((n_mom, 5, 5, 2, 2), dtype = np.float64)
+# fit data to model
+def fit_data_model(rcs):
+    """
+    Fits data Z to an arbitrary model by minimizing the uncorrelated chi^2.
+    """
+    dom, Zfit = make_data(rcs)          # Zfit = np.array(gvars) of shape (n_ens * n_vars)
+    Zfit_ens = np.reshape(Zfit, (n_ens, n_vars))
+    Z_cv = np.mean(Zfit_ens, axis = 0)          # average Zfit over every n_vars variables to get an estimate of Z
+
+    p0 = {'c0' : gv.mean(Z_cv)} if const else {'c0' : gv.mean(Z_cv), 'c1' : np.zeros((n_vars), dtype = np.float64)}
+    print('Initial guess: ' + str(p0))
+    fit = lsqfit.nonlinear_fit(data = (dom, Zfit), fcn = fcn, prior = None, p0 = p0)
+    print(fit)
+    return fit
+
+# perform fit
+Zall_out = np.zeros((n_mom, n_vars), dtype = object)
+Zall_mu = np.zeros((n_mom, n_vars), dtype = np.float64)
+Zall_std = np.zeros((n_mom, n_vars), dtype = np.float64)
+Zall_cov = np.zeros((n_mom, n_vars, n_vars), dtype = np.float64)
+# Zall_dist = np.zeros((n_mom, n_vars, n_samp), dtype = np.float64)
+Zall_params = []
 for mom_idx in range(n_mom):
-    for ii, mult_idx in enumerate(multiplets):
-        covar = np.cov(Zq_dist[mom_idx], Lambda_dist[mom_idx, mult_idx[0], mult_idx[1], :])
-        Zq_Lambda_covar[mom_idx, mult_idx[0], mult_idx[1], :, :] = covar
-        # tmp = gv.correlate([Zq_gvar[mom_idx], Lambda_gvar[mom_idx, mult_idx[0], mult_idx[1]]], covar)
-        Zq_gvar[mom_idx], Lambda_gvar[mom_idx, mult_idx[0], mult_idx[1]] = gv.correlate([Zq_gvar[mom_idx], Lambda_gvar[mom_idx, mult_idx[0], mult_idx[1]]], covar)
+    print('Momentum: ' + str(k_list[mom_idx]))
+    fout = fit_data_model(all_boots[:, mom_idx, :, :])
+    Zall_out[mom_idx, :] = fout.p['c0']
+    Zall_mu[mom_idx, :] = gv.mean(fout.p['c0'])
+    Zall_std[mom_idx, :] = gv.sdev(fout.p['c0'])
+    Zall_cov[mom_idx, :, :] = gv.evalcov(fout.p['c0'])
+    # Zall_dist[mom_idx, :, :] = gen_corr_dist(Zall_mu[mom_idx], Zall_cov[mom_idx], n_samples = n_samp)
+    Zall_params.append(fout.p)
 
-# use spread bootstrapped distributions as sample distributions for remainder of analysis
+# print and plot at mu0_idx
+fx_lower, fx_upper = np.zeros((n_mom, n_vars, n_band), dtype = np.float64), np.zeros((n_mom, n_vars, n_band), dtype = np.float64)
+fit_band = np.zeros((n_mom, n_vars, n_band), dtype = object)
+for mom_idx in range(n_mom):
+    xx, fx_lower[mom_idx], fx_upper[mom_idx], fit_band[mom_idx] = get_fit_band(Zall_params[mom_idx], fcn, xlimits)
 
+for ii, lbl in enumerate(var_labels):
+    print(lbl + '/' + stem + ' for mu0 at am_\ell = 0 is ' + export_float_latex(Zall_mu[mu0_idx, ii], Zall_std[mu0_idx, ii], sf = 2))
+    plot_fit_out(all_vars_mu[ii, :, mu0_idx], all_vars_std[ii, :, mu0_idx], Zall_mu[mu0_idx, ii], Zall_std[mu0_idx, ii], xx, \
+        fx_lower[mu0_idx, ii], fx_upper[mu0_idx, ii], latex_var_labels[ii], plot_dir + lbl + '.pdf')
 
 # Process as a Z factor.
 scheme = 'gamma'                    # scheme == 'gamma' or 'qslash'
@@ -440,27 +360,39 @@ def eval_Z_gvar(Lam, Zq):
     Z_gvar[3:5, 3:5] = Zblock[2]
     return Z_gvar
 
+# unpack variables
+Zq_gvar, ZV_gvar, ZA_gvar = Zall_out[:, 0], Zall_out[:, 1], Zall_out[:, 2]      # (n_mom)
+Zq_band, ZV_band, ZA_band = fit_band[:, 0], fit_band[:, 1], fit_band[:, 2]      # (n_mom, n_band)
+Lambda_gvar = np.zeros((n_mom, 5, 5), dtype = object)
+Lambda_band = np.zeros((n_mom, n_band, 5, 5), dtype = object)
+for ii, mult_idx in enumerate(multiplets):
+    Lambda_gvar[:, mult_idx[0], mult_idx[1]] = Zall_out[:, 3 + ii]
+    # Lambda_band[:, :, mult_idx[0], mult_idx[1]] = fit_band[:, ii, :]
+    Lambda_band[:, :, mult_idx[0], mult_idx[1]] = fit_band[:, 3 + ii, :]
+
 # generate fit band
 Z_chiral_gvar = np.zeros((n_mom, 5, 5), dtype = object)
+ZbyZVsq_gvar = np.zeros((n_mom, 5, 5), dtype = object)
 Z_chiral_band = np.zeros((n_mom, 5, 5, n_band), dtype = object)
 Z_chiral_lower = np.zeros((n_mom, 5, 5, n_band), dtype = np.float64)
 Z_chiral_upper = np.zeros((n_mom, 5, 5, n_band), dtype = np.float64)
-for qidx in range(n_mom):
-    Z_chiral_gvar[qidx, :, :] = eval_Z_gvar(Lambda_gvar[qidx, :, :], Zq_gvar[qidx])
+for mom_idx in range(n_mom):
+    Z_chiral_gvar[mom_idx, :, :] = eval_Z_gvar(Lambda_gvar[mom_idx, :, :], Zq_gvar[mom_idx])
+    ZbyZVsq_gvar[mom_idx, :, :] = Z_chiral_gvar[mom_idx, :, :] / (ZV_gvar[mom_idx]**2)
     for jj in range(n_band):
-        Lam_x = Lambda_x_band[qidx, :, :, jj]
-        Zq_jj = Zq_band_list[qidx, jj]
-        Z_chiral_band[qidx, :, :, jj] = eval_Z_gvar(Lam_x, Zq_jj)
-        Z_chiral_lower[qidx, :, :, jj] = gv.mean(Z_chiral_band[qidx, :, :, jj]) - gv.sdev(Z_chiral_band[qidx, :, :, jj])
-        Z_chiral_upper[qidx, :, :, jj] = gv.mean(Z_chiral_band[qidx, :, :, jj]) + gv.sdev(Z_chiral_band[qidx, :, :, jj])
+        Z_chiral_band[mom_idx, :, :, jj] = eval_Z_gvar(Lambda_band[mom_idx, jj], Zq_band[mom_idx, jj])
+        Z_chiral_lower[mom_idx, :, :, jj] = gv.mean(Z_chiral_band[mom_idx, :, :, jj]) - gv.sdev(Z_chiral_band[mom_idx, :, :, jj])
+        Z_chiral_upper[mom_idx, :, :, jj] = gv.mean(Z_chiral_band[mom_idx, :, :, jj]) + gv.sdev(Z_chiral_band[mom_idx, :, :, jj])
+
+print('Z(amell --> 0) = ' + str(Z_chiral_gvar[mu0_idx]))
 
 Z_chiral = np.zeros((5, 5, n_mom, n_samp), dtype = np.float64)
 Z_chiral_mu = np.zeros((5, 5, n_mom), dtype = np.float64)
 Z_chiral_std = np.zeros((5, 5, n_mom), dtype = np.float64)
-for qidx in range(n_mom):
+for mom_idx in range(n_mom):
     for ii, mult_idx in enumerate(multiplets):
-        dist = [Z_chiral_gvar[qidx, mult_idx[0], mult_idx[1]].mean, Z_chiral_gvar[qidx, mult_idx[0], mult_idx[1]].sdev]
-        Z_chiral[mult_idx[0], mult_idx[1], qidx, :] = gen_fake_ensemble(dist, n_samples = n_samp, s = ii + 5)
+        dist = [Z_chiral_gvar[mom_idx, mult_idx[0], mult_idx[1]].mean, Z_chiral_gvar[mom_idx, mult_idx[0], mult_idx[1]].sdev]
+        Z_chiral[mult_idx[0], mult_idx[1], mom_idx, :] = gen_fake_ensemble(dist, n_samples = n_samp, s = ii + 5)
 
 for ii, mult_idx in enumerate(multiplets):
     label = r'$\mathcal{Z}_{' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + r'}'
@@ -469,196 +401,42 @@ for ii, mult_idx in enumerate(multiplets):
         mult_idx[1]].mean, Z_chiral_gvar[mu0_idx, mult_idx[0], mult_idx[1]].sdev, xx, Z_chiral_lower[mu0_idx, mult_idx[0], mult_idx[1]], \
         Z_chiral_upper[mu0_idx, mult_idx[0], mult_idx[1]], label, path, plt_band = True)
 
-# def plot_fit_out(cvs, sigmas, extrap_mu, extrap_sigma, fx_cvs, fx_stds, ylabel, path, plt_band = True):
-#     if plt_band:
-#         data_window = [min(np.min(fx_cvs - fx_stds), np.min(cvs - sigmas), extrap_mu - extrap_sigma), \
-#                         max(np.max(fx_cvs + fx_stds), np.max(cvs + sigmas), extrap_mu + extrap_sigma)]
-#     else:
-#         data_window = [min(np.min(cvs - sigmas), extrap_mu - extrap_sigma), max(np.max(cvs + sigmas), extrap_mu + extrap_sigma)]
-#     Delta_window = data_window[1] - data_window[0]
-#     ylimits = [data_window[0] - Delta_window * scale_factors[0], data_window[1] + Delta_window * scale_factors[1]]
-#     with sns.plotting_context('paper'):
-#         fig_size = (style['colwidth'], style['colwidth'] / asp_ratio)
-#         plt.figure(figsize = fig_size)
-#         plt.vlines(0.0, ylimits[0], ylimits[1], linestyles = 'dashed', label = '$am_\ell = 0$', linewidth = style['ebar_width'], color = 'k')
-#         _, caps, _ = plt.errorbar(mass_list, cvs, sigmas, fmt = '.', c = 'r', \
-#                 label = 'Data', capsize = style['endcaps'], markersize = style['markersize'], \
-#                 elinewidth = style['ebar_width'])
-#         for cap in caps:
-#             cap.set_markeredgewidth(style['ecap_width'])
-#         _, caps, _ = plt.errorbar([0.0], [extrap_mu], [extrap_sigma], fmt = '.', c = fill_color, \
-#                 capsize = style['endcaps'], markersize = style['markersize'], \
-#                 elinewidth = style['ebar_width'])
-#         for cap in caps:
-#             cap.set_markeredgewidth(style['ecap_width'])
-#         if plt_band:
-#             plt.fill_between(x_band, fx_cvs + fx_stds, fx_cvs - fx_stds, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
-#         plt.xlabel(xlabel, fontsize = style['fontsize'])
-#         ylabel_dec = ylabel + r'\; (a=' + a_label + r')$'
-#         print(ylabel_dec)
-#         plt.ylabel(ylabel_dec, fontsize = style['fontsize'])
-#         plt.xlim(xlimits)
-#         plt.ylim(ylimits)         # set this after we figure out the ylimits
-#         ax = plt.gca()
-#         ax.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
-#         ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
-#         ax.set_xticks(xtick_locs)
-#         ax.set_xticklabels(xtick_labels)
-#         for spine in spinedirs:
-#             ax.spines[spine].set_linewidth(style['axeswidth'])
-#         plt.xticks(fontsize = style['fontsize'])
-#         plt.yticks(fontsize = style['fontsize'])
-#         plt.legend(prop={'size': style['fontsize'] * 0.8})
-#         plt.tight_layout()
-#         plt.savefig(path, bbox_inches='tight')
-#         print('Plot ' + ylabel + ' saved at: \n   ' + path)
-#         plt.close()
-# 
-# # fit data to model
-# def fit_data_model(cvs, sigmas, model):
-#     """
-#     Fits data Z to an arbitrary model by minimizing the correlated chi^2.
-#     lam is the parameter for linear shrinkage, i.e. lam = 0 is the uncorrelated covariance, and lam = 1 is the
-#     original covariance.
-#     """
-#     fitter = UncorrFitter(mass_list, cvs, sigmas, model)
-#     fit_out = fitter.fit()
-#     print('Best fit coeffs: ' + str(fit_out[0]))
-#     print('chi^2 / dof: ' + str(fit_out[1] / fit_out[2]))
-#     print('Parameter covariance: ' + str(fit_out[3]))
-#     return fit_out, fitter
-# 
-# def linear_model(params):
-#     def model(m):
-#         return params[0] + params[1] * m
-#     return model
-# fit_model = Model(linear_model, 2, ['', 'm'], ['c0', 'c1'])
-# 
-# Zq_fit_mu = np.zeros((n_mom), dtype = np.float64)
-# Zq_fit_std = np.zeros((n_mom), dtype = np.float64)
-# Zq_fit = np.zeros((n_mom, n_samp), dtype = np.float64)
-# Zq_params = []
-# Zq_param_covar = []
-# Zq_fitters = []
-# print('Chiral extrapolation for Zq.')
-# for mom_idx in range(n_mom):
-#     fout, fitter = fit_data_model(Zq_mu[mom_idx], Zq_std[mom_idx], fit_model)
-#     params, param_cov = fout[0], fout[3]
-#     Zq_params.append(params)
-#     Zq_param_covar.append(param_cov)
-#     Zq_fitters.append(fitter)
-#     Zq_fit_mu[mom_idx] = params[0]
-#     Zq_fit_std[mom_idx] = np.sqrt(param_cov[0, 0])
-#     print('Zq ' + stem + ' at $am_\ell$ = 0 for momentum idx ' + str(mom_idx) + ': ' + export_float_latex(Zq_fit_mu[mom_idx], Zq_fit_std[mom_idx], sf = 2))
-#     Zq_fit[mom_idx, :] = gen_fake_ensemble([Zq_fit_mu[mom_idx], Zq_fit_std[mom_idx]], n_samples = n_samp)
-# Zq_band_cvs, Zq_band_stds = Zq_fitters[mu0_idx].gen_fit_band(Zq_params[mu0_idx], Zq_param_covar[mu0_idx], x_band)
-# plot_fit_out(Zq_mu[mu0_idx], Zq_std[mu0_idx], Zq_fit_mu[mu0_idx], Zq_fit_std[mu0_idx], Zq_band_cvs, Zq_band_stds, \
-#             r'$\mathcal{Z}_q^\mathrm{RI}', plot_dir + 'Zq.pdf')
-# 
-# ZV_fit_mu = np.zeros((n_mom), dtype = np.float64)
-# ZV_fit_std = np.zeros((n_mom), dtype = np.float64)
-# ZV_fit = np.zeros((n_mom, n_samp), dtype = np.float64)
-# ZV_params = []
-# ZV_param_covar = []
-# ZV_fitters = []
-# print('Chiral extrapolation for ZV.')
-# for mom_idx in range(n_mom):
-#     fout, fitter = fit_data_model(ZV_mu[mom_idx], ZV_std[mom_idx], fit_model)
-#     params, param_cov = fout[0], fout[3]
-#     ZV_params.append(params)
-#     ZV_param_covar.append(param_cov)
-#     ZV_fitters.append(fitter)
-#     ZV_fit_mu[mom_idx] = params[0]
-#     ZV_fit_std[mom_idx] = np.sqrt(param_cov[0, 0])
-#     print('ZV ' + stem + ' at $am_\ell$ = 0 for momentum idx ' + str(mom_idx) + ': ' + export_float_latex(ZV_fit_mu[mom_idx], ZV_fit_std[mom_idx], sf = 2))
-#     ZV_fit[mom_idx, :] = gen_fake_ensemble([ZV_fit_mu[mom_idx], ZV_fit_std[mom_idx]], n_samples = n_samp)
-# ZV_band_cvs, ZV_band_stds = ZV_fitters[mu0_idx].gen_fit_band(ZV_params[mu0_idx], ZV_param_covar[mu0_idx], x_band)
-# plot_fit_out(ZV_mu[mu0_idx], ZV_std[mu0_idx], ZV_fit_mu[mu0_idx], ZV_fit_std[mu0_idx], ZV_band_cvs, ZV_band_stds, r'$\mathcal{Z}_V', plot_dir + 'ZV.pdf')
-# 
-# ZA_fit_mu = np.zeros((n_mom), dtype = np.float64)
-# ZA_fit_std = np.zeros((n_mom), dtype = np.float64)
-# ZA_fit = np.zeros((n_mom, n_samp), dtype = np.float64)
-# ZA_params = []
-# ZA_param_covar = []
-# ZA_fitters = []
-# print('Chiral extrapolation for ZA.')
-# for mom_idx in range(n_mom):
-#     fout, fitter = fit_data_model(ZA_mu[mom_idx], ZA_std[mom_idx], fit_model)
-#     params, param_cov = fout[0], fout[3]
-#     ZA_params.append(params)
-#     ZA_param_covar.append(param_cov)
-#     ZA_fitters.append(fitter)
-#     ZA_fit_mu[mom_idx] = params[0]
-#     ZA_fit_std[mom_idx] = np.sqrt(param_cov[0, 0])
-#     print('ZA ' + stem + ' at $am_\ell$ = 0 for momentum idx ' + str(mom_idx) + ': ' + export_float_latex(ZA_fit_mu[mom_idx], ZA_fit_std[mom_idx], sf = 2))
-#     ZA_fit[mom_idx, :] = gen_fake_ensemble([ZA_fit_mu[mom_idx], ZA_fit_std[mom_idx]], n_samples = n_samp)
-# ZA_band_cvs, ZA_band_stds = ZA_fitters[mu0_idx].gen_fit_band(ZA_params[mu0_idx], ZA_param_covar[mu0_idx], x_band)
-# plot_fit_out(ZA_mu[mu0_idx], ZA_std[mu0_idx], ZA_fit_mu[mu0_idx], ZA_fit_std[mu0_idx], ZA_band_cvs, ZA_band_stds, r'$\mathcal{Z}_A', plot_dir + 'ZA.pdf')
-# 
-# perform and save chiral extrapolation on Lambda
-# Lambda_fit_mu = np.zeros((n_mom, 5, 5), dtype = np.float64)
-# Lambda_fit_std = np.zeros((n_mom, 5, 5), dtype = np.float64)
-# Lambda_fit = np.zeros((n_mom, 5, 5, n_samp), dtype = np.float64)
-# Lambda_params = np.zeros((n_mom, 5, 5, 2), dtype = np.float64)
-# Lambda_param_covar = np.zeros((n_mom, 5, 5, 2, 2), dtype = np.float64)
-# Lambda_fitters = []
-# print('Chiral extrapolation for F_ij.')
-# for mom_idx in range(n_mom):
-#     print('Momentum index ' + str(mom_idx))
-#     Lambda_fitters.append([])
-#     for ii, mult_idx in enumerate(multiplets):
-#         print('Fitting F' + str(mult_idx[0]) + str(mult_idx[1]))
-#         fout, fitter = fit_data_model(Lambda_mu[mom_idx, mult_idx[0], mult_idx[1]], Lambda_std[mom_idx, mult_idx[0], mult_idx[1]], fit_model)
-#         params, param_cov = fout[0], fout[3]
-#         Lambda_params[mom_idx, mult_idx[0], mult_idx[1], :] = params[:]
-#         Lambda_param_covar[mom_idx, mult_idx[0], mult_idx[1], :, :] = param_cov[:, :]
-#         Lambda_fitters[mom_idx].append(fitter)
-#         Lambda_fit_mu[mom_idx, mult_idx[0], mult_idx[1]] = params[0]
-#         Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]] = np.sqrt(param_cov[0, 0])
-#         print('F' + str(mult_idx[0]) + str(mult_idx[1]) + ', ' + stem + ' at $am_\ell$ = 0 for momentum idx ' + str(mom_idx) + ': ' \
-#                     + export_float_latex(Lambda_fit_mu[mom_idx, mult_idx[0], mult_idx[1]], Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]], sf = 2))
-#         Lambda_fit[mom_idx, mult_idx[0], mult_idx[1], :] = gen_fake_ensemble([Lambda_fit_mu[mom_idx, mult_idx[0], mult_idx[1]], \
-#                     Lambda_fit_std[mom_idx, mult_idx[0], mult_idx[1]]], n_samples = n_samp)
-# for ii, mult_idx in enumerate(multiplets):
-#     label = r'$F_{' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + r'}'
-#     path = plot_dir + 'F_matrix/F' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + '.pdf'
-#     F_band_cvs, F_band_sigmas = Lambda_fitters[mu0_idx][ii].gen_fit_band(Lambda_params[mu0_idx, mult_idx[0], mult_idx[1]], \
-#                                     Lambda_param_covar[mu0_idx, mult_idx[0], mult_idx[1]], x_band)
-#     plot_fit_out(Lambda_mu[mu0_idx, mult_idx[0], mult_idx[1]], Lambda_std[mu0_idx, mult_idx[0], mult_idx[1]], Lambda_fit_mu[mu0_idx, mult_idx[0], mult_idx[1]], \
-#             Lambda_fit_std[mu0_idx, mult_idx[0], mult_idx[1]], F_band_cvs, F_band_sigmas, label, path)
-# 
-# # Process as a Z factor.
-# scheme = 'gamma'                    # scheme == 'gamma' or 'qslash'
-# F_tree = getF(L, scheme)                 # tree level projections
-# Z_chiral = np.zeros((5, 5, n_mom, n_samp), dtype = np.float64)
-# Z_chiral_mu = np.zeros((5, 5, n_mom), dtype = np.float64)
-# Z_chiral_std = np.zeros((5, 5, n_mom), dtype = np.float64)
-# for mom_idx in range(n_mom):
-#     for ii in range(n_samp):
-#         Lambda_inv = np.linalg.inv(Lambda_fit[mom_idx, :, :, ii])
-#         Z_chiral[:, :, mom_idx, ii] = (Zq_fit[mom_idx, ii] ** 2) * np.einsum('ik,kj->ij', F_tree, Lambda_inv)
-# print(Z_chiral.shape)
-# Z_chiral_mu = np.mean(Z_chiral, axis = 3)
-# Z_chiral_std = np.std(Z_chiral, axis = 3, ddof = 1)
-# print(Z_chiral_mu.shape)
-# for ii, mult_idx in enumerate(multiplets):
-#     label = r'$\mathcal{Z}_{' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + r'}'
-#     path = plot_dir + 'Z' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1) + '.pdf'
-#     # Need to figure out how to generate the fit band
-#     plot_fit_out(Z_mu[mu0_idx, mult_idx[0], mult_idx[1]], Z_std[mu0_idx, mult_idx[0], mult_idx[1]], Z_chiral_mu[mult_idx[0], mult_idx[1], mu0_idx], \
-#                 Z_chiral_std[mult_idx[0], mult_idx[1], mu0_idx], 'FIT_BAND_CVS', 'FIT_BAND_STDS', label, path, plt_band = False)
+# (Zq, ZV, ZA, F11, ..., F54, Z11, ..., Z54)
+n_total_vars = n_vars + len(multiplets)
+Ztotal = np.zeros((n_mom, n_total_vars), dtype = object)
+Ztotal_mu = np.zeros((n_mom, n_total_vars), dtype = np.float64)
+Ztotal_cov = np.zeros((n_mom, n_total_vars, n_total_vars), dtype = np.float64)
+Ztotal_dist = np.zeros((n_mom, n_total_vars, n_samp), dtype = np.float64)
+Ztotal[:, :n_vars] = Zall_out[:, :n_vars]
+for ii, mult_idx in enumerate(multiplets):
+    Ztotal[:, n_vars + ii] = Z_chiral_gvar[:, mult_idx[0], mult_idx[1]]
+for mom_idx in range(n_mom):
+    Ztotal_mu[mom_idx] = gv.mean(Ztotal[mom_idx])
+    Ztotal_cov[mom_idx] = gv.evalcov(Ztotal[mom_idx])
+    Ztotal_dist[mom_idx, :, :] = gen_corr_dist(Ztotal_mu[mom_idx], Ztotal_cov[mom_idx], n_samples = n_samp)
+Zq_dist = Ztotal_dist[:, 0, :]          # (n_mom, n_samp)
+ZV_dist = Ztotal_dist[:, 1, :]
+ZA_dist = Ztotal_dist[:, 2, :]
+Lambda_dist = np.zeros((n_mom, 5, 5, n_samp), dtype = np.float64)
+Z_dist = np.zeros((n_mom, 5, 5, n_samp), dtype = np.float64)
+ZbyZVsq_dist = np.zeros((n_mom, 5, 5, n_samp), dtype = np.float64)
+for ii, mult_idx in enumerate(multiplets):
+    Lambda_dist[:, mult_idx[0], mult_idx[1], :] = Ztotal_dist[:, 3 + ii, :]
+    Z_dist[:, mult_idx[0], mult_idx[1], :] = Ztotal_dist[:, n_vars + ii, :]
+    ZbyZVsq_dist[:, mult_idx[0], mult_idx[1], :] = np.einsum('qb,qb->qb', Z_dist[:, mult_idx[0], mult_idx[1], :], ZV_dist**(-2))
+print('Z/ZV^2 (amell --> 0) = ' + str(ZbyZVsq_gvar[mu0_idx]))
 
 # save results of chiral extrapolation and of interpolation
 fchi_out = h5py.File(out_path, 'w')
 fchi_out['momenta'] = k_list
-fchi_out['Zq/values'] = Zq_fit
-fchi_out['ZV/value'] = ZV_fit
-fchi_out['ZA/value'] = ZA_fit
+fchi_out['Zq/values'] = Zq_dist
+fchi_out['ZV/value'] = ZV_dist
+fchi_out['ZA/value'] = ZA_dist
 for ii, mult_idx in enumerate(multiplets):
-    fchi_out['Lambda' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1)] = Lambda_fit[:, mult_idx[0], mult_idx[1], :]
-    fchi_out['Z' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1)] = Z_chiral[mult_idx[0], mult_idx[1]]
+    fchi_out['Lambda' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1)] = Lambda_dist[:, mult_idx[0], mult_idx[1], :]
+    fchi_out['Z' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1)] = Z_dist[:, mult_idx[0], mult_idx[1], :]
     datapath = 'O' + str(mult_idx[0] + 1) + str(mult_idx[1] + 1)
-    # fchi_out[datapath + '/ZijZVm2'] = Zij_by_ZVsq[mult_idx[0], mult_idx[1]]
-    fchi_out[datapath + '/ZijZVm2'] = np.einsum('qb,qb->qb', Z_chiral[mult_idx[0], mult_idx[1]], ZV_fit**(-2))
-print('Chiral extrapolation saved at: ' + out_path)
+    # fchi_out[datapath + '/ZijZVm2'] = np.einsum('qb,qb->qb', Z_dist[:, mult_idx[0], mult_idx[1], :], ZV_dist**(-2))
+    fchi_out[datapath + '/ZijZVm2'] = ZbyZVsq_dist[:, mult_idx[0], mult_idx[1], :]
+print('amell --> 0 extrapolation saved at: ' + out_path)
 fchi_out.close()

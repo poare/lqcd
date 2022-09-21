@@ -27,11 +27,14 @@ import random
 from scipy import optimize
 from scipy.stats import chi2
 
-# STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, cfg, c, s, c, s] where:
-  # b is the boostrap index
-  # cfg is the configuration index
-  # c is a color index
-  # s is a spinor index
+import gvar as gv
+import lsqfit
+import pandas as pd
+
+# STANDARD BOOTSTRAPPED PROPAGATOR ARRAY FORM: [b, c, s, c, s] where:
+#   b is the boostrap index
+#   c is a color index
+#   s is a spinor index
 
 Nc = 3
 Nd = 4
@@ -131,7 +134,9 @@ def norm(p):
 #  Pass in a tensor with the shape (ncfgs, tensor_shape)
 def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boot):
     """
-    Bootstraps an input tensor.
+    Bootstraps an input tensor. Generates each bootstrap sample by averaging 
+    over num_configs data points, where num_configs is the number of 
+    configurations in the original dataset. 
 
     Parameters
     ----------

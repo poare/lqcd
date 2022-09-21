@@ -12,24 +12,29 @@
 
 from __main__ import *
 
-# use CMU Serif
-import matplotlib as mpl
-import matplotlib.font_manager as font_manager
-mpl.rcParams['font.family']='serif'
-cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
-mpl.rcParams['font.serif']=cmfont.get_name()
-mpl.rcParams['mathtext.fontset']='cm'
-mpl.rcParams['axes.unicode_minus']=False
-mpl.rcParams['axes.formatter.use_mathtext'] = True
-
 import numpy as np
+import seaborn as sns
+from formattools import *
+
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D, art3d
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Ellipse
 from matplotlib import cm
-import seaborn as sns
-from formattools import *
+import matplotlib.font_manager as font_manager
+
+def set_font():
+    """
+    Sets the font used by matplotlib to CMU Serif.
+    """
+    mpl.rcParams['font.family']='serif'
+    cmfont = font_manager.FontProperties(fname=mpl.get_data_path() + '/fonts/ttf/cmr10.ttf')
+    mpl.rcParams['font.serif']=cmfont.get_name()
+    mpl.rcParams['mathtext.fontset']='cm'
+    mpl.rcParams['axes.unicode_minus']=False
+    mpl.rcParams['axes.formatter.use_mathtext'] = True
+set_font()
 
 ################################################################################
 ############################ REAL-VALUED FUNCTIONS #############################
@@ -95,10 +100,6 @@ def plot_1d_function(xvals, dat, ax = None, col = ['r', 'c'], ax_label = ['x', '
         ax.set_ylabel(ax_label[1], fontsize = style['fontsize'])
         
         # TODO later, add option for setting tick positions + labels
-        # ax.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = style['fontsize'])
-        # ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = style['fontsize'])
-        # for spine in spinedirs:
-        #     ax.spines[spine].set_linewidth(style['axeswidth'])
         stylize_axis(ax, style)
 
         fig.subplots_adjust(
