@@ -5,8 +5,8 @@
 #SBATCH --job-name=gq_mixing
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
-#SBATCH -t 48:00:00
+#SBATCH --partition=prod
+#SBATCH -t 24:00:00
 
 set -x
 
@@ -25,7 +25,7 @@ cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
 # gpu=true
 
 home=/home/lqcd/poare/lqcd/gq_mixing
-logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
+logs=${home}/logs/girs_${cfgbase}_${SLURM_JOB_ID}
 output=/work/lqcd/d20b/users/poare/gq_mixing/girs/${cfgbase}_${SLURM_JOB_ID}
 
 mkdir ${logs}

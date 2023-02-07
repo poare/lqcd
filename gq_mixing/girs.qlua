@@ -113,7 +113,7 @@ function sink_contract(i, j, t, U, M)
     mihat_t[i] = -1
 
     return (gamma{mu=i} * (U[j+1][origin] * M[jhat_t] - U[j+1][mjhat_0]:adjoin() * M[mjhat_t])
-            + gamma{mu=j} * (U[i+1][origin] * M[ihat_t] - U[i+1][mihat_0]:adjoin() * M[mihat_t])) / 2
+            + gamma{mu=j} * (U[i+1][origin] * M[ihat_t] - U[i+1][mihat_0]:adjoin() * M[mihat_t])):trace():spintrace() / 2
 end
 
 --[[
@@ -142,136 +142,10 @@ function compute_girs_ptsource(L, U, ferm_prop, t_list, hypervolume, group, clov
             local b = construct_b(i, j, U, S_pt)
             local M_ij = compute_propagator(U, ferm_prop, b)
             local Gconn = sink_contract(i, j, t, U, M_ij)
-
+            local Gpath = string.format("G%d%d/t%d", i, j, t)
+            h5_force_write(writer, Gpath, Gconn)
+            printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gpath)
         end
-
-
-    -- compute momentum projected propagator
-    -- local mom4_prop = L:DiracPropagatorN(Nc)
-    local mom4_prop = qcd.DiracPropagatorN(Nc)
-    for i = 1, #S_list do
-      local prop = S_list[i]
-      local y = pts[i]
-      local FTarg = L:Real(0)
-      for mu = 0, #L - 1 do
-        FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-      end
-      local FT = FTarg:expi()    -- e^{ip(x - y_i)}
-      mom4_prop = mom4_prop + (FT * prop):sum()
-    end
-
-    -- Write momentum projected propagator to file
-    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
-    h5_force_write(writer, prop_path, mom4_prop)
-    printf("Propagator written at path: %s\n", prop_path)
-
-    -- Compute momentum projected Green's function G_qg for a glue EMT insertion on a quark line.
-    print("Computing glue EMT insertion on quark line.")
-    local F = getFmunuComponents(L, Uflowed, Nc)
-    for mu = 1, #L do
-      for nu = 1, #L do
-        local glueEMT = 0
-        for alpha = 1, #L do
-          for a = 1, Nc * Nc - 1 do
-            glueEMT = glueEMT + (F[mu][alpha][a] * F[nu][alpha][a]):sum()
-          end
-        end
-        local Gqg_munu = glueEMT * mom4_prop
-        local Gqg_path = string.format("Gqg%d%d/p%d%d%d%d", mu, nu, p[1], p[2], p[3], p[4])
-        h5_force_write(writer, Gqg_path, Gqg_munu)
-        printf("Matrix element Gqg%d%d written at: %s\n", mu, nu, Gqg_path)
-      end
-    end
-
-  end
-
-  print("Constructing sequential sources for Gqq and projecting to H(4) irreps.")
-  local b = {}
-  for i = 1, #S_list do
-    b[i] = {}
-    local prop = S_list[i]
-    local y = pts[i]
-    for mu1 = 0, #L - 1 do
-      b[i][mu1 + 1] = {}
-      for nu1 = 0, #L - 1 do
-        b[i][mu1 + 1][nu1 + 1] = (gamma{mu = mu1} * (U[nu1 + 1] * prop:shift(nu1, "from_forward"))
-                - gamma{mu = mu1} * (U[nu1 + 1]:shift(nu1, "from_backward"):adjoin() * prop:shift(nu1, "from_backward")))
-      end
-    end
-  end
-
-  local b3dim = {}
-  local b6dim = {}
-  for i = 1, #S_list do
-    b3dim[i] = {
-      (b[i][3][3] - b[i][4][4]) / math.sqrt(2),
-      (b[i][1][1] - b[i][2][2]) / math.sqrt(2),
-      (b[i][1][1] + b[i][2][2] - b[i][3][3] - b[i][4][4]) / 2.0
-    }
-    b6dim[i] = {
-      (b[i][1][2] + b[i][2][1]) / math.sqrt(2),
-      (b[i][1][3] + b[i][3][1]) / math.sqrt(2),
-      (b[i][1][4] + b[i][4][1]) / math.sqrt(2),
-      (b[i][2][3] + b[i][3][2]) / math.sqrt(2),
-      (b[i][2][4] + b[i][4][2]) / math.sqrt(2),
-      (b[i][3][4] + b[i][4][3]) / math.sqrt(2),
-    }
-  end
-
-  local M3 = {}     -- inversions for tau_1^(3)
-  local M6 = {}     -- inversions for tau_3^(6)
-  for i = 1, #S_list do
-    M3[i] = {}
-    M6[i] = {}
-    print("Constructing sequential propagators for 3-dim H(4) irrep.")
-    for k = 1, 3 do
-      M3[i][k] = compute_propagator(U, ferm_prop, b3dim[i][k])
-    end
-    print("Constructing sequential propagators for 6-dim H(4) irrep.")
-    for l = 1, 6 do
-      M6[i][l] = compute_propagator(U, ferm_prop, b6dim[i][l])
-    end
-  end
-
-  print("Constructing Gqq for 3-dim irrep.")
-  for k = 1, 3 do
-    for pidx = 1, #p_list do
-      local p = p_list[pidx]
-      local Gqq3 = qcd.DiracPropagatorN(Nc)
-      for i = 1, #S_list do
-        local y = pts[i]
-        local FTarg = L:Real(0)
-        for mu = 0, #L - 1 do
-          FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-        end
-        local FT = FTarg:expi()   -- e^{ip(x - y_i)}
-        Gqq3 = Gqq3 + (FT * M3[i][k]) : sum()
-      end
-      local Gqq3_path = string.format("Gqq/3%d/p%d%d%d%d", k, p[1], p[2], p[3], p[4])
-      h5_force_write(writer, Gqq3_path, Gqq3)
-      printf("Component %d of 3-dim irrep for Gqq written at: %s\n", k, Gqq3_path)
-    end
-  end
-
-  print("Constructing Gqq for 6-dim irrep.")
-  for k = 1, 6 do
-    for pidx = 1, #p_list do
-      local p = p_list[pidx]
-      local Gqq6 = qcd.DiracPropagatorN(Nc)
-      for i = 1, #S_list do
-        local y = pts[i]
-        local FTarg = L:Real(0)
-        for mu = 0, #L - 1 do
-          FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
-        end
-        local FT = FTarg:expi()
-        Gqq6 = Gqq6 + (FT * M6[i][k]) : sum()
-      end
-      local Gqq6_path = string.format("Gqq/6%d/p%d%d%d%d", k, p[1], p[2], p[3], p[4])
-      h5_force_write(writer, Gqq6_path, Gqq6)
-      printf("Component %d of 6-dim irrep for Gqq written at: %s\n", k, Gqq6_path)
-    end
-  end
 
 end
 
