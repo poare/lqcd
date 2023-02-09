@@ -311,7 +311,8 @@ local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 local t_list_NPR = {2}
 printf("Number of times to compute at: %d.", #t_list_NPR)
 
-local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+-- local gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+local gauge_file = string.format(cfgpath.."cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)  -- FOR TESTING
 
 print("Reading gauge file at: %s\n", gauge_file)
 
