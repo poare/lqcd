@@ -8,9 +8,7 @@ require "lib/musing"
 require "lib/propagator"
 require "lib/su-n"
 require "lib/toAdjoint3"
-if gpu then
-  require "lib/quda"
-end
+require "lib/quda"
 
 -------------------------------------------------------------------
 ------------------------ UTILITY FUNCTIONS ------------------------
