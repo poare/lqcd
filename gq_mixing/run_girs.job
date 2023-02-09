@@ -15,16 +15,21 @@ cd /home/lqcd/poare/lqcd/mosaic
 bash
 # module load openmpi
 # module load openmpi/4.1.4-x
-module load openmpi/4.1.1
+# module load openmpi/4.1.1
 # module load openmpi/3.1.5-gcc.7.3.0
-module load qlua/20200107-gpu1080
+# module load qlua/20200107-gpu1080
 # module load qlua
+
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/openmpi-4.1.4-x/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/slurm-19.05.4.1/lib
+echo ${LD_LIBRARY_PATH}
 
 # module load openmpi/3.1.5
 # module load qlua/20200107-gpu1080
 #module load qlua/20200107
 
-EXE=qlua
+# EXE=qlua
+EXE=/opt/software/qlua-20200107-gpu1080/qlua/bin/qlua
 
 # cfgpath="/work/lqcd/d20b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
 # cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
