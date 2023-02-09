@@ -3,8 +3,8 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=gq_mixing
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
 #SBATCH --partition=prod
 #SBATCH -t 24:00:00
 
@@ -41,5 +41,5 @@ export OMP_NUM_THREADS=6
 
 for cfg in `seq 1600 10 2200`
 do
-	mpirun -np 16 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
 done
