@@ -13,8 +13,11 @@ set -x
 cd /home/lqcd/poare/lqcd/mosaic
 
 bash
-module load openmpi/3.1.5
-module load qlua/20200107-gpu1080
+module load openmpi
+module load qlua
+
+# module load openmpi/3.1.5
+# module load qlua/20200107-gpu1080
 #module load qlua/20200107
 
 EXE=qlua
