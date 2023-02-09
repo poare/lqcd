@@ -20,9 +20,14 @@ bash
 # module load qlua/20200107-gpu1080
 # module load qlua
 
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/openmpi-4.1.4-x/lib
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/slurm-19.05.4.1/lib
-echo ${LD_LIBRARY_PATH}
+# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/openmpi-4.1.4-x/lib
+# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/slurm-19.05.4.1/lib
+# echo ${LD_LIBRARY_PATH}
+
+module load openmpi/4.1.1
+module load slurm/19.05.4.1
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/software/openmpi-4.1.1/lib/
 
 # module load openmpi/3.1.5
 # module load qlua/20200107-gpu1080
