@@ -14,7 +14,8 @@ cd /home/lqcd/poare/lqcd/mosaic
 
 bash
 # module load openmpi
-module load openmpi/4.1.4-x
+# module load openmpi/4.1.4-x
+module load openmpi/4.1.1
 # module load openmpi/3.1.5-gcc.7.3.0
 module load qlua/20200107-gpu1080
 # module load qlua
