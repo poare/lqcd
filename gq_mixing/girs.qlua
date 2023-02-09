@@ -94,6 +94,83 @@ function construct_b(i, j, U, prop)
     ):trace():spintrace() / 2
 end
 
+-- Returns an identity matrix in color and spin space (identity propagator at a single spacetime point)
+function id_prop(Nc)
+    local prop = qcd.DiracPropagatorN(Nc)
+    local dv = qcd.DiracFermionN(Nc)
+    for s = 0, Ns - 1 do
+        for c = 0, Nc - 1 do
+            dv[{c=c, d=s}] = complex(1)
+            prop[{c=c, d=s}] = dv
+        end
+    end
+    return prop
+end
+
+-- Constructs the kernel J_{ij}(\vec{0}, \vec{\xi}; 0) as a matrix in spin-color space (DiracPropagator)
+function construct_Jsrc(L, U, i, j, Nc, Ns)
+    local Jsrc = L:DiracPropagatorN(Nc)
+    local origin = {0, 0, 0, 0}
+
+    -- Initialize non-latticized propagator objects
+    local jhat = {0, 0, 0, 0}
+    jhat[j] = 1
+    local p0 = gamma{mu=i} * (U[j+1][origin]:adjoin() * id_prop(Nc))
+    -- local p0 = qcd.DiracPropagatorN(Nc)
+    -- p0 = gamma{mu=i} * (U[j+1][origin]:adjoin() * id_prop(Nc))
+
+    local mjhat = {0, 0, 0, 0}
+    mjhat[j] = -1
+    local p1 = gamma{mu=i} * (U[j+1][mjhat] * id_prop(Nc))
+    -- local p1 = qcd.DiracPropagatorN(Nc)
+    -- p1 = gamma{mu=i} * (U[j+1][mjhat] * id_prop(Nc))
+
+    local ihat = {0, 0, 0, 0}
+    ihat[i] = 1
+    local p2 = gamma{mu=j} * (U[i+1][origin]:adjoin() * id_prop(Nc))
+    -- local p2 = qcd.DiracPropagatorN(Nc)
+    -- p2 = gamma{mu=j} * (U[i+1][origin]:adjoin() * id_prop(Nc))
+
+    local mihat = {0, 0, 0, 0}
+    mihat[i] = -1
+    local p3 = gamma{mu=j} * (U[i+1][mihat] * id_prop(Nc))
+    -- local p3 = qcd.DiracPropagatorN(Nc)
+    -- p3 = gamma{mu=j} * (U[i+1][mihat] * id_prop(Nc))
+
+    -- Populate propagator at correct locations. 
+    -- TODO make sure this is storing the correct propagator and not its transpose (i.e. may want to switch 
+    -- the role of a <--> b and alpha <--> beta).
+    for alpha = 0, Ns - 1 do
+        for beta = 0, Ns - 1 do
+            for a = 0, Nc - 1 do
+                for b = 0, Nc - 1 do
+                    local jhat_coord = table_copy(jhat)
+                    jhat_coord.c = b
+                    jhat_coord.d = beta
+                    Jsrc[{c=a, d=alpha}][jhat_coord] = p0[{c=a, d=alpha}][{c=b, d=beta}]
+
+                    local mjhat_coord = table_copy(mjhat)
+                    mjhat_coord.c = b
+                    mjhat_coord.d = beta
+                    Jsrc[{c=a, d=alpha}][mjhat_coord] = p1[{c=a, d=alpha}][{c=b, d=beta}]
+
+                    local ihat_coord = table_copy(ihat)
+                    ihat_coord.c = b
+                    ihat_coord.d = beta
+                    Jsrc[{c=a, d=alpha}][ihat_coord] = p2[{c=a, d=alpha}][{c=b, d=beta}]
+
+                    local mihat_coord = table_copy(mihat)
+                    mihat_coord.c = b
+                    mihat_coord.d = beta
+                    Jsrc[{c=a, d=alpha}][mihat_coord] = p3[{c=a, d=alpha}][{c=b, d=beta}]
+                    
+                end
+            end
+        end
+    end
+    return Jsrc
+end
+
 function sink_contract(i, j, t, U, M) 
     -- Construct position vectors
     local origin = {0, 0, 0, 0}
@@ -113,15 +190,15 @@ function sink_contract(i, j, t, U, M)
     mihat_t[i] = -1
 
     return (gamma{mu=i} * (U[j+1][origin] * M[jhat_t] - U[j+1][mjhat_0]:adjoin() * M[mjhat_t])
-            + gamma{mu=j} * (U[i+1][origin] * M[ihat_t] - U[i+1][mihat_0]:adjoin() * M[mihat_t])):trace():spintrace() / 2
+            + gamma{mu=j} * (U[i+1][origin] * M[ihat_t] - U[i+1][mihat_0]:adjoin() * M[mihat_t])):spintrace():trace() / 2
 end
 
 --[[
   Computes the two-point correlator necessary for GIRS renormalization.
 ]]
-function compute_girs_ptsource(L, U, ferm_prop, t_list, hypervolume, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+function compute_girs_ptsource(L, U, ferm_prop, t_list, vol, group, clover, writer, Nc, nsrc, cfgnum, jobid)
 
-    sp_idxs = {{1, 2}, {1, 3}, {2, 3}}
+    local sp_idxs = {{1, 2}, {1, 3}, {2, 3}}
 
     print("Computing point source at (0, 0, 0, 0).")
     local y = {0, 0, 0, 0}
@@ -146,7 +223,39 @@ function compute_girs_ptsource(L, U, ferm_prop, t_list, hypervolume, group, clov
             h5_force_write(writer, Gpath, Gconn)
             printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gpath)
         end
+    end
 
+end
+
+function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, Ns, cfgnum, jobid)
+    
+    local sp_idxs = {{1, 2}, {1, 3}, {2, 3}}
+
+    print("Computing point source at (0, 0, 0, 0).")
+    local y = {0, 0, 0, 0}
+    local src = compute_point_source(U, y)
+    print("Computing propagator.")
+    local S_pt = compute_propagator(U, ferm_prop, src)
+    print("Propagator computed.")
+    local antiprop_pt = gamma{mu=5} * (S_pt:adjoin() * gamma{mu=5})
+
+    
+    for idx = 1, #sp_idxs do
+        local i = sp_idxs[idx][1]
+        local j = sp_idxs[idx][2]
+        printf("Inverting source Jij for (i, j) = (%d, %d).", i, j)
+        local Jij = construct_Jsrc(L, U, i, j, Nc, Ns)
+        local Mij = compute_propagator(U, ferm_prop, Jij)
+        local Gconn = vol * (
+            antiprop_pt * (
+                gamma{mu=i} * (U[j+1] * Mij:shift(j, "from_forward") - U[j+1]:shift(j, "from_backward"):adjoin() * Mij:shift(j, "from_backward")) 
+                + gamma{mu=j} * (U[i+1] * Mij:shift(i, "from_forward") - U[i+1]:shift(i, "from_backward"):adjoin() * Mij:shift(i, "from_backward"))
+            )
+        ):sum(L:MultiSet(L[3], L:pcoord(3))) / 2    -- Only sum over space
+        local Gpath = string.format("G%d%d", i, j)
+        h5_force_write(writer, Gpath, Gconn)
+        printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gpath)
+    end
 end
 
 ------------------------------------------------------------------
@@ -161,22 +270,21 @@ else
 end
 
 -- Set parameters
-Lx = 48
-Lt = 96
--- Lx = 12
--- Lt = 24
-beta = 6.3
-mq = -0.2416
+-- Lx = 48
+-- Lt = 96
+-- beta = 6.3
+-- mq = -0.2416
 
--- Lx = 12
--- Lt = 24
--- beta = 6.1
--- mq = -0.2800
+Lx = 16
+Lt = 48
+beta = 6.1
+mq = -0.2450
 
 printf("Light quark mass: %d, beta: %d", mq, beta)
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
+Ns = 4
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 lqcd_dir = "/home/lqcd/poare"    -- specify what the file path to lqcd is
 
@@ -227,7 +335,8 @@ if status then
 
   nsrc = 1
   printf("Gauge file read. Computing NPR with %d point sources.", nsrc)
-  compute_girs_ptsource(L, U, ferm_prop, t_list_NPR, vol, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+--   compute_girs_ptsource(L, U, ferm_prop, t_list_NPR, vol, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, Ns, cfgnum, jobid)
 
   print("Finished.")
   writer:close()

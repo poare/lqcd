@@ -4,7 +4,7 @@
 
 #SBATCH --job-name=gq_mixing
 #SBATCH --nodes=4
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=1
 #SBATCH --partition=prod
 #SBATCH -t 24:00:00
 
@@ -19,8 +19,12 @@ module load qlua/20200107-gpu1080
 
 EXE=qlua
 
-cfgpath="/work/lqcd/d20b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
-cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
+# cfgpath="/work/lqcd/d20b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
+# cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
+
+# Test on 16 by 48
+cfgpath="/work/lqcd/d20b/ensembles/isoClover/cl3_16_48_b6p1_m0p2450/"
+cfgbase="cl3_16_48_b6p1_m0p2450"
 
 # gpu=true
 
