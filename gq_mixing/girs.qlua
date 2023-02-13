@@ -269,17 +269,24 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
 
 
         -- Write data as a lattice
-        local Gconn_lat = L_mom:Complex(0)
+        -- local Gconn_lat = L_mom:Complex(0)
         -- local Gconn_lat = L_mom:DiracPropagatorN(Nc)
         for t = 0, #L_mom - 1 do
-            Gconn_lat[{t}] = Gconn[t]:spintrace():trace()
+            -- Gconn_lat[{t}] = Gconn[t]:spintrace():trace()
+            -- print(Gconn_lat)
+            print("Trying to save Gconn")
+            local Gconn_tr = Gconn[t]:spintrace():trace()
+
+            local Gpath = string.format("G%d%d/t%d", i, j, t)
+            h5_force_write(writer, Gpath, Gconn)
+            printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gconn_tr)
         end
         
-        print(Gconn_lat)
+        -- print(Gconn_lat)
 
-        local Gpath = string.format("G%d%d", i, j)
-        h5_force_write(writer, Gpath, Gconn)
-        printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gconn_lat)
+        -- local Gpath = string.format("G%d%d", i, j)
+        -- h5_force_write(writer, Gpath, Gconn)
+        -- printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gconn_lat)
     end
 end
 
