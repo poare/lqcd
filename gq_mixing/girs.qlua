@@ -279,8 +279,8 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
             print(Gconn_tr)
 
             local Gpath = string.format("G%d%d/t%d", i, j, t)
-            h5_force_write(writer, Gpath, Gconn)
-            printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gconn_tr)
+            h5_force_write(writer, Gpath, Gconn_tr)
+            printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gpath)
         end
         
         -- print(Gconn_lat)
