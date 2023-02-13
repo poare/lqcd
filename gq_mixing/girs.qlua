@@ -230,7 +230,7 @@ end
 
 function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, Ns, cfgnum, jobid)
     
-    local L_mom = qcd.lattice{L[#L-1]}
+    -- local L_mom = qcd.lattice{L[#L-1]}
     local sp_idxs = {{1, 2}, {1, 3}, {2, 3}}
 
     print("Computing point source at (0, 0, 0, 0).")
@@ -271,11 +271,12 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         -- Write data as a lattice
         -- local Gconn_lat = L_mom:Complex(0)
         -- local Gconn_lat = L_mom:DiracPropagatorN(Nc)
-        for t = 0, #L_mom - 1 do
+        for t = 0, L[3] - 1 do
             -- Gconn_lat[{t}] = Gconn[t]:spintrace():trace()
             -- print(Gconn_lat)
             print("Trying to save Gconn")
-            local Gconn_tr = Gconn[t]:spintrace():trace()
+            local Gconn_tr = Gconn[{t}]:spintrace():trace()
+            print(Gconn_tr)
 
             local Gpath = string.format("G%d%d/t%d", i, j, t)
             h5_force_write(writer, Gpath, Gconn)
