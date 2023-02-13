@@ -5,7 +5,7 @@
 #SBATCH --job-name=gq_mixing
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=prod
+#SBATCH --partition=a100l
 #SBATCH -t 24:00:00
 
 set -x
@@ -13,28 +13,19 @@ set -x
 cd /home/lqcd/poare/lqcd/mosaic
 
 bash
-# module load openmpi
-# module load openmpi/4.1.4-x
+
+# For p-nodes on platypus
 # module load openmpi/4.1.1
-# module load openmpi/3.1.5-gcc.7.3.0
-# module load qlua/20200107-gpu1080
-# module load qlua
+# module load slurm/19.05.4.1
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/software/openmpi-4.1.1/lib/
+# EXE=/opt/software/qlua-20200107-gpu1080/qlua/bin/qlua
 
-# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/openmpi-4.1.4-x/lib
-# export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/software/slurm-19.05.4.1/lib
-# echo ${LD_LIBRARY_PATH}
-
-module load openmpi/4.1.1
+# For a-nodes on wombat
+module load PrgEnv-Wombat
+module load PrgEnv-Qlua
 module load slurm/19.05.4.1
+EXE=qlua
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/software/openmpi-4.1.1/lib/
-
-# module load openmpi/3.1.5
-# module load qlua/20200107-gpu1080
-#module load qlua/20200107
-
-# EXE=qlua
-EXE=/opt/software/qlua-20200107-gpu1080/qlua/bin/qlua
 
 # cfgpath="/work/lqcd/d20b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/"
 # cfgbase="cl21_48_96_b6p3_m0p2416_m0p2050"
@@ -58,5 +49,6 @@ export OMP_NUM_THREADS=6
 
 for cfg in `seq 1600 10 2200`
 do
-	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
+	# mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
+    srun --mpi=pmix -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
 done
