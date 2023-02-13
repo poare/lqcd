@@ -263,16 +263,16 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         print(Gconn[1])
         print(Gconn[11])
 
-        print("trying trace")
-        Gconn = Gconn:trace()
-        print(Gconn[1])
+        -- print("trying trace")
+        -- Gconn = Gconn:trace()
+        -- print(Gconn[1])
 
 
         -- Write data as a lattice
-        -- local Gconn_lat = L_mom:Complex(0)
-        local Gconn_lat = L_mom:DiracPropagatorN(Nc)
+        local Gconn_lat = L_mom:Complex(0)
+        -- local Gconn_lat = L_mom:DiracPropagatorN(Nc)
         for t = 0, #L_mom - 1 do
-            Gconn_lat[{t}] = Gconn[t]
+            Gconn_lat[{t}] = Gconn[t]:spintrace():trace()
         end
         
         print(Gconn_lat)
