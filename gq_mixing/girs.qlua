@@ -118,7 +118,8 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
     -- p0 = gamma{mu=i} * (U[j+1][origin]:adjoin() * id_prop(Nc))
 
     local mjhat = {0, 0, 0, 0}
-    mjhat[j] = -1
+    -- mjhat[j] = -1
+    mjhat[j] = L[j]-1
     local p1 = gamma{mu=i} * (U[j+1][mjhat] * id_prop(Nc))
     -- local p1 = qcd.DiracPropagatorN(Nc)
     -- p1 = gamma{mu=i} * (U[j+1][mjhat] * id_prop(Nc))
@@ -130,7 +131,8 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
     -- p2 = gamma{mu=j} * (U[i+1][origin]:adjoin() * id_prop(Nc))
 
     local mihat = {0, 0, 0, 0}
-    mihat[i] = -1
+    -- mihat[i] = -1
+    mihat[i] = L[i]-1
     local p3 = gamma{mu=j} * (U[i+1][mihat] * id_prop(Nc))
     -- local p3 = qcd.DiracPropagatorN(Nc)
     -- p3 = gamma{mu=j} * (U[i+1][mihat] * id_prop(Nc))
