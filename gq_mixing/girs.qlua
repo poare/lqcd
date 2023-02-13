@@ -18,20 +18,20 @@ require "lib/toAdjoint3"
 function show_propagator(name, m)
     local nc = m:colors()
     for ci = 0, nc - 1 do
-    for cj = 0, nc - 1 do
-        for si = 0, qcd.Ns - 1 do
-            printf("%s[%d,%d,%d,.] ", name, ci,cj,si)
-            for sj = 0, qcd.Ns - 1 do
-              local zv = m[{c=ci,d=si}]
-              local z = zv[{c=cj,d=sj}]
-              printf("  [%1.12e %1.12e]", z:real(), z:imag())
+        for cj = 0, nc - 1 do
+            for si = 0, qcd.Ns - 1 do
+                printf("%s[%d,%d,%d,.] ", name, ci,cj,si)
+                for sj = 0, qcd.Ns - 1 do
+                    local zv = m[{c=ci,d=si}]
+                    local z = zv[{c=cj,d=sj}]
+                    printf("  [%1.12e %1.12e]", z:real(), z:imag())
+                end
+                printf("\n")
             end
-            printf("\n")
-          end
         end
-      end
-      printf("\n")
     end
+    printf("\n")
+end
 
 function init_id_field(L)
   local U = {}
@@ -142,6 +142,7 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
         for beta = 0, Ns - 1 do
             for a = 0, Nc - 1 do
                 for b = 0, Nc - 1 do
+
                     local jhat_coord = table_copy(jhat)
                     jhat_coord.c = b
                     jhat_coord.d = beta
@@ -318,11 +319,11 @@ local gauge_file = string.format(cfgpath.."cfgs/"..cfgbase.."_cfg_%d.lime", cfgn
 
 print("Reading gauge file at: %s\n", gauge_file)
 
-status, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
+-- status, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
 
--- print("Running free field test")
--- status = true
--- U = init_id_field(L)
+print("Running free field test")
+status = true
+U = init_id_field(L)
 
 if status then
     -- project gauge configuration onto SU(3)
