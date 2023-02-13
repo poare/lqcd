@@ -231,7 +231,8 @@ end
 function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, Ns, cfgnum, jobid)
     
     -- local L_mom = qcd.lattice{L[#L-1]}
-    local sp_idxs = {{1, 2}, {1, 3}, {2, 3}}
+    -- local sp_idxs = {{1, 2}, {1, 3}, {2, 3}}
+    local sp_idxs = {{0, 1}, {0, 2}, {1, 2}}
 
     print("Computing point source at (0, 0, 0, 0).")
     local y = {0, 0, 0, 0}
@@ -258,26 +259,9 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         --     )
         -- ):sum(L:MultiSet(L[3], L:pcoord(3)))    -- Only sum over space
 
-        print(Gconn)
-        print(Gconn[0])
-        print(Gconn[1])
-        print(Gconn[11])
-
-        -- print("trying trace")
-        -- Gconn = Gconn:trace()
-        -- print(Gconn[1])
-
-
         -- Write data as a lattice
-        -- local Gconn_lat = L_mom:Complex(0)
-        -- local Gconn_lat = L_mom:DiracPropagatorN(Nc)
         for t = 0, L[3] - 1 do
-            -- Gconn_lat[{t}] = Gconn[t]:spintrace():trace()
-            -- print(Gconn_lat)
-            print("Trying to save Gconn")
             local Gconn_tr = Gconn[t+1]:spintrace():trace()
-            print(Gconn_tr)
-
             local Gpath = string.format("G%d%d/t%d", i, j, t)
             h5_force_write(writer, Gpath, Gconn_tr)
             printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gpath)
