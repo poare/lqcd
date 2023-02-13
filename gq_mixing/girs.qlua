@@ -55,7 +55,7 @@ end
 function toSUn(L, X)
   Nc = 3
   local Y = (X - X:adjoin()) / 2
-  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1,0))):exp()
+  return (Y - Y:trace() / Nc * L:ColorMatrix(complex(1, 0))):exp()
 end
 
 function weak_SUn(L, S)
@@ -98,7 +98,7 @@ function id_prop(Nc)
     local dv = qcd.DiracFermionN(Nc)
     for s = 0, Ns - 1 do
         for c = 0, Nc - 1 do
-            dv[{c=c, d=s}] = complex(1)
+            dv[{c=c, d=s}] = complex(1, 0)
             prop[{c=c, d=s}] = dv
         end
     end
