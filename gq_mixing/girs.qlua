@@ -273,18 +273,18 @@ end
 -- beta = 6.3
 -- mq = -0.2416
 
-Lx = 16
-Lt = 48
-beta = 6.1
-mq = -0.2450
+local Lx = 16
+local Lt = 48
+local beta = 6.1
+local mq = -0.2450
 
 printf("Light quark mass: %d, beta: %d", mq, beta)
-kappa = 1 / (2 * mq + 8)
+local kappa = 1 / (2 * mq + 8)
 
-Nc = 3    -- qcd.Nc
-Ns = 4
-L = qcd.lattice{Lx, Lx, Lx, Lt}
-lqcd_dir = "/home/lqcd/poare"    -- specify what the file path to lqcd is
+local Nc = 3    -- qcd.Nc
+local Ns = 4
+local L = qcd.lattice{Lx, Lx, Lx, Lt}
+local lqcd_dir = "/home/lqcd/poare"    -- specify what the file path to lqcd is
 
 vol = 1        -- spatial volume
 for i = 0, #L - 2 do
@@ -292,9 +292,9 @@ for i = 0, #L - 2 do
 end
 
 -- Paths to output file.
-folder = string.format("/work/lqcd/d20b/users/poare/gq_mixing/girs")
-out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+local folder = string.format("/work/lqcd/d20b/users/poare/gq_mixing/girs")
+local out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
+local filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
@@ -325,24 +325,23 @@ status, U, finfo1, info1 = pcall(load_conf, L, gauge_file)
 -- U = init_id_field(L)
 
 if status then
-  -- project gauge configuration onto SU(3)
-  for mu = 0, #L-1 do
+    -- project gauge configuration onto SU(3)
+    for mu = 0, #L-1 do
     U[mu + 1] = group.toGroup(U[mu + 1])
-  end
+    end
 
-  -- Open file writer
-  local hdf5params = { method = "phdf5" }
-  local writer = qcd.hdf5.Writer(filename, hdf5params)
+    -- Open file writer
+    local hdf5params = { method = "phdf5" }
+    local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-  nsrc = 1
-  printf("Gauge file read. Computing NPR with %d point sources.", nsrc)
---   compute_girs_ptsource(L, U, ferm_prop, t_list_NPR, vol, group, clover, writer, Nc, nsrc, cfgnum, jobid)
-compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, Ns, cfgnum, jobid)
+    printf("Gauge file read. Computing NPR with point source at origin.")
+    --   compute_girs_ptsource(L, U, ferm_prop, t_list_NPR, vol, group, clover, writer, Nc, nsrc, cfgnum, jobid)
+    compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, Ns, cfgnum, jobid)
 
-  print("Finished.")
-  writer:close()
+    print("Finished.")
+    writer:close()
 else
-  printf("No gauge field configuration at %s.\n", gauge_file)
+    printf("No gauge field configuration at %s.\n", gauge_file)
 end
 
 -- qcd.quda.fini()
