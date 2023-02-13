@@ -250,7 +250,7 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         local Mij = compute_propagator(U, ferm_prop, Jij)
         local dfor_Mij = U[j+1] * Mij:shift(j, "from_forward") - U[j+1]:shift(j, "from_backward"):adjoin() * Mij:shift(j, "from_backward")
         local dback_Mij = U[i+1] * Mij:shift(i, "from_forward") - U[i+1]:shift(i, "from_backward"):adjoin() * Mij:shift(i, "from_backward")
-        local Gconn = ((vol/2) * antiprop_pt * (gamma{mu=i} * dfor_Mij + gamma{mu=j} * dback_Mij)):sum(L:MultiSet(L[3], L:pcoord(3))):spintrace():trace()
+        local Gconn = ((vol/2) * antiprop_pt * (gamma{mu=i} * dfor_Mij + gamma{mu=j} * dback_Mij)):sum(L:MultiSet(L[3], L:pcoord(3)))
         -- local Gconn = (
         --     (vol/2) * antiprop_pt * (
         --         gamma{mu=i} * (U[j+1] * Mij:shift(j, "from_forward") - U[j+1]:shift(j, "from_backward"):adjoin() * Mij:shift(j, "from_backward")) 
