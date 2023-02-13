@@ -275,7 +275,7 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
             -- Gconn_lat[{t}] = Gconn[t]:spintrace():trace()
             -- print(Gconn_lat)
             print("Trying to save Gconn")
-            local Gconn_tr = Gconn[{t}]:spintrace():trace()
+            local Gconn_tr = Gconn[t+1]:spintrace():trace()
             print(Gconn_tr)
 
             local Gpath = string.format("G%d%d/t%d", i, j, t)
