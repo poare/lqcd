@@ -50,5 +50,5 @@ export OMP_NUM_THREADS=6
 for cfg in `seq 1600 10 2200`
 do
 	# mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
-    srun --mpi=pmix -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
+    srun --mpi=pmix --ntasks=4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/girs.qlua > ${logs}/cfg${cfg}.txt
 done
