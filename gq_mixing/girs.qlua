@@ -248,6 +248,7 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         local j = sp_idxs[idx][2]
         printf("Inverting source Jij for (i, j) = (%d, %d).", i, j)
         local Jij = construct_Jsrc(L, U, i, j, Nc, Ns)
+        show_propagator("J at origin", Jij[{1, 0, 0, 0}])
         local Mij = compute_propagator(U, ferm_prop, Jij)
         local dfor_Mij = U[j+1] * Mij:shift(j, "from_forward") - U[j+1]:shift(j, "from_backward"):adjoin() * Mij:shift(j, "from_backward")
         local dback_Mij = U[i+1] * Mij:shift(i, "from_forward") - U[i+1]:shift(i, "from_backward"):adjoin() * Mij:shift(i, "from_backward")
