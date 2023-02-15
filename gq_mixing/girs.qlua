@@ -259,9 +259,12 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         --     )
         -- ):sum(L:MultiSet(L[3], L:pcoord(3)))    -- Only sum over space
 
+        print(Gconn[3])
+
         -- Write data as a lattice
         for t = 0, L[3] - 1 do
             local Gconn_tr = Gconn[t+1]:spintrace():trace()
+            print(Gconn_tr)
             local Gpath = string.format("G%d%d/t%d", i, j, t)
             h5_force_write(writer, Gpath, Gconn_tr)
             printf("Matrix element Gqg%d%d written at: %s\n", i, j, Gpath)
