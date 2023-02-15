@@ -146,15 +146,15 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
     -- Populate propagator at correct locations. 
     -- TODO make sure this is storing the correct propagator and not its transpose (i.e. may want to switch 
     -- the role of a <--> b and alpha <--> beta).
-    for alpha = 0, Ns - 1 do
-        for beta = 0, Ns - 1 do
-            for a = 0, Nc - 1 do
-                for b = 0, Nc - 1 do
+    Jsrc[jhat] = p0
+    Jsrc[mjhat] = p1
+    Jsrc[ihat] = p2
+    Jsrc[mihat] = p3
 
-                    Jsrc[jhat] = p0
-                    Jsrc[mjhat] = p1
-                    Jsrc[ihat] = p2
-                    Jsrc[mihat] = p3
+    -- for alpha = 0, Ns - 1 do
+    --     for beta = 0, Ns - 1 do
+    --         for a = 0, Nc - 1 do
+    --             for b = 0, Nc - 1 do
 
                     -- local jhat_coord = table_copy(jhat)
                     -- jhat_coord.c = b
@@ -182,10 +182,10 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
                     -- mihat_coord.d = beta
                     -- Jsrc[{c=a, d=alpha}][mihat_coord] = p3[{c=a, d=alpha}][{c=b, d=beta}]
                     
-                end
-            end
-        end
-    end
+    --             end
+    --         end
+    --     end
+    -- end
     print("Showing source at jhat = : ")
     print(jhat)
     show_propagator("Jij[jhat]", Jsrc[jhat])
