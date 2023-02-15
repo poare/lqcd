@@ -110,6 +110,9 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
     local Jsrc = L:DiracPropagatorN(Nc)
     local origin = {0, 0, 0, 0}
 
+    print("Identity propagator:")
+    show_propagator("id", id_prop(Nc))
+
     -- Initialize non-latticized propagator objects
     local jhat = {0, 0, 0, 0}
     jhat[j] = 1
@@ -149,6 +152,8 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
                     jhat_coord.c = b
                     jhat_coord.d = beta
                     Jsrc[{c=a, d=alpha}][jhat_coord] = p0[{c=a, d=alpha}][{c=b, d=beta}]
+                    print("p0[alpha,beta,a,b]:")
+                    print(p0[{c=a, d=alpha}][{c=b, d=beta}])
 
                     local mjhat_coord = table_copy(mjhat)
                     mjhat_coord.c = b
