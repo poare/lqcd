@@ -154,7 +154,8 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
                     local jhat_coord = table_copy(jhat)
                     jhat_coord.c = b
                     jhat_coord.d = beta
-                    Jsrc[{c=a, d=alpha}][jhat_coord] = p0[{c=a, d=alpha}][{c=b, d=beta}]
+                    -- Jsrc[{c=a, d=alpha}][jhat_coord] = p0[{c=a, d=alpha}][{c=b, d=beta}]
+                    Jsrc[{c=a, d=alpha}][jhat_coord] = Jsrc[{c=a, d=alpha}][jhat_coord] + p0[{c=a, d=alpha}][{c=b, d=beta}]
                     print("p0[alpha,beta,a,b]:")
                     print(p0[{c=a, d=alpha}][{c=b, d=beta}])
                     print("Jsrc[coord]:")
