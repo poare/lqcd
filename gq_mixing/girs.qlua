@@ -259,7 +259,8 @@ function compute_girs_one_end(L, U, ferm_prop, vol, group, clover, writer, Nc, N
         --     )
         -- ):sum(L:MultiSet(L[3], L:pcoord(3)))    -- Only sum over space
 
-        print(Gconn[3])
+        -- print(Gconn[3])
+        show_propagator("Gconn[4]", Gconn[4])
 
         -- Write data as a lattice
         for t = 0, L[3] - 1 do
