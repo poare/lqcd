@@ -95,9 +95,10 @@ end
 -- Returns an identity matrix in color and spin space (identity propagator at a single spacetime point)
 function id_prop(Nc)
     local prop = qcd.DiracPropagatorN(Nc)
-    local dv = qcd.DiracFermionN(Nc)
+    -- local dv = qcd.DiracFermionN(Nc)
     for s = 0, Ns - 1 do
         for c = 0, Nc - 1 do
+            local dv = qcd.DiracFermionN(Nc)
             dv[{c=c, d=s}] = complex(1, 0)
             prop[{c=c, d=s}] = dv
         end
