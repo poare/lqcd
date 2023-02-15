@@ -169,6 +169,9 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
             end
         end
     end
+    print("Showing source at jhat = : ")
+    print(jhat)
+    show_propagator("Jij[jhat]", Jsrc[jhat])
     return Jsrc
 end
 
