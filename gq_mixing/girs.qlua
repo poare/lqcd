@@ -151,31 +151,36 @@ function construct_Jsrc(L, U, i, j, Nc, Ns)
             for a = 0, Nc - 1 do
                 for b = 0, Nc - 1 do
 
-                    local jhat_coord = table_copy(jhat)
-                    jhat_coord.c = b
-                    jhat_coord.d = beta
+                    Jsrc[jhat] = p0
+                    Jsrc[mjhat] = p1
+                    Jsrc[ihat] = p2
+                    Jsrc[mihat] = p3
+
+                    -- local jhat_coord = table_copy(jhat)
+                    -- jhat_coord.c = b
+                    -- jhat_coord.d = beta
                     -- Jsrc[{c=a, d=alpha}][jhat_coord] = p0[{c=a, d=alpha}][{c=b, d=beta}]
                     -- Jsrc[{c=a, d=alpha}][jhat_coord] = Jsrc[{c=a, d=alpha}][jhat_coord] + p0[{c=a, d=alpha}][{c=b, d=beta}]
-                    Jsrc[jhat] = p0
-                    print("p0[alpha,beta,a,b]:")
-                    print(p0[{c=a, d=alpha}][{c=b, d=beta}])
-                    print("Jsrc[coord]:")
-                    print(Jsrc[{c=a, d=alpha}][jhat_coord])
+                    
+                    -- print("p0[alpha,beta,a,b]:")
+                    -- print(p0[{c=a, d=alpha}][{c=b, d=beta}])
+                    -- print("Jsrc[coord]:")
+                    -- print(Jsrc[{c=a, d=alpha}][jhat_coord])
 
-                    local mjhat_coord = table_copy(mjhat)
-                    mjhat_coord.c = b
-                    mjhat_coord.d = beta
-                    Jsrc[{c=a, d=alpha}][mjhat_coord] = p1[{c=a, d=alpha}][{c=b, d=beta}]
+                    -- local mjhat_coord = table_copy(mjhat)
+                    -- mjhat_coord.c = b
+                    -- mjhat_coord.d = beta
+                    -- Jsrc[{c=a, d=alpha}][mjhat_coord] = p1[{c=a, d=alpha}][{c=b, d=beta}]
 
-                    local ihat_coord = table_copy(ihat)
-                    ihat_coord.c = b
-                    ihat_coord.d = beta
-                    Jsrc[{c=a, d=alpha}][ihat_coord] = p2[{c=a, d=alpha}][{c=b, d=beta}]
+                    -- local ihat_coord = table_copy(ihat)
+                    -- ihat_coord.c = b
+                    -- ihat_coord.d = beta
+                    -- Jsrc[{c=a, d=alpha}][ihat_coord] = p2[{c=a, d=alpha}][{c=b, d=beta}]
 
-                    local mihat_coord = table_copy(mihat)
-                    mihat_coord.c = b
-                    mihat_coord.d = beta
-                    Jsrc[{c=a, d=alpha}][mihat_coord] = p3[{c=a, d=alpha}][{c=b, d=beta}]
+                    -- local mihat_coord = table_copy(mihat)
+                    -- mihat_coord.c = b
+                    -- mihat_coord.d = beta
+                    -- Jsrc[{c=a, d=alpha}][mihat_coord] = p3[{c=a, d=alpha}][{c=b, d=beta}]
                     
                 end
             end
