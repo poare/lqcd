@@ -68,9 +68,10 @@ styles = {
         'ecap_width'        : 0.4,                          # pts
         'bottom_pad'        : 0.2,                          # pts
         'top_pad'           : 0.95,                         # pts
-        'left_pad'          : 0.2,                          # pts
+        'left_pad'          : 0.22,                          # pts
         'right_pad'         : 0.95,                         # pts
         'asp_ratio'         : 4/3,
+        'linewidth'         : 1.5,
     },
     'prd_twocol*' : {
         'colwidth'          : 510.0 / pts_per_inch,
@@ -88,7 +89,8 @@ styles = {
         'top_pad'           : 1.5,                          # pts
         'left_pad'          : 0.5,                          # pts
         'right_pad'         : 1.5,                          # pts
-        'asp_ratio'         : 4/3
+        'asp_ratio'         : 4/3,
+        'linewidth'         : 1.5,
     },
     'notebook' : {
         'colwidth'          : 10,         # inches
@@ -97,7 +99,7 @@ styles = {
         'tickwidth'         : 1.0,                          # pts
         'ticklength'        : 4.0,                          # pts
         'axeswidth'         : 1.0,                          # pts
-        'markersize'        : 2.0,                          # pts
+        'markersize'        : 30.0,                          # pts
         'ebar_width'        : 1.0,                          # pts
         'endcaps'           : 2.0,                          # pts
         'ecap_width'        : 1.0,                          # pts
@@ -106,6 +108,25 @@ styles = {
         'left_pad'          : 0.5,                          # pts
         'right_pad'         : 1.5,                          # pts
         'asp_ratio'         : 2.0,
+        'linewidth'         : 3.0,
+    },
+    'notebook_square' : {
+        'colwidth'          : 8,         # inches
+        'textwidth'         : 510.0 / pts_per_inch,         # inches
+        'fontsize'          : 20.0,                         # pts
+        'tickwidth'         : 1.0,                          # pts
+        'ticklength'        : 4.0,                          # pts
+        'axeswidth'         : 1.0,                          # pts
+        'markersize'        : 30.0,                          # pts
+        'ebar_width'        : 1.0,                          # pts
+        'endcaps'           : 2.0,                          # pts
+        'ecap_width'        : 1.0,                          # pts
+        'bottom_pad'        : 0.5,                          # pts
+        'top_pad'           : 1.5,                          # pts
+        'left_pad'          : 0.5,                          # pts
+        'right_pad'         : 1.5,                          # pts
+        'asp_ratio'         : 1.0,
+        'linewidth'         : 1.5,
     },
     'multiplot_nb' : {
         'colwidth'          : 30,         # inches
@@ -123,24 +144,27 @@ styles = {
         'left_pad'          : 1.0,                          # pts
         'right_pad'         : 3.0,                          # pts
         'asp_ratio'         : 2.0,
+        'linewidth'         : 1.5,
     },
     'talk' : {
-        'colwidth'          : 400.0 / pts_per_inch,
-        'textwidth'         : 400.0 / pts_per_inch,
-        'fontsize'          : 15.0,
+        'colwidth'          : 600.0 / pts_per_inch,
+        'textwidth'         : 600.0 / pts_per_inch,
+        'fontsize'          : 20.0,
+        # 'fontsize'          : 50.0,
         'tickwidth'         : 0.5,
         'ticklength'        : 4.0,
         'spinewidth'        : 0.5,
         'axeswidth'         : 0.5,                          # pts
-        'markersize'        : 1.0,                          # pts
-        'ebar_width'        : 1.0,                          # pts
-        'endcaps'           : 1.0,                          # pts
-        'ecap_width'        : 1.0,                          # pts
+        'markersize'        : 10.0,                         # pts
+        'ebar_width'        : 2.0,                          # pts
+        'endcaps'           : 2.0,                          # pts
+        'ecap_width'        : 2.0,                          # pts
         'bottom_pad'        : 0.5,                          # pts
         'top_pad'           : 1.5,                          # pts
         'left_pad'          : 0.5,                          # pts
         'right_pad'         : 1.5,                          # pts
         'asp_ratio'         : 4/3,
+        'linewidth'         : 1.5,
     },
 }
 
@@ -222,7 +246,7 @@ class Table:
             for i in range(entries.shape[0]):
                 for j in range(entries.shape[1]):
                     # Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma is -1 else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
-                    Entries[i, j] = Entry(entries[i, j], sf = sf) if not sigma else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
+                    Entries[i, j] = Entry(entries[i, j], sf = sf) if sigma is None else Entry(entries[i, j], sigma = sigma[i, j], sf = sf)
             self._entries = Entries
         self.update()
 

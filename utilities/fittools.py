@@ -216,12 +216,12 @@ class Model:
                     sum += c * (x ** n[ii])
                 return sum
             return model
-        m = Model(model_fn, n_params, str_terms = ['(x^' + str(nn) + ')' for nn in n])
+        m = Model(model_fn, n_params, str_terms = ['(x^' + str(nn) + ')' for nn in n], coeff_names = ['c' + str(nn) for nn in n])
         return m
 
 class Fitter:
     """
-    Base Fitter class from which all other fitters inhereit and implement instances of
+    Base Fitter class from which all other fitters inherit.
     """
 
     def __init__(self):
@@ -233,6 +233,10 @@ class Fitter:
         self.chi2_sym = self.get_chi2_sym()
 
     def shrink_covar(self, lam):
+        """
+        Performs linear shrinkage to the covariance matrix for the fitter. Note that here 
+        lam = 0.0 is uncorrelated, and lam = 1.0 is fully correlated. 
+        """
         if lam == 0:
             self.corr = False
         self.covar = shrinkage(self.covar, lam)
@@ -404,7 +408,7 @@ class CorrFitter(Fitter):
         cvs : np.array (npts)
             Central values for the fit.
         cov : np.array (npts, npts)
-            Uncertainties for the fit.
+            Correlation matrix for the fit.
         model : Model
             Fit model to use.
         corr : bool
@@ -474,7 +478,7 @@ def get_covariance(R, dof = 1):
     nb = R.shape[0]
     mu = np.mean(R, axis = 0)
     cov = np.einsum('bi,bj->ij', R - mu, R - mu) / (nb - dof)
-    assert np.max(cov - np.cov(R.T, ddof = 1)) < 1e-10
+    assert np.max(cov - np.cov(R.T, ddof = 1)) < 1e-8, 'Deviation is: ' + str(np.max(cov - np.cov(R.T, ddof = 1)))
     return cov
 
 def shrinkage(covar, lam):
@@ -490,6 +494,17 @@ def shrinkage(covar, lam):
         uncorr_covar[i, i] = covar[i, i]
     shrunk_cov = lam * covar + (1 - lam) * uncorr_covar
     return shrunk_cov
+
+def get_corr_matrix(covar):
+    """
+    Gets the correlation matrix from a given covariance matrix. The correlation is defined 
+    as Corr[X_i, X_j] = Cov[X_i, X_j] / \sigma(X_i) \sigma(X_j)
+    """
+    n = len(covar)
+    corr = covar.copy()
+    for i, j in itertools.product(range(n), repeat = 2):
+        corr[i, j] /= np.sqrt(covar[i, i] * covar[j, j])
+    return corr
 
 def fit_const(fit_region, data, cov):
     """
