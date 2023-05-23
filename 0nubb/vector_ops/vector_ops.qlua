@@ -53,7 +53,7 @@ end
  4. Three point function for operators V1, V2, V3, V4 used in 0nubb. Note that we first Fierz the indices on the operators to 
   make the contractions faster. 
 ]]
-function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, op_list, lbl_list, vol, writer, gpu)
+function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, op_list, lbl_list, vol, writer)
   local bvec = {0,0,0,0.5}
   print("Computing with momentum sources.")
 
@@ -107,27 +107,9 @@ function compute_npr_momsource_unmixed(L, U, solver, k1_list, k2_list, op_list, 
 
     -- COMPUTE PROPAGATORS
     print("Inverting propagators.")
-    local S_k1
-    local S_k2
-    local S_q
-    if dwf then
-      -- DOMAIN WALL FERMIONS
-      if gpu then
-        local tmp
-        S_k1, tmp = solver:solve(srck1)
-        S_k2, tmp = solver:solve(srck2)
-        S_q, tmp = solver:solve(srcq)
-      else
-        S_k1 = solver(srck1)
-        S_k2 = solver(srck2)
-        S_q = solver(srcq)
-      end
-    else
-      -- CLOVER FERMIONS
-      S_k1 = compute_propagator(U, solver, srck1)
-      S_k2 = compute_propagator(U, solver, srck2)
-      S_q = compute_propagator(U, solver, srcq)
-    end
+    local S_k1 = compute_propagator(U, solver, srck1)
+    local S_k2 = compute_propagator(U, solver, srck2)
+    local S_q = compute_propagator(U, solver, srcq)
 
     local mom4_prop_k1 = (k1FT * S_k1):sum() / vol
     local mom4_prop_k2 = (k2FT * S_k2):sum() / vol
@@ -342,7 +324,7 @@ local hdf5params = { method = "phdf5" }
 local writer = qcd.hdf5.Writer(filename, hdf5params)
 
 print("Computing vector / axial three point functions and all color-unmixed bilinears.")
-compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, op_list, lbl_list, vol, writer, gpu)
+compute_npr_momsource_unmixed(L, U, solver, k1_list_NPR, k2_list_NPR, op_list, lbl_list, vol, writer)
 
 writer:close()
 

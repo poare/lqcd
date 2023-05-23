@@ -5,7 +5,7 @@
 #SBATCH --job-name=vector_op_npr
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=long
+#SBATCH --partition=a100l
 #SBATCH -t 48:00:00
 
 set -x
@@ -14,22 +14,24 @@ set -x
 cd /home/lqcd/poare/lqcd/mosaic
 
 bash
-module load openmpi/3.1.5
-#module load qlua
-#module load qlua/20201002
+# module load openmpi/3.1.5
+# module load qlua
+# module load qlua/20201002
+# module load qlua/20200107-gpu1080
 
-gpu=true
-module load qlua/20200107-gpu1080
-#gpu=false
-#module load qlua/20200107
-
+# For a-nodes on wombat
+module load PrgEnv-Wombat
+module load PrgEnv-Qlua
+module load slurm/19.05.4.1
 EXE=qlua
+
+gpu=false
+
+# EXE=qlua
 #EXE=/home/poare/qlua-20210106/qlua/bin/qlua
 
 cfgpath="/work/lqcd/d20b/ensembles/isoClover/"
 cfgbase="cl3_32_48_b6p1_m0p2450"
-
-#gpu=true
 
 home=/home/lqcd/poare/lqcd/0nubb/vector_ops
 logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
@@ -48,5 +50,5 @@ export OMP_NUM_THREADS=6
 #for cfg in '1210' '1220' '1230'
 # do
 cfg=1230
-	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/0nubb.qlua > ${logs}/cfg${cfg}.txt
+	srun --mpi=pmix --ntasks=4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/vector_ops.qlua > ${logs}/cfg${cfg}.txt
 # done
