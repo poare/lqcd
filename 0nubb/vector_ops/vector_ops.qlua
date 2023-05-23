@@ -289,7 +289,7 @@ local lbl_list = {
   "A0T21", "A1T02", "A2T10"
 }
 
-print("Computing %d gamma matrix correlators.", #op_list)
+printf("Computing %d gamma matrix correlators.", #op_list)
 
 -- FOR TESTING PURPOSES ONLY, MAKE SURE THIS AGREES WITH RI'-MOM AT MOMENTA 0
 -- local k1_list_NPR = {{0, 0, 0, 0}}
@@ -314,7 +314,7 @@ end
 solver = propagator.make_from_ferm(clover, 1e-20, 1000)
 gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
 status, U, finfo, info = pcall(load_conf, L, gauge_file)
-print("Reading gauge file at: %s\n", gauge_file)
+printf("Reading gauge file at: %s\n", gauge_file)
 
 -- project gauge configuration onto SU(3)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
