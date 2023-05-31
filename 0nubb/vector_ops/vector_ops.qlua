@@ -319,6 +319,8 @@ printf("Reading gauge file at: %s\n", gauge_file)
 -- project gauge configuration onto SU(3)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 
+print("Here")
+
 -- Open file writer
 local hdf5params = { method = "phdf5" }
 local writer = qcd.hdf5.Writer(filename, hdf5params)

@@ -1,0 +1,341 @@
+Job ID: 197064.
+Evaluating configurations at: /work/lqcd/d20b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450.
+OUTPUT FILE WILL WRITE TO: /work/lqcd/d20b/users/poare/0nubb/vector_ops/meas/cl3_32_48_b6p1_m0p2450_197064/cfg1230.h5
+[1]:Initializing momenta.
+[1]:Initializing solver.
+[2]:Initializing momenta.
+[2]:Initializing solver.
+[3]:Initializing momenta.
+[3]:Initializing solver.
+[0]:Initializing momenta.
+Computing 32 gamma matrix correlators.[0]:Initializing solver.
+DML_partition_in times: read 4.22  send 0.00  total 6.18
+Reading gauge file at: /work/lqcd/d20b/ensembles/isoClover/cl3_32_48_b6p1_m0p2450_smeared_gf/landau/cl3_32_48_b6p1_m0p2450_cfg_1230.lime
+[3]:Here
+[1]:Here
+[2]:Here
+[0]:Here
+[2]:Computing vector / axial three point functions and all color-unmixed bilinears.
+[2]:Computing with momentum sources.
+[3]:Computing vector / axial three point functions and all color-unmixed bilinears.
+[3]:Computing with momentum sources.
+[1]:Computing vector / axial three point functions and all color-unmixed bilinears.
+[1]:Computing with momentum sources.
+[0]:Computing vector / axial three point functions and all color-unmixed bilinears.
+[0]:Computing with momentum sources.
+p index: 1
+[2]:Inverting propagators.
+k1 is (-2, 0, 2, 0), k2 is (0, 2, 2, 0), q is (2, 2, 0, 0).[0]:Inverting propagators.
+[1]:Inverting propagators.
+[3]:Inverting propagators.
+TIME propagator computation: 10.622 sec
+TIME propagator computation: 10.953 sec
+TIME propagator computation: 20.072 sec
+Inverting s = 0, c = 0
+CLOVER CG solver: status = 0, eps = 8.0491e-41, iters = 239, time = 116.194 sec, perf = 3144.61 MFlops/sec
+TIME s = 0, c = 0: 117.190 sec
+|D*prop - src|^2: 1.80e-23
+|D*prop - src|^2/|src|^2: 3.87e-30
+TIME s = 0, c = 0: 118.321 sec
+Inverting s = 0, c = 1
+CLOVER CG solver: status = 0, eps = 7.5347e-41, iters = 239, time = 116.712 sec, perf = 3130.64 MFlops/sec
+TIME s = 0, c = 1: 117.716 sec
+|D*prop - src|^2: 1.75e-23
+|D*prop - src|^2/|src|^2: 3.77e-30
+TIME s = 0, c = 1: 118.842 sec
+Inverting s = 0, c = 2
+CLOVER CG solver: status = 0, eps = 7.7311e-41, iters = 239, time = 116.711 sec, perf = 3130.66 MFlops/sec
+TIME s = 0, c = 2: 117.716 sec
+|D*prop - src|^2: 1.72e-23
+|D*prop - src|^2/|src|^2: 3.67e-30
+TIME s = 0, c = 2: 118.840 sec
+Inverting s = 1, c = 0
+CLOVER CG solver: status = 0, eps = 8.1362e-41, iters = 239, time = 116.992 sec, perf = 3123.15 MFlops/sec
+TIME s = 1, c = 0: 117.996 sec
+|D*prop - src|^2: 1.77e-23
+|D*prop - src|^2/|src|^2: 3.83e-30
+TIME s = 1, c = 0: 119.121 sec
+Inverting s = 1, c = 1
+CLOVER CG solver: status = 0, eps = 8.1079e-41, iters = 239, time = 116.914 sec, perf = 3125.23 MFlops/sec
+TIME s = 1, c = 1: 117.921 sec
+|D*prop - src|^2: 1.74e-23
+|D*prop - src|^2/|src|^2: 3.74e-30
+TIME s = 1, c = 1: 119.073 sec
+Inverting s = 1, c = 2
+CLOVER CG solver: status = 0, eps = 8.8105e-41, iters = 239, time = 116.921 sec, perf = 3125.06 MFlops/sec
+TIME s = 1, c = 2: 117.925 sec
+|D*prop - src|^2: 1.70e-23
+|D*prop - src|^2/|src|^2: 3.64e-30
+TIME s = 1, c = 2: 119.050 sec
+Inverting s = 2, c = 0
+CLOVER CG solver: status = 0, eps = 8.3055e-41, iters = 238, time = 116.511 sec, perf = 3123.10 MFlops/sec
+TIME s = 2, c = 0: 117.515 sec
+|D*prop - src|^2: 1.79e-23
+|D*prop - src|^2/|src|^2: 3.86e-30
+TIME s = 2, c = 0: 118.641 sec
+Inverting s = 2, c = 1
+CLOVER CG solver: status = 0, eps = 7.1096e-41, iters = 239, time = 116.963 sec, perf = 3123.92 MFlops/sec
+TIME s = 2, c = 1: 117.967 sec
+|D*prop - src|^2: 1.75e-23
+|D*prop - src|^2/|src|^2: 3.77e-30
+TIME s = 2, c = 1: 119.099 sec
+Inverting s = 2, c = 2
+CLOVER CG solver: status = 0, eps = 8.5267e-41, iters = 238, time = 116.470 sec, perf = 3124.19 MFlops/sec
+TIME s = 2, c = 2: 117.475 sec
+|D*prop - src|^2: 1.71e-23
+|D*prop - src|^2/|src|^2: 3.66e-30
+TIME s = 2, c = 2: 118.601 sec
+Inverting s = 3, c = 0
+CLOVER CG solver: status = 0, eps = 9.1133e-41, iters = 238, time = 116.550 sec, perf = 3122.03 MFlops/sec
+TIME s = 3, c = 0: 117.555 sec
+|D*prop - src|^2: 1.78e-23
+|D*prop - src|^2/|src|^2: 3.82e-30
+TIME s = 3, c = 0: 118.680 sec
+Inverting s = 3, c = 1
+CLOVER CG solver: status = 0, eps = 7.0470e-41, iters = 239, time = 117.177 sec, perf = 3118.23 MFlops/sec
+TIME s = 3, c = 1: 118.183 sec
+|D*prop - src|^2: 1.73e-23
+|D*prop - src|^2/|src|^2: 3.73e-30
+TIME s = 3, c = 1: 119.308 sec
+Inverting s = 3, c = 2
+CLOVER CG solver: status = 0, eps = 9.3791e-41, iters = 238, time = 116.536 sec, perf = 3122.41 MFlops/sec
+TIME s = 3, c = 2: 117.543 sec
+|D*prop - src|^2: 1.70e-23
+|D*prop - src|^2/|src|^2: 3.63e-30
+TIME s = 3, c = 2: 118.680 sec
+TIME propagator computation: 1446.360 sec
+TIME propagator computation: 9.247 sec
+TIME propagator computation: 9.562 sec
+TIME propagator computation: 18.677 sec
+Inverting s = 0, c = 0
+CLOVER CG solver: status = 0, eps = 7.7231e-41, iters = 239, time = 116.740 sec, perf = 3129.91 MFlops/sec
+TIME s = 0, c = 0: 117.734 sec
+|D*prop - src|^2: 1.79e-23
+|D*prop - src|^2/|src|^2: 3.87e-30
+TIME s = 0, c = 0: 118.860 sec
+Inverting s = 0, c = 1
+CLOVER CG solver: status = 0, eps = 6.9358e-41, iters = 239, time = 117.013 sec, perf = 3122.60 MFlops/sec
+TIME s = 0, c = 1: 118.016 sec
+|D*prop - src|^2: 1.75e-23
+|D*prop - src|^2/|src|^2: 3.77e-30
+TIME s = 0, c = 1: 119.141 sec
+Inverting s = 0, c = 2
+CLOVER CG solver: status = 0, eps = 9.2428e-41, iters = 239, time = 117.162 sec, perf = 3118.64 MFlops/sec
+TIME s = 0, c = 2: 118.164 sec
+|D*prop - src|^2: 1.74e-23
+|D*prop - src|^2/|src|^2: 3.67e-30
+TIME s = 0, c = 2: 119.311 sec
+Inverting s = 1, c = 0
+CLOVER CG solver: status = 0, eps = 8.3433e-41, iters = 239, time = 117.299 sec, perf = 3114.97 MFlops/sec
+TIME s = 1, c = 0: 118.300 sec
+|D*prop - src|^2: 1.76e-23
+|D*prop - src|^2/|src|^2: 3.83e-30
+TIME s = 1, c = 0: 119.424 sec
+Inverting s = 1, c = 1
+CLOVER CG solver: status = 0, eps = 8.1554e-41, iters = 239, time = 117.063 sec, perf = 3121.26 MFlops/sec
+TIME s = 1, c = 1: 118.067 sec
+|D*prop - src|^2: 1.73e-23
+|D*prop - src|^2/|src|^2: 3.74e-30
+TIME s = 1, c = 1: 119.216 sec
+Inverting s = 1, c = 2
+CLOVER CG solver: status = 0, eps = 7.6168e-41, iters = 239, time = 117.073 sec, perf = 3121.00 MFlops/sec
+TIME s = 1, c = 2: 118.081 sec
+|D*prop - src|^2: 1.72e-23
+|D*prop - src|^2/|src|^2: 3.63e-30
+TIME s = 1, c = 2: 119.206 sec
+Inverting s = 2, c = 0
+CLOVER CG solver: status = 0, eps = 9.5300e-41, iters = 238, time = 116.742 sec, perf = 3116.90 MFlops/sec
+TIME s = 2, c = 0: 117.745 sec
+|D*prop - src|^2: 1.79e-23
+|D*prop - src|^2/|src|^2: 3.87e-30
+TIME s = 2, c = 0: 118.877 sec
+Inverting s = 2, c = 1
+CLOVER CG solver: status = 0, eps = 6.8976e-41, iters = 239, time = 117.254 sec, perf = 3116.18 MFlops/sec
+TIME s = 2, c = 1: 118.258 sec
+|D*prop - src|^2: 1.74e-23
+|D*prop - src|^2/|src|^2: 3.77e-30
+TIME s = 2, c = 1: 119.383 sec
+Inverting s = 2, c = 2
+CLOVER CG solver: status = 0, eps = 7.8355e-41, iters = 238, time = 116.749 sec, perf = 3116.71 MFlops/sec
+TIME s = 2, c = 2: 117.753 sec
+|D*prop - src|^2: 1.72e-23
+|D*prop - src|^2/|src|^2: 3.66e-30
+TIME s = 2, c = 2: 118.878 sec
+Inverting s = 3, c = 0
+CLOVER CG solver: status = 0, eps = 8.3172e-41, iters = 238, time = 116.656 sec, perf = 3119.22 MFlops/sec
+TIME s = 3, c = 0: 117.659 sec
+|D*prop - src|^2: 1.76e-23
+|D*prop - src|^2/|src|^2: 3.81e-30
+TIME s = 3, c = 0: 118.784 sec
+Inverting s = 3, c = 1
+CLOVER CG solver: status = 0, eps = 9.3957e-41, iters = 238, time = 116.641 sec, perf = 3119.60 MFlops/sec
+TIME s = 3, c = 1: 117.645 sec
+|D*prop - src|^2: 1.73e-23
+|D*prop - src|^2/|src|^2: 3.72e-30
+TIME s = 3, c = 1: 118.771 sec
+Inverting s = 3, c = 2
+CLOVER CG solver: status = 0, eps = 7.7736e-41, iters = 239, time = 116.984 sec, perf = 3123.36 MFlops/sec
+TIME s = 3, c = 2: 117.989 sec
+|D*prop - src|^2: 1.71e-23
+|D*prop - src|^2/|src|^2: 3.63e-30
+TIME s = 3, c = 2: 119.117 sec
+TIME propagator computation: 1447.702 sec
+TIME propagator computation: 9.165 sec
+TIME propagator computation: 9.517 sec
+TIME propagator computation: 18.600 sec
+Inverting s = 0, c = 0
+CLOVER CG solver: status = 0, eps = 7.8205e-41, iters = 239, time = 117.418 sec, perf = 3111.83 MFlops/sec
+TIME s = 0, c = 0: 118.416 sec
+|D*prop - src|^2: 1.78e-23
+|D*prop - src|^2/|src|^2: 3.87e-30
+TIME s = 0, c = 0: 119.540 sec
+Inverting s = 0, c = 1
+CLOVER CG solver: status = 0, eps = 7.0601e-41, iters = 239, time = 117.432 sec, perf = 3111.46 MFlops/sec
+TIME s = 0, c = 1: 118.432 sec
+|D*prop - src|^2: 1.75e-23
+|D*prop - src|^2/|src|^2: 3.77e-30
+TIME s = 0, c = 1: 119.559 sec
+Inverting s = 0, c = 2
+CLOVER CG solver: status = 0, eps = 8.5051e-41, iters = 239, time = 117.547 sec, perf = 3108.40 MFlops/sec
+TIME s = 0, c = 2: 118.549 sec
+|D*prop - src|^2: 1.73e-23
+|D*prop - src|^2/|src|^2: 3.68e-30
+TIME s = 0, c = 2: 119.674 sec
+Inverting s = 1, c = 0
+CLOVER CG solver: status = 0, eps = 7.9393e-41, iters = 239, time = 117.298 sec, perf = 3115.01 MFlops/sec
+TIME s = 1, c = 0: 118.299 sec
+|D*prop - src|^2: 1.77e-23
+|D*prop - src|^2/|src|^2: 3.84e-30
+TIME s = 1, c = 0: 119.424 sec
+Inverting s = 1, c = 1
+CLOVER CG solver: status = 0, eps = 7.7524e-41, iters = 239, time = 117.688 sec, perf = 3104.68 MFlops/sec
+TIME s = 1, c = 1: 118.690 sec
+|D*prop - src|^2: 1.75e-23
+|D*prop - src|^2/|src|^2: 3.75e-30
+TIME s = 1, c = 1: 119.830 sec
+Inverting s = 1, c = 2
+CLOVER CG solver: status = 0, eps = 9.0228e-41, iters = 239, time = 117.644 sec, perf = 3105.85 MFlops/sec
+TIME s = 1, c = 2: 118.646 sec
+|D*prop - src|^2: 1.72e-23
+|D*prop - src|^2/|src|^2: 3.65e-30
+TIME s = 1, c = 2: 119.780 sec
+Inverting s = 2, c = 0
+CLOVER CG solver: status = 0, eps = 8.5321e-41, iters = 238, time = 116.932 sec, perf = 3111.85 MFlops/sec
+TIME s = 2, c = 0: 117.938 sec
+|D*prop - src|^2: 1.78e-23
+|D*prop - src|^2/|src|^2: 3.86e-30
+TIME s = 2, c = 0: 119.064 sec
+Inverting s = 2, c = 1
+CLOVER CG solver: status = 0, eps = 8.9076e-41, iters = 238, time = 117.391 sec, perf = 3099.67 MFlops/sec
+TIME s = 2, c = 1: 118.403 sec
+|D*prop - src|^2: 1.75e-23
+|D*prop - src|^2/|src|^2: 3.77e-30
+TIME s = 2, c = 1: 119.529 sec
+Inverting s = 2, c = 2
+CLOVER CG solver: status = 0, eps = 7.0456e-41, iters = 239, time = 117.849 sec, perf = 3100.44 MFlops/sec
+TIME s = 2, c = 2: 118.855 sec
+|D*prop - src|^2: 1.72e-23
+|D*prop - src|^2/|src|^2: 3.67e-30
+TIME s = 2, c = 2: 119.981 sec
+Inverting s = 3, c = 0
+CLOVER CG solver: status = 0, eps = 8.5494e-41, iters = 238, time = 117.244 sec, perf = 3103.56 MFlops/sec
+TIME s = 3, c = 0: 118.247 sec
+|D*prop - src|^2: 1.76e-23
+|D*prop - src|^2/|src|^2: 3.83e-30
+TIME s = 3, c = 0: 119.373 sec
+Inverting s = 3, c = 1
+CLOVER CG solver: status = 0, eps = 8.3103e-41, iters = 238, time = 117.317 sec, perf = 3101.63 MFlops/sec
+TIME s = 3, c = 1: 118.322 sec
+|D*prop - src|^2: 1.74e-23
+|D*prop - src|^2/|src|^2: 3.74e-30
+TIME s = 3, c = 1: 119.447 sec
+Inverting s = 3, c = 2
+CLOVER CG solver: status = 0, eps = 7.0710e-41, iters = 239, time = 117.623 sec, perf = 3106.41 MFlops/sec
+TIME s = 3, c = 2: 118.627 sec
+|D*prop - src|^2: 1.71e-23
+|D*prop - src|^2/|src|^2: 3.64e-30
+TIME s = 3, c = 2: 119.760 sec
+TIME propagator computation: 1453.621 sec
+Propagator for momentum k1 written at path: prop_k1/q2200
+Propagator for momentum k2 written at path: prop_k2/q2200
+Propagator for momentum q written at path: prop_q/q2200
+Matrix element GV1 written at: GV1/q2200
+Matrix element GA1 written at: GA1/q2200
+Matrix element GV2 written at: GV2/q2200
+Matrix element GA2 written at: GA2/q2200
+Matrix element GV3 written at: GV3/q2200
+Matrix element GA3 written at: GA3/q2200
+[3]:Evaluating three point functions.
+[2]:Evaluating three point functions.
+[1]:Evaluating three point functions.
+Matrix element GV4 written at: GV4/q2200
+Matrix element GA4 written at: GA4/q2200
+[0]:Evaluating three point functions.
+[1]:Evaluating correlator for %s.	V0S
+[0]:Evaluating correlator for %s.	V0S
+[3]:Evaluating correlator for %s.	V0S
+[2]:Evaluating correlator for %s.	V0S
+[1]:Evaluating correlator for %s.	V1S
+V0S written at: V0S/q2200[0]:Evaluating correlator for %s.	V1S
+[3]:Evaluating correlator for %s.	V1S
+[2]:Evaluating correlator for %s.	V1S
+[3]:Evaluating correlator for %s.	V2S
+[1]:Evaluating correlator for %s.	V2S
+V1S written at: V1S/q2200[0]:Evaluating correlator for %s.	V2S
+[2]:Evaluating correlator for %s.	V2S
+V2S written at: V2S/q2200[0]:Evaluating correlator for %s.	V3S
+[3]:Evaluating correlator for %s.	V3S
+[1]:Evaluating correlator for %s.	V3S
+[2]:Evaluating correlator for %s.	V3S
+[1]:Evaluating correlator for %s.	A0P
+V3S written at: V3S/q2200[0]:Evaluating correlator for %s.	A0P
+[3]:Evaluating correlator for %s.	A0P
+[2]:Evaluating correlator for %s.	A0P
+[3]:Evaluating correlator for %s.	A1P
+[1]:Evaluating correlator for %s.	A1P
+A0P written at: A0P/q2200[0]:Evaluating correlator for %s.	A1P
+[2]:Evaluating correlator for %s.	A1P
+A1P written at: A1P/q2200[0]:Evaluating correlator for %s.	A2P
+[3]:Evaluating correlator for %s.	A2P
+[1]:Evaluating correlator for %s.	A2P
+[2]:Evaluating correlator for %s.	A2P
+[1]:Evaluating correlator for %s.	A3P
+A2P written at: A2P/q2200[0]:Evaluating correlator for %s.	A3P
+[3]:Evaluating correlator for %s.	A3P
+[2]:Evaluating correlator for %s.	A3P
+[3]:Evaluating correlator for %s.	T01V1
+[1]:Evaluating correlator for %s.	T01V1
+A3P written at: A3P/q2200[0]:Evaluating correlator for %s.	T01V1
+[2]:Evaluating correlator for %s.	T01V1
+T01V1 written at: T01V1/q2200[0]:Evaluating correlator for %s.	T02V2
+[3]:Evaluating correlator for %s.	T02V2
+[1]:Evaluating correlator for %s.	T02V2
+[2]:Evaluating correlator for %s.	T02V2
+[1]:Evaluating correlator for %s.	T03V3
+T02V2 written at: T02V2/q2200[0]:Evaluating correlator for %s.	T03V3
+[3]:Evaluating correlator for %s.	T03V3
+[2]:Evaluating correlator for %s.	T03V3
+[3]:Evaluating correlator for %s.	T10V0
+[1]:Evaluating correlator for %s.	T10V0
+T03V3 written at: T03V3/q2200[0]:Evaluating correlator for %s.	T10V0
+[2]:Evaluating correlator for %s.	T10V0
+T10V0 written at: T10V0/q2200[0]:Evaluating correlator for %s.	T12V2
+[3]:Evaluating correlator for %s.	T12V2
+[1]:Evaluating correlator for %s.	T12V2
+[2]:Evaluating correlator for %s.	T12V2
+[1]:Evaluating correlator for %s.	T13V3
+T12V2 written at: T12V2/q2200[0]:Evaluating correlator for %s.	T13V3
+[3]:Evaluating correlator for %s.	T13V3
+[2]:Evaluating correlator for %s.	T13V3
+[3]:Evaluating correlator for %s.	T20V0
+[1]:Evaluating correlator for %s.	T20V0
+T13V3 written at: T13V3/q2200[0]:Evaluating correlator for %s.	T20V0
+[2]:Evaluating correlator for %s.	T20V0
+T20V0 written at: T20V0/q2200[0]:Evaluating correlator for %s.	T21V1
+[3]:Evaluating correlator for %s.	T21V1
+[1]:Evaluating correlator for %s.	T21V1
+[2]:Evaluating correlator for %s.	T21V1
+[1]:Evaluating correlator for %s.	T23V3
+T21V1 written at: T21V1/q2200[0]:Evaluating correlator for %s.	T23V3
+[3]:Evaluating correlator for %s.	T23V3
+[2]:Evaluating correlator for %s.	T23V3

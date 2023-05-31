@@ -1,0 +1,84 @@
++ cd /home/lqcd/poare/lqcd/mosaic
++ bash
++ module load slurm/19.05.4.1
+++ /usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash load slurm/19.05.4.1
+Loading slurm/19.05.4.1
+  ERROR: 
++ eval test 0 = '1;'
+++ test 0 = 1
++ _mlstatus=1
++ return 1
++ module load gcc/7.5.0
+++ /usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash load gcc/7.5.0
++ eval 'LD_LIBRARY_PATH=/opt/software/gcc-7.5.0/lib64:/opt/software/gcc-7.5.0/lib:/opt/software/mpc-1.2.1/lib:/opt/software/mpfr-4.1.0/lib:/opt/software/gmp-6.2.1/lib:/opt/software/isl-0.18/lib:/opt/software/slurm-19.05.8.1/lib;' export 'LD_LIBRARY_PATH;' '__MODULES_LMCONFLICT=slurm/19.05.8.1\&slurm:gcc/7.5.0\&gcc;' export '__MODULES_LMCONFLICT;' '__MODULES_SHARE_MANPATH=:1;' export '__MODULES_SHARE_MANPATH;' 'MANPATH=/opt/software/gcc-7.5.0/share/man:::/opt/software/slurm-19.05.8.1/share/man;' export 'MANPATH;' 'PATH=/opt/software/gcc-7.5.0/bin:/home/lqcd/poare/.vscode-server/bin/704ed70d4fd1c6bd6342c436f1ede30d1cff4710/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/software/slurm-19.05.8.1/bin:/home/lqcd/poare/software/julia-1.7.2/bin;' export 'PATH;' '_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.8.1:/opt/software/modules-4.4.0/modulefiles/gcc/7.5.0;' export '_LMFILES_;' 'LOADEDMODULES=slurm/19.05.8.1:gcc/7.5.0;' export 'LOADEDMODULES;' test '0;'
+++ LD_LIBRARY_PATH=/opt/software/gcc-7.5.0/lib64:/opt/software/gcc-7.5.0/lib:/opt/software/mpc-1.2.1/lib:/opt/software/mpfr-4.1.0/lib:/opt/software/gmp-6.2.1/lib:/opt/software/isl-0.18/lib:/opt/software/slurm-19.05.8.1/lib
+++ export LD_LIBRARY_PATH
+++ __MODULES_LMCONFLICT='slurm/19.05.8.1&slurm:gcc/7.5.0&gcc'
+++ export __MODULES_LMCONFLICT
+++ __MODULES_SHARE_MANPATH=:1
+++ export __MODULES_SHARE_MANPATH
+++ MANPATH=/opt/software/gcc-7.5.0/share/man:::/opt/software/slurm-19.05.8.1/share/man
+++ export MANPATH
+++ PATH=/opt/software/gcc-7.5.0/bin:/home/lqcd/poare/.vscode-server/bin/704ed70d4fd1c6bd6342c436f1ede30d1cff4710/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/software/slurm-19.05.8.1/bin:/home/lqcd/poare/software/julia-1.7.2/bin
+++ export PATH
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.8.1:/opt/software/modules-4.4.0/modulefiles/gcc/7.5.0
+++ export _LMFILES_
+++ LOADEDMODULES=slurm/19.05.8.1:gcc/7.5.0
+++ export LOADEDMODULES
+++ test 0
++ _mlstatus=0
++ return 0
++ module load qlua/20201002
+++ /usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash load qlua/20201002
++ eval '__MODULES_LMCONFLICT=slurm/19.05.8.1\&slurm:gcc/7.5.0\&gcc:qlua/20201002\&usqcd;' export '__MODULES_LMCONFLICT;' '__MODULES_SHARE_MANPATH=:1;' export '__MODULES_SHARE_MANPATH;' 'MANPATH=/opt/software/gcc-7.5.0/share/man:::/opt/software/slurm-19.05.8.1/share/man:/opt/software/usqcd-20201002/share/man;' export 'MANPATH;' 'PATH=/opt/software/gcc-7.5.0/bin:/home/lqcd/poare/.vscode-server/bin/704ed70d4fd1c6bd6342c436f1ede30d1cff4710/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/software/slurm-19.05.8.1/bin:/home/lqcd/poare/software/julia-1.7.2/bin:/opt/software/usqcd-20201002/bin;' export 'PATH;' '_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.8.1:/opt/software/modules-4.4.0/modulefiles/gcc/7.5.0:/opt/software/modules-4.4.0/modulefiles/qlua/20201002;' export '_LMFILES_;' 'LOADEDMODULES=slurm/19.05.8.1:gcc/7.5.0:qlua/20201002;' export 'LOADEDMODULES;' test '0;'
+++ __MODULES_LMCONFLICT='slurm/19.05.8.1&slurm:gcc/7.5.0&gcc:qlua/20201002&usqcd'
+++ export __MODULES_LMCONFLICT
+++ __MODULES_SHARE_MANPATH=:1
+++ export __MODULES_SHARE_MANPATH
+++ MANPATH=/opt/software/gcc-7.5.0/share/man:::/opt/software/slurm-19.05.8.1/share/man:/opt/software/usqcd-20201002/share/man
+++ export MANPATH
+++ PATH=/opt/software/gcc-7.5.0/bin:/home/lqcd/poare/.vscode-server/bin/704ed70d4fd1c6bd6342c436f1ede30d1cff4710/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/software/slurm-19.05.8.1/bin:/home/lqcd/poare/software/julia-1.7.2/bin:/opt/software/usqcd-20201002/bin
+++ export PATH
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.8.1:/opt/software/modules-4.4.0/modulefiles/gcc/7.5.0:/opt/software/modules-4.4.0/modulefiles/qlua/20201002
+++ export _LMFILES_
+++ LOADEDMODULES=slurm/19.05.8.1:gcc/7.5.0:qlua/20201002
+++ export LOADEDMODULES
+++ test 0
++ _mlstatus=0
++ return 0
++ module load openmpi/3.1.5
+++ /usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash load openmpi/3.1.5
++ eval '__MODULES_LMCONFLICT=slurm/19.05.8.1\&slurm:gcc/7.5.0\&gcc:qlua/20201002\&usqcd:openmpi/3.1.5\&openmpi;' export '__MODULES_LMCONFLICT;' '__MODULES_SHARE_MANPATH=:1;' export '__MODULES_SHARE_MANPATH;' 'MANPATH=/opt/software/openmpi-3.1.5/share/man:/opt/software/gcc-7.5.0/share/man:::/opt/software/slurm-19.05.8.1/share/man:/opt/software/usqcd-20201002/share/man;' export 'MANPATH;' 'PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/gcc-7.5.0/bin:/home/lqcd/poare/.vscode-server/bin/704ed70d4fd1c6bd6342c436f1ede30d1cff4710/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/software/slurm-19.05.8.1/bin:/home/lqcd/poare/software/julia-1.7.2/bin:/opt/software/usqcd-20201002/bin;' export 'PATH;' '_LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.8.1:/opt/software/modules-4.4.0/modulefiles/gcc/7.5.0:/opt/software/modules-4.4.0/modulefiles/qlua/20201002:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5;' export '_LMFILES_;' 'LOADEDMODULES=slurm/19.05.8.1:gcc/7.5.0:qlua/20201002:openmpi/3.1.5;' export 'LOADEDMODULES;' 'OPENMPI_TOP=/opt/software/openmpi-3.1.5;' export 'OPENMPI_TOP;' test '0;'
+++ __MODULES_LMCONFLICT='slurm/19.05.8.1&slurm:gcc/7.5.0&gcc:qlua/20201002&usqcd:openmpi/3.1.5&openmpi'
+++ export __MODULES_LMCONFLICT
+++ __MODULES_SHARE_MANPATH=:1
+++ export __MODULES_SHARE_MANPATH
+++ MANPATH=/opt/software/openmpi-3.1.5/share/man:/opt/software/gcc-7.5.0/share/man:::/opt/software/slurm-19.05.8.1/share/man:/opt/software/usqcd-20201002/share/man
+++ export MANPATH
+++ PATH=/opt/software/openmpi-3.1.5/bin:/opt/software/gcc-7.5.0/bin:/home/lqcd/poare/.vscode-server/bin/704ed70d4fd1c6bd6342c436f1ede30d1cff4710/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/opt/software/slurm-19.05.8.1/bin:/home/lqcd/poare/software/julia-1.7.2/bin:/opt/software/usqcd-20201002/bin
+++ export PATH
+++ _LMFILES_=/opt/software/modules-4.4.0/modulefiles/slurm/19.05.8.1:/opt/software/modules-4.4.0/modulefiles/gcc/7.5.0:/opt/software/modules-4.4.0/modulefiles/qlua/20201002:/opt/software/modules-4.4.0/modulefiles/openmpi/3.1.5
+++ export _LMFILES_
+++ LOADEDMODULES=slurm/19.05.8.1:gcc/7.5.0:qlua/20201002:openmpi/3.1.5
+++ export LOADEDMODULES
+++ OPENMPI_TOP=/opt/software/openmpi-3.1.5
+++ export OPENMPI_TOP
+++ test 0
++ _mlstatus=0
++ return 0
++ gpu=false
++ EXE=qlua
++ cfgpath=/work/lqcd/d20b/ensembles/isoClover/
++ cfgbase=cl3_32_48_b6p1_m0p2450
++ home=/home/lqcd/poare/lqcd/0nubb/vector_ops
++ logs=/home/lqcd/poare/lqcd/0nubb/vector_ops/logs/cl3_32_48_b6p1_m0p2450_197064
++ output=/work/lqcd/d20b/users/poare/0nubb/vector_ops/meas/cl3_32_48_b6p1_m0p2450_197064
++ mkdir /home/lqcd/poare/lqcd/0nubb/vector_ops/logs/cl3_32_48_b6p1_m0p2450_197064
++ mkdir /home/lqcd/poare/lqcd/0nubb/vector_ops/logs/cl3_32_48_b6p1_m0p2450_197064/no_output
++ mkdir /work/lqcd/d20b/users/poare/0nubb/vector_ops/meas/cl3_32_48_b6p1_m0p2450_197064
++ parameters='jobid = 197064 cfgpath = '\''/work/lqcd/d20b/ensembles/isoClover/'\'' cfgbase = '\''cl3_32_48_b6p1_m0p2450'\'' gpu=false'
++ export OMP_NUM_THREADS=6
++ OMP_NUM_THREADS=6
++ cfg=1230
++ mpirun -np 4 qlua -e 'jobid = 197064 cfgpath = '\''/work/lqcd/d20b/ensembles/isoClover/'\'' cfgbase = '\''cl3_32_48_b6p1_m0p2450'\'' gpu=false cfgnum = 1230' /home/lqcd/poare/lqcd/0nubb/vector_ops/vector_ops.qlua
+slurmstepd: error: *** JOB 197064 ON a85n1 CANCELLED AT 2023-05-27T14:46:03 DUE TO TIME LIMIT ***
