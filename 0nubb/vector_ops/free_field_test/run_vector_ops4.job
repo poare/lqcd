@@ -41,4 +41,4 @@ logs=${home}/logs/free_field_test
 
 export OMP_NUM_THREADS=6
 
-mpirun -np 4 $EXE -e "gpu=${gpu}" ${home}/vector_ops4.qlua > ${logs}/cfg_free_4.txt
+mpirun -np 4 $EXE -e "gpu=${gpu}" ${home}/free_field_test/vector_ops4.qlua > ${logs}/cfg_free_4.txt
