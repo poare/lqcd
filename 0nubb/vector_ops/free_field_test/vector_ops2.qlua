@@ -196,13 +196,6 @@ end
 -------------------------- BEGIN SCRIPT --------------------------
 ------------------------------------------------------------------
 
--- Read in input from bash script.
-if jobid and cfgpath and cfgbase then
-    printf("Job ID: %d.\nEvaluating configurations at: %s%s.\n", jobid, cfgpath, cfgbase)
-else
-    print("No jobid, cfgpath, cfgbase entered.")
-end
-
 -- Set parameters
 Lx = 32
 Lt = 48
@@ -220,14 +213,8 @@ for i = 0, #L - 1 do
   vol = vol * L[i]
 end
 
--- Paths to output file.
-folder = "/work/lqcd/d20b/users/poare/0nubb/vector_ops/meas"
-out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-filename = string.format("%s/cfg%d_2.h5", out_folder, cfgnum)
-
--- FOR TESTING 0 MODE AGAINST RI'-MOM
--- out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
--- filename = string.format("%s/0nubb_output/cfg%d.h5", out_folder, cfgnum)
+-- Path to output file.
+filename = "/work/lqcd/d20b/users/poare/0nubb/vector_ops/free_field/cfg_free_2.h5"
 printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
@@ -235,16 +222,8 @@ local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 local bcs = {1, 1, 1, -1}
 
 -- momenta to compute Z(p) at
-local k1_list_NPR = {}
-local k2_list_NPR = {}
-print("Initializing momenta.")
--- for m = 1, 6 do
--- for m = 7, 10 do
-for m = 2, 3 do
-  local minusM = -m
-  k1_list_NPR[#k1_list_NPR + 1] = {minusM, 0, m, 0}
-  k2_list_NPR[#k2_list_NPR + 1] = {0, m, m, 0}
- end
+local k1_list_NPR = {{-3, 0, 3, 0}}
+local k2_list_NPR = {{0, 3, 3, 0}}
 
 -- Operators to compute RCs of. Note that gamma{n = 0} is the identity. 
 local op_list = {
@@ -264,10 +243,6 @@ local lbl_list = {
 }
 
 printf("Computing %d gamma matrix correlators.", #op_list)
-
--- FOR TESTING PURPOSES ONLY, MAKE SURE THIS AGREES WITH RI'-MOM AT MOMENTA 0
--- local k1_list_NPR = {{0, 0, 0, 0}}
--- local k2_list_NPR = {{0, 0, 0, 0}}
 
 print("Initializing solver.")
 if gpu then
