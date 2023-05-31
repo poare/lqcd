@@ -1,0 +1,13 @@
+# Runs all Wick contractions for vector operators on a free field configuration.
+
+# operators "V0S", "V1S", "V2S", "V3S", "A0P", "A1P", "A2P", "A3P"
+sbatch run_vector_ops1.job
+
+# operators "T01V1", "T02V2", "T03V3", "T10V0", "T12V2", "T13V3", "T20V0", "T21V1"
+sbatch run_vector_ops2.job
+
+# operators "T23V3", "T30V0", "T31V1", "T32V2", "A1T23", "A2T31", "A3T12", "A0T32"
+sbatch run_vector_ops3.job
+
+# operators "A2T30", "A3T20", "A0T13", "A1T30", "A3T01", "A0T21", "A1T02", "A2T10"
+sbatch run_vector_ops4.job

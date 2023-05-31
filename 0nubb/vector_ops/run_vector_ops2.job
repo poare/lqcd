@@ -1,0 +1,61 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=vector_op_npr_2
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=a100r
+#SBATCH -t 48:00:00
+
+cfg=$1
+JOB_ID=$2
+
+set -x
+
+# cd /data/wombat/users/mlwagman/mosaic
+cd /home/lqcd/poare/lqcd/mosaic
+
+bash
+
+# For the p-nodes on wombat
+# module load openmpi
+# module load openmpi/3.1.5
+# module load qlua
+# module load qlua/20201002
+# module load qlua/20200107-gpu1080
+# gpu=true
+
+# For a-nodes on wombat
+#module load PrgEnv-Wombat
+#module load PrgEnv-Qlua
+module load slurm/19.05.4.1
+
+# Seems liek PrgEnv-Qlua has some issues
+module load gcc/7.5.0
+module load qlua/20201002
+module load openmpi/3.1.5
+
+gpu=false
+
+EXE=qlua
+
+cfgpath="/work/lqcd/d20b/ensembles/isoClover/"
+cfgbase="cl3_32_48_b6p1_m0p2450"
+
+home=/home/lqcd/poare/lqcd/0nubb/vector_ops
+# logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
+# output=/work/lqcd/d20b/users/poare/0nubb/vector_ops/meas/${cfgbase}_${SLURM_JOB_ID}
+logs=${home}/logs/${cfgbase}_${JOB_ID}
+output=/work/lqcd/d20b/users/poare/0nubb/vector_ops/meas/${cfgbase}_${JOB_ID}
+
+# mkdir ${logs}
+# mkdir ${logs}/no_output
+# mkdir ${output}
+
+# parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
+parameters="jobid = ${JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gpu=${gpu}"
+export OMP_NUM_THREADS=6
+
+#srun --mpi=pmix --ntasks=4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/vector_ops2.qlua > ${logs}/cfg${cfg}_2.txt
+mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/vector_ops2.qlua > ${logs}/cfg${cfg}_2.txt

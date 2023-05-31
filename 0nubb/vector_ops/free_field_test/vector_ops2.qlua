@@ -15,6 +15,15 @@ end
 ------------------------ UTILITY FUNCTIONS ------------------------
 -------------------------------------------------------------------
 
+function init_id_field(L)
+  local U = {}
+  for mu = 0, #L - 1 do
+    local A = L:ColorMatrixN(Nc, 0.0)
+    U[mu+1] = (A*complex(0,1)):exp()
+  end
+  return U
+end
+
 -- Prints a qcd.DiracPropagator object
 function show_propagator(name, m)
     local nc = m:colors()
@@ -214,7 +223,7 @@ end
 -- Paths to output file.
 folder = "/work/lqcd/d20b/users/poare/0nubb/vector_ops/meas"
 out_folder = string.format("%s/%s_%d", folder, cfgbase, jobid)
-filename = string.format("%s/cfg%d.h5", out_folder, cfgnum)
+filename = string.format("%s/cfg%d_2.h5", out_folder, cfgnum)
 
 -- FOR TESTING 0 MODE AGAINST RI'-MOM
 -- out_folder = string.format("%s/%s_test0mode_%d", folder, cfgbase, jobid)
@@ -239,16 +248,6 @@ for m = 2, 3 do
 
 -- Operators to compute RCs of. Note that gamma{n = 0} is the identity. 
 local op_list = {
-  {gamma{mu = 0}, gamma{n = 0}},                                      -- V^\mu S
-  {gamma{mu = 1}, gamma{n = 0}},
-  {gamma{mu = 2}, gamma{n = 0}},
-  {gamma{mu = 3}, gamma{n = 0}},
-
-  {gamma{mu = 0} * gamma{n = 15}, gamma{n = 15}},                     -- A^\mu P 
-  {gamma{mu = 1} * gamma{n = 15}, gamma{n = 15}},
-  {gamma{mu = 2} * gamma{n = 15}, gamma{n = 15}},
-  {gamma{mu = 3} * gamma{n = 15}, gamma{n = 15}},
-
   {gamma{mu = 0} * gamma{mu = 1}, gamma{mu = 1}},                     -- T^{0\nu}V^\nu
   {gamma{mu = 0} * gamma{mu = 2}, gamma{mu = 2}},
   {gamma{mu = 0} * gamma{mu = 3}, gamma{mu = 3}},
@@ -257,34 +256,11 @@ local op_list = {
   {gamma{mu = 1} * gamma{mu = 3}, gamma{mu = 3}},
   {gamma{mu = 2} * gamma{mu = 0}, gamma{mu = 0}},                     -- T^{2\nu}V^\nu
   {gamma{mu = 2} * gamma{mu = 1}, gamma{mu = 1}},
-  {gamma{mu = 2} * gamma{mu = 3}, gamma{mu = 3}},
-  {gamma{mu = 3} * gamma{mu = 0}, gamma{mu = 0}},                     -- T^{3\nu}V^\nu
-  {gamma{mu = 3} * gamma{mu = 1}, gamma{mu = 1}},
-  {gamma{mu = 3} * gamma{mu = 2}, gamma{mu = 2}},
-
-  {gamma{mu = 1} * gamma{n = 15}, gamma{mu = 2} * gamma{mu = 3}},     -- \epsilon^{0\nu\alpha\beta} A^\nu T^{\alpha\beta}
-  {gamma{mu = 2} * gamma{n = 15}, gamma{mu = 3} * gamma{mu = 1}},
-  {gamma{mu = 3} * gamma{n = 15}, gamma{mu = 1} * gamma{mu = 2}},
-  {gamma{mu = 0} * gamma{n = 15}, gamma{mu = 3} * gamma{mu = 2}},     -- \epsilon^{1\nu\alpha\beta} A^\nu T^{\alpha\beta}
-  {gamma{mu = 2} * gamma{n = 15}, gamma{mu = 3} * gamma{mu = 0}},
-  {gamma{mu = 3} * gamma{n = 15}, gamma{mu = 2} * gamma{mu = 0}},
-  {gamma{mu = 0} * gamma{n = 15}, gamma{mu = 1} * gamma{mu = 3}},     -- \epsilon^{2\nu\alpha\beta} A^\nu T^{\alpha\beta}
-  {gamma{mu = 1} * gamma{n = 15}, gamma{mu = 3} * gamma{mu = 0}},
-  {gamma{mu = 3} * gamma{n = 15}, gamma{mu = 0} * gamma{mu = 1}},
-  {gamma{mu = 0} * gamma{n = 15}, gamma{mu = 2} * gamma{mu = 1}},     -- \epsilon^{3\nu\alpha\beta} A^\nu T^{\alpha\beta}
-  {gamma{mu = 1} * gamma{n = 15}, gamma{mu = 0} * gamma{mu = 2}},
-  {gamma{mu = 2} * gamma{n = 15}, gamma{mu = 1} * gamma{mu = 0}}
 }
 
 local lbl_list = {
-  "V0S", "V1S", "V2S", "V3S",
-  "A0P", "A1P", "A2P", "A3P",
   "T01V1", "T02V2", "T03V3", "T10V0", 
-  "T12V2", "T13V3", "T20V0", "T21V1", 
-  "T23V3", "T30V0", "T31V1", "T32V2",
-  "A1T23", "A2T31", "A3T12", "A0T32", 
-  "A2T30", "A3T20", "A0T13", "A1T30", 
-  "A3T01", "A0T21", "A1T02", "A2T10"
+  "T12V2", "T13V3", "T20V0", "T21V1"
 }
 
 printf("Computing %d gamma matrix correlators.", #op_list)
@@ -299,20 +275,17 @@ if gpu then
   qcd.quda.init(L)
 end
 
-local gauge_file
-local solver
-local U
-local csw = 1.24930970916466
+local csw = 1
 local clover
 if gpu then
     clover = clover_ferm.quda_4d_nc3(kappa, csw, bcs)
 else
     clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
 end
-solver = propagator.make_from_ferm(clover, 1e-20, 1000)
-gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
-status, U, finfo, info = pcall(load_conf, L, gauge_file)
-printf("Reading gauge file at: %s\n", gauge_file)
+local solver = propagator.make_from_ferm(clover, 1e-20, 1000)
+
+local U = init_id_field(L)
+print("Initialized free field.")
 
 -- project gauge configuration onto SU(3)
 for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
