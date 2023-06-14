@@ -8,12 +8,13 @@
 # Assumptions and shapes of basic objects:                                     #
 #   - Spacetime dimensions d = 2.                                              #
 #   - Number of colors Nc, which should be easy to vary.                       #
+#   - Dimension of adjoint of SU(N) dNc = Nc^2 - 1.                            #
 #   - Lattice Lambda of shape [Lx, Lt].                                        #
 #   - Fundamental gauge field U of shape [d, Lx, Lt, Nc, Nc].                  #
-#   - Adjoint gauge field V of shape [d, Lx, Lt, Nc^2 - 1, Nc^2 - 1].          #
+#   - Adjoint gauge field V of shape [d, Lx, Lt, dNc, dNc].                    #
 #   - Scalar (pseudofermion) field Phi of shape [d, Lx, Lt].                   #
-#   - Adjoint Majorana fermion field of shape [Lx, Lt, Nc, Ns].                #
-#   - Dirac operator of shape [Lx, Lt, Nc, Ns, Lx, Lt, Nc, Ns].                #
+#   - Adjoint Majorana fermion field of shape [Lx, Lt, dNc, Ns].               #
+#   - Dirac operator of shape [dNc, Ns, Lx, Lt, dNc, Ns, Lx, Lt].              #
 ################################################################################
 # Author: Patrick Oare                                                         #
 ################################################################################
@@ -111,18 +112,27 @@ class Lattice:
         """Rounds a 2-position x to the range (0:L, 0:T)."""
         return np.array([x[0] % self.L, x[1] % self.T])
     
+    def taxicab_distance(self, x, y):
+        """Computes the periodic taxicab distance between x and y."""
+        dx = np.abs(x - y)
+        if dx[0] > self.L // 2:
+            dx[0] = self.L - dx[0]
+        if dx[1] > self.T // 2:
+            dx[1] = self.T - dx[1]
+        return np.sum(dx)
+
+    def next_to(self, x, y):
+        """Returns True if the 2-positions x and y are nearest neighbors."""
+        # return np.sum(np.abs(x - y)) == 1
+        # return np.sum(np.abs(x % self.LL - y % self.LL)) == 1
+        return self.taxicab_distance(x, y) == 1
+    
+    def next_to_equal(self, x, y):
+        """Returns true if the 2-positions x and y are either nearest neighbors or are equal."""
+        return self.taxicab_distance(x, y) <= 1
+
     def __str__(self):
         return f'{self.L} x {self.T} dimensional Lattice'
-
-def id_field(Nc):
-    U = np.zeros((d, LAT.L, LAT.T, Nc, Nc))
-    for a in range(Nc):
-        U[:, :, :, a, a] = 1
-    return U
-
-# def set_lat(l, t):
-#     global LAT
-#     LAT = Lattice(L, T)
 
 ################################################################################
 ################################## CONSTANTS ###################################
@@ -145,8 +155,21 @@ Pminus = (delta - gamma5) / 2                 # Negative chirality projector
 ############################ GAUGE FIELD FUNCTIONS #############################
 ################################################################################
 
+def id_field(Nc, lat = LAT):
+    """Constructs an identity SU(Nc) field in the fundamental representation."""
+    U = np.zeros((d, lat.L, lat.T, Nc, Nc))
+    for a in range(Nc):
+        U[:, :, :, a, a] = 1
+    return U
+
+def id_field_adjoint(Nc, lat = LAT):
+    """Returns an identity field in the adjoint representation of SU(N)."""
+    gens = get_generators(Nc)
+    U = id_field(Nc, lat = lat)
+    return construct_adjoint_links(U, gens, lat = LAT)
+
 def get_generators(Nc):
-    """Returns dimSUN generators of SU(N_c)"""
+    """Returns dNc generators of SU(N_c)"""
     if Nc == 2:
         return paulis / 2.
     if Nc == 3:
@@ -263,8 +286,8 @@ def construct_adjoint_links(U, gens, lat = LAT):
         Generators {t^a} of SU(Nc).
     """
     Nc = U.shape[-1]
-    dimSUN = Nc**2 - 1
-    V = np.zeros((d, lat.L, lat.T, dimSUN, dimSUN), dtype = np.complex128)
+    dNc = Nc**2 - 1
+    V = np.zeros((d, lat.L, lat.T, dNc, dNc), dtype = np.complex128)
     for mu, x, t, a, b in itertools.product(*[range(zz) for zz in U.shape]):
         V[mu, x, t, a, b] = 2 * trace(dagger(U[mu, x, t]) @ gens[a] @ U[mu, x, t] @ gens[b])
     return V
@@ -282,65 +305,132 @@ def get_dirac_op_idxs(kappa, V, lat = LAT):
     ----------
     kappa : np.float64
         Hopping parameter.
+    V : np.array [d, Lx, Lt, dNc, dNc]
+        Adjoint gauge field
+    TODO: should we add a mass parameter?
     
     Returns
     -------
-    function (V, x, y, a, b, alpha, beta)
+    function (a, alpha, x, b, beta, y) --> np.complex128
         Dirac operator index function. Here x and y should be 2-positions (xx, tx) and (yy, ty).
     """
-    # TODO bug here, Dirac operator should give zero if the sites aren't next to each other
-    def dirac_op_idxs(x, a, alpha, y, b, beta):
-        return kron_delta(a, b) * kron_delta(alpha, beta) - kappa * np.sum([
-            V[mu, x[0], x[1], a, b] * (1 + gamma[mu][alpha, beta] * kron_delta(x, lat.mod(y + hat(mu))))
-            + V[mu, x[0], x[1], b, a] * (1 - gamma[mu][alpha, beta] * kron_delta(x, lat.mod(y - hat(mu))))
-        for mu in range(d)])
+    def dirac_op_idxs(a, alpha, x, b, beta, y):
+        return kron_delta(a, b) * kron_delta(alpha, beta) * kron_delta(x, y) - kappa * np.sum([
+                V[mu, x[0], x[1], a, b] * (1 + gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y + hat(mu)))
+                + V[mu, x[0], x[1], b, a] * (1 - gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y - hat(mu)))
+            for mu in range(d)])
     return dirac_op_idxs
 
 def get_dirac_op_full(kappa, V, lat = LAT):
-    Nc = int(np.sqrt(V.shape[-1] + 1) + eps)
-    dimSUN = Nc**2 - 1
-    dirac_op_full = np.zeros((lat.L, lat.T, dimSUN, Ns, lat.L, lat.T, dimSUN, Ns), dtype = np.complex128)
+    """
+    Returns the full Dirac operator as a numpy array. This should only be used to check the sparse 
+    Dirac operator, or when the lattice is very small. 
+
+    Parameters
+    ----------
+    kappa : np.float64
+        Hopping parameter.
+    V : np.array [d, Lx, Lt, dNc, dNc]
+        Adjoint gauge field
+    
+    Returns
+    -------
+    np.array [dNc, Ns, L, T, dNc, Ns, L, T]
+        Dirac operator.
+    """
+    dNc = V.shape[-1]                       # dimension of adjoint rep of SU(Nc)
+    dirac_op_full = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex128)
     dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = LAT)
-    for lx, tx, a, alpha, ly, ty, b, beta in itertools.product(*[range(zz) for zz in dirac_op_full.shape]):
+    for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in dirac_op_full.shape]):
         x, y = np.array([lx, tx]), np.array([ly, ty])
-        dirac_op_full[lx, tx, a, alpha, ly, ty, b, beta] = dirac_op_idxs(x, a, alpha, y, b, beta)
+        dirac_op_full[a, alpha, lx, tx, b, beta, ly, ty] = dirac_op_idxs(a, alpha, x, b, beta, y)
     return dirac_op_full
 
 def get_dirac_op_block(kappa, V, lat = LAT):
     """
     Returns a function D(x, y) which gives the Dirac operator from sites x to y as a 
-    (Nc^2-1)*Ns by (Nc^2-1)*Ns matrix for a given configuration and kappa.
+    dNc*Ns by dNc*Ns matrix for a given configuration and kappa.
+
+    Parameters
+    ----------
+    kappa : np.float64
+        Hopping parameter.
+    V : np.array [d, Lx, Lt, dNc, dNc]
+        Adjoint gauge field
+    
+    Returns
+    -------
+    function (x, y) --> np.array [dNc*Ns, dNc*Ns]
+        Function to extract the blocked Dirac operator at x, y.
     """
-    Nc = int(np.sqrt(V.shape[-1] + 1) + eps)
-    dimSUN = Nc**2 - 1
+    dNc = V.shape[-1]
     dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = LAT)
     def dirac_block(x, y):
         """x and y are spacetime 2-vectors. Returns the corresponding color-spin block of 
         the Dirac operator."""
-        blk = np.zeros((dimSUN * Ns, dimSUN * Ns), dtype = np.complex128)
-        for a, alpha, b, beta in itertools.product(*[range(zz) for zz in blk.shape]):
-            ii, jj = flatten_colspin_idx(a, alpha), flatten_colspin_idx(b, beta)
-            blk[ii, jj] = dirac_op_idxs(x, a, alpha, y, b, beta)
+        blk = np.zeros((dNc * Ns, dNc * Ns), dtype = np.complex128)
+        for a, alpha, b, beta in itertools.product(range(dNc), range(Ns), repeat = 2):
+            ii, jj = flatten_colspin_idx((a, alpha), dNc), flatten_colspin_idx((b, beta), dNc)
+            blk[ii, jj] = dirac_op_idxs(a, alpha, x, b, beta, y)
         return blk
     return dirac_block
 
-def dirac_op_sparse(cfg, kappa, ):
+def dirac_op_sparse(kappa, V, lat = LAT):
     """
     Returns the Dirac operator D as a sparse matrix in the Block Compressed Row (BSR) format.
-
-    TODO: check Arthur's implementations of dirac_op and hermitize_dirac_op. 
+    This is done by blocking the Dirac operator by spacetime dimension, since it only connects 
+    x and y if they have taxicab metric <= 1 (in lattice units). We have lat.vol blocks 
+    (for concreteness, 16) of size dNc*Ns (for concreteness for SU(2), size 6).
 
     Parameters
     ----------
-
+    kappa : np.float64
+        Hopping parameter.
+    V : np.array [d, Lx, Lt, dNc, dNc]
+        Adjoint gauge field
+    
+    Returns
+    -------
+    bsr_matrix
+        Sparse Dirac operator.
     """
-    return
+    
+    # TODO deal with boundary conditions
 
-"""
-For sparse implementation of the Dirac operator, we'll store it in blocks indexed by each set of sites (n, m) 
-that have non-zero hopping (or are diagonal). Each block will have size Nc * Ns, since it must have a spinor 
-index and a color index.
-"""
+    dNc = V.shape[-1]
+    dim_dirac = dNc * Ns * lat.vol
+    dirac_block = get_dirac_op_block(kappa, V, lat = lat)
+    indptr = [0]
+    indices = []
+    data = []
+    for flat_x in range(lat.vol):                   # Traverse x in lexigraphical order
+        x = np.array(unflatten_spacetime_idx(flat_x, lat = lat))
+        for flat_y in range(lat.vol):
+            y = np.array(unflatten_spacetime_idx(flat_y, lat = lat))
+            if lat.next_to_equal(x, y):             # then fill the block in
+                block = dirac_block(x, y)           # (dNc*Ns) x (dNc*Ns) block
+                data.append(block)
+                y_flat = flatten_spacetime_idx(y, lat = lat)
+                indices.append(y_flat)
+        indptr.append(len(indices))                 # next row starts at next index.
+    dirac_op = bsr_matrix((data, indices, indptr), shape = (dim_dirac, dim_dirac))
+    return dirac_op
+
+def flatten_full_idx(idx, dNc, lat = LAT):
+    """Flattens a full color-spin-spacetime index idx = (a, alpha, x, t)."""
+    a, alpha, x, t = idx
+    flat_idx = a + dNc * (alpha + Ns * (x + lat.L * t))
+    return flat_idx
+
+def unflatten_full_idx(flat_idx, dNc, lat = LAT):
+    """Unflattens a flat color-spin-spacetime index flat_idx."""
+    t = flat_idx // (dNc * Ns * lat.L)
+    flat_idx -= t * (dNc * Ns * lat.L)
+    x = flat_idx // (dNc * Ns)
+    flat_idx -= x * (dNc * Ns)
+    alpha = flat_idx // dNc
+    a = flat_idx % dNc
+    return a, alpha, x, t
 
 def flatten_spacetime_idx(idx, lat = LAT):
     """
@@ -360,45 +450,45 @@ def unflatten_spacetime_idx(flat_idx, lat = LAT):
     x, t = flat_idx % lat.L, flat_idx // lat.L
     return x, t
 
-def flatten_colspin_idx(idx, dimSUN_rep):
-    """Flattens a color-spin index idx = (a, alpha) based SU(N) representation with dimension dimSUN_rep."""
+def flatten_colspin_idx(idx, dNc):
+    """Flattens a color-spin index idx = (a, alpha) based SU(N) representation with dimension dNc."""
     a, alpha = idx
-    flat_idx = a + alpha * dimSUN_rep
+    flat_idx = a + alpha * dNc
     return flat_idx
 
-def unflatten_colspin_idx(flat_idx, dimSUN_rep):
-    """Unflattens a color-spin index flat_idx based SU(N) representation with dimension dimSUN_rep."""
-    a, alpha = flat_idx % dimSUN_rep, flat_idx // dimSUN_rep
+def unflatten_colspin_idx(flat_idx, dNc):
+    """Unflattens a color-spin index flat_idx based SU(N) representation with dimension dNc."""
+    a, alpha = flat_idx % dNc, flat_idx // dNc
     return a, alpha
 
-# class SparseOperator(bsr_matrix):
-#     """
-#     Represents a sparse operator with two adjoint SU(N) indices, two spinor indices, and 
-#     two 2d spacetime indices.
-#     """
+def flatten_operator(op, lat = LAT):
+    """
+    Flattens an operator of shape [dNc, Ns, L, T, dNc, Ns, L, T] into a matrix 
+    of shape [dNc*Ns*L*T, dNc*Ns*L*T]
+    """
+    dNc = op.shape[0]
+    flat_op = np.zeros((dNc*Ns*lat.vol, dNc*Ns*lat.vol), dtype = np.complex128)
+    for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in op.shape]):
+        i = flatten_full_idx((a, alpha, lx, tx), dNc, lat = lat)
+        j = flatten_full_idx((b, beta, ly, ty), dNc, lat = lat)
+        flat_op[i, j] = op[a, alpha, lx, tx, b, beta, ly, ty]
+    return flat_op
 
-#     def __init__(self, lat, Nc):
-#         # TODO method stub
-#         return
-    
-#     def __getitem__(self, key):
-#         """Gets an item from the SparseOperator. Should be indexed as [lx, tx, a, alpha, ly, ty, b, beta]."""
-#         lx, tx, a, alpha, ly, ty, b, beta = key
-#         # TODO method stub
-#         return
-    
-#     def __setitem__(self, key, val):
-#         lx, tx, a, alpha, ly, ty, b, beta = key
-#         # TODO method stub
-#         return
-    
-#     def flatten_index(idx):
-#         # TODO method stub
-#         return
-    
-#     def unflatten_index(flat_idx):
-#         # TODO method stub
-#         return
+def unflatten_operator(mat, dNc, lat = LAT):
+    """
+    Unflattens a matrix of shape [dNc*Ns*L*T, dNc*Ns*L*T] into an operator
+    of shape [dNc, Ns, L, T, dNc, Ns, L, T].
+    """
+    unflattened = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex128)
+    for i, j in itertools.product(range(mat.shape[0]), range(mat.shape[1])):
+        a, alpha, lx, tx = unflatten_full_idx(i, dNc, lat = lat)
+        b, beta, ly, ty = unflatten_full_idx(j, dNc, lat = lat)
+
+        # TODO test this tomorrow to make sure it works
+        # print(j, (b, beta, ly, ty))
+
+        unflattened[a, alpha, lx, tx, b, beta, ly, ty] = mat[i, j]
+    return unflattened
 
 ################################################################################
 ############################### RHMC FUNCTIONS #################################
@@ -434,7 +524,7 @@ def main(args):
         Nc = int(args[1])                       # Gauge group is SU(Nc)
     else:
         Nc = DEFAULT_NC
-    dimSUN = Nc**2 - 1                          # Dimension of SU(N)
+    dNc = Nc**2 - 1                          # Dimension of SU(N)
     tSUN = get_generators(Nc)                   # Generators of SU(N)
 
     print(Nc)
