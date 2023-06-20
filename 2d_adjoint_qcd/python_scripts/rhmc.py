@@ -9,12 +9,12 @@
 #   - Spacetime dimensions d = 2.                                              #
 #   - Number of colors Nc, which should be easy to vary.                       #
 #   - Dimension of adjoint of SU(N) dNc = Nc^2 - 1.                            #
-#   - Lattice Lambda of shape [Lx, Lt].                                        #
-#   - Fundamental gauge field U of shape [d, Lx, Lt, Nc, Nc].                  #
-#   - Adjoint gauge field V of shape [d, Lx, Lt, dNc, dNc].                    #
-#   - Scalar (pseudofermion) field Phi of shape [d, Lx, Lt].                   #
-#   - Adjoint Majorana fermion field of shape [Lx, Lt, dNc, Ns].               #
-#   - Dirac operator of shape [dNc, Ns, Lx, Lt, dNc, Ns, Lx, Lt].              #
+#   - Lattice Lambda of shape [L, T].                                          #
+#   - Fundamental gauge field U of shape [d, L, T, Nc, Nc].                    #
+#   - Adjoint gauge field V of shape [d, L, T, dNc, dNc].                      #
+#   - Pseudofermion field Phi of shape [dNc, Ns, L, T].                        #
+#   - Adjoint Majorana fermion field of shape [dNc, Ns, L, T].                 #
+#   - Dirac operator of shape [dNc, Ns, L, T, dNc, Ns, L, T].                  #
 ################################################################################
 # Author: Patrick Oare                                                         #
 ################################################################################
@@ -24,6 +24,7 @@ n_boot = 100
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import scipy
 from scipy.sparse import bsr_matrix
 from scipy.optimize import root
 from scipy.linalg import block_diag
@@ -55,10 +56,10 @@ T = 8                                       # Temporal size of the lattice
 
 DEFAULT_NC = 3                              # Default number of colors
 
-eps = 1e-8                                  # Round-off for floating points.
+EPS = 1e-8                                  # Round-off for floating points.
 
-cg_tol = 1e-12                              # CG error tolerance
-cg_max_iter = 1000                          # Max number of iterations for CG
+CG_TOL = 1e-12                              # CG error tolerance
+CG_MAX_ITER = 1000                          # Max number of iterations for CG
 
 P = 15                                      # Degree of rational approximation for Dirac operator 
 lambda_low = 1e-5                           # Smallest eigenvalue possible for K for valid rational approximation
@@ -67,7 +68,7 @@ lambda_high = 1000                          # Largest eigenvalue possible for K 
 alpha_m4, beta_m4 = rhmc_m4_15()            # Approximation coefficients for K^{-1/4}
 alpha_8, beta_8 = rhmc_8_15()               # Approximation coefficients for K^{+1/8}
 
-bcs = np.array([1, -1])                     # Boundary conditions for fermion fields
+DEFAULT_BCS = np.array([1, -1])                     # Boundary conditions for fermion fields
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -152,6 +153,194 @@ Pplus = (delta + gamma5) / 2                  # Positive chirality projector
 Pminus = (delta - gamma5) / 2                 # Negative chirality projector
 
 ################################################################################
+############################# INDEXING FUNCTIONS ###############################
+################################################################################
+
+def flatten_full_idx(idx, dNc, lat = LAT):
+    """Flattens a full color-spin-spacetime index idx = (a, alpha, x, t)."""
+    a, alpha, x, t = idx
+    flat_idx = a + dNc * (alpha + Ns * (x + lat.L * t))
+    return flat_idx
+
+def unflatten_full_idx(flat_idx, dNc, lat = LAT):
+    """Unflattens a flat color-spin-spacetime index flat_idx."""
+    t = flat_idx // (dNc * Ns * lat.L)
+    flat_idx -= t * (dNc * Ns * lat.L)
+    x = flat_idx // (dNc * Ns)
+    flat_idx -= x * (dNc * Ns)
+    alpha = flat_idx // dNc
+    a = flat_idx % dNc
+    return a, alpha, x, t
+
+def flatten_spacetime_idx(idx, lat = LAT):
+    """
+    Flattens a 2d spatial index idx = (x, t) based on the lattice LAT. Counts first in the 
+    spatial direction, then in the temporal direction. For example, (x, t) = (1, 2) on a 
+    lattice of size (4, 8) gives flat index 1 + 2 * 4 = 9.
+    """
+    x, t = idx
+    flat_idx = x + t * lat.L
+    return flat_idx
+
+def unflatten_spacetime_idx(flat_idx, lat = LAT):
+    """
+    Unflattens a spatial index flat_idx to return a tuple (x, t), where x is the corresponding 
+    spatial index and t is the temporal index, corresponding to the lattice LAT. 
+    """
+    x, t = flat_idx % lat.L, flat_idx // lat.L
+    return x, t
+
+def flatten_colspin_idx(idx, dNc):
+    """Flattens a color-spin index idx = (a, alpha) based SU(N) representation with dimension dNc."""
+    a, alpha = idx
+    flat_idx = a + alpha * dNc
+    return flat_idx
+
+def unflatten_colspin_idx(flat_idx, dNc):
+    """Unflattens a color-spin index flat_idx based SU(N) representation with dimension dNc."""
+    a, alpha = flat_idx % dNc, flat_idx // dNc
+    return a, alpha
+
+def flatten_colspin_vec(vec):
+    """
+    Flattens a color-spin vector of shape [dNc, Ns] into shape [dNc*Ns].
+    """
+    dNc = vec.shape[0]
+    flat_vec = np.zeros((dNc*Ns), dtype = np.complex128)
+    for a, alpha in itertools.product(*[range(zz) for zz in vec.shape]):
+        idx = flatten_colspin_idx((a, alpha), dNc)
+        flat_vec[idx] = vec[a, alpha]
+    return flat_vec
+
+def unflatten_colspin_vec(vec, dNc):
+    """
+    Unflattens a color-spin vector of shape [dNc*Ns] into shape [dNc, Ns].
+    """
+    unflattened = np.zeros((dNc, Ns), dtype = np.complex128)
+    for idx in range(vec.shape[0]):
+        a, alpha = unflatten_colspin_idx(idx, dNc)
+        unflattened[a, alpha] = vec[idx]
+    return unflattened
+
+def flatten_ferm_field(vec, lat = LAT):
+    """
+    Flattens a fermion field of shape [dNc, Ns, L, T] into a fermion field 
+    of shape [dNc*Ns*L*T].
+    """
+    dNc = vec.shape[0]
+    flat_vec = np.zeros((dNc*Ns*lat.vol), dtype = np.complex128)
+    for a, alpha, lx, tx in itertools.product(*[range(zz) for zz in vec.shape]):
+        i = flatten_full_idx((a, alpha, lx, tx), dNc, lat = lat)
+        flat_vec[i] = vec[a, alpha, lx, tx]
+    return flat_vec
+
+def unflatten_ferm_field(vec, dNc, lat = LAT):
+    """
+    Unflattens a vector of shape [dNc*Ns*L*T] into an fermion field
+    of shape [dNc, Ns, L, T].
+    """
+    unflattened = np.zeros((dNc, Ns, lat.L, lat.T), dtype = np.complex128)
+    for i in range(vec.shape[0]):
+        a, alpha, lx, tx = unflatten_full_idx(i, dNc, lat = lat)
+        unflattened[a, alpha, lx, tx] = vec[i]
+    return unflattened
+
+def flatten_operator(op, lat = LAT):
+    """
+    Flattens an operator of shape [dNc, Ns, L, T, dNc, Ns, L, T] into a matrix 
+    of shape [dNc*Ns*L*T, dNc*Ns*L*T].
+    """
+    dNc = op.shape[0]
+    flat_op = np.zeros((dNc*Ns*lat.vol, dNc*Ns*lat.vol), dtype = np.complex128)
+    for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in op.shape]):
+        i = flatten_full_idx((a, alpha, lx, tx), dNc, lat = lat)
+        j = flatten_full_idx((b, beta, ly, ty), dNc, lat = lat)
+        flat_op[i, j] = op[a, alpha, lx, tx, b, beta, ly, ty]
+    return flat_op
+
+def unflatten_operator(mat, dNc, lat = LAT):
+    """
+    Unflattens a matrix of shape [dNc*Ns*L*T, dNc*Ns*L*T] into an operator
+    of shape [dNc, Ns, L, T, dNc, Ns, L, T].
+    """
+    unflattened = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex128)
+    for i, j in itertools.product(range(mat.shape[0]), range(mat.shape[1])):
+        a, alpha, lx, tx = unflatten_full_idx(i, dNc, lat = lat)
+        b, beta, ly, ty = unflatten_full_idx(j, dNc, lat = lat)
+        unflattened[a, alpha, lx, tx, b, beta, ly, ty] = mat[i, j]
+    return unflattened
+
+def spin_to_spincol(spin_mat, dNc):
+    """Converts a spin matrix (i.e. like gamma5) to a spin-color matrix."""
+    assert spin_mat.shape == (Ns, Ns), 'Wrong dimension for spin matrix.'
+    id_col = np.eye(dNc)
+    return np.kron(spin_mat, id_col)
+
+def col_to_spincol(col_mat):
+    """Converts a color matrix (like t^a) to a spin-color matrix."""
+    id_spin = np.eye(Ns)
+    return np.kron(id_spin, col_mat)
+
+def flat_field_evalat(psi, x, t, dNc, lat = LAT):
+    """
+    Evaluates the flattened fermion field psi (size dNc*Ns*L*T) at position (x, t).
+
+    Parameters
+    ----------
+    psi : np.array [dNc*Ns*L*T]
+        Fermion field to evaluate.
+    x : int
+        x coordinate to evaluate psi at.
+    t : int
+        t coordinate to evaluate psi at.
+
+    Returns
+    -------
+    np.array [dNc*Ns]
+        Flattened color-spin matrix psi(x, t).
+    """
+    ferm_block = np.zeros((dNc*Ns), dtype = psi.dtype)
+    for colspin_idx in itertools.product(range(dNc), range(Ns)):
+        a, alpha = colspin_idx
+        ferm_block[flatten_colspin_idx(colspin_idx, dNc)] = psi[flatten_full_idx((a, alpha, x, t), dNc, lat = lat)]
+    return ferm_block
+
+def flat_field_putat(psi, blk, x, t, dNc, mutate = False, lat = LAT):
+    """
+    Puts the color-spin vector blk into the flat fermion field psi (size dNc*Ns*L*T) at position (x, t).
+
+    Parameters
+    ----------
+    psi : np.array [dNc*Ns*L*T]
+        Fermion field to put color-spin matrix into.
+    blk : np.array [dNc*Ns]
+        Color-spin matrix to put into psi.
+    x : int
+        x coordinate to put blk into psi at
+    t : int
+        t coordinate to put blk into psi at
+    dNc: int
+        Dimension of adjoint representation.
+    mutate : bool (default = False)
+        Whether or not to mutate the original matrix.
+
+    Returns
+    -------
+    np.array [dNc*Ns]
+        Flattened color-spin matrix psi(x, t).
+    """
+    if blk.shape == (dNc, Ns):
+        blk = flatten_colspin_vec(blk)
+    if mutate:
+        new_psi = psi
+    else:
+        new_psi = np.copy(psi)
+    for colspin_idx in itertools.product(range(dNc), range(Ns)):
+        a, alpha = colspin_idx
+        new_psi[flatten_full_idx((a, alpha, x, t), dNc, lat = lat)] = blk[flatten_colspin_idx(colspin_idx, dNc)]
+    return new_psi
+
+################################################################################
 ############################ GAUGE FIELD FUNCTIONS #############################
 ################################################################################
 
@@ -166,7 +355,7 @@ def id_field_adjoint(Nc, lat = LAT):
     """Returns an identity field in the adjoint representation of SU(N)."""
     gens = get_generators(Nc)
     U = id_field(Nc, lat = lat)
-    return construct_adjoint_links(U, gens, lat = LAT)
+    return construct_adjoint_links(U, gens, lat = lat)
 
 def get_generators(Nc):
     """Returns dNc generators of SU(N_c)"""
@@ -225,14 +414,14 @@ def plaquette(U, Nc):
 
     Parameters
     ----------
-    U : np.array [2, Lx, Lt, Nc, Nc]
+    U : np.array [2, L, T, Nc, Nc]
         Gauge field array.
     Nc : int
         Number of colors for the gauge field.
 
     Returns
     -------
-    np.array [Lx, Lt]
+    np.array [L, T]
         Wilson loop field (1/N_c) Tr P(x).
     """
     mu, nu = 0, 1
@@ -255,7 +444,7 @@ def wilson_gauge_action(U, beta, Nc):
 
     Parameters
     ----------
-    U : np.array [2, Lx, Lt, Nc, Nc]
+    U : np.array [2, L, T, Nc, Nc]
         Gauge field array.
     beta : int
         Gauge coupling.
@@ -280,7 +469,7 @@ def construct_adjoint_links(U, gens, lat = LAT):
 
     Parameters
     ----------
-    U : np.array [2, Lx, Lt, Nc, Nc]
+    U : np.array [2, L, T, Nc, Nc]
         Gauge field array.
     gens : np.array [Nc^2 - 1, Nc, Nc]
         Generators {t^a} of SU(Nc).
@@ -288,7 +477,7 @@ def construct_adjoint_links(U, gens, lat = LAT):
     Nc = U.shape[-1]
     dNc = Nc**2 - 1
     V = np.zeros((d, lat.L, lat.T, dNc, dNc), dtype = np.complex128)
-    for mu, x, t, a, b in itertools.product(*[range(zz) for zz in U.shape]):
+    for mu, x, t, a, b in itertools.product(*[range(zz) for zz in V.shape]):
         V[mu, x, t, a, b] = 2 * trace(dagger(U[mu, x, t]) @ gens[a] @ U[mu, x, t] @ gens[b])
     return V
 
@@ -305,7 +494,7 @@ def get_dirac_op_idxs(kappa, V, lat = LAT):
     ----------
     kappa : np.float64
         Hopping parameter.
-    V : np.array [d, Lx, Lt, dNc, dNc]
+    V : np.array [d, L, T, dNc, dNc]
         Adjoint gauge field
     TODO: should we add a mass parameter?
     
@@ -315,9 +504,10 @@ def get_dirac_op_idxs(kappa, V, lat = LAT):
         Dirac operator index function. Here x and y should be 2-positions (xx, tx) and (yy, ty).
     """
     def dirac_op_idxs(a, alpha, x, b, beta, y):
+        # TODO note that instead of using V^T, we might want to use V^\dagger(x - \hat\mu).
         return kron_delta(a, b) * kron_delta(alpha, beta) * kron_delta(x, y) - kappa * np.sum([
-                V[mu, x[0], x[1], a, b] * (1 + gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y + hat(mu)))
-                + V[mu, x[0], x[1], b, a] * (1 - gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y - hat(mu)))
+                V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y + hat(mu)))
+                + V[mu, x[0], x[1], b, a] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y - hat(mu)))
             for mu in range(d)])
     return dirac_op_idxs
 
@@ -330,7 +520,7 @@ def get_dirac_op_full(kappa, V, lat = LAT):
     ----------
     kappa : np.float64
         Hopping parameter.
-    V : np.array [d, Lx, Lt, dNc, dNc]
+    V : np.array [d, L, T, dNc, dNc]
         Adjoint gauge field
     
     Returns
@@ -340,7 +530,7 @@ def get_dirac_op_full(kappa, V, lat = LAT):
     """
     dNc = V.shape[-1]                       # dimension of adjoint rep of SU(Nc)
     dirac_op_full = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex128)
-    dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = LAT)
+    dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = lat)
     for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in dirac_op_full.shape]):
         x, y = np.array([lx, tx]), np.array([ly, ty])
         dirac_op_full[a, alpha, lx, tx, b, beta, ly, ty] = dirac_op_idxs(a, alpha, x, b, beta, y)
@@ -355,7 +545,7 @@ def get_dirac_op_block(kappa, V, lat = LAT):
     ----------
     kappa : np.float64
         Hopping parameter.
-    V : np.array [d, Lx, Lt, dNc, dNc]
+    V : np.array [d, L, T, dNc, dNc]
         Adjoint gauge field
     
     Returns
@@ -364,7 +554,7 @@ def get_dirac_op_block(kappa, V, lat = LAT):
         Function to extract the blocked Dirac operator at x, y.
     """
     dNc = V.shape[-1]
-    dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = LAT)
+    dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = lat)
     def dirac_block(x, y):
         """x and y are spacetime 2-vectors. Returns the corresponding color-spin block of 
         the Dirac operator."""
@@ -382,21 +572,20 @@ def dirac_op_sparse(kappa, V, lat = LAT):
     x and y if they have taxicab metric <= 1 (in lattice units). We have lat.vol blocks 
     (for concreteness, 16) of size dNc*Ns (for concreteness for SU(2), size 6).
 
+    TODO deal with boundary conditions
+
     Parameters
     ----------
     kappa : np.float64
         Hopping parameter.
-    V : np.array [d, Lx, Lt, dNc, dNc]
-        Adjoint gauge field
+    V : np.array [d, L, T, dNc, dNc]
+        Adjoint gauge field.
     
     Returns
     -------
     bsr_matrix
         Sparse Dirac operator.
     """
-    
-    # TODO deal with boundary conditions
-
     dNc = V.shape[-1]
     dim_dirac = dNc * Ns * lat.vol
     dirac_block = get_dirac_op_block(kappa, V, lat = lat)
@@ -416,79 +605,68 @@ def dirac_op_sparse(kappa, V, lat = LAT):
     dirac_op = bsr_matrix((data, indices, indptr), shape = (dim_dirac, dim_dirac))
     return dirac_op
 
-def flatten_full_idx(idx, dNc, lat = LAT):
-    """Flattens a full color-spin-spacetime index idx = (a, alpha, x, t)."""
-    a, alpha, x, t = idx
-    flat_idx = a + dNc * (alpha + Ns * (x + lat.L * t))
-    return flat_idx
-
-def unflatten_full_idx(flat_idx, dNc, lat = LAT):
-    """Unflattens a flat color-spin-spacetime index flat_idx."""
-    t = flat_idx // (dNc * Ns * lat.L)
-    flat_idx -= t * (dNc * Ns * lat.L)
-    x = flat_idx // (dNc * Ns)
-    flat_idx -= x * (dNc * Ns)
-    alpha = flat_idx // dNc
-    a = flat_idx % dNc
-    return a, alpha, x, t
-
-def flatten_spacetime_idx(idx, lat = LAT):
+def dagger_op(dirac):
     """
-    Flattens a 2d spatial index idx = (x, t) based on the lattice LAT. Counts first in the 
-    spatial direction, then in the temporal direction. For example, (x, t) = (1, 2) on a 
-    lattice of size (4, 8) gives flat index 1 + 2 * 4 = 9.
-    """
-    x, t = idx
-    flat_idx = x + t * lat.L
-    return flat_idx
+    Returns the Hermitian conjugate of the input operator. Note that the transpose is taken 
+    over all indices.
 
-def unflatten_spacetime_idx(flat_idx, lat = LAT):
-    """
-    Unflattens a spatial index flat_idx to return a tuple (x, t), where x is the corresponding 
-    spatial index and t is the temporal index, corresponding to the lattice LAT. 
-    """
-    x, t = flat_idx % lat.L, flat_idx // lat.L
-    return x, t
+    Parameters
+    ----------
+    dirac : np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Input operator. Can either be a numpy array or a sparse matrix.
 
-def flatten_colspin_idx(idx, dNc):
-    """Flattens a color-spin index idx = (a, alpha) based SU(N) representation with dimension dNc."""
-    a, alpha = idx
-    flat_idx = a + alpha * dNc
-    return flat_idx
-
-def unflatten_colspin_idx(flat_idx, dNc):
-    """Unflattens a color-spin index flat_idx based SU(N) representation with dimension dNc."""
-    a, alpha = flat_idx % dNc, flat_idx // dNc
-    return a, alpha
-
-def flatten_operator(op, lat = LAT):
+    Returns
+    -------
+    np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Hermitian conjugate of input operator.
     """
-    Flattens an operator of shape [dNc, Ns, L, T, dNc, Ns, L, T] into a matrix 
-    of shape [dNc*Ns*L*T, dNc*Ns*L*T]
-    """
-    dNc = op.shape[0]
-    flat_op = np.zeros((dNc*Ns*lat.vol, dNc*Ns*lat.vol), dtype = np.complex128)
-    for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in op.shape]):
-        i = flatten_full_idx((a, alpha, lx, tx), dNc, lat = lat)
-        j = flatten_full_idx((b, beta, ly, ty), dNc, lat = lat)
-        flat_op[i, j] = op[a, alpha, lx, tx, b, beta, ly, ty]
-    return flat_op
+    if type(dirac) == bsr_matrix:
+        return dirac.conj().transpose()
+    return np.einsum('aixtbjys->bjysaixt', dirac.conj())
 
-def unflatten_operator(mat, dNc, lat = LAT):
+def hermitize_dirac(dirac):
     """
-    Unflattens a matrix of shape [dNc*Ns*L*T, dNc*Ns*L*T] into an operator
-    of shape [dNc, Ns, L, T, dNc, Ns, L, T].
+    Returns the Hermitian Dirac operator Q = \gamma_5 D. Note that because we can take C = gamma5, 
+    this operator should also be the skew-symmetric Dirac matrix M = C D. 
+
+    Parameters
+    ----------
+    dirac : np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Input Dirac operator. Can either be a numpy array or a sparse matrix.
+
+    Returns
+    -------
+    np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Hermitian Dirac operator Q = gamma_5 D.
     """
-    unflattened = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex128)
-    for i, j in itertools.product(range(mat.shape[0]), range(mat.shape[1])):
-        a, alpha, lx, tx = unflatten_full_idx(i, dNc, lat = lat)
-        b, beta, ly, ty = unflatten_full_idx(j, dNc, lat = lat)
+    if type(dirac) == bsr_matrix:               # Then dirac is a sparse matrix
+        dNc = dirac.blocksize[0] // Ns
+        g5_spincol = spin_to_spincol(gamma5, dNc)
+        return bsr_matrix((
+            [g5_spincol @ blk for blk in dirac.data],
+            dirac.indices, 
+            dirac.indptr
+        ), shape = dirac.shape)
+    return np.einsum('ij,ajxtbkys->aixtbkys', gamma5, dirac)
 
-        # TODO test this tomorrow to make sure it works
-        # print(j, (b, beta, ly, ty))
+def construct_K(dirac):
+    """
+    Constructs the squared Dirac operator K = D^\dagger D from the Dirac operator D.
 
-        unflattened[a, alpha, lx, tx, b, beta, ly, ty] = mat[i, j]
-    return unflattened
+    Parameters
+    ----------
+    dirac : np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Input Dirac operator or Hermitian Dirac operator. Can either be a numpy array or a sparse matrix.
+    
+    Returns
+    -------
+    np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Squared Dirac operator K = D^\dagger D.
+    """
+    dirac_dagger = dagger_op(dirac)
+    if type(dirac) == bsr_matrix:
+        return dirac_dagger @ dirac
+    return np.einsum('aixtbjys,bjysclzr->aixtclzr', dirac_dagger, dirac)
 
 ################################################################################
 ############################### RHMC FUNCTIONS #################################
@@ -496,26 +674,232 @@ def unflatten_operator(mat, dNc, lat = LAT):
 
 def r_m4(K):
     """
-    Rational approximation to K^{-1/4}.
-
-    # TODO determine if we want this to work for matrix valued K
+    Rational approximation to K^{-1/4}. Note that for matrices, this will likely be very slow 
+    and should not be used. Instead, whenever r(K) appears, it should be applied to a vector and 
+    solved using CG.
     """
+    if type(K) == np.ndarray:
+        return alpha_m4[0] + np.sum(alpha_m4[1:] * np.linalg.inv(K + beta_m4[1:]))
     return alpha_m4[0] + np.sum(alpha_m4[1:] / (K + beta_m4[1:]))
 
 def r_8(K):
     """
     Rational approximation to K^{+1/8}.
     """
+    if type(K) == np.ndarray:
+        return alpha_8[0] + np.sum(alpha_8[1:] * np.linalg.inv(K + beta_8[1:]))
     return alpha_8[0] + np.sum(alpha_8[1:] / (K + beta_8[1:]))
 
-def init_fields():
+def cg_shift(K, phi, beta_i, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
+    """
+    Solves the linear equation (K + beta_i) psi = phi with a CG solver for a sparse 
+    matrix K.
+
+    Parameters
+    ----------
+    K : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse squared Dirac operator K = D^\dagger D.
+    phi : np.array [dNc*Ns*L*T]
+        Input source to solve (K + \beta_i)^{-1} phi.
+    beta_i : float
+        Shift for the CG solver.
+    cg_tol : float (default = CG_TOL)
+        Relative tolerance for CG solver.
+    max_iter : int (default = CG_MAX_ITER)
+        Maximum iterations for CG solver. 
+    
+    Returns
+    -------
+    np.array [dNc*Ns*L*T]
+        Solution psi to the equation (K + \beta_i) \psi = \phi.
+    
+    Raises
+    ------
+    Exception
+        Raised if the CG solver does not converge, or has illegal input.
+    """
+    dim = K.shape[0]
+    assert phi.shape[0] == dim, 'Phi is the wrong dimension.'
+    shifted_K = K + beta_i * scipy.sparse.identity(dim, dtype = K.dtype)
+    psi, info = scipy.sparse.linalg.cg(shifted_K, phi, tol = cg_tol, maxiter = max_iter)
+    if info > 0:
+        raise Exception('Convergence not achieved.')
+    elif info < 0:
+        raise Exception('Illegal input to CG solver.')
+    return psi
+
+def apply_rational_approx(K, phi, alphas, betas, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
+    """
+    Applies the rational approximation r(K) to the vector phi. Note this is valid for 
+    rational approximations of K^{-1/4} and K^{1/8}, it only depends on the input alpha 
+    parameters.
+
+    Parameters
+    ----------
+    K : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse squared Dirac operator K = D^\dagger D.
+    phi : np.array [dNc*Ns*L*T]
+        Input source to solve (K + \beta_i)^{-1} phi.
+    alphas : np.array [P + 1]
+        Alpha coefficients for CG solver.
+    betas : np.array [P + 1]
+        Beta coefficients for CG solver. beta[0] should equal 0.
+    cg_tol : float (default = CG_TOL)
+        Relative tolerance for CG solver.
+    max_iter : int (default = CG_MAX_ITER)
+        Maximum iterations for CG solver. 
+    
+    Returns
+    -------
+    np.array [dNc*Ns*L*T]
+        Result of r(K) \Phi, where r(K) is a rational approximation given in terms of alphas and betas.
+    """
+    rKphi = alphas[0] * phi
+    for i in range(1, len(betas)):
+        psi_i = cg_shift(K, phi, betas[i], cg_tol, max_iter)
+        rKphi += alphas[i] * psi_i
+    return rKphi
+
+def pf_force(dirac, U, phi, gens, kappa, alphas = alpha_m4, betas = beta_m4, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
+    """
+    Computes the pseudofermion force d/dU (Phi^\dagger r(K) \Phi) \approx d/dU (Phi^\dagger K^{-1/4} \Phi).
+
+    Parameters
+    ----------
+    dirac : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse Dirac operator D.
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field configuration.
+    phi : np.array [dNc*Ns*L*T]
+        Input (flattened) pseudofermion force. 
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    kappa : float
+        Hopping parameter for action. TODO change to a dictionary "action_args"
+    alphas : np.array [P + 1] (default = alpha_m4)
+        Alpha coefficients for approximation of K^{-1/4}.
+    betas : np.array [P + 1] (default = beta_m4)
+        Beta coefficients for approximation of K^{-1/4}. beta[0] should equal 0.
+    cg_tol : float (default = CG_TOL)
+        Relative tolerance for CG solver.
+    max_iter : int (default = CG_MAX_ITER)
+        Maximum iterations for CG solver. 
+    
+    Returns
+    -------
+    np.array [d, L, T, Nc, Nc]
+        Derivative of pseudofermion part of action by the fundamental gauge field.
+    """
+    Q = hermitize_dirac(dirac)
+    K = construct_K(dirac)
+    force = np.zeros(U.shape, U.dtype)
+    for i in range(1, len(betas)):
+        psi_i = cg_shift(K, phi, betas[i], cg_tol, max_iter)
+        psi_dKdU_psi = form_dKdU_bilinear(U, Q, psi_i, gens, kappa, lat = lat, bcs = bcs)
+        force += alphas[i] * psi_dKdU_psi
+    return force
+
+def form_dKdU_bilinear(U, Q, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    For given psi = (K + \beta_i)^{-1}\Phi, evaluates the bilinear \psi^\dagger dK / dU_\mu^{k\ell}(z) psi, 
+    where psi = (K + \beta_i)^{-1}\Phi. Returns a field in the same shape as U_\mu(x).
+    
+    Parameters
+    ----------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    psi : np.array [dNc*Ns*L*T]
+        Solution psi to the equation (K + \beta_i) \psi = \phi.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    kappa : float
+        Hopping parameter for action. TODO change to a dictionary
+
+    Returns
+    -------
+    np.array [d, L, T, Nc, Nc]
+        Derivative dK/dU contracted with psi^\dagger and psi. Shape should be that 
+        of a fundamental gauge field.
+    """
+    # kappa = action_args['kappa']
+    dKdU_bilinear = np.zeros(U.shape, U.dtype)
+    Qpsi = Q @ psi
+    Qpsi_dagger = Qpsi.conj().transpose()
+    tUt = np.einsum('aik,mxtkl,blj->abmxtij', gens, U, gens)
+    for deriv_coord in itertools.product(*[range(ii) for ii in U.shape]):
+        Mmu_psi_i = form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = lat, bcs = bcs)
+        dKdU_bilinear[deriv_coord] = 2 * Qpsi_dagger @ Mmu_psi_i
+    return dKdU_bilinear
+
+def form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    Evaluate M_\mu psi_i, which is formally dQ/dU_\mu contracted with psi_i, at the point deriv_coord. 
+    This must be modified for a given Dirac operator.
+
+    Parameters
+    ----------
+    deriv_coord : tuple [int, int, int, int, int]
+        Coordinates to take derivative at, passed in as a tuple (mu, x, t, k, ell). Here mu
+        is the Lorentz index, (k, \ell) are fundamental color indices, and (x, t) is a spacetime 
+        index.
+    tUt : np.array [dNc, dNc, d, L, T, Nc, Nc]
+        Fundamental gauge field conjugated by t^a and t^b.
+    psi : np.array [dNc*Ns*L*T]
+        Solution psi to the equation (K + \beta_i) \psi = \phi.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    kappa : float
+        Hopping parameter for action. TODO change to a dictionary
+
+    Returns
+    -------
+    np.array [dNc*Ns*L*T]
+        M psi, evaluated at the point (mu, k, \ell, xz, tz) = deriv_coord.
+    """
+    dNc = tUt.shape[0]
+    mu, xz, tz, k, ell = deriv_coord
+    z = np.array([xz, tz])
+
+    # TODO might need to make this more efficient
+    # get psi at z \pm \hat\mu
+    tUt_coords = tUt[:, :, mu, xz, tz, k, ell]
+    zpmu = lat.mod(z + hat(mu))
+    psi_zpmu = unflatten_colspin_vec(
+        flat_field_evalat(psi, zpmu[0], zpmu[1], dNc, lat = lat),
+    dNc)
+    psi_z = unflatten_colspin_vec(
+        flat_field_evalat(psi, z[0], z[1], dNc, lat = lat),
+    dNc)
+    Mpsi_blk1 = np.einsum('ab,ij,bjxt->aixt', tUt_coords, delta - gamma[mu], psi_zpmu)
+    Mpsi_blk2 = np.einsum('ba,ij,bjxt->aixt', tUt_coords, delta + gamma[mu], psi_z)
+    
+    Mpsi = np.zeros((dNc*Ns*lat.vol), dtype = np.complex128)
+    flat_field_putat(Mpsi, Mpsi_blk1, z[0], z[1], dNc, mutate = True)
+    flat_field_putat(Mpsi, Mpsi_blk2, zpmu[0], zpmu[1], dNc, mutate = True)
+    
+    # for a, alpha in itertools.product(range(dNc), range(Ns)):
+    #     Mpsi[flatten_full_idx((a, alpha, xz, tz), dNc)] = -2*kappa*(
+    #         np.einsum('', tUt_coords, delta - gamma[mu], psi_zpmu)
+    #     )
+    # for idx in range(Mpsi.shape):
+    #     a, alpha, x, t = unflatten_full_idx(idx, dNc, lat = lat)
+
+    return (-2*kappa) * Mpsi
+
+def init_fields(Nc, lat = LAT):
     """
     Initializes pseudofermion and gauge fields. Pseudofermion fields should be initialized as \Phi = K^{1/8} g, 
     where g is a Gaussian random vector of dimension TODO.
     """
 
-
+    U = id_field(Nc, lat = lat)
+    
+    
     return
+
+################################################################################
+############################## __MAIN__ FUNCTION ###############################
+################################################################################
 
 def main(args):
 
