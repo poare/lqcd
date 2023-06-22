@@ -25,7 +25,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy
-from scipy.sparse import bsr_matrix
+from scipy.sparse import bsr_matrix, csr_matrix
 from scipy.optimize import root
 from scipy.linalg import block_diag
 import h5py
@@ -339,6 +339,70 @@ def flat_field_putat(psi, blk, x, t, dNc, mutate = False, lat = LAT):
         a, alpha = colspin_idx
         new_psi[flatten_full_idx((a, alpha, x, t), dNc, lat = lat)] = blk[flatten_colspin_idx(colspin_idx, dNc)]
     return new_psi
+
+def get_colspin_blocks(D, dNc, lat = LAT):
+    """
+    Given a Dirac operator D, returns a matrix of color-spin blocks composing D. 
+    D can be any of the following formats:
+        1. A dense, unflattened Dirac operator.
+        2. A dense, flattened Dirac operator.
+        3. A sparse bsr_matrix.
+    
+    Parameters
+    ----------
+    D : np.array [dNc, Ns, L, T, dNc, Ns, L, T] or np.array [dNc*Ns*L*T, dNc*Ns*L*T] or bsr_matrix
+        Dirac operator to return blocks of.
+    dNc : int
+        Dimension of adjoint representation.
+    
+    Returns
+    -------
+    np.array [L*T, L*T, dNc*Ns, dNc*Ns]
+        Color-spin blocks of Dirac operator.
+    """
+    if len(D.shape) == 8:               # D is dense and unflattened
+        D = flatten_operator(D, lat = lat)
+    elif type(D) == bsr_matrix:
+        D = D.toarray()
+    block_size = dNc*Ns
+    blocks = np.zeros((lat.vol, lat.vol, block_size, block_size), dtype = D.dtype)
+    for i, j in itertools.product(range(lat.vol), repeat = 2):
+        blocks[i, j] = D[i*block_size : (i + 1)*block_size, j*block_size : (j + 1)*block_size]
+    return blocks
+
+def get_permutation(dNc, lat = LAT):
+    """
+    Gets the permutation matrix P that transforms between color-spin blocking and 
+    spacetime blocking.
+
+    Parameters
+    ----------
+    dNc : int
+        Dimension of adjoint representation.
+    lat : Lattice
+        Lattice object to use.
+    
+    Returns
+    -------
+    csr_matrix [dNc*Ns*lat.vol, dNc*Ns*lat.vol]
+        Permutation matrix P_{spacetime\leftarrow colspin} as a sparse matrix.
+    """
+    N_cs = dNc * Ns         # colspin block size
+    N_sp = lat.vol          # spacetime block size
+    N = N_cs * N_sp
+    rows = list(range(N))
+    cols = [(i % N_sp) * N_cs + (i // N_sp) for i in rows]
+    data = np.ones(N, dtype = np.int8)
+    return csr_matrix((data, (rows, cols)), shape = (N, N))
+
+def check_sparse_equal(A, B):
+    """
+    Checks that two scipy.sparse.bsr_matrix A and B are equal. Note that you cannot 
+    simply use np.array_equal(A, B); you can compare the dense matrices with 
+    np.array_equal(A.toarray(), B.toarray()), which should have the same output as 
+    check_sparse_equal(A, B).
+    """
+    return (A != B).nnz == 0
 
 ################################################################################
 ############################ GAUGE FIELD FUNCTIONS #############################
@@ -876,15 +940,14 @@ def form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BC
     Mpsi = np.zeros((dNc*Ns*lat.vol), dtype = np.complex128)
     flat_field_putat(Mpsi, Mpsi_blk1, z[0], z[1], dNc, mutate = True)
     flat_field_putat(Mpsi, Mpsi_blk2, zpmu[0], zpmu[1], dNc, mutate = True)
-    
-    # for a, alpha in itertools.product(range(dNc), range(Ns)):
-    #     Mpsi[flatten_full_idx((a, alpha, xz, tz), dNc)] = -2*kappa*(
-    #         np.einsum('', tUt_coords, delta - gamma[mu], psi_zpmu)
-    #     )
-    # for idx in range(Mpsi.shape):
-    #     a, alpha, x, t = unflatten_full_idx(idx, dNc, lat = lat)
 
     return (-2*kappa) * Mpsi
+
+def pseudofermion_action(K, phi):
+    """
+    Returns the pseudofermion action, 
+    """
+    return
 
 def init_fields(Nc, lat = LAT):
     """
@@ -896,6 +959,63 @@ def init_fields(Nc, lat = LAT):
     
     
     return
+
+def pfaffian(D):
+    """
+    Computes the Pfaffian of an (antisymmetric) Dirac operator D. D can be sparse or dense. 
+
+    Parameters
+    ----------
+    D : np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
+        Input Dirac operator. Can either be a numpy array or a sparse matrix.
+    
+    Returns
+    -------
+    np.float64
+        Pfaffian of D.
+    """
+    if type(D) == bsr_matrix:
+        assert check_sparse_equal(D.transpose(), -D), 'Pfaffian only defined for antisymmetric matrices.'
+        # solveD = scipy.sparse.linalg.splu(D)
+
+    return
+
+def lu_decomp(D):
+    """
+    Returns the LU decomposition Q D Q^T = T, where T is a tri-diagonal matrix and 
+    Q is the inverse of a lower triangular matrix. This follows the algorithm 
+    presented in Sec. 4.4 of hep-lat/1410.6971.
+
+    Note that since the resulting Q is lower triangular, its density is around 50%, 
+    hence a sparse representation is actually not a useful way to implement this decomposition.
+
+    TODO change basis to make sure that none of the normalizations are non-zero: 
+    what this means is that we need a basis where D[i, i+1] is non-zero always, so D 
+    allows hopping from each sparse representation to its nearest neighbor.
+
+    Parameters
+    ----------
+    D : np.array [dNc*Ns*L*T, dNc*Ns*L*T] or scipy.sparse.bsr_matrix
+        Input Dirac operator. Can either be a numpy matrix or a sparse matrix.
+    
+    Returns
+    -------
+    np.array [dNc*Ns*L*T, dNc*Ns*L*T]
+        Q, the inverse of L.
+    """
+    N = D.shape[0]
+    Q = np.eye(N, dtype = D.dtype)
+    print(D.toarray())
+    for i in np.arange(0, N - 2, 2):        # cycle over column pairs
+        qi, qip1 = Q[:, i], Q[:, i + 1]
+        norm = qip1 @ D @ qi
+        print(f'Norm for col {i}: {norm}')
+        qip1 = qip1 / norm
+        Q[:, i + 1] = qip1
+        for j in range(i + 2, N):
+            qj = Q[:, j]
+            Q[:, j] = qj - (qip1 @ D @ qj) * Q[:, i] - (qi @ D @ qj) * Q[:, i + 1]
+    return Q
 
 ################################################################################
 ############################## __MAIN__ FUNCTION ###############################

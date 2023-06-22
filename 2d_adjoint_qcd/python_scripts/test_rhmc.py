@@ -25,14 +25,14 @@ def is_equal(a, b, eps = rhmc.EPS):
     """Returns whether a and b are equal up to precision eps."""
     return np.abs(a - b) < eps
 
-def check_sparse_equal(A, B):
-    """
-    Checks that two scipy.sparse.bsr_matrix A and B are equal. Note that you cannot 
-    simply use np.array_equal(A, B); you can compare the dense matrices with 
-    np.array_equal(A.toarray(), B.toarray()), which should have the same output as 
-    check_sparse_equal(A, B).
-    """
-    return (A != B).nnz == 0
+# def check_sparse_equal(A, B):
+#     """
+#     Checks that two scipy.sparse.bsr_matrix A and B are equal. Note that you cannot 
+#     simply use np.array_equal(A, B); you can compare the dense matrices with 
+#     np.array_equal(A.toarray(), B.toarray()), which should have the same output as 
+#     check_sparse_equal(A, B).
+#     """
+#     return (A != B).nnz == 0
 
 def test_gauge_tools():
     """Tests utility functions for gauge fields."""
@@ -43,7 +43,7 @@ def test_gauge_tools():
     for a, b in itertools.product(range(dNc), repeat = 2):
         tr_ab = rhmc.trace(tSUN[a] @ tSUN[b])
         assert is_equal(tr_ab, (1/2) * delta_ab[a, b]), f'Tr[t^a t^b] != (1/2)\delta_ab at (a, b) = ({a}, {b}).'
-    print('test_gauge tools : Pass')
+    print('test_gauge_tools : Pass')
 
 ################################################################################
 ###################### TEST SPARSE MATRIX IMPLEMENTATIONS ######################
@@ -102,10 +102,11 @@ def test_flatten_full():
             f'Flatten and unflatten not inverses at flat_idx = {flat_idx}.'
     print('test_flatten_full : Pass')
 
-def test_zeros_full_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_zeros_full_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests that the full Dirac operator has zeros in the correct places."""
     Lat = rhmc.Lattice(L, T)
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     dirac_op = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
     for lx, tx, ly, ty in itertools.product(range(L), range(T), repeat = 2):
         x, y = np.array([lx, tx]), np.array([ly, ty])
@@ -115,11 +116,12 @@ def test_zeros_full_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
         assert not np.any(submat), f'Dirac operator is nonzero outside of nearest neighbors.'
     print('test_zeros_full_dirac : Pass')
 
-def test_zeros_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_zeros_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests that the sparse Dirac operator has zeros in the correct places."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac_op = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
     dirac_op = rhmc.unflatten_operator(sparse_dirac_op.toarray(), dNc, lat = Lat)
     for lx, tx, ly, ty in itertools.product(range(L), range(T), repeat = 2):
@@ -130,10 +132,12 @@ def test_zeros_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
         assert not np.any(submat), f'Dirac operator is nonzero outside of nearest neighbors at x = {x}, y = {y}.'
     print('test_zeros_sparse_dirac : Pass')
 
-def test_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Compares the sparse Dirac operator against a full Dirac operator on a small lattice."""
     Lat = rhmc.Lattice(L, T)
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    # print(V)
     sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
     full_dirac = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
     full_dirac_flat = rhmc.flatten_operator(full_dirac, lat = Lat)
@@ -141,10 +145,11 @@ def test_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
         'Sparse matrix construction disagrees with full Dirac operator.'
     print('test_sparse_dirac : Pass')
 
-def test_herm_dirac_full(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_herm_dirac_full(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Confirms that the full Dirac operator D is gamma5-Hermitian."""
     Lat = rhmc.Lattice(L, T)
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     dirac = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
     dirac_conj = np.einsum('ij,ajxtbkys,kl->aixtblys', rhmc.gamma5, dirac, rhmc.gamma5)
     dirac_dagger = rhmc.dagger_op(dirac)
@@ -156,11 +161,12 @@ def test_herm_dirac_full(L = 4, T = 4, Nc = 2, kappa = 0.1):
 
     print('test_herm_dirac_full : Pass')
 
-def test_herm_dirac_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_herm_dirac_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Confirms that the sparse Hermitian Dirac operator Q = gamma5 D is, in fact, Hermitian."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
 
     g5_spincol = rhmc.spin_to_spincol(rhmc.gamma5, dNc)
@@ -180,33 +186,35 @@ def test_herm_dirac_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1):
     Q = rhmc.hermitize_dirac(sparse_dirac)
     assert np.array_equal(Q.toarray(), Q.conj().transpose().toarray()), 'Q is not Hermitian.'
     assert np.array_equal(Q.toarray(), rhmc.dagger_op(Q).toarray()), 'Q is not Hermitian.'
-    assert check_sparse_equal(Q, Q.conj().transpose()), 'Q is not Hermitian.'
+    assert rhmc.check_sparse_equal(Q, Q.conj().transpose()), 'Q is not Hermitian.'
     print('test_herm_dirac_sparse : Pass')
 
-def test_skew_sym_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_skew_sym_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests the skew-symmetric Dirac operator is skew-symmetric."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
 
     Q = rhmc.hermitize_dirac(sparse_dirac)
-    assert check_sparse_equal(Q.transpose(), -Q), 'Q is not skew-symmetric.'
+    assert rhmc.check_sparse_equal(Q.transpose(), -Q), 'Q is not skew-symmetric.'
     print('test_skew_sym_sparse : Pass')
 
-def test_squared_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_squared_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests that the sparse construction and full construction of the squared Dirac 
     operator are equal."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
     dense_dirac = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
     sparse_K = rhmc.construct_K(sparse_dirac)
     dense_K = rhmc.construct_K(dense_dirac)
     dense_K_flat = rhmc.flatten_operator(dense_K, lat = Lat)
     assert np.array_equal(sparse_K.toarray(), dense_K_flat), 'Sparse K != dense K.'
-    assert check_sparse_equal(sparse_K, rhmc.dagger_op(sparse_K)), 'K is not Hermitian.'
+    assert rhmc.check_sparse_equal(sparse_K, rhmc.dagger_op(sparse_K)), 'K is not Hermitian.'
     print('test_squared_dirac : Pass')
 
 def test_eval_flat_ferm(L = 4, T = 4, Nc = 2):
@@ -246,12 +254,13 @@ def test_eval_flat_ferm(L = 4, T = 4, Nc = 2):
 ############################### TEST CG SOLVER #################################
 ################################################################################
 
-def test_shift_cg(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_shift_cg(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests the shifted CG solver by explicitly computing (K + \beta_i)^{-1} \Phi on 
     a small lattice."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
     dim = dirac.shape[0]
 
@@ -268,11 +277,12 @@ def test_shift_cg(L = 4, T = 4, Nc = 2, kappa = 0.1):
         assert np.allclose(psi, psi_cg, rtol = rhmc.CG_TOL), 'Actual inverse and CG inverse disagree.'
     print('test_shift_cg : Pass')
 
-def test_rK_application(L = 4, T = 4, Nc = 2, kappa = 0.1):
+def test_rK_application(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests an application of r(K) to a random vector phi on a small lattice."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
     K = rhmc.construct_K(dirac)
     dim = K.shape[0]
@@ -357,12 +367,69 @@ def test_rational_approx_large(n_samps = 100, delta = 2e-5):
     print('test_rational_approx_large : Pass')
 
 ################################################################################
+################################ TEST PFAFFIAN #################################
+################################################################################
+
+def is_tridiagonal(T):
+    """Returns true if T is tridiagonal."""
+    N = T.shape[0]
+    for i in range(N):
+        for j in range(N):
+            if i == j or i == j - 1 or i == j + 1:
+                continue
+            if np.abs(T[i, j]) > rhmc.EPS:
+                return False
+    return True
+
+def test_permutation(L = 4, T = 4, Nc = 2):
+    """Tests that the permutation matrix is orthogonal, and that it changes the basis on the Dirac operator correctly."""
+    Lat = rhmc.Lattice(L, T)
+    dNc = Nc**2 - 1
+    N = dNc*rhmc.Ns*Lat.vol
+    P = rhmc.get_permutation(dNc, lat = Lat)
+    assert np.array_equal((P @ P.transpose()).toarray(), np.eye(N, dtype = np.int8)), 'Permutation matrix is not orthogonal.'
+
+    kappa = 0.1
+    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+    D = P @ sparse_dirac @ P.transpose()
+    for i in range(0, N - 2, 2):
+        assert np.abs(D[i, i + 1]) > rhmc.EPS, 'Even columns have zero (i, i + 1) component.'
+    print('test_permutation : Pass')
+
+def test_LU_decomp(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
+    """Tests the LU decomposition. For a skew-symmetric matrix D, the LU decomposition 
+    is D = LTL^T, where L is lower triangular and T is tridiagonal with trivial Pfaffian. 
+    This tests the decomposition QDQ^T = T, where Q = L^{-1}. 
+    """
+    Lat = rhmc.Lattice(L, T)
+    dNc = Nc**2 - 1
+    if V is None:
+        # V = rhmc.id_field_adjoint(Nc, lat = Lat)
+        V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
+    sparse_dirac_op = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+    Q = rhmc.lu_decomp(sparse_dirac_op)
+    T = Q @ sparse_dirac_op @ Q.transpose()
+    L = np.linalg.inv(Q)
+    assert is_tridiagonal(T), 'Decomposition failed, T is not tridiagonal.'
+    print(Q)
+    assert np.array_equal(L @ T @ L.transpose(), sparse_dirac_op.toarray()), 'Decomposition failed, LTL^T != D.'
+    print('test_LU_decomp : Pass')
+
+
+################################################################################
 ################################## RUN TESTS ###################################
 ################################################################################
 
 L, T = 4, 4             # lattice size to test on
 # L, T = 8, 8
 # L, T = 10, 10
+
+Lat = rhmc.Lattice(L, T)
+Nc = 2
+dNc = Nc**2 - 1
+V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
+
 print_line()
 
 test_gauge_tools()
@@ -371,20 +438,26 @@ test_next_to()
 test_flatten_spacetime()
 test_flatten_colspin()
 test_flatten_full()
-test_zeros_full_dirac(L, T)
-test_zeros_sparse_dirac(L, T)
-test_sparse_dirac(L, T)
-test_herm_dirac_full(L, T)
-test_herm_dirac_sparse(L, T)
-test_skew_sym_sparse(L, T)
-test_squared_dirac(L, T)
-test_eval_flat_ferm(L, T)
+test_zeros_full_dirac(L = L, T = T, Nc = Nc)
+test_zeros_sparse_dirac(L = L, T = T, Nc = Nc)
 
-test_shift_cg(L, T)
-test_rK_application(L, T)
+test_sparse_dirac(L = L, T = T, Nc = Nc)                 # free field test
+test_sparse_dirac(L = L, T = T, Nc = Nc, V = V)          # random field test
+
+test_herm_dirac_full(L = L, T = T, Nc = Nc)
+test_herm_dirac_sparse(L = L, T = T, Nc = Nc)
+test_skew_sym_sparse(L = L, T = T, Nc = Nc)
+test_squared_dirac(L = L, T = T, Nc = Nc)
+test_eval_flat_ferm(L = L, T = T, Nc = Nc)
+
+test_shift_cg(L = L, T = T, Nc = Nc)
+test_rK_application(L = L, T = T, Nc = Nc)
 
 test_rational_approx_small()
 test_rational_approx_large()
+
+test_permutation(L = L, T = T, Nc = Nc)
+# test_LU_decomp()
 
 print_line()
 
@@ -392,26 +465,9 @@ print_line()
 ################################# SCRATCH WORK #################################
 ################################################################################
 
-# row = np.array([0, 0, 1, 2, 2, 2])
-# col = np.array([0, 2, 2, 0, 1, 2])
-# data = np.array([1, 2, 3 ,4, 5, 6])
-# sparse = bsr_matrix((data, (row, col)), shape=(3, 3))
-# print(sparse.toarray())
-# print(np.array([[1, 0, 2],
-#        [0, 0, 3],
-#        [4, 5, 6]]))
-
-# indptr = np.array([0, 2, 3, 6])
-# # indices = np.array([0, 2, 2, 0, 1, 2])
-# indices = np.array([2, 0, 2, 0, 1, 2])
-# data = np.array([1, 2, 3, 4, 5, 6]).repeat(4).reshape(6, 2, 2)
-# mat = bsr_matrix((data,indices,indptr), shape=(6, 6))
-# print(mat.toarray())
-
-# dirac = test_zeros_full_dirac()
-
 Lat = rhmc.Lattice(4, 4)
 Nc = 2
+dNc = Nc**2 - 1
 V = rhmc.id_field_adjoint(Nc, lat = Lat)
 kappa = 0.1
 dirac_op_full = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
