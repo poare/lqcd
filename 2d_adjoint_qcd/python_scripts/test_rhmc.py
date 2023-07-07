@@ -132,6 +132,31 @@ def test_zeros_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
         assert not np.any(submat), f'Dirac operator is nonzero outside of nearest neighbors at x = {x}, y = {y}.'
     print('test_zeros_sparse_dirac : Pass')
 
+def test_bcs(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
+    """Tests that the sparse Dirac operator has zeros in the correct places."""
+    Lat = rhmc.Lattice(L, T)
+    dNc = Nc**2 - 1
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    dirac0 = rhmc.dirac_op_sparse(kappa, V, bcs = (1, -1), lat = Lat).toarray()
+    dirac1 = rhmc.dirac_op_sparse(kappa, V, bcs = (1, 1), lat = Lat).toarray()
+    dirac2 = rhmc.dirac_op_sparse(kappa, V, bcs = (-1, -1), lat = Lat).toarray()
+    for i, j in itertools.product(range(dirac0.shape[0]), repeat = 2):
+        x = np.array(rhmc.unflatten_full_idx(i, dNc, lat = Lat))[2:]
+        y = np.array(rhmc.unflatten_full_idx(j, dNc, lat = Lat))[2:]
+        if not Lat.next_to_equal(x, y):
+            continue
+        if np.abs(x[0] - y[0]) > 1:         # then we have crossed the spatial boundary
+            assert dirac0[i, j] == dirac1[i, j], f'Periodic spatial bcs not working at ({x}, {y}).'
+            assert dirac0[i, j] == -dirac2[i, j], f'Antiperiodic spatial bcs not working at ({x}, {y}).'
+        elif np.abs(x[1] - y[1]) > 1:
+            assert dirac0[i, j] == -dirac1[i, j], f'Periodic temporal bcs not working at ({x}, {y}).'
+            assert dirac0[i, j] == dirac2[i, j], f'Antiperiodic temporal bcs not working at ({x}, {y}).'
+        else:
+            assert dirac0[i, j] == dirac1[i, j], f'Bulk values not equal for dirac0 and dirac1 at ({x}, {y}).'
+            assert dirac0[i, j] == dirac2[i, j], f'Bulk values not equal for dirac0 and dirac2 at ({x}, {y}).'
+    print('test_bcs : Pass')
+
 def test_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Compares the sparse Dirac operator against a full Dirac operator on a small lattice."""
     Lat = rhmc.Lattice(L, T)
@@ -371,7 +396,7 @@ def test_rational_approx_large(n_samps = 100, delta = 2e-5):
 ################################################################################
 
 def is_tridiagonal(T):
-    """Returns true if T is tridiagonal."""
+    """Returns True if T is tridiagonal."""
     N = T.shape[0]
     for i in range(N):
         for j in range(N):
@@ -381,41 +406,172 @@ def is_tridiagonal(T):
                 return False
     return True
 
+def is_upper_diagonal(U, eps = 1e-10):
+    """Returns True if U is upper diagonal."""
+    N = U.shape[0]
+    for i in range(N):
+        for j in range(0, i):
+            if np.abs(U[i, j]) > eps:
+                return False
+    return True
+
+def is_lower_diagonal(L, eps = 1e-10):
+    """Returns True if L is lower diagonal."""
+    N = L.shape[0]
+    for i in range(N):
+        for j in range(i + 1, N):
+            if np.abs(L[i, j]) > eps:
+                return False
+    return True
+
 def test_permutation(L = 4, T = 4, Nc = 2):
     """Tests that the permutation matrix is orthogonal, and that it changes the basis on the Dirac operator correctly."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
     N = dNc*rhmc.Ns*Lat.vol
-    P = rhmc.get_permutation(dNc, lat = Lat)
-    assert np.array_equal((P @ P.transpose()).toarray(), np.eye(N, dtype = np.int8)), 'Permutation matrix is not orthogonal.'
-
     kappa = 0.1
     V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+    sparse_Q = rhmc.hermitize_dirac(sparse_dirac)
+
+    # Test permutation matrix for original Dirac operator
+    P = rhmc.get_permutation_D(dNc, lat = Lat)
+    assert np.array_equal((P @ P.transpose()).toarray(), np.eye(N, dtype = np.int8)), 'P matrix is not orthogonal.'
     D = P @ sparse_dirac @ P.transpose()
     for i in range(0, N - 2, 2):
-        assert np.abs(D[i, i + 1]) > rhmc.EPS, 'Even columns have zero (i, i + 1) component.'
+        assert np.abs(D[i, i]) > rhmc.EPS and np.abs(D[i, i + 1]) > rhmc.EPS, \
+            'Even columns of basis-changed Dirac operator have zero (i, i + 1) component.'
+
+    # Test change-of-basis matrix for Hermitian Dirac operator
+    Ptilde, Ptilde_inv = rhmc.get_permutation_Q(dNc, lat = Lat)
+    assert np.array_equal((Ptilde @ Ptilde_inv).toarray(), np.eye(N, dtype = np.complex128)), 'Ptilde matrix is not orthogonal.'
+    Qtilde = Ptilde_inv @ sparse_Q @ Ptilde
+    for i in range(0, N - 2, 2):
+        assert np.abs(Qtilde[i, i]) > rhmc.EPS and np.abs(Qtilde[i, i + 1]) > rhmc.EPS, \
+            'Even columns of basis-changed Hermitian Dirac operator have zero (i, i + 1) component.'
     print('test_permutation : Pass')
 
-def test_LU_decomp(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
-    """Tests the LU decomposition. For a skew-symmetric matrix D, the LU decomposition 
-    is D = LTL^T, where L is lower triangular and T is tridiagonal with trivial Pfaffian. 
-    This tests the decomposition QDQ^T = T, where Q = L^{-1}. 
+def test_perm_matrix():
+    """Tests that the correct permutation matrix is returned from rhmc.cyclic_perm_matrix."""
+    tau = rhmc.cyclic_perm_matrix((0, 1), 2)
+    assert np.array_equal(tau.toarray(), np.array([[0, 1], [1, 0]], dtype = np.int8)), 'Matrix for tau is incorrect.'
+
+    sigma = rhmc.cyclic_perm_matrix((1, 3, 5), 6)
+    sigma_mat = np.array([
+        [1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0]
+    ])
+    assert np.array_equal(sigma.toarray(), sigma_mat), 'Matrix for sigma is incorrect.'
+
+    assert np.array_equal(rhmc.cyclic_perm_matrix((3, 7), N = 10).toarray(), rhmc.cyclic_perm_matrix((7, 3), N = 10).toarray()), \
+        'cyclic_perm_matrix is not commutative.'
+
+    sig1, sig2 = rhmc.cyclic_perm_matrix((2, 3), 5), rhmc.cyclic_perm_matrix((2, 1), 5)
+    sig3 = rhmc.cyclic_perm_matrix((1, 2, 3), 5)
+    assert np.array_equal((sig1 @ sig2).toarray(), sig3.toarray()), 'cyclic_perm_matrix is not a group homomorphism.'
+
+    print('test_perm_matrix : Pass')
+
+def test_covariant_perms():
+    """Tests that transforming P, A to P' and A' are really ``covariant'', in the sense of Eq. (11) of 
+    the Pfaffian paper. Test case uses pi = (1 3 4) with a 6 x 6 matrix."""
+    n = 6
+    Pi = rhmc.cyclic_perm_matrix((1, 3, 4), n)
+    def this_perm(k):
+        if k == 1:
+            return 3
+        if k == 3:
+            return 4
+        if k == 4:
+            return 1
+        return k
+
+    p = np.random.rand(n, n)
+    A = np.random.rand(n, n)
+    p_prime1 = Pi @ p
+    A_prime1 = Pi @ A @ Pi.transpose()
+    p_prime2 = np.zeros(p.shape, p.dtype)
+    A_prime2 = np.zeros(A.shape, A.dtype)
+    for i, j in itertools.product(range(n), repeat = 2):
+        p_prime2[i, j] = p[this_perm(i), j]
+        A_prime2[i, j] = A[this_perm(i), this_perm(j)]
+    assert np.array_equal(p_prime1, p_prime2), 'P did not transform covariantly under permutation.'
+    assert np.array_equal(A_prime1, A_prime2), 'A did not transform covariantly under permutation.'
+    print('test_covariant_perms : Pass')
+
+def test_LU_small_mat():
+    """Tests the pivoting mechanism by explicitly pivoting the matrix for LU decomposition prior 
+    to calling the lu_decomp function. Test matrix is a 6 x 6 color-spin block from the Dirac 
+    matrix on a 4 x 4 lattice."""
+    Lat = rhmc.Lattice(4, 4)
+    Nc = 2
+    dNc = Nc**2 - 1
+    V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    dirac_op_sparse = rhmc.dirac_op_sparse(0.1, V, lat = Lat)
+    Q = rhmc.hermitize_dirac(dirac_op_sparse).toarray()[:6, :6]
+
+    assert np.array_equal(Q.transpose(), -Q), 'Q is not antisymmetric.'
+    assert np.abs(np.linalg.det(Q)) > rhmc.EPS, 'Q is singular.'
+    P, J, Pi = rhmc.lu_decomp(Q)
+    Qprime = Pi @ Q @ Pi.transpose()
+    Qdecomp = P @ J @ P.transpose()
+    assert np.array_equal(Qprime, Qdecomp), 'LU decomposition for Q failed.'
+
+    print('test_LU_small_mat : Pass')
+
+def test_LU_random_mat(n_max = 21):
+    """Tests the LU decomposition by decomposing a random, antisymmetric, non-singular matrix. 
+    Constructs random matrices of size 4, 6, 8, ..., 20 for the test."""
+    for n in np.arange(6, n_max, 2):
+        Q = np.zeros((n, n), dtype = np.complex128)
+        for i in range(n):
+            for j in range(i):
+                Q[i, j] = np.random.rand()
+                Q[j, i] = -Q[i, j]
+        assert np.array_equal(Q.transpose(), -Q), 'Q is not antisymmetric.'
+        assert np.abs(np.linalg.det(Q)) > rhmc.EPS, 'Q is singular.'
+        P, J, Pi = rhmc.lu_decomp(Q)
+        Qprime = Pi @ Q @ Pi.transpose()
+        Qdecomp = P @ J @ P.transpose()
+        assert np.allclose(Qprime, Qdecomp), f'LU decomposition for Q failed for matrix of size ({n}, {n}).'
+    print('test_LU_random_mat : Pass')
+
+def test_pfsq_random_mat(n_max = 21):
+    """Tests the Pfaffian computation by decomposing a random, antisymmetric, non-singular matrix. 
+    Constructs random matrices of size 4, 6, 8, ..., 20 for the test."""
+    for n in np.arange(6, n_max, 2):
+        Q = np.zeros((n, n), dtype = np.complex128)
+        for i in range(n):
+            for j in range(i):
+                Q[i, j] = np.random.rand()
+                Q[j, i] = -Q[i, j]
+        assert np.array_equal(Q.transpose(), -Q), 'Q is not antisymmetric.'
+        assert np.abs(np.linalg.det(Q)) > rhmc.EPS, 'Q is singular.'
+        pf = rhmc.pfaffian(Q)
+        dev = pf**2 - np.linalg.det(Q)
+        assert np.abs(dev) < rhmc.EPS, f'Pfaffian^2 != determinant with deviation {dev} for matrix of size ({n}, {n}).'
+    print('test_pfsq_random_mat : Pass')
+
+def test_LU_decomp(L = 4, T = 4, Nc = 2, kappa = 0.25, V = None):
+    """Tests the LU decomposition. For a skew-symmetric matrix Q, the LU decomposition 
+    is D = PJP^T, where P is lower triangular and J is tridiagonal with trivial Pfaffian. 
     """
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
     if V is None:
-        # V = rhmc.id_field_adjoint(Nc, lat = Lat)
-        V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac_op = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
-    Q = rhmc.lu_decomp(sparse_dirac_op)
-    T = Q @ sparse_dirac_op @ Q.transpose()
-    L = np.linalg.inv(Q)
-    assert is_tridiagonal(T), 'Decomposition failed, T is not tridiagonal.'
-    print(Q)
-    assert np.array_equal(L @ T @ L.transpose(), sparse_dirac_op.toarray()), 'Decomposition failed, LTL^T != D.'
-    print('test_LU_decomp : Pass')
+    Q = rhmc.hermitize_dirac(sparse_dirac_op)
 
+    P, J, Pi = rhmc.lu_decomp(Q)
+    Qprime = Pi @ Q @ Pi.transpose()
+    Qdecomp = P @ J @ P.transpose()
+    assert np.allclose(Qprime.toarray(), Qdecomp), f'LU decomposition for Dirac operator failed..'
+    print('test_LU_decomp : Pass')
 
 ################################################################################
 ################################## RUN TESTS ###################################
@@ -431,6 +587,8 @@ dNc = Nc**2 - 1
 V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
 
 print_line()
+print('RUNNING TESTS')
+print_line()
 
 test_gauge_tools()
 test_next_to()
@@ -440,6 +598,7 @@ test_flatten_colspin()
 test_flatten_full()
 test_zeros_full_dirac(L = L, T = T, Nc = Nc)
 test_zeros_sparse_dirac(L = L, T = T, Nc = Nc)
+test_bcs(L = L, T = T, Nc = Nc)
 
 test_sparse_dirac(L = L, T = T, Nc = Nc)                 # free field test
 test_sparse_dirac(L = L, T = T, Nc = Nc, V = V)          # random field test
@@ -456,9 +615,16 @@ test_rK_application(L = L, T = T, Nc = Nc)
 test_rational_approx_small()
 test_rational_approx_large()
 
+test_perm_matrix()
+test_covariant_perms()
 test_permutation(L = L, T = T, Nc = Nc)
-# test_LU_decomp()
+test_LU_small_mat()
+test_LU_random_mat()
+test_pfsq_random_mat()
+test_LU_decomp(L = L, T = T, Nc = Nc)
 
+print_line()
+print('ALL TESTS PASSED')
 print_line()
 
 ################################################################################
@@ -472,3 +638,26 @@ V = rhmc.id_field_adjoint(Nc, lat = Lat)
 kappa = 0.1
 dirac_op_full = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
 dirac_op_sparse = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+dirac_op_sparse_apbc = rhmc.dirac_op_sparse(kappa, V, bcs = (-1, -1), lat = Lat)
+
+# NOTE THAT: upon changing basis, Q_sp is NO LONGER ANTISYMMETRIC. This means it doesn't necessarily admit a LTL^T decomposition.
+# TODO make Q have antiperiodic BCs-- might need this for non-trivial Pfaffian.
+# Q = rhmc.hermitize_dirac(dirac_op_sparse)
+# Ptilde, Ptilde_inv = rhmc.get_permutation_Q(dNc, lat = Lat)
+# Q_sp = Ptilde_inv @ Q @ Ptilde
+# blk = Q_sp.toarray()[:4, :4]    # single space block. Should still admit a LU factorization
+
+# Q_apbc = rhmc.hermitize_dirac(dirac_op_sparse_apbc)
+# Ptilde, Ptilde_inv = rhmc.get_permutation_Q(dNc, lat = Lat)
+# Q_sp_apbc = Ptilde_inv @ Q_apbc @ Ptilde
+# blk_apbc = Q_sp_apbc.toarray()[:4, :4]    # single space block. Should still admit a LU factorization.
+
+# TODO try this on the following block:
+Q = rhmc.hermitize_dirac(dirac_op_sparse)
+P = rhmc.get_permutation_D(dNc, lat = Lat)
+Q_sp = P @ Q @ P.transpose()
+Q_blk = Q.toarray()[:6, :6]
+Qsp_blk = Q_sp.toarray()[:4, :4]
+# TODO goal is to be able to decompose Q_blk and Qsp_blk with lu_decomp2
+# TODO don't use get_permutation_Q, since the resulting matrix ISN'T ORTHOGONAL and hence the resulting Q is not antisymmetric.
+

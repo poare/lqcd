@@ -68,7 +68,7 @@ lambda_high = 1000                          # Largest eigenvalue possible for K 
 alpha_m4, beta_m4 = rhmc_m4_15()            # Approximation coefficients for K^{-1/4}
 alpha_8, beta_8 = rhmc_8_15()               # Approximation coefficients for K^{+1/8}
 
-DEFAULT_BCS = np.array([1, -1])                     # Boundary conditions for fermion fields
+DEFAULT_BCS = (1, -1)                     # Boundary conditions for fermion fields
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -131,6 +131,35 @@ class Lattice:
     def next_to_equal(self, x, y):
         """Returns true if the 2-positions x and y are either nearest neighbors or are equal."""
         return self.taxicab_distance(x, y) <= 1
+    
+    def get_delta_bcs(self, bcs = DEFAULT_BCS):
+        """
+        Returns the Kronecker delta for spacetime points x, y adjusted with a 
+        sign for boundary conditions.
+        
+        Parameters
+        ----------
+        self : Lattice
+            Lattice instance to use.
+        bcs : tuple (int, int) (default = DEFAULT_BCS)
+            Boundary conditions to use.
+
+        Returns
+        -------
+        function
+            Delta function, adjusted to boundary conditions.
+        """
+        def delta_fn(x, y):
+            """Kronecker delta for spacetime points, adjusted with given boundary conditions."""
+            if np.array_equal(x, y):                            # x and y are equal
+                return 1
+            if np.array_equal(self.mod(x), self.mod(y)):        # x and y are equal up to boundaries
+                if x[0] % self.L == y[0] % self.L and x[1] == y[1]:
+                    return bcs[0]
+                if x[0] == y[0] and x[1] % self.T == y[1] % self.T:
+                    return bcs[1]
+            return 0                                            # x and y are not equal
+        return delta_fn
 
     def __str__(self):
         return f'{self.L} x {self.T} dimensional Lattice'
@@ -370,10 +399,12 @@ def get_colspin_blocks(D, dNc, lat = LAT):
         blocks[i, j] = D[i*block_size : (i + 1)*block_size, j*block_size : (j + 1)*block_size]
     return blocks
 
-def get_permutation(dNc, lat = LAT):
+def get_permutation_D(dNc, lat = LAT):
     """
     Gets the permutation matrix P that transforms between color-spin blocking and 
-    spacetime blocking.
+    spacetime blocking for the original Dirac matrix D. Note that this should not be 
+    used in the Pfaffian computation, since the Hermitian Dirac matrix Q = gamma_5 D 
+    has a different structure than D. 
 
     Parameters
     ----------
@@ -394,6 +425,35 @@ def get_permutation(dNc, lat = LAT):
     cols = [(i % N_sp) * N_cs + (i // N_sp) for i in rows]
     data = np.ones(N, dtype = np.int8)
     return csr_matrix((data, (rows, cols)), shape = (N, N))
+
+def get_permutation_Q(dNc, lat = LAT):
+    """
+    Gets the permutation matrix \tilde{P} that transforms between color-spin blocking and 
+    spacetime blocking for the Hermitian Dirac matrix Q. This should be used in the 
+    Pfaffian computation.
+
+    Parameters
+    ----------
+    dNc : int
+        Dimension of adjoint representation.
+    lat : Lattice
+        Lattice object to use.
+    
+    Returns
+    -------
+    csr_matrix [dNc*Ns*lat.vol, dNc*Ns*lat.vol]
+        Permutation matrix P_{spacetime\leftarrow colspin} as a sparse matrix.
+    csr_matrix [dNc*Ns*lat.vol, dNc*Ns*lat.vol]
+        Inverse permutation matrix P_{spacetime\leftarrow colspin}^{-1} as a sparse matrix.
+    """
+    omega = (1/2)*(1 - 1j) * np.array([[1j, -1j], [1, 1]])
+    omega_inv = (1/2)*(1 + 1j) * np.array([[-1j, 1], [1j, 1]])
+    omega_colspin = np.kron(omega, np.eye(dNc))
+    omega_inv_colspin = np.kron(omega_inv, np.eye(dNc))
+    Omega = scipy.sparse.block_diag([omega_colspin for i in range(lat.vol)], format = 'csc')
+    Omega_inv = scipy.sparse.block_diag([omega_inv_colspin for i in range(lat.vol)], format = 'csc')
+    P = get_permutation_D(dNc, lat = lat)
+    return Omega @ P.transpose(), P @ Omega_inv
 
 def check_sparse_equal(A, B):
     """
@@ -549,7 +609,7 @@ def construct_adjoint_links(U, gens, lat = LAT):
 ############################## FERMION FUNCTIONS ###############################
 ################################################################################
 
-def get_dirac_op_idxs(kappa, V, lat = LAT):
+def get_dirac_op_idxs(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns the Dirac operator between two sets of indices ((a, alpha, x), (b, beta, y)), for a 
     configuration V in the adjoint representation. 
@@ -559,23 +619,30 @@ def get_dirac_op_idxs(kappa, V, lat = LAT):
     kappa : np.float64
         Hopping parameter.
     V : np.array [d, L, T, dNc, dNc]
-        Adjoint gauge field
-    TODO: should we add a mass parameter?
+        Adjoint gauge field.
+    bcs : tuple (int, int) (default = DEFAULT_BCS)
+        Boundary conditions to satisfy. 1 for periodic and -1 for antiperiodic.
+    lat : Lattice (default = LAT)
+        Lattice to work with.
     
     Returns
     -------
     function (a, alpha, x, b, beta, y) --> np.complex128
         Dirac operator index function. Here x and y should be 2-positions (xx, tx) and (yy, ty).
     """
+    delta_bcs = lat.get_delta_bcs(bcs)
     def dirac_op_idxs(a, alpha, x, b, beta, y):
-        # TODO note that instead of using V^T, we might want to use V^\dagger(x - \hat\mu).
+        # return kron_delta(a, b) * kron_delta(alpha, beta) * kron_delta(x, y) - kappa * np.sum([
+        #         V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y + hat(mu)))
+        #         + V[mu, x[0], x[1], b, a] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y - hat(mu)))
+        #     for mu in range(d)])
         return kron_delta(a, b) * kron_delta(alpha, beta) * kron_delta(x, y) - kappa * np.sum([
-                V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y + hat(mu)))
-                + V[mu, x[0], x[1], b, a] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y - hat(mu)))
+                V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * delta_bcs(x, y + hat(mu))
+                + V[mu, x[0], x[1], b, a] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * delta_bcs(x, y - hat(mu))
             for mu in range(d)])
     return dirac_op_idxs
 
-def get_dirac_op_full(kappa, V, lat = LAT):
+def get_dirac_op_full(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns the full Dirac operator as a numpy array. This should only be used to check the sparse 
     Dirac operator, or when the lattice is very small. 
@@ -594,13 +661,13 @@ def get_dirac_op_full(kappa, V, lat = LAT):
     """
     dNc = V.shape[-1]                       # dimension of adjoint rep of SU(Nc)
     dirac_op_full = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex128)
-    dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = lat)
+    dirac_op_idxs = get_dirac_op_idxs(kappa, V, bcs = bcs, lat = lat)
     for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in dirac_op_full.shape]):
         x, y = np.array([lx, tx]), np.array([ly, ty])
         dirac_op_full[a, alpha, lx, tx, b, beta, ly, ty] = dirac_op_idxs(a, alpha, x, b, beta, y)
     return dirac_op_full
 
-def get_dirac_op_block(kappa, V, lat = LAT):
+def get_dirac_op_block(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns a function D(x, y) which gives the Dirac operator from sites x to y as a 
     dNc*Ns by dNc*Ns matrix for a given configuration and kappa.
@@ -610,7 +677,7 @@ def get_dirac_op_block(kappa, V, lat = LAT):
     kappa : np.float64
         Hopping parameter.
     V : np.array [d, L, T, dNc, dNc]
-        Adjoint gauge field
+        Adjoint gauge field.
     
     Returns
     -------
@@ -618,7 +685,7 @@ def get_dirac_op_block(kappa, V, lat = LAT):
         Function to extract the blocked Dirac operator at x, y.
     """
     dNc = V.shape[-1]
-    dirac_op_idxs = get_dirac_op_idxs(kappa, V, lat = lat)
+    dirac_op_idxs = get_dirac_op_idxs(kappa, V, bcs = bcs, lat = lat)
     def dirac_block(x, y):
         """x and y are spacetime 2-vectors. Returns the corresponding color-spin block of 
         the Dirac operator."""
@@ -629,7 +696,7 @@ def get_dirac_op_block(kappa, V, lat = LAT):
         return blk
     return dirac_block
 
-def dirac_op_sparse(kappa, V, lat = LAT):
+def dirac_op_sparse(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns the Dirac operator D as a sparse matrix in the Block Compressed Row (BSR) format.
     This is done by blocking the Dirac operator by spacetime dimension, since it only connects 
@@ -644,6 +711,10 @@ def dirac_op_sparse(kappa, V, lat = LAT):
         Hopping parameter.
     V : np.array [d, L, T, dNc, dNc]
         Adjoint gauge field.
+    bcs : tuple (int, int) (default = DEFAULT_BCS)
+        Boundary conditions to satisfy. 1 for periodic and -1 for antiperiodic.
+    lat : Lattice (default = LAT)
+        Lattice to work with.
     
     Returns
     -------
@@ -652,7 +723,7 @@ def dirac_op_sparse(kappa, V, lat = LAT):
     """
     dNc = V.shape[-1]
     dim_dirac = dNc * Ns * lat.vol
-    dirac_block = get_dirac_op_block(kappa, V, lat = lat)
+    dirac_block = get_dirac_op_block(kappa, V, bcs = bcs, lat = lat)
     indptr = [0]
     indices = []
     data = []
@@ -660,6 +731,7 @@ def dirac_op_sparse(kappa, V, lat = LAT):
         x = np.array(unflatten_spacetime_idx(flat_x, lat = lat))
         for flat_y in range(lat.vol):
             y = np.array(unflatten_spacetime_idx(flat_y, lat = lat))
+            # Here add the sign for bcs
             if lat.next_to_equal(x, y):             # then fill the block in
                 block = dirac_block(x, y)           # (dNc*Ns) x (dNc*Ns) block
                 data.append(block)
@@ -851,7 +923,7 @@ def pf_force(dirac, U, phi, gens, kappa, alphas = alpha_m4, betas = beta_m4, lat
     
     Returns
     -------
-    np.array [d, L, T, Nc, Nc]
+    dKdU : np.array [d, L, T, Nc, Nc]
         Derivative of pseudofermion part of action by the fundamental gauge field.
     """
     Q = hermitize_dirac(dirac)
@@ -960,62 +1032,191 @@ def init_fields(Nc, lat = LAT):
     
     return
 
-def pfaffian(D):
+def pfaffian(Q):
     """
-    Computes the Pfaffian of an (antisymmetric) Dirac operator D. D can be sparse or dense. 
+    Computes the Pfaffian of a flattened (antisymmetric) Dirac operator Q. Q can be sparse or dense. 
+    Uses the LU decomposition of Q = P J P^T, where J has trivial Pfaffian, and computes pf(Q) = pf(P)^2
+    = det(P) = \prod_i P_{ii}. 
 
     Parameters
     ----------
-    D : np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
-        Input Dirac operator. Can either be a numpy array or a sparse matrix.
+    Q : np.array [n, n] or bsr_matrix or csr_matrix
+        Input Hermitian Dirac operator, or arbitrary antisymmetric matrix. 
+        Can either be a numpy array or a sparse matrix.
     
     Returns
     -------
-    np.float64
-        Pfaffian of D.
+    np.complex128
+        Pfaffian of Q.
     """
-    if type(D) == bsr_matrix:
-        assert check_sparse_equal(D.transpose(), -D), 'Pfaffian only defined for antisymmetric matrices.'
-        # solveD = scipy.sparse.linalg.splu(D)
+    if type(Q) == bsr_matrix:
+        assert check_sparse_equal(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
+        Q = csr_matrix(Q)               # CSR format is better for indexing
+    elif type(Q) == csr_matrix:
+        assert check_sparse_equal(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
+    else:
+        assert np.array_equal(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
+    n = Q.shape[0]
+    P, _, Pi = lu_decomp(Q, compute_J = False)
+    pf = np.prod([P[i, i] for i in range(n)])           # Pfaffian is product of diagonal elements.
+    return pf
 
-    return
-
-def lu_decomp(D):
+def cyclic_perm_matrix(perm, N = -1):
     """
-    Returns the LU decomposition Q D Q^T = T, where T is a tri-diagonal matrix and 
-    Q is the inverse of a lower triangular matrix. This follows the algorithm 
-    presented in Sec. 4.4 of hep-lat/1410.6971.
-
-    Note that since the resulting Q is lower triangular, its density is around 50%, 
-    hence a sparse representation is actually not a useful way to implement this decomposition.
-
-    TODO change basis to make sure that none of the normalizations are non-zero: 
-    what this means is that we need a basis where D[i, i+1] is non-zero always, so D 
-    allows hopping from each sparse representation to its nearest neighbor.
+    Returns the permutation matrix associated to the string perm = (i, j, ..., k). 
+    This matrix is constructed as a sparse scipy matrix, and should be orthogonal. 
+    Embeds perm into an N x N array. For example, cyclic_perm_matrix((1, 2), 4) 
+    embeds the 2x2 matrix [[0, 1], [1, 0]] into a 4x4 array.
 
     Parameters
     ----------
-    D : np.array [dNc*Ns*L*T, dNc*Ns*L*T] or scipy.sparse.bsr_matrix
-        Input Dirac operator. Can either be a numpy matrix or a sparse matrix.
+    perm : tuple (int)
+        Permutation to use. Should be a tuple of non-repeating integers, as in 
+        the standard notation for cyclic permutations in the symmetric group (see 
+        also https://en.wikipedia.org/wiki/Cyclic_permutation).
+    N : int (default = -1)
+        Dimension of matrix to embed permutation matrix into. If -1, N will 
+        default to len(perm)
     
     Returns
     -------
-    np.array [dNc*Ns*L*T, dNc*Ns*L*T]
-        Q, the inverse of L.
+    P : scipy.sparse.csr_matrix (dtype = np.int8)
     """
-    N = D.shape[0]
-    Q = np.eye(N, dtype = D.dtype)
-    print(D.toarray())
-    for i in np.arange(0, N - 2, 2):        # cycle over column pairs
-        qi, qip1 = Q[:, i], Q[:, i + 1]
-        norm = qip1 @ D @ qi
-        print(f'Norm for col {i}: {norm}')
-        qip1 = qip1 / norm
-        Q[:, i + 1] = qip1
-        for j in range(i + 2, N):
-            qj = Q[:, j]
-            Q[:, j] = qj - (qip1 @ D @ qj) * Q[:, i] - (qi @ D @ qj) * Q[:, i + 1]
-    return Q
+    if N == -1:
+        N = len(perm)
+    data = np.ones(N, dtype = np.int8)                  # Always have N ones
+    row = [i for i in range(N) if i not in perm]
+    col = row.copy()
+    m = len(perm)
+    for i in range(m):
+        row.append(perm[i])
+        ip1 = (i + 1) % m
+        col.append(perm[ip1])
+    return scipy.sparse.csr_matrix((data, (row, col)), shape = (N, N))
+
+def lu_decomp(A, compute_J = True):
+    """
+    Returns the LU decomposition of the n x n matrix A. This follows the algorithm 
+    presented in hep-lat/1102.3576v2. A is decomposed as A = P J P^T, where P is a 
+    lower triangular matrix and J is a tridiagonal matrix with non-zero entries either
+    +1 or -1, with trivial Pfaffian. In the case where the columns of A do not allow 
+    the algorithm to be used directly, partial pivoting is used on A to form A' = 
+    Pi @ A @ Pi.transpose(), where Pi is a permutation matrix. After partial pivoting, 
+    we also consider P' = Pi @ P, which has permuted rows compared to the original P.
+
+    Note that since the resulting P is lower triangular, its density is around 50%, 
+    hence a sparse representation is actually not a useful way to implement this decomposition. 
+    However, J is tridiagonal, hence has density ~ 3 / n, hence will be returned as a sparse matrix. 
+
+    Parameters
+    ----------
+    A : np.array [n, n] or csr_matrix or bsr_matrix
+        Input matrix. Can either be a numpy matrix or a sparse matrix. Must be skew-symmetric 
+        and non-singular.
+    compute_J : bool (default = True)
+        Flag to specify whether or not to compute J. If compute_J is False, returns None for J.
+    
+    Returns
+    -------
+    P : np.array [n, n]
+        The lower triangular matrix P in the decomposition A = P J P^T.
+    J : scipy.sparse.csr_matrix [n, n]
+        The trivial tridiagonal matrix J in the decomposition A = P J P^T
+    Pi : scipy.sparse.csr_matrix [n, n]
+        Pivoting matrix. Equals the identity if no pivoting is used. 
+    """
+    if type(A) == bsr_matrix:
+        A = csr_matrix(A)
+    if type(A) == csr_matrix:
+        assert check_sparse_equal(A.transpose(), -A), 'A is not skew-symmetric.'
+    else:
+        assert np.array_equal(A.transpose(), -A), 'A is not skew-symmetric.'
+    n = A.shape[0]
+    A0 = A.copy()
+    p = np.zeros((n, n), dtype = A.dtype)
+    for i in np.arange(0, n - 1, 2):
+        p[i, i] = 1
+    Pi = scipy.sparse.identity(n, dtype = np.int8, format = 'csr')
+    for i in np.arange(0, n - 1, 2):                    # Cycle over column pairs
+        for j in np.arange(i + 1, n):                   # Update column i + 1
+            p[j, i + 1] = A[i, j]
+            for k in np.arange(0, i - 1, 2):
+                p[j, i + 1] -= p[i, k] * p[j, k + 1] - p[i, k + 1] * p[j, k]
+        pip1 = p[i + 1, i + 1]
+        if np.abs(pip1) < EPS:                          # PIVOT
+            jmax = np.argmax(np.abs(p[:, i + 1]))       # Pivot i+1 <--> jmax
+            pip1 = p[jmax, i + 1]                       # Reset pip1
+
+            # swap rows. Note that to form A' and P', we take A' = Pi @ A @ Pi.transpose() and P' = Pi @ P
+            tau = cyclic_perm_matrix((i + 1, jmax), n)
+            Pi = tau @ Pi                               # keep track of full permutation (product of all transpositions)
+            A = tau @ A @ tau.transpose()
+            p = tau @ p
+        for j in np.arange(i + 2, n):                   # Update column i
+            p[j, i] = A[i + 1, j]
+            for k in np.arange(0, i - 1, 2):
+                p[j, i] -= p[i + 1, k] * p[j, k + 1] - p[i + 1, k + 1] * p[j, k]
+            p[j, i] = - p[j, i] / pip1
+    if compute_J:
+        data, rows, cols = [], [], []
+        for i in range(n):
+            data.append((-1)**i)
+            rows.append(i)
+            cols.append(i + (-1)**i)
+        J = scipy.sparse.csr_matrix((data, (rows, cols)), shape = (n, n))
+    else:
+        J = None
+    return p, J, Pi
+
+# def lu_decomp(Q, dNc, lat = LAT):
+#     """
+#     Returns the LU decomposition of Q. This follows the algorithm 
+#     presented in Sec. 4.4 of hep-lat/1410.6971. Note that the naive Hermitian Wilson-Dirac 
+#     operator satisfies Q[i, i + 1] = 0 in the color-spin blocking defined above, which is 
+#     incompatible with the algorithm presented in the paper. Q is thus basis transformed to a 
+#     spacetime-blocked matrix Q_sp, and Q_sp is decomposed as Gamma Q_sp Gamma^T = T, where 
+#     where T is a tri-diagonal matrix and Gamma is the inverse of a lower triangular matrix L.
+
+#     Note that since the resulting Q is lower triangular, its density is around 50%, 
+#     hence a sparse representation is actually not a useful way to implement this decomposition.
+
+#     Parameters
+#     ----------
+#     Q : np.array [dNc*Ns*L*T, dNc*Ns*L*T] or scipy.sparse.bsr_matrix
+#         Input Hermitian Dirac operator. Can either be a numpy matrix or a sparse matrix.
+#     dNc : int
+#         Dimension of adjoint representation.
+#     lat : Lattice
+#         Lattice to work on.
+    
+#     Returns
+#     -------
+#     Gamma : np.array [dNc*Ns*L*T, dNc*Ns*L*T]
+#         The inverse of L.
+#     Q_sp : np.array [dNc*Ns*L*T, dNc*Ns*L*T] or scipy.sparse.bsr_matrix
+#         The Hermitian Dirac operator in the spacetime blocking. Note this satisfies 
+#         the decomposition Gamma Q_sp Gamma^T = T.
+#     """
+#     N = Q.shape[0]
+#     Gamma = np.eye(N, dtype = Q.dtype)
+#     Ptilde, Ptilde_inv = get_permutation_Q(dNc, lat = lat)
+#     Q_sp = Ptilde_inv @ Q @ Ptilde
+#     print(Q_sp.toarray()[:10, :10])
+#     for i in np.arange(0, N - 2, 2):                    # Cycle over column pairs
+#         Gam_i, Gam_ip1 = Gamma[:, i], Gamma[:, i + 1]     # Columns of Gamma
+#         if i < 10:
+#             print(f'Gamma_{i}:')
+#             print(Gam_i)
+#             print(f'Gamma_{i+1}:')
+#             print(Gam_ip1)
+#         norm = Gam_ip1 @ Q_sp @ Gam_i
+#         print(f'Norm for col {i}: {norm}')
+#         Gam_ip1 = Gam_ip1 / norm
+#         Gamma[:, i + 1] = Gam_ip1
+#         for j in range(i + 2, N):
+#             Gam_j = Gamma[:, j]
+#             Gamma[:, j] = Gam_j - (Gam_ip1 @ Q_sp @ Gam_j) * Gam_i - (Gam_i @ Q_sp @ Gam_j) * Gam_ip1
+#     return Gamma, Q_sp
 
 ################################################################################
 ############################## __MAIN__ FUNCTION ###############################
