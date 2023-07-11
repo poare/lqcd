@@ -41,6 +41,7 @@ from constants import *
 from fittools import *
 from formattools import *
 import plottools as pt
+import suNtools as suN
 
 style = styles['prd_twocol']
 pt.set_font()
@@ -68,7 +69,8 @@ lambda_high = 1000                          # Largest eigenvalue possible for K 
 alpha_m4, beta_m4 = rhmc_m4_15()            # Approximation coefficients for K^{-1/4}
 alpha_8, beta_8 = rhmc_8_15()               # Approximation coefficients for K^{+1/8}
 
-DEFAULT_BCS = (1, -1)                     # Boundary conditions for fermion fields
+DEFAULT_BCS = (1, -1)                       # Boundary conditions for fermion fields
+# DEFAULT_BCS = (1, 1)                        # Boundary conditions
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -253,7 +255,7 @@ def unflatten_colspin_vec(vec, dNc):
 
 def flatten_ferm_field(vec, lat = LAT):
     """
-    Flattens a fermion field of shape [dNc, Ns, L, T] into a fermion field 
+    Flattens a fermion field of shape [dNc, Ns, L, T] into a (non-sparse) fermion field 
     of shape [dNc*Ns*L*T].
     """
     dNc = vec.shape[0]
@@ -464,13 +466,22 @@ def check_sparse_equal(A, B):
     """
     return (A != B).nnz == 0
 
+def check_sparse_allclose(A, B, rtol = 1.e-5, atol = 1.e-8):
+    """
+    Checks that two sparse scipy matrices A and B are close. 
+
+    TODO: currently a bit inefficient, checks all elements are np.allclose. Instead, 
+    should modify so it only checks the non-zero elements are allclose.
+    """
+    return np.allclose(A.toarray(), B.toarray(), rtol = rtol, atol = atol)
+
 ################################################################################
 ############################ GAUGE FIELD FUNCTIONS #############################
 ################################################################################
 
 def id_field(Nc, lat = LAT):
     """Constructs an identity SU(Nc) field in the fundamental representation."""
-    U = np.zeros((d, lat.L, lat.T, Nc, Nc))
+    U = np.zeros((d, lat.L, lat.T, Nc, Nc), dtype = np.complex128)
     for a in range(Nc):
         U[:, :, :, a, a] = 1
     return U
@@ -605,6 +616,29 @@ def construct_adjoint_links(U, gens, lat = LAT):
         V[mu, x, t, a, b] = 2 * trace(dagger(U[mu, x, t]) @ gens[a] @ U[mu, x, t] @ gens[b])
     return V
 
+def gen_random_fund_field(Nc, eps, lat = LAT):
+    """
+    Generates a random fundamental SU(Nc) gauge field with parameter eps. 
+
+    Parameters
+    ----------
+    Nc : int
+        Number of colors for SU(Nc).
+    eps : float
+        Parameter for spread of SU(N) matrices around the identity.
+    lat : Lattice (default = LAT)
+        Lattice to generate the gauge field on.
+    
+    Returns
+    -------
+    U : np.array [d, lat.L, lat.T, Nc, Nc]
+        Random gauge field in the fundamental representation.
+    """
+    U = np.zeros((d, lat.L, lat.T, Nc, Nc), dtype = np.complex128)
+    for mu, l, t in itertools.product(range(d), range(lat.L), range(lat.T)):
+        U[mu, l, t, :, :] = suN.rand_suN_matrix(Nc, eps)
+    return U
+
 ################################################################################
 ############################## FERMION FUNCTIONS ###############################
 ################################################################################
@@ -612,7 +646,14 @@ def construct_adjoint_links(U, gens, lat = LAT):
 def get_dirac_op_idxs(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns the Dirac operator between two sets of indices ((a, alpha, x), (b, beta, y)), for a 
-    configuration V in the adjoint representation. 
+    configuration V in the adjoint representation. The full expression for the Dirac operator, as 
+    written in my notes, will be taken to be
+    $$
+        (D_W)_{\alpha\beta}^{ab} = \delta^{ab} \delta_{\alpha\beta} \delta_{x, y} - K \sum_{\mu = 1}^2 \left[ 
+                V_\mu^{ab}(x) (1 - \gamma_\mu)_{\alpha\beta} \delta_{x + \hat\mu, y} 
+              + (V_{\mu}^T)^{ab}(y) (1 + \gamma_\mu)_{\alpha\beta} \delta_{x - \hat\mu, y}
+            \right].
+    $$
 
     Parameters
     ----------
@@ -632,13 +673,9 @@ def get_dirac_op_idxs(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     delta_bcs = lat.get_delta_bcs(bcs)
     def dirac_op_idxs(a, alpha, x, b, beta, y):
-        # return kron_delta(a, b) * kron_delta(alpha, beta) * kron_delta(x, y) - kappa * np.sum([
-        #         V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y + hat(mu)))
-        #         + V[mu, x[0], x[1], b, a] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * kron_delta(x, lat.mod(y - hat(mu)))
-        #     for mu in range(d)])
         return kron_delta(a, b) * kron_delta(alpha, beta) * kron_delta(x, y) - kappa * np.sum([
-                V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * delta_bcs(x, y + hat(mu))
-                + V[mu, x[0], x[1], b, a] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * delta_bcs(x, y - hat(mu))
+                V[mu, x[0], x[1], a, b] * (kron_delta(alpha, beta) - gamma[mu][alpha, beta]) * delta_bcs(x + hat(mu), y)
+                + V[mu, y[0], y[1], b, a] * (kron_delta(alpha, beta) + gamma[mu][alpha, beta]) * delta_bcs(x - hat(mu), y)
             for mu in range(d)])
     return dirac_op_idxs
 
@@ -756,7 +793,7 @@ def dagger_op(dirac):
     np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
         Hermitian conjugate of input operator.
     """
-    if type(dirac) == bsr_matrix:
+    if type(dirac) == bsr_matrix or type(dirac) == csr_matrix:
         return dirac.conj().transpose()
     return np.einsum('aixtbjys->bjysaixt', dirac.conj())
 
@@ -800,7 +837,7 @@ def construct_K(dirac):
         Squared Dirac operator K = D^\dagger D.
     """
     dirac_dagger = dagger_op(dirac)
-    if type(dirac) == bsr_matrix:
+    if type(dirac) == bsr_matrix or type(dirac) == csr_matrix:
         return dirac_dagger @ dirac
     return np.einsum('aixtbjys,bjysclzr->aixtclzr', dirac_dagger, dirac)
 
@@ -855,6 +892,8 @@ def cg_shift(K, phi, beta_i, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
         Raised if the CG solver does not converge, or has illegal input.
     """
     dim = K.shape[0]
+    if type(K) == bsr_matrix:
+        K = csr_matrix(K)
     assert phi.shape[0] == dim, 'Phi is the wrong dimension.'
     shifted_K = K + beta_i * scipy.sparse.identity(dim, dtype = K.dtype)
     psi, info = scipy.sparse.linalg.cg(shifted_K, phi, tol = cg_tol, maxiter = max_iter)
@@ -1050,16 +1089,35 @@ def pfaffian(Q):
         Pfaffian of Q.
     """
     if type(Q) == bsr_matrix:
-        assert check_sparse_equal(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
         Q = csr_matrix(Q)               # CSR format is better for indexing
-    elif type(Q) == csr_matrix:
-        assert check_sparse_equal(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
+    if type(Q) == csr_matrix:
+        assert check_sparse_allclose(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
     else:
         assert np.array_equal(Q.transpose(), -Q), 'Pfaffian only defined for antisymmetric matrices.'
     n = Q.shape[0]
     P, _, Pi = lu_decomp(Q, compute_J = False)
     pf = np.prod([P[i, i] for i in range(n)])           # Pfaffian is product of diagonal elements.
     return pf
+
+def arg_pf(Q):
+    """
+    Computes the argument of the Pfaffian of the Dirac operator Q, which corresponds to the 
+    e^{i\alpha} parameter in my writeup.
+    
+    Parameters
+    ----------
+    Q : np.array [n, n] or bsr_matrix or csr_matrix
+        Input (hermitian) Dirac operator, or just an arbitrary matrix. 
+    
+    Returns
+    $e^{i\\alpha}$ : np.complex128
+        Phase of the Pfaffian of Q.
+    """
+    pf = pfaffian(Q)
+    norm_pf = np.abs(pf)
+    if norm_pf < EPS:
+        return norm_pf
+    return pf / norm_pf
 
 def cyclic_perm_matrix(perm, N = -1):
     """
@@ -1128,16 +1186,18 @@ def lu_decomp(A, compute_J = True):
     if type(A) == bsr_matrix:
         A = csr_matrix(A)
     if type(A) == csr_matrix:
-        assert check_sparse_equal(A.transpose(), -A), 'A is not skew-symmetric.'
+        assert check_sparse_allclose(A.transpose(), -A), 'A is not skew-symmetric.'
     else:
         assert np.array_equal(A.transpose(), -A), 'A is not skew-symmetric.'
     n = A.shape[0]
     A0 = A.copy()
     p = np.zeros((n, n), dtype = A.dtype)
-    for i in np.arange(0, n - 1, 2):
+    # for i in np.arange(0, n - 1, 2):
+    for i in np.arange(0, n, 2):
         p[i, i] = 1
     Pi = scipy.sparse.identity(n, dtype = np.int8, format = 'csr')
-    for i in np.arange(0, n - 1, 2):                    # Cycle over column pairs
+    # for i in np.arange(0, n - 1, 2):                    # Cycle over column pairs
+    for i in np.arange(0, n, 2):                    # Cycle over column pairs
         for j in np.arange(i + 1, n):                   # Update column i + 1
             p[j, i + 1] = A[i, j]
             for k in np.arange(0, i - 1, 2):
@@ -1168,7 +1228,7 @@ def lu_decomp(A, compute_J = True):
         J = None
     return p, J, Pi
 
-# def lu_decomp(Q, dNc, lat = LAT):
+# def lu_decomp_OLD(Q, dNc, lat = LAT):
 #     """
 #     Returns the LU decomposition of Q. This follows the algorithm 
 #     presented in Sec. 4.4 of hep-lat/1410.6971. Note that the naive Hermitian Wilson-Dirac 

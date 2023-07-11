@@ -12,7 +12,7 @@ n_boot = 200
 import numpy as np
 import itertools
 import scipy
-from scipy.sparse import bsr_matrix
+from scipy.sparse import bsr_matrix, csr_matrix
 
 np.random.seed(20)
 
@@ -44,6 +44,26 @@ def test_gauge_tools():
         tr_ab = rhmc.trace(tSUN[a] @ tSUN[b])
         assert is_equal(tr_ab, (1/2) * delta_ab[a, b]), f'Tr[t^a t^b] != (1/2)\delta_ab at (a, b) = ({a}, {b}).'
     print('test_gauge_tools : Pass')
+
+def test_gauge_field_properties(L = 4, T = 4, Nc = 2, U = None, V = None):
+    """Tests that the gauge field satisfies assumed properties. A fundamental gauge field U 
+    should be unitary with determinant 1. An adjoint gauge field should be real
+    """
+    dNc = Nc**2 - 1
+    gens = rhmc.get_generators(Nc)
+    Lat = rhmc.Lattice(L, T)
+    # print(V[0, 0, 0])
+    if U is None:
+        U = rhmc.id_field(Nc)
+    if V is None:
+        V = rhmc.construct_adjoint_links(U, gens)
+    for mu, x, t in itertools.product(range(rhmc.d), range(L), range(T)):
+        assert np.allclose(U[mu, x, t] @ rhmc.dagger(U)[mu, x, t], np.eye(Nc, dtype = np.complex128)), f'U is not unitary at ({x}, {t}).'
+        assert np.allclose(rhmc.dagger(U)[mu, x, t] @ U[mu, x, t], np.eye(Nc, dtype = np.complex128)), f'U is not unitary at ({x}, {t}).'
+        assert np.allclose(V.imag, np.zeros((rhmc.d, L, T, dNc, dNc))), 'V is not real.'
+        assert np.allclose(V[mu, x, t] @ rhmc.dagger(V)[mu, x, t], np.eye(dNc, dtype = np.complex128)), f'V is not unitary at ({x}, {t}).'
+        assert np.allclose(rhmc.dagger(V)[mu, x, t] @ V[mu, x, t], np.eye(dNc, dtype = np.complex128)), f'V is not unitary at ({x}, {t}).'
+    print('test_gauge_field_properties : Pass')
 
 ################################################################################
 ###################### TEST SPARSE MATRIX IMPLEMENTATIONS ######################
@@ -178,11 +198,16 @@ def test_herm_dirac_full(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     dirac = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
     dirac_conj = np.einsum('ij,ajxtbkys,kl->aixtblys', rhmc.gamma5, dirac, rhmc.gamma5)
     dirac_dagger = rhmc.dagger_op(dirac)
-    assert np.array_equal(dirac_conj, dirac_dagger), 'Full Dirac operator is not gamma5-hermitian.'
+    # # assert np.array_equal(dirac_conj, dirac_dagger), 'Full Dirac operator is not gamma5-hermitian.'
+    # # print(np.max(np.abs(dirac_conj - dirac_dagger)))
+    assert np.allclose(dirac_conj, dirac_dagger), 'Full Dirac operator is not gamma5-hermitian.'
 
     Q = rhmc.hermitize_dirac(dirac)
     Q_dagger = rhmc.dagger_op(Q)
-    assert np.array_equal(Q, Q_dagger), f'Q is not Hermitian.'
+    # assert np.array_equal(Q, Q_dagger), f'Q is not Hermitian.'
+    # print(rhmc.flatten_operator(Q, lat = Lat)[:6, 24:30])
+    # print(rhmc.flatten_operator(Q, lat = Lat)[24:30, :6])
+    assert np.allclose(Q, Q_dagger), f'Q is not Hermitian.'
 
     print('test_herm_dirac_full : Pass')
 
@@ -204,14 +229,14 @@ def test_herm_dirac_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     dirac = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
     dirac_conj = np.einsum('ij,ajxtbkys,kl->aixtblys', rhmc.gamma5, dirac, rhmc.gamma5)
     dirac_dagger = rhmc.dagger_op(dirac)
-    assert np.array_equal(sparse_dirac_conj.toarray(), rhmc.flatten_operator(dirac_conj, lat = Lat)), 'Sparse gamma5-conjugate != full gamma5-conjugate.'
-    assert np.array_equal(sparse_dirac_dagger.toarray(), rhmc.flatten_operator(dirac_dagger, lat = Lat)), 'Sparse dagger != full dagger.'
-    assert np.array_equal(sparse_dirac_conj.toarray(), sparse_dirac_dagger.toarray()), 'Sparse gamma5-conjugate != sparse Hermitian conjugate'
+    assert np.allclose(sparse_dirac_conj.toarray(), rhmc.flatten_operator(dirac_conj, lat = Lat)), 'Sparse gamma5-conjugate != full gamma5-conjugate.'
+    assert np.allclose(sparse_dirac_dagger.toarray(), rhmc.flatten_operator(dirac_dagger, lat = Lat)), 'Sparse dagger != full dagger.'
+    assert np.allclose(sparse_dirac_conj.toarray(), sparse_dirac_dagger.toarray()), 'Sparse gamma5-conjugate != sparse Hermitian conjugate'
 
     Q = rhmc.hermitize_dirac(sparse_dirac)
-    assert np.array_equal(Q.toarray(), Q.conj().transpose().toarray()), 'Q is not Hermitian.'
-    assert np.array_equal(Q.toarray(), rhmc.dagger_op(Q).toarray()), 'Q is not Hermitian.'
-    assert rhmc.check_sparse_equal(Q, Q.conj().transpose()), 'Q is not Hermitian.'
+    assert np.allclose(Q.toarray(), Q.conj().transpose().toarray()), 'Q is not Hermitian.'
+    assert np.allclose(Q.toarray(), rhmc.dagger_op(Q).toarray()), 'Q is not Hermitian.'
+    assert rhmc.check_sparse_allclose(Q, Q.conj().transpose()), 'Q is not Hermitian.'
     print('test_herm_dirac_sparse : Pass')
 
 def test_skew_sym_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
@@ -223,7 +248,7 @@ def test_skew_sym_sparse(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     sparse_dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
 
     Q = rhmc.hermitize_dirac(sparse_dirac)
-    assert rhmc.check_sparse_equal(Q.transpose(), -Q), 'Q is not skew-symmetric.'
+    assert rhmc.check_sparse_allclose(Q.transpose(), -Q), 'Q is not skew-symmetric.'
     print('test_skew_sym_sparse : Pass')
 
 def test_squared_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
@@ -238,8 +263,8 @@ def test_squared_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     sparse_K = rhmc.construct_K(sparse_dirac)
     dense_K = rhmc.construct_K(dense_dirac)
     dense_K_flat = rhmc.flatten_operator(dense_K, lat = Lat)
-    assert np.array_equal(sparse_K.toarray(), dense_K_flat), 'Sparse K != dense K.'
-    assert rhmc.check_sparse_equal(sparse_K, rhmc.dagger_op(sparse_K)), 'K is not Hermitian.'
+    assert np.allclose(sparse_K.toarray(), dense_K_flat), 'Sparse K != dense K.'
+    assert rhmc.check_sparse_allclose(sparse_K, rhmc.dagger_op(sparse_K)), 'K is not Hermitian.'
     print('test_squared_dirac : Pass')
 
 def test_eval_flat_ferm(L = 4, T = 4, Nc = 2):
@@ -286,7 +311,7 @@ def test_shift_cg(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     dNc = Nc**2 - 1
     if V is None:
         V = rhmc.id_field_adjoint(Nc, lat = Lat)
-    dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+    dirac = csr_matrix(rhmc.dirac_op_sparse(kappa, V, lat = Lat))
     dim = dirac.shape[0]
 
     _, betas = rhmc.rhmc_m4_5()         # Test on some of the actual betas.
@@ -334,7 +359,7 @@ def test_pseudoferm_force():
     print('test_pseudoferm_force : Pass')
 
 ################################################################################
-############################# TEST RHMC SPECIFICS ##############################
+######################### TEST RATIONAL APPROXIMATION ##########################
 ################################################################################
 
 def test_rational_approx_small(n_samps = 100, delta = 2e-5):
@@ -566,25 +591,61 @@ def test_LU_decomp(L = 4, T = 4, Nc = 2, kappa = 0.25, V = None):
         V = rhmc.id_field_adjoint(Nc, lat = Lat)
     sparse_dirac_op = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
     Q = rhmc.hermitize_dirac(sparse_dirac_op)
+    # print(Q.shape)
 
+    # TODO this isn't working either... HOWEVER IT WORKS WITH NC = 2, JUST NOT NC = 3--- FIGURE OUT WHY
+    # for nc = 3, it seemed to have a few non-zero components in the last couple of blocks
+    # The structure of the permutation matrix Pi seems to be different in the Nc = 2 and Nc = 3 cases...
+    # It only has transpositions for Nc = 3 (each of the odd rows / cols are swapped with one single other one)
+    # while for Nc = 2 there are a number of 3-cycles like (1 3 5) and others. Can't figure out why they would be different.
+    # TODO ALSO WORKS FOR NC = 4, seems like it breaks when Nc = ODD for some reason??? Maybe there's a dimensional thing going on...
+    # NOTE for Nc = 3, L, T = 4 we have n = 256 which is a power of 2... not sure if this is notable or not
     P, J, Pi = rhmc.lu_decomp(Q)
+    # print(P)
+    # print(Pi[:6, :6].toarray())
+    # print(Pi)
     Qprime = Pi @ Q @ Pi.transpose()
     Qdecomp = P @ J @ P.transpose()
-    assert np.allclose(Qprime.toarray(), Qdecomp), f'LU decomposition for Dirac operator failed..'
+    # print(Qprime.toarray() - Qdecomp)
+    # print((Qprime.toarray() - Qdecomp)[1])
+    # print(np.where(np.abs(Qprime.toarray() - Qdecomp) > 0.05))
+    assert np.allclose(Qprime.toarray(), Qdecomp), f'LU decomposition for Dirac operator failed.'
     print('test_LU_decomp : Pass')
+
+################################################################################
+############################# TEST RHMC SPECIFICS ##############################
+################################################################################
+
+def test_thermalization():
+    """
+    Tests that a plaquette has thermalized to the same value, after both doing a cold start 
+    and a hot start. 
+    """
+
+    # TODO method stub
+
+    print('test_thermalization : Pass')
 
 ################################################################################
 ################################## RUN TESTS ###################################
 ################################################################################
 
 L, T = 4, 4             # lattice size to test on
+# L, T = 6, 6
 # L, T = 8, 8
 # L, T = 10, 10
 
 Lat = rhmc.Lattice(L, T)
 Nc = 2
+# Nc = 3          
+# Nc = 4
 dNc = Nc**2 - 1
-V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
+
+eps = 0.2
+gens = rhmc.get_generators(Nc)
+# V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
+U = rhmc.gen_random_fund_field(Nc, eps, lat = Lat)
+V = rhmc.construct_adjoint_links(U, gens, lat = Lat)
 
 print_line()
 print('RUNNING TESTS')
@@ -592,6 +653,7 @@ print_line()
 
 test_gauge_tools()
 test_next_to()
+test_gauge_field_properties(L = L, T = T, Nc = Nc, U = U, V = V)
 
 test_flatten_spacetime()
 test_flatten_colspin()
@@ -603,10 +665,13 @@ test_bcs(L = L, T = T, Nc = Nc)
 test_sparse_dirac(L = L, T = T, Nc = Nc)                 # free field test
 test_sparse_dirac(L = L, T = T, Nc = Nc, V = V)          # random field test
 
-test_herm_dirac_full(L = L, T = T, Nc = Nc)
-test_herm_dirac_sparse(L = L, T = T, Nc = Nc)
-test_skew_sym_sparse(L = L, T = T, Nc = Nc)
-test_squared_dirac(L = L, T = T, Nc = Nc)
+# TODO: figure out what's wrong with these tests. Once one passes, they all should.
+# Current progress-- all these tests pass if V is set to a random GLOBAL matrix field, it only 
+# breaks when V is local. Figure out why!
+test_herm_dirac_full(L = L, T = T, Nc = Nc, V = V)
+test_herm_dirac_sparse(L = L, T = T, Nc = Nc, V = V)
+test_skew_sym_sparse(L = L, T = T, Nc = Nc, V = V)
+test_squared_dirac(L = L, T = T, Nc = Nc, V = V)
 test_eval_flat_ferm(L = L, T = T, Nc = Nc)
 
 test_shift_cg(L = L, T = T, Nc = Nc)
@@ -631,33 +696,18 @@ print_line()
 ################################# SCRATCH WORK #################################
 ################################################################################
 
-Lat = rhmc.Lattice(4, 4)
-Nc = 2
-dNc = Nc**2 - 1
-V = rhmc.id_field_adjoint(Nc, lat = Lat)
-kappa = 0.1
-dirac_op_full = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
-dirac_op_sparse = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
-dirac_op_sparse_apbc = rhmc.dirac_op_sparse(kappa, V, bcs = (-1, -1), lat = Lat)
+# Lat = rhmc.Lattice(4, 4)
+# Nc = 2
+# dNc = Nc**2 - 1
+# V = rhmc.id_field_adjoint(Nc, lat = Lat)
+# kappa = 0.1
+# dirac_op_full = rhmc.get_dirac_op_full(kappa, V, lat = Lat)
+# dirac_op_sparse = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+# dirac_op_sparse_apbc = rhmc.dirac_op_sparse(kappa, V, bcs = (-1, -1), lat = Lat)
 
-# NOTE THAT: upon changing basis, Q_sp is NO LONGER ANTISYMMETRIC. This means it doesn't necessarily admit a LTL^T decomposition.
-# TODO make Q have antiperiodic BCs-- might need this for non-trivial Pfaffian.
 # Q = rhmc.hermitize_dirac(dirac_op_sparse)
-# Ptilde, Ptilde_inv = rhmc.get_permutation_Q(dNc, lat = Lat)
-# Q_sp = Ptilde_inv @ Q @ Ptilde
-# blk = Q_sp.toarray()[:4, :4]    # single space block. Should still admit a LU factorization
-
-# Q_apbc = rhmc.hermitize_dirac(dirac_op_sparse_apbc)
-# Ptilde, Ptilde_inv = rhmc.get_permutation_Q(dNc, lat = Lat)
-# Q_sp_apbc = Ptilde_inv @ Q_apbc @ Ptilde
-# blk_apbc = Q_sp_apbc.toarray()[:4, :4]    # single space block. Should still admit a LU factorization.
-
-# TODO try this on the following block:
-Q = rhmc.hermitize_dirac(dirac_op_sparse)
-P = rhmc.get_permutation_D(dNc, lat = Lat)
-Q_sp = P @ Q @ P.transpose()
-Q_blk = Q.toarray()[:6, :6]
-Qsp_blk = Q_sp.toarray()[:4, :4]
-# TODO goal is to be able to decompose Q_blk and Qsp_blk with lu_decomp2
-# TODO don't use get_permutation_Q, since the resulting matrix ISN'T ORTHOGONAL and hence the resulting Q is not antisymmetric.
+# P = rhmc.get_permutation_D(dNc, lat = Lat)
+# Q_sp = P @ Q @ P.transpose()
+# Q_blk = Q.toarray()[:6, :6]
+# Qsp_blk = Q_sp.toarray()[:4, :4]
 

@@ -33,4 +33,26 @@ pt.set_font()
 
 import rhmc
 
+Nc = 3
+eps = 0.5
+kappa = 0.2
+L, T = 4, 4
+bcs = (1, -1)
+n_samps = 500
 
+gens = rhmc.get_generators(Nc)
+Lat = rhmc.Lattice(L, T)
+
+for i in range(n_samps):
+    # if i % 100 == 0:
+    print(i)
+    U = rhmc.gen_random_fund_field(Nc, eps, lat = Lat)
+    V = rhmc.construct_adjoint_links(U, gens, lat = Lat)
+    print(V)
+    D = rhmc.dirac_op_sparse(kappa, V, bcs = bcs, lat = Lat)
+    print(D.toarray()[0])
+    Q = rhmc.hermitize_dirac(D)
+    # print(Q.toarray()[0])
+    # TODO: why isn't Q antisymmetric?
+    print((Q + Q.transpose()).toarray()[0])
+    pf = rhmc.pfaffian(Q)
