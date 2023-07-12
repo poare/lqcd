@@ -872,7 +872,7 @@ def cg_shift(K, phi, beta_i, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
     ----------
     K : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
         Sparse squared Dirac operator K = D^\dagger D.
-    phi : np.array [dNc*Ns*L*T]
+    phi : np.array [dNc*Ns*L*T] or bsr_matrix or csr_matrix
         Input source to solve (K + \beta_i)^{-1} phi.
     beta_i : float
         Shift for the CG solver.
@@ -894,6 +894,8 @@ def cg_shift(K, phi, beta_i, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
     dim = K.shape[0]
     if type(K) == bsr_matrix:
         K = csr_matrix(K)
+    if type(phi) == bsr_matrix or type(phi) == csr_matrix:
+        phi = phi.toarray()
     assert phi.shape[0] == dim, 'Phi is the wrong dimension.'
     shifted_K = K + beta_i * scipy.sparse.identity(dim, dtype = K.dtype)
     psi, info = scipy.sparse.linalg.cg(shifted_K, phi, tol = cg_tol, maxiter = max_iter)
@@ -1060,16 +1062,64 @@ def pseudofermion_action(K, phi):
     """
     return
 
-def init_fields(Nc, lat = LAT):
+def init_fields(K, Nc, gens, hot_start = True, eps = 0.5, lat = LAT):
     """
     Initializes pseudofermion and gauge fields. Pseudofermion fields should be initialized as \Phi = K^{1/8} g, 
-    where g is a Gaussian random vector of dimension TODO.
-    """
+    where g is a Gaussian random vector of dimension Nc*Ns*L*T. If hot_start, initializes fundamental field U 
+    to a random SU(Nc) valued gauge field; if not, initializes U to an identity SU(Nc) field.
 
-    U = id_field(Nc, lat = lat)
+    Parameters
+    ----------
+    K : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse squared Dirac operator K = D^\dagger D.
+    Nc : int
+        Number of colors
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    hot_start : bool (default = True)
+        True if hot start, False if cold start.
+    eps : float
+        Parameter to control the spread of the random gauge field (if hot_start) around 1.
+    lat : Lattice
+        Lattice to use. 
     
+    Returns
+    -------
+    phi : np.array [dNc*Ns*L*T]
+        Random pseudofermion field, distributed as a complex normal distribution with covariance id.
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field. Set to a random SU(Nc) field if hot_start, or identity if not.
+    V : np.array [d, L, T, dNc, dNc]
+        Adjoint gauge field corresponding to U.
+    Pi : np.array [d, L, T, Nc, Nc]
+        Conjugate momenta to fundamental gauge field U.
+    """
+    dNc = Nc**2 - 1
+    if hot_start:
+        U = gen_random_fund_field(Nc, eps, lat = lat)
+    else:
+        U = id_field(Nc, lat = lat)
+    V = construct_adjoint_links(U, gens, lat = lat)
+    dim_pf = dNc*Ns*lat.vol
+    # g = 1/np.sqrt(2.) * (np.random.rand(dim_pf) + (1j) * np.random.rand(dim_pf))
+    # g = 1/np.sqrt(2.) * (np.random.normal(dim_pf) + (1j) * np.random.normal(dim_pf))
+    g_mean, g_cov = np.zeros((dim_pf), dtype = np.float64), np.eye(dim_pf, dtype = np.float64)
+    g = 1/np.sqrt(2.) * (
+        np.random.multivariate_normal(g_mean, g_cov) + (1j) * np.random.multivariate_normal(g_mean, g_cov)
+    )
+    phi = apply_rational_approx(K, g, alpha_8, beta_8)
+
+    Pi = np.zeros((d, lat.T, lat.T, Nc, Nc), dtype = np.complex128)
+    Pi_mean, Pi_cov = np.zeros((dNc), dtype = np.float64), np.eye(dNc, dtype = np.float64)
+    for mu, x, t in itertools.product(range(d), range(lat.L), range(lat.T)):
+        Pi_coeffs = np.random.multivariate_normal(Pi_mean, Pi_cov)
+        Pi[mu, x, t] = np.einsum('a,a...->...', Pi_coeffs, gens)
     
-    return
+    return phi, U, V, Pi
+
+################################################################################
+############################ PFAFFIAN CALCULATION ##############################
+################################################################################
 
 def pfaffian(Q):
     """

@@ -352,9 +352,27 @@ def test_rK_application(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
 
     print('test_rK_application : Pass')
 
+def test_init_fields(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
+    """Tests that the fields are initialized correctly."""
+    Lat = rhmc.Lattice(L, T)
+    gens = rhmc.get_generators(Nc)
+    dNc = Nc**2 - 1
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+    K = rhmc.construct_K(dirac)
+
+    # TODO method stub, finish implementing tomorrow
+    phi, U, V, Pi = rhmc.init_fields(K, Nc, gens, hot_start = False, lat = Lat)
+
+    print('test_init_fields : Pass')
+
 def test_pseudoferm_force():
     """Tests that the pseudofermion derivative of Phi^\dagger K^{-1/4} \Phi is accurate 
-    by using automatic differentation on U_mu(x)."""
+    by using automatic differentation on U_mu(x). Note that we can test this by setting a 
+    bunch of elements to a fixed number, and using autodiff on a specific parameter."""
+
+    # TODO method stub
 
     print('test_pseudoferm_force : Pass')
 
@@ -665,9 +683,6 @@ test_bcs(L = L, T = T, Nc = Nc)
 test_sparse_dirac(L = L, T = T, Nc = Nc)                 # free field test
 test_sparse_dirac(L = L, T = T, Nc = Nc, V = V)          # random field test
 
-# TODO: figure out what's wrong with these tests. Once one passes, they all should.
-# Current progress-- all these tests pass if V is set to a random GLOBAL matrix field, it only 
-# breaks when V is local. Figure out why!
 test_herm_dirac_full(L = L, T = T, Nc = Nc, V = V)
 test_herm_dirac_sparse(L = L, T = T, Nc = Nc, V = V)
 test_skew_sym_sparse(L = L, T = T, Nc = Nc, V = V)
@@ -676,6 +691,7 @@ test_eval_flat_ferm(L = L, T = T, Nc = Nc)
 
 test_shift_cg(L = L, T = T, Nc = Nc)
 test_rK_application(L = L, T = T, Nc = Nc)
+test_init_fields(L = L, T = T, Nc = Nc, V = V)
 
 test_rational_approx_small()
 test_rational_approx_large()
