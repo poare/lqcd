@@ -616,9 +616,10 @@ def construct_adjoint_links(U, gens, lat = LAT):
         V[mu, x, t, a, b] = 2 * trace(dagger(U[mu, x, t]) @ gens[a] @ U[mu, x, t] @ gens[b])
     return V
 
-def gen_random_fund_field(Nc, eps, lat = LAT):
+def gen_random_fund_field_near_1(Nc, eps, lat = LAT):
     """
-    Generates a random fundamental SU(Nc) gauge field with parameter eps. 
+    Generates a random fundamental SU(Nc) gauge field near the identity
+    with parameter eps. 
 
     Parameters
     ----------
@@ -636,7 +637,28 @@ def gen_random_fund_field(Nc, eps, lat = LAT):
     """
     U = np.zeros((d, lat.L, lat.T, Nc, Nc), dtype = np.complex128)
     for mu, l, t in itertools.product(range(d), range(lat.L), range(lat.T)):
-        U[mu, l, t, :, :] = suN.rand_suN_matrix(Nc, eps)
+        U[mu, l, t, :, :] = suN.rand_suN_matrix_near_1(Nc, eps)
+    return U
+
+def gen_random_fund_field(Nc, lat = LAT):
+    """
+    Generates a random fundamental SU(Nc) gauge field, distributed uniformly across SU(N).
+
+    Parameters
+    ----------
+    Nc : int
+        Number of colors for SU(Nc).
+    lat : Lattice (default = LAT)
+        Lattice to generate the gauge field on.
+    
+    Returns
+    -------
+    U : np.array [d, lat.L, lat.T, Nc, Nc]
+        Random gauge field in the fundamental representation.
+    """
+    U = np.zeros((d, lat.L, lat.T, Nc, Nc), dtype = np.complex128)
+    for mu, l, t in itertools.product(range(d), range(lat.L), range(lat.T)):
+        U[mu, l, t, :, :] = suN.rand_suN_matrix(Nc)
     return U
 
 ################################################################################
@@ -1062,7 +1084,7 @@ def pseudofermion_action(K, phi):
     """
     return
 
-def init_fields(K, Nc, gens, hot_start = True, eps = 0.5, lat = LAT):
+def init_fields(K, Nc, gens, hot_start = True, lat = LAT):
     """
     Initializes pseudofermion and gauge fields. Pseudofermion fields should be initialized as \Phi = K^{1/8} g, 
     where g is a Gaussian random vector of dimension Nc*Ns*L*T. If hot_start, initializes fundamental field U 
@@ -1078,8 +1100,6 @@ def init_fields(K, Nc, gens, hot_start = True, eps = 0.5, lat = LAT):
         SU(Nc) generators t^a.
     hot_start : bool (default = True)
         True if hot start, False if cold start.
-    eps : float
-        Parameter to control the spread of the random gauge field (if hot_start) around 1.
     lat : Lattice
         Lattice to use. 
     
@@ -1096,7 +1116,7 @@ def init_fields(K, Nc, gens, hot_start = True, eps = 0.5, lat = LAT):
     """
     dNc = Nc**2 - 1
     if hot_start:
-        U = gen_random_fund_field(Nc, eps, lat = lat)
+        U = gen_random_fund_field(Nc, lat = lat)
     else:
         U = id_field(Nc, lat = lat)
     V = construct_adjoint_links(U, gens, lat = lat)
