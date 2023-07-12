@@ -12,8 +12,6 @@
 ################################################################################
 
 from __main__ import *
-# n_boot = n_boot
-n_boot = 200
 
 import numpy as np
 import h5py
@@ -23,6 +21,7 @@ import re
 import itertools
 import io
 import random
+from scipy.stats import unitary_group
 
 def vec_dot(u, v):
     return np.dot(u, np.conjugate(v))
@@ -38,40 +37,40 @@ def proj_vec(u, v):
     """Projects v onto linear subspace spanned by u."""
     return vec_dot(v, u) / vec_dot(u, u) * u
 
-# def proj_SU3(M):
-#     """
-#     Projects a matrix M to the group SU(3) by orthonormalizing the first two columns, then 
-#     taking a cross product.
-#     """
-#     [v1, v2, v3] = M.T
-#     u1 = v1 / vec_norm(v1)              # normalize
-#     u2 = v2 - proj_vec(u1, v2)
-#     u2 = u2 / vec_norm(u2)
-#     u3 = np.cross(u1.conj(), u2.conj())
-#     return np.array([u1, u2, u3], dtype = np.complex128).T
+def proj_SU3(M):
+    """
+    Projects a matrix M to the group SU(3) by orthonormalizing the first two columns, then 
+    taking a cross product.
+    """
+    [v1, v2, v3] = M.T
+    u1 = v1 / vec_norm(v1)              # normalize
+    u2 = v2 - proj_vec(u1, v2)
+    u2 = u2 / vec_norm(u2)
+    u3 = np.cross(u1.conj(), u2.conj())
+    return np.array([u1, u2, u3], dtype = np.complex128).T
 
-# def rand_su3_matrix(eps):
-#     """
-#     Generates a random SU(3) matrix for the metropolis update with parameter eps. 
-#     Follows Peter Lepage's notes.
+def rand_su3_matrix(eps):
+    """
+    Generates a random SU(3) matrix for the metropolis update with parameter eps. 
+    Follows Peter Lepage's notes.
 
-#     Parameters
-#     ----------
-#     eps : float
-#         Metropolis parameter for update candidate.
+    Parameters
+    ----------
+    eps : float
+        Metropolis parameter for update candidate.
     
-#     Returns
-#     -------
-#     np.array [Nc, Nc]
-#         Metropolis update candidate.
-#     """
-#     mat_elems = np.random.uniform(low = -1, high = 1, size = 6)
-#     H = np.array([
-#         [mat_elems[0], mat_elems[1], mat_elems[2]], 
-#         [mat_elems[1], mat_elems[3], mat_elems[4]], 
-#         [mat_elems[2], mat_elems[4], mat_elems[5]]
-#     ], dtype = np.complex64)
-#     return proj_SU3(np.eye(3) + 1j*eps*H)
+    Returns
+    -------
+    np.array [Nc, Nc]
+        Metropolis update candidate.
+    """
+    mat_elems = np.random.uniform(low = -1, high = 1, size = 6)
+    H = np.array([
+        [mat_elems[0], mat_elems[1], mat_elems[2]], 
+        [mat_elems[1], mat_elems[3], mat_elems[4]], 
+        [mat_elems[2], mat_elems[4], mat_elems[5]]
+    ], dtype = np.complex64)
+    return proj_SU3(np.eye(3) + 1j*eps*H)
 
 def proj_fund_suN(M, prec = 1e-8):
     """
@@ -105,9 +104,28 @@ def proj_fund_suN(M, prec = 1e-8):
     V = detU**(-1/N) * U
     return V
 
-def rand_suN_matrix(N, eps):
+def rand_suN_matrix(N):
     """
-    Generates a random SU(N) matrix for the metropolis update with parameter eps. 
+    Generates a random SU(N) matrix with uniform distribution across the entire manifold.
+
+    Parameters
+    ----------
+    N : int
+        Gauge group SU(N) to generate samples from.
+    
+    Returns
+    -------
+    np.array [N, N]
+        Random SU(N) matrix
+    """
+    O = unitary_group.rvs(N)
+    detO = np.linalg.det(O)
+    norm = detO**(1/N)                  # normalize to have det 1.
+    return O / norm
+
+def rand_suN_matrix_near_1(N, eps):
+    """
+    Generates a random SU(N) matrix near 1 for the metropolis update with parameter eps. 
     Follows Peter Lepage's notes.
 
     Parameters

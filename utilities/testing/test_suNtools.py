@@ -8,7 +8,7 @@
 # Author: Patrick Oare                                                         #
 ################################################################################
 
-n_boot = 200
+# n_boot = 200
 import numpy as np
 import itertools
 import scipy
@@ -45,7 +45,7 @@ def test_gen_suN(n_samps = 100):
     for N in range(2, 10):
         for eps in np.arange(0.1, 0.9, 0.1):
             for i in range(n_samps):
-                U = suNtools.rand_suN_matrix(N, eps)
+                U = suNtools.rand_suN_matrix(N)
                 assert np.allclose(U @ suNtools.dagger(U), np.eye(N), atol = EPS), 'U is not unitary.'
                 assert np.allclose(suNtools.dagger(U) @ U, np.eye(N), atol = EPS), 'U is not unitary.'
                 assert is_equal(np.linalg.det(U), 1), 'U does not have unit determinant.'

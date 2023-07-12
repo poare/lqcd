@@ -16,7 +16,6 @@
 ################################################################################
 
 from __main__ import *
-n_boot = n_boot
 
 import numpy as np
 import h5py

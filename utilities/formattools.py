@@ -180,6 +180,25 @@ for sty in styles.values():
 """List of all spines in matplotlib."""
 spinedirs = ['top', 'bottom', 'left', 'right']
 
+def format_float(f, ndec = 2):
+    """
+    Formats a float f as a string to ndec places. Replaces a decimal point '.' with 'p'.
+
+    Parameters
+    ----------
+    f : float
+        Float to format.
+    ndec : int (default = 2)
+        Number of decimal points to format the float to.
+    
+    Returns
+    -------
+    f_str : string
+        f formatted as a string.
+    """
+    f_str = '{0:.2f}'.format(f)
+    f_str_p = [c if c != '.' else 'p' for c in f_str]
+    return ''.join(f_str_p)
 
 # TODO change over to using pandas
 import pandas as pd
