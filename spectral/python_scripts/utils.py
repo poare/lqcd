@@ -199,7 +199,7 @@ def construct_phis(Y, lam):
     Parameters
     ----------
     Y : np.array[gmp.mpc]
-        Mobius transform of Matsubara frequencies the correlator is measured at.
+        Matsubara frequencies the correlator is measured at.
     lam : np.array[gmp.mpc]
         Mobius transform of the input correlator.
 
@@ -224,8 +224,8 @@ def construct_phis(Y, lam):
             ])
             arr = arr @ factor
         [[a, b], [c, d]] = arr
-        print('Num: ' + str(lam[j] * d - b))
-        print('Denom: ' + str(a - lam[j] * c))
+        # print('Num: ' + str(lam[j] * d - b))
+        # print('Denom: ' + str(a - lam[j] * c))
         phi[j] = (lam[j] * d - b) / (a - lam[j] * c)
     return phi
 
