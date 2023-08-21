@@ -34,6 +34,11 @@ home = '/Users/theoares'
 # mom_idx_list = [2, 3, 4, 5]
 # cfgs = [0, 1, 2, 3, 5, 6, 8, 9]
 
+mom_idx_list = [4]
+# mom_idx_list = [4, 5]
+# mom_idx_list = [3, 4, 5]
+cfgs = range(10, 20)
+
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/24I/ml0p005/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p006/'
@@ -46,10 +51,14 @@ parent = home + '/Dropbox (MIT)/research/0nubb/meas/32I/ml0p008/'
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/32I/ml0p008/'
 
 # for tests
-mom_idx_list = [4]
-cfgs = [0, 1, 2]
+# mom_idx_list = [4]
+# cfgs = [0, 1, 2]
+# cfgs = range(9)
 # parent = home + '/Dropbox (MIT)/research/0nubb/meas/heavy_dwf_inversions/24I/ml0p01/'
-parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/24I/ml0p01/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/heavy_dwf_inversions/24I/ml0p005/'
+
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/24I/ml0p01/'
+# parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/24I/ml0p005/'
 
 # uncomment to parse test files
 # parent = '/Users/theoares/Dropbox (MIT)/research/0nubb/tests/gf_test/'
@@ -60,7 +69,8 @@ parent = home + '/Dropbox (MIT)/research/0nubb/meas/chroma_glu_dwf_inversions/24
 for cfg in cfgs:
     cfg_root = 'cfg_' + str(cfg)                                # 'cfg_0'
     dir = parent + cfg_root                                   # ex meas/24I/ml0p01/cfg200
-    out_file = parent + 'hdf5/' + cfg_root + '.h5'            # production code
+    # out_file = parent + 'hdf5/' + cfg_root + '.h5'            # production code
+    out_file = parent + 'hdf5_downstream/' + cfg_root + '.h5'            # production code
     # dir = parent                                                # these two lines for testing
     # out_file = dir + 'hdf5/' + files[cfg] + '.h5'
     f = h5py.File(out_file, 'w')

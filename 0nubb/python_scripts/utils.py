@@ -107,8 +107,8 @@ class Lattice:
         aGeV = fm_to_GeV(A)
         return (2 * np.pi / aGeV) * np.sqrt(sum([(k[mu] / self.LL[mu]) ** 2 for mu in range(4)]))
 
+# n_boot = 2
 n_boot = 50
-# n_boot = 100
 
 def kstring_to_list(pstring, str):
     def get_momenta(x):
@@ -151,11 +151,11 @@ def readfiles(cfgs, q, op_renorm = True, chroma = True):
 
     for idx, file in enumerate(cfgs):
         f = h5py.File(file, 'r')
+        print(f['moms'].keys())
         qstr = klist_to_string(q, 'q')
         if idx == 0:            # just choose a specific config to get these on, since they should be the same
             k1 = f['moms/' + qstr + '/k1'][()]
             k2 = f['moms/' + qstr + '/k2'][()]
-        # print(f['moms'].keys())
         props_k1[idx] = np.einsum('ijab->aibj', f['prop_k1/' + qstr][()])
         props_k2[idx] = np.einsum('ijab->aibj', f['prop_k2/' + qstr][()])
         props_q[idx] = np.einsum('ijab->aibj', f['prop_q/' + qstr][()])
@@ -798,7 +798,9 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
     return samples
 
 # Invert propagators to get S^{-1} required for amputation.
-def invert_props(props, Nb = n_boot):
+# def invert_props(props, Nb = n_boot):
+def invert_props(props):
+    Nb = props.shape[0]
     Sinv = np.zeros(props.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv[b] = np.linalg.tensorinv(props[b])
@@ -806,7 +808,9 @@ def invert_props(props, Nb = n_boot):
 
 # Amputate legs to get vertex function \Gamma(p). Uses first argument to amputate left-hand side and
 # second argument to amputate right-hand side.
-def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
+# def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
+def amputate_threepoint(props_inv_L, props_inv_R, threepts):
+    Nb = threepts.shape[0]
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], threepts[b]
@@ -815,7 +819,9 @@ def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
 
 # amputates the four point function. Assumes the left leg has momentum p1 and right legs have
 # momentum p2, so amputates with p1 on the left and p2 on the right
-def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
+# def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
+def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints):
+    Nb = fourpoints.shape[0]
     Gamma = np.zeros(fourpoints.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], fourpoints[b]
@@ -823,7 +829,9 @@ def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
     return Gamma
 
 # q is the lattice momentum that should be passed in
-def quark_renorm(props_inv_q, q, Nb = n_boot):
+# def quark_renorm(props_inv_q, q, Nb = n_boot):
+def quark_renorm(props_inv_q, q):
+    Nb = props_inv_q.shape[0]
     Zq = np.zeros((Nb), dtype = np.complex64)
     for b in range(Nb):
         Sinv = props_inv_q[b]

@@ -7,6 +7,7 @@ import numpy as np
 from scipy.optimize import root
 import h5py
 import os
+import gvar as gv
 from utils import *
 base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 
@@ -14,7 +15,9 @@ base = '/Users/theoares/Dropbox (MIT)/research/0nubb/meas/'
 ens_idx = int(sys.argv[1])
 ens = ['24I/ml0p01', '24I/ml0p005', '32I/ml0p008', '32I/ml0p006', '32I/ml0p004'][ens_idx]
 l, t = [24, 24, 32, 32, 32][ens_idx], 64
-data_dir = base + ens + '/hdf5'
+# data_dir = base + ens + '/hdf5'
+# data_dir = base + ens + '/hdf5_upstream'        # original 10 configs
+data_dir = base + ens + '/hdf5_downstream'        # downstream 10 configs
 # data_dir = base + 'chroma_glu_dwf_inversions/' + ens + '/hdf5'
 # data_dir = base + 'heavy_dwf_inversions/' + ens + '/hdf5'
 print('Running operator renormalization on ensemble ' + str(ens))
@@ -22,7 +25,7 @@ L = Lattice(l, t)
 
 k1_list = []
 k2_list = []
-# for n in [2, 3, 4, 5]:
+# for n in [3, 4, 5]:
 for n in [4]:
     k1_list.append([-n, 0, n, 0])
     k2_list.append([0, n, n, 0])
@@ -37,6 +40,12 @@ for (dirpath, dirnames, file) in os.walk(data_dir):
     cfgs.extend(file)
 for idx, cfg in enumerate(cfgs):
     cfgs[idx] = data_dir + '/' + cfgs[idx]
+
+# for testing only
+# cfgs = ['/Users/theoares/Dropbox (MIT)/research/0nubb/meas/24I/ml0p01/hdf5/cfg_0.h5']
+# cfgs = ['/Users/theoares/Dropbox (MIT)/research/0nubb/meas/heavy_dwf_inversions/24I/ml0p01/hdf5/cfg_0.h5']
+# cfgs = ['/Users/theoares/Dropbox (MIT)/research/0nubb/meas/24Iml0p01_124448/cfg1015.h5']
+
 n_cfgs = len(cfgs)
 print('Reading ' + str(n_cfgs) + ' configs.')
 
@@ -45,7 +54,6 @@ F = getF(L, scheme)                # tree level projections
 
 start = time.time()
 ZqbyZV = np.zeros((len(q_list), n_boot), dtype = np.complex64)
-# ZV, ZA = np.zeros((len(q_list), n_boot), dtype = np.complex64), np.zeros((len(q_list), n_boot), dtype = np.complex64)
 ZbyZVsq = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 Lambda_list = np.zeros((5, 5, len(q_list), n_boot), dtype = np.complex64)
 for q_idx, q in enumerate(q_list):
@@ -55,6 +63,9 @@ for q_idx, q in enumerate(q_list):
     k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = True)
     q = -q
     q_lat = np.sin(L.to_linear_momentum(q))                 # for chroma
+
+    # k1, k2, props_k1, props_k2, props_q, GV, GA, GO = readfiles(cfgs, q, True, chroma = False)
+    # q_lat = np.sin(L.to_linear_momentum(q + bvec))                 # for qlua
 
     props_k1_b, props_k2_b, props_q_b = bootstrap(props_k1), bootstrap(props_k2), bootstrap(props_q)
     GV_boot, GA_boot, GO_boot = np.array([bootstrap(GV[mu]) for mu in range(4)]), np.array([bootstrap(GA[mu]) for mu in range(4)]), np.array([bootstrap(GO[n]) for n in range(16)])
@@ -85,26 +96,29 @@ for q_idx, q in enumerate(q_list):
     P = projectors(scheme, L.to_linear_momentum(q), L.to_linear_momentum(k1), L.to_linear_momentum(k2))
     Lambda = np.einsum('nbjaidlck,mzaibjckdl->zmn', P, Gamma)    # Lambda is n_boot x 5 x 5
     print('Lambda ~ ' + str(Lambda[0, :, :]))       # projected 4 pt function
-    # Lambda_inv = np.array([np.linalg.inv(Lambda[b, :, :]) for b in range(n_boot)])
-    # Z[:, :, q_idx, :] = (Zq[q_idx] ** 2) * np.einsum('ik,zkj->ijz', F, Lambda_inv)
     for b in range(n_boot):
         Lambda_list[:, :, q_idx, b] = Lambda[b]         # save Lambda for chiral extrapolation
         Lambda_inv = np.linalg.inv(Lambda[b, :, :])
         ZbyZVsq[:, :, q_idx, b] = (ZqbyZV[q_idx, b] ** 2) * np.einsum('ik,kj->ij', F, Lambda_inv)
 
-    print('Z_ij / Z_V^2 ~ ' + str(ZbyZVsq[:, :, q_idx, 0]))
+    ZbyZVsq_mu = np.mean(ZbyZVsq[:, :, q_idx, :], axis = 2)
+    ZbyZVsq_std = np.std(ZbyZVsq[:, :, q_idx, :], axis = 2, ddof = 1)
+    ZbyZVsq_gvar = gv.gvar(ZbyZVsq_mu, ZbyZVsq_std)
+    # print('Z_ij / Z_V^2 ~ ' + str(ZbyZVsq[:, :, q_idx, 0]))
+    print('Zij/ZV^2:')
+    print(ZbyZVsq_gvar)
 
     # Time per iteration
     print('Elapsed time: ' + str(time.time() - start))
 
 ################################## SAVE DATA ##################################
-out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_gamma.h5'         # chroma output
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_gamma.h5'         # chroma output
+# out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_gamma_no_boot.h5'         # chroma output
 # out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/heavy_quark_test/' + ens + '/Z_gamma.h5'
 # out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/glu_gfing_test/' + ens + '/Z_gamma.h5'
+out_file = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + '/Z_gamma_downstream.h5'         # chroma output
 f = h5py.File(out_file, 'w')
 f['momenta'] = q_list
-# f['ZV'] = ZV
-# f['ZA'] = ZA
 f['ZqbyZV'] = ZqbyZV
 f['Lambda'] = Lambda_list
 for i, j in itertools.product(range(5), repeat = 2):

@@ -1,7 +1,6 @@
-################################################################################
-# Performs the amell --> 0 extrapolation, keeping into account correlations    #
-# between the RCs computed on the same ensemble.                               #
-################################################################################
+##################################################################################
+# Performs the amell --> 0 extrapolation for the (gamma^mu, \slashed{q}) scheme. #
+##################################################################################
 
 # use CMU Serif
 # import matplotlib as mpl
@@ -74,9 +73,9 @@ ampi_list = [mpi_list[i] / ainv for i in range(n_ens)]
 n_samp = n_boot                             # Number of samples for distribution to generate after fit
 # n_samp = 500
 n_band = 500                                # number of points to plot the fit band at
-file_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + 'Z_gamma.h5' for ens in ensembles]
-out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + stem + '/chiral_extrap/Z_extrap.h5'
-plot_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/' + extrap_dir + '/' + stem + '/'
+file_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + ens + 'Z_gamma_qslash.h5' for ens in ensembles]
+out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/' + stem + '/chiral_extrap/Z_extrap_gamma_qslash.h5'
+plot_dir = '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/' + extrap_dir + '/' + stem + '_qslash/'
 
 Fs = [h5py.File(fpath, 'r') for fpath in file_paths]
 k_list_ens = np.array([f['momenta'][()] for f in Fs])

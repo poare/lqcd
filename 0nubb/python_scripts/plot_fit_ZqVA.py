@@ -20,6 +20,7 @@ from scipy.optimize import root
 import h5py
 import os
 import itertools
+import gvar as gv
 from utils import *
 
 import sys
@@ -52,9 +53,19 @@ ZA0_24I, ZA0_32I = Superboot(2), Superboot(3)
 ZA0_24I.boots, ZA0_32I.boots = ZA0[0], ZA0[1]
 ZA0_mu = [ZA0_24I.compute_mean(), ZA0_32I.compute_mean()]
 ZA0_std = [ZA0_24I.compute_std(), ZA0_32I.compute_std()]
-print('Extrapolation from RBC/UKQCD values: ')
-print('24I: ' + str(ZA0_mu[0]) + ' \pm ' + str(ZA0_std[0]))
-print('32I: ' + str(ZA0_mu[1]) + ' \pm ' + str(ZA0_std[1]))
+ZA0_gvar = [gv.gvar(ZA0_mu[0], ZA0_std[0]), gv.gvar(ZA0_mu[1], ZA0_std[1])]
+
+ZV0 = [gv.gvar('0.71273(26)'), gv.gvar('0.74404(181)')]
+ZV0_mu = gv.mean(ZV0)
+ZV0_std = gv.sdev(ZV0)
+
+print('Extrapolation from David\'s values for ZA: ')
+print('24I: ' + str(ZA0_gvar[0]))
+print('32I: ' + str(ZA0_gvar[1]))
+
+print('Extrapolation from RBC/UKQCD values for ZV: ')
+print('24I: ' + str(ZV0[0]))
+print('32I: ' + str(ZV0[1]))
 
 # Zq_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
 # ZV_extrap = [np.zeros((n_mom, n_ens_sp[i], n_boot), dtype = np.float64) for i in range(n_spacings)]
@@ -75,8 +86,10 @@ ZV_extrap = np.zeros((n_spacings, n_mom, n_boot), dtype = np.float64)
 ZA_extrap = np.zeros((n_spacings, n_mom, n_boot), dtype = np.float64)
 Z_extrap = np.zeros((n_spacings, 5, 5, n_mom, n_boot), dtype = np.float64)
 
-chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap.h5', \
-                    '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
+# chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap.h5', \
+#                     '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap.h5']
+chi_extrap_lin_paths = ['/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/24I/chiral_extrap/Z_extrap_gamma_qslash.h5', \
+                    '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/32I/chiral_extrap/Z_extrap_gamma_qslash.h5']
 for idx in range(n_spacings):
     print(chi_extrap_lin_paths[idx])
     print(idx)
@@ -231,9 +244,9 @@ def plot_rcs_raw(sp_idx, cvs, sigmas, ylabel, ylimits, path):
 # Zq
 Zq24I_range = [0.8, 3.0]
 Zq32I_range = [0.8, 1.5]
-plot_rcs_raw(0, Zq_extrap_mu, Zq_extrap_sigma, '$\mathcal{Z}_q^\mathrm{RI}$', Zq24I_range,  \
+plot_rcs_raw(0, Zq_extrap_mu, Zq_extrap_sigma, '$\mathcal{Z}_q^\mathrm{RI} / \mathcal{Z}_V$', Zq24I_range,  \
                         '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/raw_plots/Zq_24I.pdf')
-plot_rcs_raw(1, Zq_extrap_mu, Zq_extrap_sigma, '$\mathcal{Z}_q^\mathrm{RI}$', Zq32I_range,  \
+plot_rcs_raw(1, Zq_extrap_mu, Zq_extrap_sigma, '$\mathcal{Z}_q^\mathrm{RI} / \mathcal{Z}_V$', Zq32I_range,  \
                         '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/raw_plots/Zq_32I.pdf')
 
 yticks_32I = [0.7, 0.8, 0.9, 1.0]
@@ -290,10 +303,12 @@ def fit_data_model(sp_idx, boots, subset_idxs, model): #, x_axis = [apsq_list_24
 fill_color = (0, 0, 1, 0.3)
 # Z0_color = (1, 1, 1, 0.3)
 # Z0_color = 'k'
+# Z0_color = 'g'
+# Z0_leg = 'palegreen'
 Z0_color = 'g'
-# Z0_color = '0.8'
+Z0_alpha = 0.5
 a_labels = ['0.11 fm', '0.08 fm']
-def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_known = False, ytick_locs = None, ytick_labels = None):
+def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_known = None, ytick_locs = None, ytick_labels = None):
     x_band = np.linspace(xlimits[sp_idx][0], xlimits[sp_idx][1])
     fx_cvs, fx_sigmas = fitter.gen_fit_band(fout[0], fout[3], x_band)
     # print(x_band)
@@ -305,10 +320,16 @@ def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_k
                 elinewidth = style['ebar_width'])
         for cap in caps:
             cap.set_markeredgewidth(style['ecap_width'])
-        plt.fill_between(x_band, fx_cvs + fx_sigmas, fx_cvs - fx_sigmas, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
-        if plt_known:
+        if plt_known == 'ZA':
             plt.fill_between(x_band, ZA0_mu[sp_idx] + ZA0_std[sp_idx], ZA0_mu[sp_idx] - ZA0_std[sp_idx], color = Z0_color, alpha = 1.0, linewidth = 0.0, \
                     label = '$\\mathcal{Z}_A$, Ref. [34]')
+        elif plt_known == 'ZV':
+            alph = Z0_alpha if sp_idx == 1 else 1.0
+            # plt.fill_between(x_band, ZV0_mu[sp_idx] + ZV0_std[sp_idx], ZV0_mu[sp_idx] - ZV0_std[sp_idx], color = Z0_color, alpha = 1.0, linewidth = 0.0, \
+            #         label = '$\\mathcal{Z}_V$, Ref. [41]')
+            plt.fill_between(x_band, ZV0_mu[sp_idx] + ZV0_std[sp_idx], ZV0_mu[sp_idx] - ZV0_std[sp_idx], color = Z0_color, alpha = alph, linewidth = 0.0, \
+                    label = '$\\mathcal{Z}_V$, Ref. [41]')
+        plt.fill_between(x_band, fx_cvs + fx_sigmas, fx_cvs - fx_sigmas, color = fill_color, alpha = 0.2, linewidth = 0.0, label = 'Extrapolation')
         plt.xlabel(xlabel, fontsize = style['fontsize'])
         plt.ylabel(ylabel + ' (a = ' + a_labels[sp_idx] + ')', fontsize = style['fontsize'])
         plt.xlim(xlimits[sp_idx])
@@ -318,12 +339,20 @@ def plot_fit_out(sp_idx, cvs, sigmas, fitter, fout, ylabel, ylimits, path, plt_k
         ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'])
         for spine in spinedirs:
             ax.spines[spine].set_linewidth(style['axeswidth'])
+        
+        # leg = plt.get_legend()
+        # print(leg)
+
         plt.xticks(fontsize = style['fontsize'])
         plt.yticks(fontsize = style['fontsize'])
         if ytick_locs:
             ax.set_yticks(ytick_locs)
             ax.set_yticklabels(ytick_labels)
-        plt.legend(prop={'size': style['fontsize'] * 0.9}, loc = 'upper left')
+        leg = plt.legend(prop={'size': style['fontsize'] * 0.9}, loc = 'upper left')
+
+        leg.legendHandles[0].set_color('g')
+        leg.legendHandles[0].set_alpha(Z0_alpha)
+
         plt.tight_layout()
         plt.savefig(path, bbox_inches='tight')
         print('Plot ' + ylabel + ' saved at: \n   ' + path)
@@ -343,7 +372,7 @@ ZV24I_cv, ZV24I_std = ZV24I_params[0], np.sqrt(ZV24I_cov[0, 0])
 ZV24I_dist = gen_fake_ensemble([ZV24I_cv, ZV24I_std], n_samples = n_samp)
 print('ZV for 24I = ' + export_float_latex(ZV24I_cv, ZV24I_std, sf = 2))
 plot_fit_out(0, ZV_extrap_mu, ZV_extrap_sigma, ZV24I_fitter, ZV24I_fout, '$\mathcal{Z}_V$', ZV24I_range, \
-                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_24I.pdf')
+                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_24I.pdf', plt_known = 'ZV')
 
 # ZV for 32I
 subset_idxs = [0, 1, 2, 3]
@@ -359,7 +388,8 @@ ZV32I_cv, ZV32I_std = ZV32I_params[0], np.sqrt(ZV32I_cov[0, 0])
 ZV32I_dist = gen_fake_ensemble([ZV32I_cv, ZV32I_std], n_samples = n_samp)
 print('ZV for 32I = ' + export_float_latex(ZV32I_cv, ZV32I_std, sf = 2))
 plot_fit_out(1, ZV_extrap_mu, ZV_extrap_sigma, ZV32I_fitter, ZV32I_fout, '$\mathcal{Z}_V$', ZV32I_range, \
-                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_32I.pdf', ytick_locs = yticks_32I, ytick_labels = ytick_labels_32I)
+                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZV_32I.pdf', \
+                plt_known = 'ZV', ytick_locs = yticks_32I, ytick_labels = ytick_labels_32I)
 
 # ZA for 24I
 subset_idxs = [0, 1, 2, 3]
@@ -375,7 +405,7 @@ ZA24I_cv, ZA24I_std = ZA24I_params[0], np.sqrt(ZA24I_cov[0, 0])
 ZA24I_dist = gen_fake_ensemble([ZA24I_cv, ZA24I_std], n_samples = n_samp)
 print('ZA for 24I = ' + export_float_latex(ZA24I_cv, ZA24I_std, sf = 2))
 plot_fit_out(0, ZA_extrap_mu, ZA_extrap_sigma, ZA24I_fitter, ZA24I_fout, '$\mathcal{Z}_A$', ZA24I_range, \
-                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_24I.pdf', plt_known = True)
+                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_24I.pdf', plt_known = 'ZA')
 
 # ZA for 32I
 subset_idxs = [0, 1, 2, 3]
@@ -391,7 +421,7 @@ ZA32I_cv, ZA32I_std = ZA32I_params[0], np.sqrt(ZA32I_cov[0, 0])
 ZA32I_dist = gen_fake_ensemble([ZA32I_cv, ZA32I_std], n_samples = n_samp)
 print('ZA for 32I = ' + export_float_latex(ZA32I_cv, ZA32I_std, sf = 2))
 plot_fit_out(1, ZA_extrap_mu, ZA_extrap_sigma, ZA32I_fitter, ZA32I_fout, '$\mathcal{Z}_A$', ZA32I_range, \
-                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_32I.pdf', plt_known = True, ytick_locs = yticks_32I, \
+                '/Users/theoares/Dropbox (MIT)/research/0nubb/paper/plots/rcs/fit_plots/ZA_32I.pdf', plt_known = 'ZA', ytick_locs = yticks_32I, \
                 ytick_labels = ytick_labels_32I)
 
 out_path = '/Users/theoares/Dropbox (MIT)/research/0nubb/analysis_output/ZVA.h5'
