@@ -145,26 +145,52 @@ styles = {
         'right_pad'         : 3.0,                          # pts
         'asp_ratio'         : 2.0,
         'linewidth'         : 1.5,
+        'wfontsize'         : 200,
     },
     'talk' : {
-        'colwidth'          : 600.0 / pts_per_inch,
-        'textwidth'         : 600.0 / pts_per_inch,
-        'fontsize'          : 20.0,
-        # 'fontsize'          : 50.0,
+        'colwidth'          : 1000.0 / pts_per_inch,
+        'textwidth'         : 1000.0 / pts_per_inch,
+        'fontsize'          : 50.0,
         'tickwidth'         : 0.5,
         'ticklength'        : 4.0,
         'spinewidth'        : 0.5,
         'axeswidth'         : 0.5,                          # pts
-        'markersize'        : 10.0,                         # pts
-        'ebar_width'        : 2.0,                          # pts
-        'endcaps'           : 2.0,                          # pts
+        'markersize'        : 20.0,                         # pts
+        'ebar_width'        : 3.0,                          # pts
+        'endcaps'           : 5.0,                          # pts
         'ecap_width'        : 2.0,                          # pts
+        'bottom_pad'        : 0.5,                          # pts
+        'top_pad'           : 1.5,                          # pts
+        'left_pad'          : 0.5,                          # pts
+        'right_pad'         : 1.5,                          # pts
+        'asp_ratio'         : 16/9,
+        'linewidth'         : 1.5,
+        'tick_fontsize'     : 30.0,
+        'leg_fontsize'      : 25.0,
+        'wfontsize'         : 200,
+    },
+    'talk_onecol' : {
+        'colwidth'          : 900.0 / pts_per_inch,
+        'textwidth'         : 900.0 / pts_per_inch,
+        # 'fontsize'          : 20.0,
+        'fontsize'          : 50.0,
+        'tickwidth'         : 0.5,
+        'ticklength'        : 4.0,
+        'spinewidth'        : 0.5,
+        'axeswidth'         : 0.5,                          # pts
+        'markersize'        : 20.0,                         # pts
+        'ebar_width'        : 2.0,                          # pts
+        'endcaps'           : 5.0,                          # pts
+        'ecap_width'        : 3.0,                          # pts
         'bottom_pad'        : 0.5,                          # pts
         'top_pad'           : 1.5,                          # pts
         'left_pad'          : 0.5,                          # pts
         'right_pad'         : 1.5,                          # pts
         'asp_ratio'         : 4/3,
         'linewidth'         : 1.5,
+        'tick_fontsize'     : 30.0,
+        'leg_fontsize'      : 25.0,
+        'wfontsize'         : 150,
     },
 }
 

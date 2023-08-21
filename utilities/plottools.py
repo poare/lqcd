@@ -18,6 +18,7 @@ from formattools import *
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from mpl_toolkits.mplot3d import Axes3D, art3d
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Ellipse
@@ -185,6 +186,7 @@ def errorbar_1d(xvals, cvs, stds, ax = None, col = [pal[0], pal[1]], ax_label = 
         X values to plot at function at.
     cvs : np.array[np.float64 or np.complex64]
         Central values to plot, should the same dimensions as xvals. Can either be np.float or np.complex data types.
+        TODO add support for gvar
     stds : np.array[np.float64 or np.complex64]
         Standard deviations to plot, should the same dimensions as xvals. Can either be np.float or np.complex data types.
     ax : matplotlib.Axes (default = None)
@@ -238,7 +240,6 @@ def errorbar_1d(xvals, cvs, stds, ax = None, col = [pal[0], pal[1]], ax_label = 
             color = col[0] if type(col) is list else col
             _, caps, _ = ax.errorbar(xvals, cvs, yerr = stds, fmt = '.', color = col, label = fn_label, capsize = style['endcaps'], \
                 markersize = style['markersize'], elinewidth = style['ebar_width'], **kwargs)
-                # markersize = 5*style['markersize'], elinewidth = style['ebar_width'], **kwargs)
             for cap in caps:
                 cap.set_markeredgewidth(style['ecap_width'])
         if title:
@@ -959,6 +960,41 @@ def add_colorbar(fig, graphic, style = default_style, ticks = None, tick_labels 
 ################################## UTILITIES ###################################
 ################################################################################
 
+def add_watermark(ax, text = 'Preliminary', wfontsize = None, wcol = sns.color_palette()[7], walpha = 0.25, \
+    wrot = 30, style = default_style):
+    """
+    Adds a watermark to a plot with given text, fontsize, and opacity. 
+
+    TODO for multiple plots, determine if we need to add one or more
+
+    Parameters
+    ----------
+    ax : matplotlib.Axes
+        Axes to add watermark to. 
+    text : string
+        Text in watermark to add.
+    wfontsize : int (default = None)
+        Font size of the watermark. If None, uses style['wfontsize']
+    wcol : color (default = sns.color_palette()[7], which is Seaborn grey)
+        Color for the watermark.
+    walpha : float (default = 0.5)
+        Opacity of the watermark.
+    wrot : int (default = 30)
+        Degrees to rotate the watermark by.
+    style : dict (default = default_style)
+        Style to use for the axis.
+    
+    Returns (mutator)
+    -----------------
+    ax : matplotlib.Axes
+        Axes with watermark added.
+    """
+    if wfontsize is None:
+        wfontsize = style['wfontsize']
+    ax.text(0.5, 0.5, text, transform=ax.transAxes, fontsize = wfontsize, color = wcol, alpha = walpha, \
+        ha = 'center', va = 'center', rotation = wrot)
+    return ax
+
 def stylize_axis(ax, style = default_style):
     """
     Formats a given axis in an existing style by giving it the appropriate tick and label sizes. 
@@ -971,8 +1007,14 @@ def stylize_axis(ax, style = default_style):
         Style to use for the axis.
     """
     # TODO later, add option for setting tick positions + labels
-    ax.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = style['fontsize'])
-    ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = style['fontsize'])
+    # ax.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = style['fontsize'])
+    # ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = style['fontsize'])
+    if 'tick_fontsize' in style:
+        fsize = style['tick_fontsize']
+    else:
+        fsize = style['fontsize']
+    ax.xaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = fsize)
+    ax.yaxis.set_tick_params(width = style['tickwidth'], length = style['ticklength'], labelsize = fsize)
     for spine in spinedirs:
         ax.spines[spine].set_linewidth(style['axeswidth'])
     return ax

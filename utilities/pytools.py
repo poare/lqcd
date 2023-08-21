@@ -13,7 +13,6 @@
 ################################################################################
 
 from __main__ import *
-n_boot = n_boot
 
 import numpy as np
 import h5py
@@ -64,10 +63,10 @@ gammaList = [np.identity(4,dtype=complex), gamma[0], gamma[1], np.matmul(gamma[0
 
 bvec = [0, 0, 0, 0.5]
 
-def set_boots(nb):
-    global n_boot
-    n_boot = nb
-    return n_boot
+# def set_boots(nb):
+#     global n_boot
+#     n_boot = nb
+#     return n_boot
 
 # initialize Dirac matrices
 gammaMu5 = np.array([gamma[mu] @ gamma5 for mu in range(d)])
@@ -132,7 +131,7 @@ def norm(p):
     return np.sqrt(np.abs(square(p)))
 
 #  Pass in a tensor with the shape (ncfgs, tensor_shape)
-def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boot):
+def bootstrap(S, Nb, seed = 10, weights = None, data_type = np.complex64):
     """
     Bootstraps an input tensor. Generates each bootstrap sample by averaging 
     over num_configs data points, where num_configs is the number of 
@@ -142,12 +141,12 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
     ----------
     S : np.array [ncfgs, ...]
         Input tensor to bootstrap. ncfgs is the number of configurations.
+    Nb : int
+        Length of propagator object.
     seed : int (default = 10)
         Seed of random number generator for bootstrapping.
     weights : np.array [Nb] (default = None)
         Weights for bootstrap sample to generate.
-    Nb : int (default = n_boot)
-        Length of propagator object.
 
     Returns
     -------
@@ -156,7 +155,7 @@ def bootstrap(S, seed = 10, weights = None, data_type = np.complex64, Nb = n_boo
     """
     num_configs, tensor_shape = S.shape[0], S.shape[1:]
     bootshape = [Nb]
-    bootshape.extend(tensor_shape)    # want bootshape = (n_boot, tensor_shape)
+    bootshape.extend(tensor_shape)    # want bootshape = (Nb, tensor_shape)
     samples = np.zeros(bootshape, dtype = data_type)
     if weights == None:
         weights = np.ones((num_configs))
@@ -215,7 +214,7 @@ def shift_boots(data, new_mean, boot_axis = 0):
     shift_data = shift + data
     return shift_data
 
-def invert_props(props, Nb = n_boot):
+def invert_props(props):
     """
     Invert propagators to get S^{-1}, required for amputation.
 
@@ -223,20 +222,19 @@ def invert_props(props, Nb = n_boot):
     ----------
     props : np.array [Nb, 3, 4, 3, 4]
         Propagator object for a single momentum.
-    Nb : int (default = n_boot)
-        Length of propagator object.
 
     Returns
     -------
     np.array [Nb, 3, 4, 3, 4]
         Inverse propagator object.
     """
+    Nb = props.shape[0]
     Sinv = np.zeros(props.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv[b] = np.linalg.tensorinv(props[b])
     return Sinv
 
-def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
+def amputate_threepoint(props_inv_L, props_inv_R, threepts):
     """
     Amputate legs of a three-point function to get vertex function \Gamma(p). Uses first
     argument to amputate left-hand side and second argument to amputate right-hand side.
@@ -249,23 +247,20 @@ def amputate_threepoint(props_inv_L, props_inv_R, threepts, Nb = n_boot):
         Inverse propagator to amputate with on the right of the three-point function.
     threepts : np.array [Nb, 3, 4, 3, 4]
         Three-point function for a single momenta to amputate.
-    Nb : int (default = n_boot)
-        Length of propagator object.
 
     Returns
     -------
     np.array [Nb, 3, 4, 3, 4]
         Amputated vertex function.
     """
+    Nb = threepts.shape[0]
     Gamma = np.zeros(threepts.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], threepts[b]
         Gamma[b] = np.einsum('aibj,bjck,ckdl->aidl', Sinv_L, G, Sinv_R)
     return Gamma
 
-# amputates the four point function. Assumes the left leg has momentum p1 and right legs have
-# momentum p2, so amputates with p1 on the left and p2 on the right
-def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
+def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints):
     """
     Amputate legs of a four-point function to get vertex function \Gamma(p). Uses first
     argument to amputate left-hand side and second argument to amputate right-hand side.
@@ -278,21 +273,20 @@ def amputate_fourpoint(props_inv_L, props_inv_R, fourpoints, Nb = n_boot):
         Inverse propagator to amputate with on the right of the four-point function.
     fourpoints : np.array [Nb, 3, 4, 3, 4]
         Four-point function for a single momenta to amputate.
-    Nb : int (default = n_boot)
-        Length of propagator object.
 
     Returns
     -------
     np.array [Nb, 3, 4, 3, 4]
         Amputated vertex function.
     """
+    Nb = fourpoints.shape[0]
     Gamma = np.zeros(fourpoints.shape, dtype = np.complex64)
     for b in range(Nb):
         Sinv_L, Sinv_R, G = props_inv_L[b], props_inv_R[b], fourpoints[b]
         Gamma[b] = np.einsum('aiem,ckgp,emfngphq,fnbj,hqdl->aibjckdl', Sinv_L, Sinv_L, G, Sinv_R, Sinv_R)
     return Gamma
 
-def quark_renorm(props_inv_q, q, Nb = n_boot):
+def quark_renorm(props_inv_q, q):
     """
     Computes the quark field renormalization Zq at momentum q,
         Zq = i Tr[q^mu gamma^mu S^{-1}(q)] / (12 q^2).
@@ -303,14 +297,13 @@ def quark_renorm(props_inv_q, q, Nb = n_boot):
         Inverse propagator to compute Zq with.
     q : np.array [4]
         Lattice momentum to compute Zq at.
-    Nb : int (default = n_boot)
-        Length of propagator object.
 
     Returns
     -------
     np.array [Nb]
         Quark field renormalization computed at each bootstrap.
     """
+    Nb = props_inv_q.shape[0]
     Zq = np.zeros((Nb), dtype = np.complex64)
     for b in range(Nb):
         Sinv = props_inv_q[b]
