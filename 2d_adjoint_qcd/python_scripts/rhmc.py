@@ -19,8 +19,6 @@
 # Author: Patrick Oare                                                         #
 ################################################################################
 
-n_boot = 100
-
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -959,7 +957,22 @@ def apply_rational_approx(K, phi, alphas, betas, cg_tol = CG_TOL, max_iter = CG_
         rKphi += alphas[i] * psi_i
     return rKphi
 
-def pf_force(dirac, U, phi, gens, kappa, alphas = alpha_m4, betas = beta_m4, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
+def force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
+    """
+    Computes the force used for an HMC update. 
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    return
+
+def gauge_force():
+    return
+
+def pf_force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
     """
     Computes the pseudofermion force d/dU (Phi^\dagger r(K) \Phi) \approx d/dU (Phi^\dagger K^{-1/4} \Phi).
 
@@ -975,10 +988,6 @@ def pf_force(dirac, U, phi, gens, kappa, alphas = alpha_m4, betas = beta_m4, lat
         SU(Nc) generators t^a.
     kappa : float
         Hopping parameter for action. TODO change to a dictionary "action_args"
-    alphas : np.array [P + 1] (default = alpha_m4)
-        Alpha coefficients for approximation of K^{-1/4}.
-    betas : np.array [P + 1] (default = beta_m4)
-        Beta coefficients for approximation of K^{-1/4}. beta[0] should equal 0.
     cg_tol : float (default = CG_TOL)
         Relative tolerance for CG solver.
     max_iter : int (default = CG_MAX_ITER)
@@ -989,6 +998,7 @@ def pf_force(dirac, U, phi, gens, kappa, alphas = alpha_m4, betas = beta_m4, lat
     dKdU : np.array [d, L, T, Nc, Nc]
         Derivative of pseudofermion part of action by the fundamental gauge field.
     """
+    alphas, betas = alpha_m4, beta_m4
     Q = hermitize_dirac(dirac)
     K = construct_K(dirac)
     force = np.zeros(U.shape, U.dtype)
@@ -1080,7 +1090,7 @@ def form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BC
 
 def pseudofermion_action(K, phi):
     """
-    Returns the pseudofermion action, 
+    Returns the pseudofermion action, -|phi^\dagger K^{-1/4} \phi.
     """
     return
 
@@ -1121,8 +1131,7 @@ def init_fields(K, Nc, gens, hot_start = True, lat = LAT):
         U = id_field(Nc, lat = lat)
     V = construct_adjoint_links(U, gens, lat = lat)
     dim_pf = dNc*Ns*lat.vol
-    # g = 1/np.sqrt(2.) * (np.random.rand(dim_pf) + (1j) * np.random.rand(dim_pf))
-    # g = 1/np.sqrt(2.) * (np.random.normal(dim_pf) + (1j) * np.random.normal(dim_pf))
+    
     g_mean, g_cov = np.zeros((dim_pf), dtype = np.float64), np.eye(dim_pf, dtype = np.float64)
     g = 1/np.sqrt(2.) * (
         np.random.multivariate_normal(g_mean, g_cov) + (1j) * np.random.multivariate_normal(g_mean, g_cov)

@@ -8,7 +8,6 @@
 # Author: Patrick Oare                                                         #
 ################################################################################
 
-n_boot = 200
 import numpy as np
 import itertools
 import scipy
@@ -662,7 +661,7 @@ dNc = Nc**2 - 1
 eps = 0.2
 gens = rhmc.get_generators(Nc)
 # V = np.random.rand(2, L, T, dNc, dNc) + (1j) * np.random.rand(2, L, T, dNc, dNc)
-U = rhmc.gen_random_fund_field(Nc, eps, lat = Lat)
+U = rhmc.gen_random_fund_field(Nc, lat = Lat)
 V = rhmc.construct_adjoint_links(U, gens, lat = Lat)
 
 print_line()
