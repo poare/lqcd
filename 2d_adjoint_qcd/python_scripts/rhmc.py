@@ -19,6 +19,20 @@
 # Author: Patrick Oare                                                         #
 ################################################################################
 
+
+################################################################################
+############################# SYSTEM SPECIFIC PATHS ############################
+################################################################################
+# Mac
+util_path = '/Users/theoares/lqcd/utilities'
+
+# Windows (TODO)
+# util_path = ''
+
+
+################################################################################
+#################################### IMPORTS ###################################
+################################################################################
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -34,7 +48,7 @@ import gvar as gv
 import lsqfit
 
 import sys
-sys.path.append('/Users/theoares/lqcd/utilities')
+sys.path.append(util_path)
 from constants import *
 from fittools import *
 from formattools import *
@@ -49,7 +63,6 @@ from rhmc_coeffs import *
 ################################################################################
 ############################### INPUT PARAMETERS ###############################
 ################################################################################
-
 L = 8                                       # Spatial size of the lattice
 T = 8                                       # Temporal size of the lattice
 
@@ -73,7 +86,6 @@ DEFAULT_BCS = (1, -1)                       # Boundary conditions for fermion fi
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
 ################################################################################
-
 def kron_delta(a, b):
     """Returns the Kronecker delta between two objects a and b."""
     if type(a) == np.ndarray:
@@ -181,10 +193,10 @@ gamma5 = paulis[1]
 Pplus = (delta + gamma5) / 2                  # Positive chirality projector
 Pminus = (delta - gamma5) / 2                 # Negative chirality projector
 
+
 ################################################################################
 ############################# INDEXING FUNCTIONS ###############################
 ################################################################################
-
 def flatten_full_idx(idx, dNc, lat = LAT):
     """Flattens a full color-spin-spacetime index idx = (a, alpha, x, t)."""
     a, alpha, x, t = idx
@@ -967,14 +979,57 @@ def force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_
     Returns
     -------
     """
+    # TODO probably don't need
     return
 
 def gauge_force():
+    # TODO implement
     return
 
 def pf_force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
     """
+    Computes the pseudofermion force d/dU (Phi^\dagger r(K) \Phi) \approx d/dw (Phi^\dagger K^{-1/4} \Phi).
+    Note this force assumes the parameter \omega_\mu^a(n) is used as the position coordinate that needs to 
+    be updated, hence it has the same shape as \omega_\mu^a(n).
+
+    Parameters
+    ----------
+    dirac : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse Dirac operator D.
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field configuration.
+    phi : np.array [dNc*Ns*L*T]
+        Input (flattened) pseudofermion force. 
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    kappa : float
+        Hopping parameter for action. TODO change to a dictionary "action_args"
+    cg_tol : float (default = CG_TOL)
+        Relative tolerance for CG solver.
+    max_iter : int (default = CG_MAX_ITER)
+        Maximum iterations for CG solver. 
+    
+    Returns
+    -------
+    dKdU : np.array [d, L, T, Nc, Nc]
+        Derivative of pseudofermion part of action by the fundamental gauge field.
+    """
+    dNc = gens.shape[0]
+    alphas, betas = alpha_m4, beta_m4
+    # Q = hermitize_dirac(dirac)
+    K = construct_K(dirac)
+    force = np.zeros((d, dNc, lat.L, lat.T), U.dtype)
+    for i in range(1, len(betas)):
+        psi_i = cg_shift(K, phi, betas[i], cg_tol, max_iter)
+        psi_dKdw_psi = form_dKdw_bilinear(U, dirac, psi_i, gens, lat = lat, bcs = bcs)
+        force += alphas[i] * psi_dKdw_psi
+    return (-4j*kappa) * force
+
+def pf_force_U(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
+    """
     Computes the pseudofermion force d/dU (Phi^\dagger r(K) \Phi) \approx d/dU (Phi^\dagger K^{-1/4} \Phi).
+    Note this force assumes the parameter U_\mu(a) is used as the position coordinate that needs to 
+    be updated, hence it has the same shape as U_\mu(a)
 
     Parameters
     ----------
@@ -1004,14 +1059,100 @@ def pf_force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = 
     force = np.zeros(U.shape, U.dtype)
     for i in range(1, len(betas)):
         psi_i = cg_shift(K, phi, betas[i], cg_tol, max_iter)
-        psi_dKdU_psi = form_dKdU_bilinear(U, Q, psi_i, gens, kappa, lat = lat, bcs = bcs)
+        psi_dKdU_psi = form_dKdU_bilinear(U, Q, psi_i, gens, lat = lat, bcs = bcs)
         force += alphas[i] * psi_dKdU_psi
-    return force
+    return (-2*kappa) * force
 
-def form_dKdU_bilinear(U, Q, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BCS):
+def form_tW_tensor(U, gens, lat = LAT):
+    """
+    Forms the tensor Tr[t^a W^{bc}], where t^a are the SU(Nc) generators and W^{bc} is the 
+    traceless shuffled product of link matrices and generators,
+    $$
+    W_\mu^{ab}\equiv U_\mu^\dagger(n) t^a U_\mu(n) t^b - U_\mu(n) t^b U_\mu^\dagger(n) t^a
+    $$
+
+    Parameters
+    ----------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+
+    Returns
+    -------
+    tW : np.array [d, L, T, dNc, dNc, dNc]
+        The tensor Tr[ t^a W^{bc}(n) ].
+    """
+    dNc, Nc = gens.shape[0], gens.shape[1]
+    Udag = dagger(U)
+    tW = np.zeros((d, lat.L, lat.T, dNc, dNc, dNc), dtype = U.dtype)
+    for mu, nx, nt in itertools.product(range(d), range(lat.L), range(lat.T)):
+        U_col = U[mu, nx, nt]
+        U_col_dag = dagger(U_col)
+        for a, b, c in itertools.product(range(dNc), repeat = 3):
+            tW[mu, nx, nt, a, b, c] = trace(gens[a] @ (U_col_dag @ gens[b] @ U_col @ gens[c] - U_col @ gens[c] @ U_col_dag @ gens[b]))
+    return tW
+
+def form_dKdw_bilinear(U, dirac, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    For given psi = (K + \beta_i)^{-1}\Phi, evaluates the bilinear \psi^\dagger dK / dw_\mu^{a}(n) psi, 
+    where psi = (K + \beta_i)^{-1}\Phi. Returns a field with the same shape as the coordinate omega, i.e. 
+    with the shape (d, dNc, L, T). This differentiates K with respect to the su(Nc) coordinate \omega_\mu^a.
+    This also normalizes the expression by 1 / (4i\kappa) to reduce the number of necessary multiplications.
+    
+    Parameters
+    ----------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    dirac : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse Dirac operator D.
+    psi : np.array [dNc*Ns*L*T]
+        Solution psi to the equation (K + \beta_i) \psi = \phi.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+
+    Returns
+    -------
+    np.array [d, L, T, Nc, Nc]
+        Derivative dK/dw contracted with psi^\dagger and psi. Shape should be that 
+        of the su(Nc) coordinates \omega_\mu^a(n).
+    """
+    dNc = gens.shape[0]
+    dKdw_bilinear = np.zeros((d, dNc, lat.L, lat.T), U.dtype)
+    Dpsi_dagger = (dirac @ psi).conj().transpose()
+
+    # psi_blk = unflatten_ferm_field(psi, dNc, lat = lat)
+    # Dpsi_dagger_blk = unflatten_ferm_field((dirac @ psi).conj().transpose(), dNc, lat = lat)
+
+    tW = form_tW_tensor(U, gens, lat = lat)
+    for mu, a, nx, nt in itertools.product(range(d), range(dNc), range(lat.L), range(lat.T)):
+        n = np.array([nx, nt])
+        npmu = lat.mod(n + hat(mu))
+
+        # get necessary fermion spin-col blocks (this can be optimized I think)
+        psi_n = unflatten_colspin_vec(flat_field_evalat(psi, nx, nt), dNc)
+        psi_npmu = unflatten_colspin_vec(flat_field_evalat(psi, npmu[0], npmu[1]), dNc)
+        Dpsi_dagger_n = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, nx, nt), dNc)
+        Dpsi_dagger_npmu = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, npmu[0], npmu[1]), dNc)
+        tW_comp = tW[mu, *n, a]
+
+        # contract
+        dKdw_bilinear[mu, a, nx, nt] = np.einsum(
+            'bi,bc,ij,jc->',
+            Dpsi_dagger_n, tW_comp, delta - gamma[mu], psi_npmu
+        ) + np.einsum(
+            'bi,bc,ij,jc->',
+            Dpsi_dagger_npmu, tW_comp, delta + gamma[mu], psi_n
+        )
+        # TODO: determine whether it's faster to do this, or to do a matrix multiplication by combining tW and 
+        # the gamma structure into a single spin-color matrix. 
+    return dKdw_bilinear
+
+def form_dKdU_bilinear(U, Q, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
     """
     For given psi = (K + \beta_i)^{-1}\Phi, evaluates the bilinear \psi^\dagger dK / dU_\mu^{k\ell}(z) psi, 
-    where psi = (K + \beta_i)^{-1}\Phi. Returns a field in the same shape as U_\mu(x).
+    where psi = (K + \beta_i)^{-1}\Phi. Returns a field in the same shape as U_\mu(x). This differentiates 
+    K with respect to the fundamental gauge field U_\mu.
     
     Parameters
     ----------
@@ -1021,8 +1162,6 @@ def form_dKdU_bilinear(U, Q, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BCS):
         Solution psi to the equation (K + \beta_i) \psi = \phi.
     gens : np.array [dNc, Nc, Nc]
         SU(Nc) generators t^a.
-    kappa : float
-        Hopping parameter for action. TODO change to a dictionary
 
     Returns
     -------
@@ -1030,17 +1169,16 @@ def form_dKdU_bilinear(U, Q, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BCS):
         Derivative dK/dU contracted with psi^\dagger and psi. Shape should be that 
         of a fundamental gauge field.
     """
-    # kappa = action_args['kappa']
     dKdU_bilinear = np.zeros(U.shape, U.dtype)
     Qpsi = Q @ psi
     Qpsi_dagger = Qpsi.conj().transpose()
     tUt = np.einsum('aik,mxtkl,blj->abmxtij', gens, U, gens)
     for deriv_coord in itertools.product(*[range(ii) for ii in U.shape]):
-        Mmu_psi_i = form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = lat, bcs = bcs)
+        Mmu_psi_i = form_Mmu_psi(deriv_coord, tUt, psi, gens, lat = lat, bcs = bcs)
         dKdU_bilinear[deriv_coord] = 2 * Qpsi_dagger @ Mmu_psi_i
     return dKdU_bilinear
 
-def form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BCS):
+def form_Mmu_psi(deriv_coord, tUt, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
     """
     Evaluate M_\mu psi_i, which is formally dQ/dU_\mu contracted with psi_i, at the point deriv_coord. 
     This must be modified for a given Dirac operator.
@@ -1057,8 +1195,6 @@ def form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BC
         Solution psi to the equation (K + \beta_i) \psi = \phi.
     gens : np.array [dNc, Nc, Nc]
         SU(Nc) generators t^a.
-    kappa : float
-        Hopping parameter for action. TODO change to a dictionary
 
     Returns
     -------
@@ -1086,12 +1222,32 @@ def form_Mmu_psi(deriv_coord, tUt, psi, gens, kappa, lat = LAT, bcs = DEFAULT_BC
     flat_field_putat(Mpsi, Mpsi_blk1, z[0], z[1], dNc, mutate = True)
     flat_field_putat(Mpsi, Mpsi_blk2, zpmu[0], zpmu[1], dNc, mutate = True)
 
-    return (-2*kappa) * Mpsi
+    return Mpsi
 
-def pseudofermion_action(K, phi):
+def pseudofermion_action(dirac, phi, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
     """
-    Returns the pseudofermion action, -|phi^\dagger K^{-1/4} \phi.
+    Returns the pseudofermion action, -|phi^\dagger K^{-1/4} \phi, where K is the square of 
+    the Dirac operator D^\dagger D. 
+
+    Parameters
+    ----------
+    dirac : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse Dirac operator D.
+    phi : np.array [dNc*Ns*L*T]
+        Input (flattened) pseudofermion force. 
+    
+    Returns
+    -------
+    S : np.complex128 (or real64?)
+        Pseudofermion action -\Phi^\dagger K^{-1/4} \Phi.
     """
+    # dNc = gens.shape[0]
+    alphas, betas = alpha_m4, beta_m4
+    rK_phi = apply_rational_approx(K, phi, alphas, betas, cg_tol = cg_tol, max_iter = max_iter)
+    return -(phi.transpose().conj() @ rK_phi)
+
+    # TODO implement
+
     return
 
 def init_fields(K, Nc, gens, hot_start = True, lat = LAT):
@@ -1131,7 +1287,7 @@ def init_fields(K, Nc, gens, hot_start = True, lat = LAT):
         U = id_field(Nc, lat = lat)
     V = construct_adjoint_links(U, gens, lat = lat)
     dim_pf = dNc*Ns*lat.vol
-    
+
     g_mean, g_cov = np.zeros((dim_pf), dtype = np.float64), np.eye(dim_pf, dtype = np.float64)
     g = 1/np.sqrt(2.) * (
         np.random.multivariate_normal(g_mean, g_cov) + (1j) * np.random.multivariate_normal(g_mean, g_cov)
@@ -1146,10 +1302,10 @@ def init_fields(K, Nc, gens, hot_start = True, lat = LAT):
     
     return phi, U, V, Pi
 
+
 ################################################################################
 ############################ PFAFFIAN CALCULATION ##############################
 ################################################################################
-
 def pfaffian(Q):
     """
     Computes the Pfaffian of a flattened (antisymmetric) Dirac operator Q. Q can be sparse or dense. 
@@ -1357,10 +1513,10 @@ def lu_decomp(A, compute_J = True):
 #             Gamma[:, j] = Gam_j - (Gam_ip1 @ Q_sp @ Gam_j) * Gam_i - (Gam_i @ Q_sp @ Gam_j) * Gam_ip1
 #     return Gamma, Q_sp
 
+
 ################################################################################
 ############################## __MAIN__ FUNCTION ###############################
 ################################################################################
-
 def main(args):
 
     # Initialize gauge group

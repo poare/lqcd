@@ -299,10 +299,10 @@ def test_eval_flat_ferm(L = 4, T = 4, Nc = 2):
 
     print('test_eval_flat_ferm : Pass')
 
+
 ################################################################################
 ############################### TEST CG SOLVER #################################
 ################################################################################
-
 def test_shift_cg(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests the shifted CG solver by explicitly computing (K + \beta_i)^{-1} \Phi on 
     a small lattice."""
@@ -366,6 +366,24 @@ def test_init_fields(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
 
     print('test_init_fields : Pass')
 
+def test_pseudoferm_action(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
+    """Tests that the pseudofermion action Phi^\dagger K^{-1/4} \Phi obtained using 
+    a CG solver is accurate by explicitly computing this quantity with a full matrix."""
+
+    # TODO method stub
+    # TODO test rhmc.pseudofermion_action and compare against Phi^\dagger K^{-1/4} \Phi
+
+    Lat = rhmc.Lattice(L, T)
+    dNc = Nc**2 - 1
+    if V is None:
+        V = rhmc.id_field_adjoint(Nc, lat = Lat)
+    dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
+    K = rhmc.construct_K(dirac)
+    dim = K.shape[0]
+    phi = np.random.rand(dim) + 1j*np.random.rand(dim)
+
+    print('test_pseudoferm_action : Pass')
+
 def test_pseudoferm_force():
     """Tests that the pseudofermion derivative of Phi^\dagger K^{-1/4} \Phi is accurate 
     by using automatic differentation on U_mu(x). Note that we can test this by setting a 
@@ -375,10 +393,10 @@ def test_pseudoferm_force():
 
     print('test_pseudoferm_force : Pass')
 
+
 ################################################################################
 ######################### TEST RATIONAL APPROXIMATION ##########################
 ################################################################################
-
 def test_rational_approx_small(n_samps = 100, delta = 2e-5):
     """
     Tests that |r(K) - K^{-1/4}| < \delta, where \delta is the predicted error for 
@@ -433,10 +451,10 @@ def test_rational_approx_large(n_samps = 100, delta = 2e-5):
         assert np.abs((r8(x) - pw8(x)) / r8(x)) < delta, f'x = {x}, x^(1/8) = {r8(x)}, r(x) = {pw8(x)}'
     print('test_rational_approx_large : Pass')
 
+
 ################################################################################
 ################################ TEST PFAFFIAN #################################
 ################################################################################
-
 def is_tridiagonal(T):
     """Returns True if T is tridiagonal."""
     N = T.shape[0]
@@ -629,10 +647,10 @@ def test_LU_decomp(L = 4, T = 4, Nc = 2, kappa = 0.25, V = None):
     assert np.allclose(Qprime.toarray(), Qdecomp), f'LU decomposition for Dirac operator failed.'
     print('test_LU_decomp : Pass')
 
+
 ################################################################################
 ############################# TEST RHMC SPECIFICS ##############################
 ################################################################################
-
 def test_thermalization():
     """
     Tests that a plaquette has thermalized to the same value, after both doing a cold start 
@@ -643,10 +661,10 @@ def test_thermalization():
 
     print('test_thermalization : Pass')
 
+
 ################################################################################
 ################################## RUN TESTS ###################################
 ################################################################################
-
 L, T = 4, 4             # lattice size to test on
 # L, T = 6, 6
 # L, T = 8, 8
@@ -690,7 +708,11 @@ test_eval_flat_ferm(L = L, T = T, Nc = Nc)
 
 test_shift_cg(L = L, T = T, Nc = Nc)
 test_rK_application(L = L, T = T, Nc = Nc)
+
+# TODO test these next!
 test_init_fields(L = L, T = T, Nc = Nc, V = V)
+test_pseudoferm_action(L = L, T = T, Nc = Nc)
+test_pseudoferm_force(L = L, T = T, Nc = Nc)
 
 test_rational_approx_small()
 test_rational_approx_large()
@@ -707,10 +729,10 @@ print_line()
 print('ALL TESTS PASSED')
 print_line()
 
+
 ################################################################################
 ################################# SCRATCH WORK #################################
 ################################################################################
-
 # Lat = rhmc.Lattice(4, 4)
 # Nc = 2
 # dNc = Nc**2 - 1
