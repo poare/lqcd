@@ -1,0 +1,282 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage[margin = 1in]{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[shortlabels]{enumitem}
+\usepackage{float}
+\usepackage{tikz-cd}
+\usepackage{subcaption}
+\usepackage{simpler-wick}
+\usepackage[compat=1.0.0]{tikz-feynman}   %note you need to compile this in LuaLaTeX for diagrams to render correctly
+
+\usepackage{verbatim}
+\usepackage{amsthm}
+\usepackage{hyperref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% CUSTOM MATH ENVIRONMENTS %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{mdframed}
+\usepackage{xparse}
+\usepackage{framed}		% Colored boxes. \begin{shaded} to use the package
+\usepackage{minted}
+
+\definecolor{lightgray}{rgb}{0.93, 0.93, 0.93}
+\definecolor{lightpurple}{rgb}{0.9, 0.7, 1.0}
+\definecolor{lightblue}{rgb}{0.2, 0.7, 0.7}
+%\definecolor{lightred}{rgb}{0.8, 0.2, 0.2}
+\definecolor{lightred}{rgb}{0.99, 0.0, 0.0}
+\definecolor{lightgreen}{rgb}{0.2, 0.6, 0.2}
+\definecolor{magenta}{rgb}{0.9, 0.2, 0.9}
+
+\colorlet{shadecolor}{lightgray}		% 40% purple, 40% white
+\colorlet{defcolor}{lightpurple!40}
+\colorlet{thmcolor}{lightblue!20}
+\colorlet{excolor}{lightred!30}
+\colorlet{rescolor}{lightgreen!40}
+\colorlet{intercolor}{magenta!40}
+
+% Definition
+\newcounter{dfnctr}
+\newenvironment{definition}[1][]{
+\stepcounter{dfnctr}
+%\protected@edef\@currentlabelname{dfnctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=defcolor]
+{\strut Definition~\arabic{dfnctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=defcolor]
+{\strut Definition~\arabic{dfnctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=lightpurple,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+%\begin{mdframed}[skipabove=2cm, splittopskip=\baselineskip]\relax%
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Theorem
+\newcounter{thmctr}
+\newenvironment{theorem}[1][]{
+\stepcounter{thmctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Theorem~\arabic{thmctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Theorem~\arabic{thmctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=lightblue!60,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Corollary
+\newcounter{corctr}
+\newenvironment{corollary}[1][]{
+\stepcounter{corctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Corollary~\arabic{corctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Corollary~\arabic{corctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=lightblue!60,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Proposition
+\newcounter{propctr}
+\newenvironment{prop}[1][]{
+\stepcounter{propctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Proposition~\arabic{propctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Proposition~\arabic{propctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=lightblue!60,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Lemma
+\newcounter{lemctr}
+\newenvironment{lemma}[1][]{
+\stepcounter{lemctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Lemma~\arabic{lemctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=thmcolor]
+{\strut Lemma~\arabic{lemctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=lightblue!60,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Example
+\newcounter{exctr}
+\newenvironment{example}[1][]{
+\stepcounter{exctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=excolor]
+{\strut Example~\arabic{exctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=excolor]
+{\strut Example~\arabic{exctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=excolor,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Resources
+\newcounter{resctr}
+\newenvironment{resources}[1][]{
+\stepcounter{resctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=rescolor]
+{\strut Resources};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=rescolor]
+{\strut Resources};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=rescolor,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+% Interlude
+\newcounter{interctr}
+\newenvironment{interlude}[1][]{
+\stepcounter{interctr}
+\ifstrempty{#1}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=intercolor]
+{\strut Example~\arabic{interctr}};}}
+}
+{\mdfsetup{
+frametitle={
+\tikz[baseline=(current bounding box.east),outer sep=0pt]
+\node[anchor=east,rectangle,fill=intercolor]
+{\strut Interlude~\arabic{interctr}:~#1};}}
+}
+\mdfsetup{innertopmargin=3pt,linecolor=intercolor,
+linewidth=2pt,topline=true,
+frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+\begin{mdframed}[]\relax%
+}{\end{mdframed}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% MATH COMMANDS %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{slashed}
+\usepackage{bm}
+\usepackage{cancel}
+
+% Equation
+\def\eq{\begin{equation}\begin{aligned}}
+\def\qe{\end{aligned}\end{equation}}
+
+% Common mathbb's
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+
+% make arrow superscripts
+\DeclareFontFamily{OMS}{oasy}{\skewchar\font48 }
+\DeclareFontShape{OMS}{oasy}{m}{n}{%
+         <-5.5> oasy5     <5.5-6.5> oasy6
+      <6.5-7.5> oasy7     <7.5-8.5> oasy8
+      <8.5-9.5> oasy9     <9.5->  oasy10
+      }{}
+\DeclareFontShape{OMS}{oasy}{b}{n}{%
+       <-6> oabsy5
+      <6-8> oabsy7
+      <8->  oabsy10
+      }{}
+\DeclareSymbolFont{oasy}{OMS}{oasy}{m}{n}
+\SetSymbolFont{oasy}{bold}{OMS}{oasy}{b}{n}
+\DeclareMathSymbol{\smallleftarrow}     {\mathrel}{oasy}{"20}
+\DeclareMathSymbol{\smallrightarrow}    {\mathrel}{oasy}{"21}
+\DeclareMathSymbol{\smallleftrightarrow}{\mathrel}{oasy}{"24}
+\newcommand{\vecc}[1]{\overset{\scriptscriptstyle\smallrightarrow}{#1}}
+\newcommand{\cev}[1]{\overset{\scriptscriptstyle\smallleftarrow}{#1}}
+\newcommand{\cevvec}[1]{\overset{\scriptscriptstyle\smallleftrightarrow}{#1}}
+
+% Other commands
+\newcommand{\im}{\mathrm{im}}
+\newcommand{\supp}{\mathrm{supp}}
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\dbar}{d\hspace*{-0.08em}\bar{}\hspace*{0.1em}}
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\Span}{\mathrm{span}}
+
+% to use a black and white box environment, use \begin{answer} and \end{answer}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems}
+\newtcolorbox{answerbox}{sharp corners=all, colframe=black, colback=black!5!white, boxrule=1.5pt, halign=flush center, width = 1\textwidth, valign=center}
+\newenvironment{answer}{\begin{center}\begin{answerbox}}{\end{answerbox}\end{center}}

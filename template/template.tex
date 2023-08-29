@@ -1,0 +1,58 @@
+\input{./preamble.tex}
+
+\title{Title}
+\author{Patrick Oare}
+\date{Date}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+\section{First section}
+
+%\begin{defshaded}
+%\raggedright
+%\underline{Definition} (Definition name)
+%\newline\newline
+%Definition statement
+%\end{defshaded}
+
+\begin{definition}[Definition name]
+	Definition body.
+\end{definition}
+
+\begin{definition}
+	abcd
+\end{definition}
+
+\begin{theorem}[Theorem name]
+This theorem
+\end{theorem}
+
+\begin{cor}
+	New corollary.
+\end{cor}
+
+\begin{prop}
+	New proposition.
+\end{prop}
+
+\begin{lemma}
+	New lemma.
+\end{lemma}
+
+\begin{example}[First example]
+	Here is an example box.
+\end{example}
+
+\begin{shaded}
+	\raggedright
+	Example shaded box. 
+	\eq
+		x &= 1 \\
+		y &= x 
+		\label{eq:ex}
+	\qe
+	Reference to Eq.~\eqref{eq:ex}.
+\end{shaded}
+
+
+\end{document}
