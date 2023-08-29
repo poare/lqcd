@@ -1,0 +1,54 @@
+\def \root {../../../notes}			% path to root (/notes)
+%\def \root {/Users/theoares/Dropbox\ (MIT)/notes}
+\input{\root/template/preamble.tex}
+
+\usepackage[toc,page]{appendix}
+\usepackage{listings}
+
+\newcommand{\poarecomment}[1]{\textcolor{red}{#1}}
+
+% Sort bibliography in correct order
+\bibliographystyle{unsrtnat}
+\usepackage[numbers,sort&compress]{natbib}
+
+\renewcommand{\im}{\mathrm{Im}}
+\newcommand{\re}{\mathrm{Re}}
+\newcommand{\esssup}{\mathrm{ess}\,\mathrm{sup}}
+
+\begin{document}
+
+\title{Notes on Matrix-Valued Spectral Function Reconstructions}
+\author{Patrick Oare}
+%\affiliation{Center for Theoretical Physics, Massachusetts Institute of Technology, Boston, MA 02139, USA}
+
+\date{\today}
+% \preprint{MIT-CTP/...}
+
+\maketitle
+
+\begin{abstract}
+Notes on solving the spectral function inversion problem in lattice QCD for matrix-valued correlators. 
+\end{abstract}
+
+\section{Introduction}
+
+TODO
+
+\section{The GEVP}
+
+\section{Formalism}
+
+
+\bibliography{spectral_matrix_corrs}
+
+\newpage
+\begin{appendices}
+
+\newpage
+\section{Blaschke Products}
+\label{app:blaschke}
+
+TODO
+\end{appendices}
+
+\end{document}
