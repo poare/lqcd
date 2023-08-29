@@ -1134,7 +1134,7 @@ def form_dKdw_bilinear(U, dirac, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
         psi_npmu = unflatten_colspin_vec(flat_field_evalat(psi, npmu[0], npmu[1]), dNc)
         Dpsi_dagger_n = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, nx, nt), dNc)
         Dpsi_dagger_npmu = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, npmu[0], npmu[1]), dNc)
-        tW_comp = tW[mu, *n, a]
+        tW_comp = tW[mu, n[0], n[1], a]
 
         # contract
         dKdw_bilinear[mu, a, nx, nt] = np.einsum(
@@ -1243,12 +1243,9 @@ def pseudofermion_action(dirac, phi, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
     """
     # dNc = gens.shape[0]
     alphas, betas = alpha_m4, beta_m4
+    K = construct_K(dirac)
     rK_phi = apply_rational_approx(K, phi, alphas, betas, cg_tol = cg_tol, max_iter = max_iter)
     return -(phi.transpose().conj() @ rK_phi)
-
-    # TODO implement
-
-    return
 
 def init_fields(K, Nc, gens, hot_start = True, lat = LAT):
     """

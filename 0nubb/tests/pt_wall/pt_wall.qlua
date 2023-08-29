@@ -55,12 +55,23 @@ function load_nersc(file_name, Lattice)
 end
 
 -- compute all color-unmixed bilinears with all gamma matrices.
-function run_pt_wall_test(L, U, solver, k1_list, k2_list, vol, writer, dwf, gpu)
+function run_pt_wall_test(L, U, solver, k1_list, k2_list, vol, writer)
   local bvec = {0,0,0,0.5}
 
+  -- Times to compute operator at
   local tm = 5
   local tO = 15
+  local pt_O = {0, 0, 0, tO}   -- may want to give this a random \vec x component at some point
   local tp = 25
+
+  -- compute wall sources for source and sink
+  local p = {0, 0, 0}
+  local wall_src = compute_wall_source(U, tm, p)
+  local wall_snk = compute_wall_source(U, tp, p)
+  local wall_op = compute_wall_source(U, tO, p)
+  local pt_op = compute_point_source(U, pt_O)
+
+  -- Compute the 1SS contraction, 
 
   for kidx = 1, #k1_list do
     printf("p index: %d\n", kidx)
@@ -164,6 +175,6 @@ for mu = 0, #L-1 do U[mu+1] = group.toGroup(U[mu+1]) end
 local hdf5params = { method = "phdf5" }
 local writer = qcd.hdf5.Writer(filename, hdf5params)
 
-run_pt_wall_test(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer, dwf, gpu)
+run_pt_wall_test(L, U, solver, k1_list_NPR, k2_list_NPR, vol, writer)
 
 writer:close()

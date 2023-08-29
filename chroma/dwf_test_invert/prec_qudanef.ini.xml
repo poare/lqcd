@@ -9,6 +9,55 @@
 <Param>
   <InlineMeasurements>
 
+    <!--
+    THIS IS FROM chroma/tests/chroma/hadron/make_source/make_source.ini.xml, and should
+    be very similar to how I'll make the wall source.
+    <t_source> is the source position... should this be a four-vector? I need a
+    way to specify all components (p0 p1 p2 p3)
+    <j_decay> is the time direction on the lattice
+    <elem>
+      <Name>MAKE_SOURCE</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>6</version>
+        <Source>
+          <version>1</version>
+          <SourceType>WALL_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <t_source>0</t_source>
+        </Source>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <source_id>wl_source_0</source_id>
+      </NamedObject>
+    </elem>
+
+    Actually, probably easiest to use this one to make the source. It's in .../hadron/npr/npr.ini.xml,
+    and seems to just be making a momentums source
+    <elem>
+  <Name>MAKE_SOURCE</Name>
+  <Frequency>1</Frequency>
+  <Param>
+    <version>6</version>
+    <Source>
+      <version>1</version>
+      <SourceType>MOMENTUM_VOLUME_SOURCE</SourceType>
+      <j_decay>3</j_decay>
+      <mom> 0  1 0 0</mom>
+      <av_mom>false</av_mom>
+      <t_srce>0 0 0 0</t_srce>
+    </Source>
+  </Param>
+  <NamedObject>
+    <gauge_id>landau_cfg</gauge_id>
+    <source_id>sh_source_0</source_id>
+  </NamedObject>
+</elem>
+
+
+  -->
+
 <!--    <elem>
       <Name>MAKE_SOURCE</Name>
       <Frequency>1</Frequency>

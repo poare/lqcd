@@ -2,6 +2,7 @@
 
 qlua_scripts/bash_output
 qlua_scripts/logs
+misc/.DS_Store
 misc/.ipynb_checkpoints
 
 pion_mass/logs
@@ -13,6 +14,7 @@ pion_mass/test_cfgs/logs
 pion_mass/.ipynb_checkpoints
 pion_mass/__pycache__
 
+npr_momfrac/python_scripts/.DS_Store
 npr_momfrac/logs
 npr_momfrac/output
 npr_momfrac/testing/logs
@@ -44,10 +46,16 @@ gf/testing
 0nubb/tests/runtime_test/output
 0nubb/tests/bash_output
 0nubb/tests/runtime_test/logs
+0nubb/grid
+0nubb/python_scripts/will_chiextrap_code/.ipynb_checkpoints
+0nubb/python_scripts/will_chiextrap_code/__pycache__
 
 gq_mixing/bash_output
 gq_mixing/logs
 gq_mixing/.DS_Store
+gq_mixing/.ipynb_checkpoints
+gq_mixing/python_scripts/.ipynb_checkpoints
+gq_mixing/python_scripts/__pycache__
 
 chroma/bash_output
 chroma/npr_tests/bash_output
@@ -58,3 +66,14 @@ chroma/bc_test/logs
 chroma/configs
 chroma/output
 chroma/dwf_test_invert
+
+spectral/recon_tools/.ipynb_checkpoints
+spectral/recon_tools/__pycache__
+spectral/spectral_functions.code-workspace
+
+chiral/discrete_geom.code-workspace
+
+2d_adjoint_qcd/python_scripts/.ipynb_checkpoints
+2d_adjoint_qcd/python_scripts/__pycache__
+
+utilities/__pycache__

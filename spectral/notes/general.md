@@ -19,3 +19,29 @@
   - Prior to minimize on spectral functions which picks out the best, subject to physical constraints like those discussed above. 
   - Implementing derivatives to do the optimization at the end of the day.
     - Will has been thinking of using a spline, I feel like doing some sort of reverse-mode AD could be helpful.
+
+## General notes
+- Rewrite code in C++, there seems to be some issues with extended precision numbers in Python
+- For Monte Carlo data: is there a way to partition each errorbar into N segments, then compute the Pick matrix of each set of data points and see which ones have a solution that is allowed? Presumably could test this with data that has a good Pick matrix, then adding some noise, then partitioning up the errorbar and pushing it through
+- Next: H5Writer and read back into Python, plot recon
+- Write up notes on optimizing the Hardy function basis and implement
+
+
+## Simulation file format
+- Input and output stored in same folder `$dir` in h5 files. 
+  - Input file is `${dir}/data.h5`, output file is `${dir}/recon.h5`
+- For extended precision data, store in h5 files as strings with separate datasets for real and imaginary parts. 
+- Input file datasets:
+  - 'beta': Temporal extent of data.
+  - 'freqs/imag': Imaginary part of Matsubara frequencies (should be purely imaginary)
+  - 'ng/real': Real part of Green's function.
+  - 'ng/imag': Imaginary part of Green's function.
+- Output file datasets: all input file datasets, and in addition:
+  - 'start' : Start of the real domain data (int)
+  - 'stop' : End of the real domain data (int)
+  - 'npts' : Number of points for real domain data (int)
+  - 'beta' : Temporal size of lattice (int)
+  - 'eta' : eta value (string, i.e. extended precision number)
+  - 'recon_real' : Reconstructed (real part of) spectral function.
+  - 'recon_imag' : Reconstructed (imaginary part of) spectral function.
+  <!-- - 'phis' : phi values used for reconstruction. -->

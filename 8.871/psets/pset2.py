@@ -4,6 +4,9 @@
 # '/Users/theoares/lqcd/utilities' folder. I will include relevant  #
 # code snippets in my writeup if they are imported from another     #
 # script that I wrote.                                              #
+#                                                                   #
+# Note that the data structure for a gauge field is a numpy array   #
+# of shape (4, Lx, Ly, Lz, Lt, Nc, Nc).                             #
 #####################################################################
 
 n_boot = 100
@@ -12,7 +15,6 @@ sys.path.append('/Users/theoares/lqcd/utilities')
 from pytools import *
 from formattools import *
 import plottools as pt
-import lsqfit
 
 out_dir = '/Users/theoares/Dropbox (MIT)/classes/Fall 2022/8.871/ps2/figs/'
 np.random.seed(20)                 # seed the RNG for reproducibility
@@ -28,17 +30,6 @@ start_at = None
 lbl_idx = 0
 # start_at = '/Users/theoares/Dropbox (MIT)/classes/Fall 2022/8.871/ps2/cfgs/improved/cfg5.h5'         # configuration to start generation at.
 # lbl_idx = 6                         # corresponding label for start cfg
-
-# gen_cfgs = True                                                                             # whether or not to generate configs.
-gen_cfgs = False
-
-sigma = np.array([
-    [[0, 1], [1, 0]],
-    [[0, -1j], [1j, 0]], 
-    [[1, 0], [0, -1]]
-], dtype = np.complex64)
-
-# Data structure for a gauge field: numpy array of shape (4, Lx, Ly, Lz, Lt, Nc, Nc)
 
 def dagger(U):
     """Hermitian conjugate of a color matrix."""
@@ -135,10 +126,6 @@ def wilson_loop_a_by_a(U, mu, nu):
     Unpmu_nu = np.roll(U[nu], -1, axis = mu)
     Unpnu_mu = np.roll(U[mu], -1, axis = nu)
     Un_nu = U[nu]
-    # print('Umu: ' + str(Un_mu[0, 0, 0, 0]))
-    # print('Unpmu_nu: ' + str(Unpmu_nu[0, 0, 0, 0]))
-    # print('Unpnu_mu: ' + str(Unpnu_mu[0, 0, 0, 0]))
-    # print('Un_nu: ' + str(Un_nu[0, 0, 0, 0]))
 
     return np.real(np.einsum('...ab,...bc,...cd,...da->...', 
         Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu)
@@ -164,8 +151,6 @@ def W(U, r, t, t_axis):
     axes = [0, 1, 2, 3]
     del axes[t_axis]
     r1_axis, r2_axis, r3_axis = axes
-    print('Spatial axes: ' + str(axes))
-    print('Temporal axes: ' + str(t_axis))
 
     Utmp = U.copy()             # push this lad around
     for i1 in range(r1):
@@ -249,7 +234,6 @@ def id_field(LL):
 
 def vec_dot(u, v):
     return np.dot(u, np.conjugate(v))
-    # return np.sum([u[i] * v[i].conj() for i in range(len(u))])
 
 def vec_norm(u):
     return np.sqrt(np.abs(vec_dot(u, u)))
@@ -331,7 +315,6 @@ def get_dsite_action(beta = 5.5):
         return -(beta/3) * np.real(np.einsum('ab,ba->', dU, A))
     return dsite_action
 
-# def get_dsite_action_improved(beta = 1.719, u0 = 0.797):
 def get_dsite_action_improved(beta_twid = 1.719, u0 = 0.797):
     def dsite_action(n, mu, U, U_old, A):
         """
@@ -357,7 +340,6 @@ def get_dsite_action_improved(beta_twid = 1.719, u0 = 0.797):
             Value of S that depends on U_mu(n).
         """
         dU = U - U_old
-        # return -(beta/3) * np.real(np.einsum('ab,ba->', dU, A))
         beta = beta_twid / (u0**4)
         return -(beta/3) * np.real(np.einsum('ab,ba->', dU, A))
     return dsite_action
@@ -436,7 +418,6 @@ def update(V, LL, delS = get_dsite_action(), eps = 0.24, n_hit = 10, n_mats = 10
                 M = update_mats[np.random.randint(n_mats)]
                 new_U = M @ cur_U
                 dS = delS(n, mu, new_U, cur_U, A)
-                # dS = delS(n, mu, new_U, cur_U, A, R) if improved else delS(n, mu, new_U, cur_U, A)
                 if dS < 0 or np.exp(-dS) >= np.random.uniform():
                     n_acc += 1
                     cur_U = new_U
@@ -497,7 +478,6 @@ def run_metropolis(LL, n_cfgs, observable = get_wilson_obs(wilson_loop_a_by_a), 
 
     n_cfgs = corr.shape[0]
     corr_cfgs = np.mean(corr, axis = (1, 2, 3, 4, 5))
-    # print(corr_cfgs)
     corr_bar = np.mean(corr_cfgs)
     corr_var = (np.sum(corr_cfgs**2) / n_cfgs - (corr_bar**2)) / n_cfgs
     corr_std = np.sqrt(corr_var)
@@ -513,15 +493,53 @@ def run_metropolis(LL, n_cfgs, observable = get_wilson_obs(wilson_loop_a_by_a), 
 
     return corr_gvar, cfgs
 
-def run_static_quark(LL, n_cfgs, improved = False, fname = 'filename'):
+def run_static_quark(LL, cfgs, t0 = 2, improved = False, fname = 'filename'):
     """
-    Runs problem 4.4.1 and computes the static quark potential W(r, t)
+    Runs problem 4.4.1 and computes the static quark potential W(r, t). We will run all 
+    values of (r1, r2, r3, t) with each component <= 4 = L/2 to avoid the boundary conditions, 
+    and keep only the values of r which have norm <= 5. 
     """
     print('Running problem 4.4.1.')
-    n_smear = 4
-    smeared = np.array([smear(cfgs[ii], n_smear) for ii in range(n_cfgs)], dtype = np.complex64)
-    print('Configurations smeared.')
+    n_cfgs = cfgs.shape[0]
+    r_eq = {}           # group equivalent [r1, r2, r3] values by their norm, rounded to the 3rd decimal place
+    for r1, r2, r3, t in itertools.product(*[range(LL[mu] // 2) for mu in range(4)]):
+        r = np.sqrt(r1**2 + r2**2 + r3**2)
+        if r > 3.0:
+            continue
+        r_round = round(r, 3)
+        if r_round in r_eq:
+            r_eq[r_round].append([r1, r2, r3])
+        else:
+            r_eq[r_round] = [[r1, r2, r3]]
+    r_vals = list(r_eq.keys())
+    print(r_vals)
 
+    print('Evaluating static quark potential.')
+    V_vals = np.zeros((n_cfgs, len(r_vals)), dtype = np.float64)
+    for cfg_idx, cfg in enumerate(cfgs):
+        print('Running on cfg ' + str(cfg_idx))
+        for ir, r in enumerate(r_eq):
+            V_tmp = []
+            for rvec in r_eq[r]:
+                for t_axis in range(d):
+                    ratio = W(cfg, rvec, t0, t_axis) / W(cfg, rvec, t0 + 1, t_axis)
+                    if ratio < 0.0:
+                        continue
+                    V_tmp.append(np.log(ratio))
+            V_vals[cfg_idx, ir] = np.mean(V_tmp)
+        print(V_vals[cfg_idx])
+    
+    V_bar = np.mean(V_vals, axis = 0)
+    V_var = (np.sum(V_vals**2, axis = 0) / n_cfgs - (V_bar**2)) / n_cfgs
+    V_std = np.sqrt(V_var)
+    V_gvar = gv.gvar(V_bar, V_std)
+    print('Values of r: ' + str(r_vals))
+    print('Values of V(r): ' + str(V_gvar))
+
+    fig, ax = pt.plot_1d_data(r_vals, V_bar, V_std)
+    ax.set_xlabel(r'$r$')
+    ax.set_ylabel(r'$aV(r)$')
+    pt.save_figure(out_dir + '/' + fname + '.pdf')
 
 #####################################################################
 ############################ UNIMPROVED #############################
@@ -533,22 +551,25 @@ run_metropolis(LL, n_cfgs, observable = get_wilson_obs(wilson_loop_a_by_2a), \
     obs_label = r'$R_{\mu\nu}$', fname = '4p3p1_unimproved_rect', gt_value = 0.26)
 
 # Problem 4.4.1
-# run_static_quark(LL, n_cfgs, fname = '4p4p1_unimproved')
+run_static_quark(LL, cfgs, fname = '4p4p1_unimproved')
 
+n_smear = 4
+smeared = np.array([smear(cfgs[ii], n_smear) for ii in range(n_cfgs)], dtype = np.complex64)
+print('Configurations smeared.')
+run_static_quark(LL, smeared, fname = '4p4p1_unimproved_smeared')
 
 #####################################################################
 ############################# IMPROVED ##############################
 #####################################################################
 
-# Problem 4.4.1
+# Problem 4.3.1
 _, cfgs = run_metropolis(LL, n_cfgs, fname = '4p3p1_improved_plaq', improved = True, gt_value = 0.54)
 run_metropolis(LL, n_cfgs, observable = get_wilson_obs(wilson_loop_a_by_2a), fname = '4p3p1_improved_rect', \
     improved = True, gt_value = 0.28)
 
-# Problem 4.4.1
-# run_static_quark(LL, n_cfgs, fname = '4p4p1_unimproved')
+# Problem 4.3.1
+run_static_quark(LL, cfgs, fname = '4p4p1_improved')
 
-# for testing
-U = cfgs[0]
-obs = get_wilson_obs(wilson_loop_a_by_a)
-corr = compute_observables(cfgs, obs)
+smeared = np.array([smear(cfgs[ii], n_smear) for ii in range(n_cfgs)], dtype = np.complex64)
+print('Configurations smeared.')
+run_static_quark(LL, smeared, fname = '4p4p1_improved_smeared')

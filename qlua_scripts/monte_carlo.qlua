@@ -75,17 +75,6 @@ function initGaugeField(U)
   return U
 end
 
--- Compute the change in action for monte carlo
--- Here UPrime is the changed U_\mu(n), where \mu is the direction i + 1.
--- U is the entire gauge field at
-function deltaS(UPrime, U, i)
-    dU = UPrime - U
-    A = -- compute staple
-    summed = summed +
-  end
-  return - (beta / Nc) * ():trace():real():sum()
-end
-
 -- do monte carlo with P(U) = e^-S on the gauge field here
 U = initGaugeField(getWeakColorMatrix())
 

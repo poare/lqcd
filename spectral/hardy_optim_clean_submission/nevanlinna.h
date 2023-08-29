@@ -8,7 +8,8 @@
 // #include <gmp.h>
 #include <cmath>
 #include <algorithm>
-#include <Eigen/Dense>
+// #include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 
 //precision class is used to define typenames

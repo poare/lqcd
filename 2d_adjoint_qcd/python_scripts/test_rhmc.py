@@ -370,9 +370,6 @@ def test_pseudoferm_action(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     """Tests that the pseudofermion action Phi^\dagger K^{-1/4} \Phi obtained using 
     a CG solver is accurate by explicitly computing this quantity with a full matrix."""
 
-    # TODO method stub
-    # TODO test rhmc.pseudofermion_action and compare against Phi^\dagger K^{-1/4} \Phi
-
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
     if V is None:
@@ -382,7 +379,21 @@ def test_pseudoferm_action(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     dim = K.shape[0]
     phi = np.random.rand(dim) + 1j*np.random.rand(dim)
 
+    K_m4 = scipy.linalg.fractional_matrix_power(K.toarray(), -1/4)
+    S_full = - phi.conj().transpose() @ (K_m4 @ phi)
+
+    S_cg = rhmc.pseudofermion_action(dirac, phi)
+    assert np.allclose(S_cg, S_full, rtol = 1e-4, atol = 2e-5), 'Rational approximation disagrees with exact pseudofermion action.'
+
     print('test_pseudoferm_action : Pass')
+
+def test_dDdw():
+    """Uses autodiff to check that \partial D / \partial\omega is computed correctly for the 
+    Wilson action."""
+
+    # TODO method stub
+
+    print('test_dDdw : Pass')
 
 def test_pseudoferm_force():
     """Tests that the pseudofermion derivative of Phi^\dagger K^{-1/4} \Phi is accurate 

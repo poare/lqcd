@@ -259,6 +259,14 @@ poare = {
     'O3':      gv.gvar("0.0000907(30)"),
 }
 
+cur_results = {
+    'O1':      gv.gvar('-0.01271(83)'),
+    'O1prime': gv.gvar('-0.0538(29)'),
+    'O2':      gv.gvar('-0.0246(14)'),
+    'O2prime': gv.gvar('0.00762(48)'),
+    'O3':      gv.gvar('0.0000860(28)'),
+}
+
 class LatticeMultiplicities:
     def __init__(self, sizes):
         self.data = {}
@@ -373,8 +381,8 @@ class ChiralFitter:
         p = {key: self.fit_full.p[key] for key in ['alpha', 'beta', 'c']}
         # p = {key: self.fit_full.p[key] for key in ['alpha', 'beta']}
         y = fctm(x, p)
-        plt.errorbar(ax, x['eps_pi']**2, y,
-                     color=ax.lines[-1].get_color(), bands=True, alpha=0.5, label='interpolation')
+        # plt.errorbar(ax, x['eps_pi']**2, y,
+        #              color=ax.lines[-1].get_color(), bands=True, alpha=0.5, label='interpolation')
 
         # Physical point (extrapolated including x and y errors)
         x = np.array([(self._pdg['mpi'] / (np.sqrt(2) * 2 * np.pi * self._pdg['fpi']))**2])
@@ -385,12 +393,12 @@ class ChiralFitter:
         x = (self.fit.x['mpi'] / (np.sqrt(2) * 2 * np.pi * self.fit.x['fpi']))**2
         y = self.fit.fcn(self.fit.x, self.fit.p)
         y = y * (self._pdg['fpi'] / self.data['fpi'])**4
-        plt.errorbar(ax, x, y, fmt='s', color='g', label='Fit (y errors only)', **kwargs)
+        # plt.errorbar(ax, x, y, fmt='s', color='g', label='Fit (y errors only)', **kwargs)
 
         # Physical point (extrapolated including y errors only)
         x = np.array([(self._pdg['mpi'] / (np.sqrt(2) * 2 * np.pi * self._pdg['fpi']))**2]) * 1.05
         y = [self.evaluate_at_physical_point('basic')]
-        plt.errorbar(ax, x, y, fmt='s', color='g', **kwargs)
+        # plt.errorbar(ax, x, y, fmt='s', color='g', **kwargs)
 
         # Interpolation
         x = {
@@ -411,5 +419,13 @@ class ChiralFitter:
         # Patrick Oare result
         x = np.array([(self._pdg['mpi'] / (np.sqrt(2) * 2 * np.pi * self._pdg['fpi']))**2]) * 0.98
         y = poare[key]
-        plt.errorbar(ax, x, y, fmt='x', color='y', label='Patrick result', **kwargs)
+        # plt.errorbar(ax, x, y, fmt='x', color='y', label='Patrick result', **kwargs)
+        plt.errorbar(ax, x, y, fmt='x', color='y', label='Old result', **kwargs)
+
+        # Current result
+        x = np.array([(self._pdg['mpi'] / (np.sqrt(2) * 2 * np.pi * self._pdg['fpi']))**2]) * 0.98
+        y = cur_results[key]
+        plt.errorbar(ax, x, y, fmt='x', color='c', label='Current result', **kwargs)
+
+        # plt.set_ylabel(key)
 

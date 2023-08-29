@@ -87,11 +87,10 @@ print("Wall source created at momentum (1, 1, 1, 1)")
 
 -- Parameters
 mq = -0.2450
-kappa = 1 / (2 * mq + 8)
-csw = 1.2493
+-- kappa = 1 / (2 * mq + 8)
+-- csw = 1.2493
 bcs = {1, 1, 1, -1}
 LS = 8
---Ls = 8
 M = 1.8
 ml = 0.1
 
@@ -112,24 +111,6 @@ if gpu then
   show_propagator(S_quda_clover)
   -- quda_cl_solver:close()    -- try to close propagator
   --]]
-
---[[
-  print("Testing with solver directly")
-  quda_solver = qcd.quda.solver(
-    U,
-    {t_boundary = "ANTI_PERIODIC_T"},
-    {clover_coeff = csw*kappa,
-     dslash_type = "CLOVER_WILSON_DSLASH",
-     kappa = kappa,
-     tol = 1e-20,
-     maxiter = 1000,
-     inv_type = "CG_INVERTER",       -- Use these args for point inversion
-     solve_type = "NORMOP_SOLVE"     -- Use these args for point inversion
-    })
-  S_temp = quda_solver:solve(src)
-  print("Propagator solved")
-  show_propagator(S_temp)
---]]
 
   -- DWF inverter
   print("DWFs with QUDA.")
@@ -177,13 +158,6 @@ if gpu then
 
 else
   print("Running on CPU.")
-
-  -- -- Clover fermions
-  -- print("Clover fermions")
-  -- clover = clover_ferm.cpu_4d_nc3(kappa, csw, bcs)
-  -- cl_solver = propagator.make_from_ferm(clover, 1e-20, 1000)
-  -- S_clover = compute_propagator(U, cl_solver, src)
-  -- show_propagator(S_clover)
 
   -- DWF inverter
   print("DWFs on CPU.")

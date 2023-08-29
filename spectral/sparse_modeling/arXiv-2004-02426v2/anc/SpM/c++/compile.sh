@@ -1,0 +1,1 @@
+ g++ main_v2.cpp -o sparse_c -O3 -I/usr/local/include/eigen3 -std=c++1z -DNDEBUG
