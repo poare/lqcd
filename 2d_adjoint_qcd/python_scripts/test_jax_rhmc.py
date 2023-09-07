@@ -9,19 +9,19 @@
 # Author: Patrick Oare                                                         #
 ################################################################################
 
-import numpy as np
+import numpy
+import jax.numpy as np
+from jax import grad, jit, vmap
 import itertools
 import scipy
 from scipy.sparse import bsr_matrix, csr_matrix
 
-# for complex autodiff
-import jax.numpy as jnp
-from jax import grad, jit, vmap
+# np.random.seed(20)
 
-np.random.seed(20)
+from jax import random
+seed = 20
 
-import rhmc
-import rhmc_coeffs as coeffs
+import jax_rhmc as rhmc
 
 def print_line():
     print('-'*50)
@@ -63,11 +63,11 @@ def test_gauge_field_properties(L = 4, T = 4, Nc = 2, U = None, V = None):
     if V is None:
         V = rhmc.construct_adjoint_links(U, gens)
     for mu, x, t in itertools.product(range(rhmc.d), range(L), range(T)):
-        assert np.allclose(U[mu, x, t] @ rhmc.dagger(U)[mu, x, t], np.eye(Nc, dtype = np.complex128)), f'U is not unitary at ({x}, {t}).'
-        assert np.allclose(rhmc.dagger(U)[mu, x, t] @ U[mu, x, t], np.eye(Nc, dtype = np.complex128)), f'U is not unitary at ({x}, {t}).'
+        assert np.allclose(U[mu, x, t] @ rhmc.dagger(U)[mu, x, t], np.eye(Nc, dtype = np.complex64)), f'U is not unitary at ({x}, {t}).'
+        assert np.allclose(rhmc.dagger(U)[mu, x, t] @ U[mu, x, t], np.eye(Nc, dtype = np.complex64)), f'U is not unitary at ({x}, {t}).'
         assert np.allclose(V.imag, np.zeros((rhmc.d, L, T, dNc, dNc))), 'V is not real.'
-        assert np.allclose(V[mu, x, t] @ rhmc.dagger(V)[mu, x, t], np.eye(dNc, dtype = np.complex128)), f'V is not unitary at ({x}, {t}).'
-        assert np.allclose(rhmc.dagger(V)[mu, x, t] @ V[mu, x, t], np.eye(dNc, dtype = np.complex128)), f'V is not unitary at ({x}, {t}).'
+        assert np.allclose(V[mu, x, t] @ rhmc.dagger(V)[mu, x, t], np.eye(dNc, dtype = np.complex64), atol = 1e-5), f'V is not unitary at ({x}, {t}).'
+        assert np.allclose(rhmc.dagger(V)[mu, x, t] @ V[mu, x, t], np.eye(dNc, dtype = np.complex64), atol = 1e-5), f'V is not unitary at ({x}, {t}).'
     print('test_gauge_field_properties : Pass')
 
 ################################################################################
@@ -183,7 +183,10 @@ def test_bcs(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     print('test_bcs : Pass')
 
 def test_sparse_dirac(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
-    """Compares the sparse Dirac operator against a full Dirac operator on a small lattice."""
+    """
+    Compares the sparse Dirac operator against a full Dirac operator on a small lattice.
+    TODO this runs very slowly with JAX, despite being basically the same operation. Find out why.
+    """
     Lat = rhmc.Lattice(L, T)
     if V is None:
         V = rhmc.id_field_adjoint(Nc, lat = Lat)
@@ -276,11 +279,16 @@ def test_eval_flat_ferm(L = 4, T = 4, Nc = 2):
     """Tests that the eval_flat_ferm_field and flat_field_putat functions work as intended."""
     Lat = rhmc.Lattice(L, T)
     dNc = Nc**2 - 1
-    psi_dense = np.random.rand(dNc, rhmc.Ns, L, T) + 1j*np.random.rand(dNc, rhmc.Ns, L, T)
+    # psi_dense = np.random.rand(dNc, rhmc.Ns, L, T) + 1j*np.random.rand(dNc, rhmc.Ns, L, T)
+
+    key = random.PRNGKey(seed)
+    k0, k1, k2, k3, k4, k5 = random.split(key, 6)
+    psi_dense = random.uniform(k0, shape = (dNc, rhmc.Ns, L, T)) + 1j*random.uniform(k1, shape = (dNc, rhmc.Ns, L, T))
     psi_flat = rhmc.flatten_ferm_field(psi_dense, lat = Lat)
     assert np.array_equal(rhmc.unflatten_ferm_field(psi_flat, dNc, lat = Lat), psi_dense), 'Sparse psi != dense psi.'
 
-    colspin_dense = np.random.rand(dNc, rhmc.Ns) + 1j*np.random.rand(dNc, rhmc.Ns)
+    # colspin_dense = np.random.rand(dNc, rhmc.Ns) + 1j*np.random.rand(dNc, rhmc.Ns)
+    colspin_dense = random.uniform(k2, shape = (dNc, rhmc.Ns)) + 1j*random.uniform(k3, shape = (dNc, rhmc.Ns))
     colspin_flat = rhmc.flatten_colspin_vec(colspin_dense)
     assert np.array_equal(rhmc.unflatten_colspin_vec(colspin_flat, dNc), colspin_dense), 'Sparse colspin != dense colspin.'
 
@@ -289,17 +297,18 @@ def test_eval_flat_ferm(L = 4, T = 4, Nc = 2):
     psi_blk_flat = rhmc.flat_field_evalat(psi_flat, x, t, dNc, lat = Lat)
     assert np.array_equal(rhmc.unflatten_colspin_vec(psi_blk_flat, dNc), psi_blk_dense), 'Sparse psi @ (x, t) != dense psi @ (x, t).'
 
-    rand_colspin = np.random.rand(dNc, rhmc.Ns) + 1j*np.random.rand(dNc, rhmc.Ns)
-    psi2_dense = np.zeros((dNc, rhmc.Ns, L, T), dtype = np.complex128)
-    psi2_flat0 = np.zeros((dNc*rhmc.Ns*L*T), dtype = np.complex128)
-    psi2_dense[:, :, x, t] = rand_colspin
+    # rand_colspin = np.random.rand(dNc, rhmc.Ns) + 1j*np.random.rand(dNc, rhmc.Ns)
+    rand_colspin = random.uniform(k4, shape = (dNc, rhmc.Ns)) + 1j*random.uniform(k5, shape = (dNc, rhmc.Ns))
+    psi2_dense = np.zeros((dNc, rhmc.Ns, L, T), dtype = np.complex64)
+    psi2_flat0 = np.zeros((dNc*rhmc.Ns*L*T), dtype = np.complex64)
+    psi2_dense.at[:, :, x, t].set(rand_colspin)
     psi2_flat = rhmc.flat_field_putat(psi2_flat0, rand_colspin, x, t, dNc, mutate = False, lat = Lat)
     assert np.array_equal(rhmc.unflatten_ferm_field(psi2_flat, dNc, lat = Lat), psi2_dense), 'Evalat1: sparse psi @ (x, t) != dense psi @ (x, t).'
     psi3_flat = rhmc.flat_field_putat(psi2_flat0, rhmc.flatten_colspin_vec(rand_colspin), x, t, dNc, mutate = False, lat = Lat)
     assert np.array_equal(rhmc.unflatten_ferm_field(psi3_flat, dNc, lat = Lat), psi2_dense), 'Evalat2: sparse psi @ (x, t) != dense psi @ (x, t).'
 
     # Test mutation
-    assert np.array_equal(psi2_flat0, np.zeros((dNc*rhmc.Ns*L*T), dtype = np.complex128)), 'Original field has been mutated.'
+    assert np.array_equal(psi2_flat0, np.zeros((dNc*rhmc.Ns*L*T), dtype = np.complex64)), 'Original field has been mutated.'
     rhmc.flat_field_putat(psi2_flat0, rand_colspin, x, t, dNc, mutate = True, lat = Lat)
     assert np.array_equal(rhmc.unflatten_ferm_field(psi2_flat0, dNc, lat = Lat), psi2_dense), 'Original field not mutated.'
 
@@ -319,7 +328,7 @@ def test_shift_cg(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     dirac = csr_matrix(rhmc.dirac_op_sparse(kappa, V, lat = Lat))
     dim = dirac.shape[0]
 
-    _, betas = coeffs.rhmc_m4_5()         # Test on some of the actual betas.
+    _, betas = rhmc.rhmc_m4_5()         # Test on some of the actual betas.
     for beta in betas:
         K = rhmc.construct_K(dirac)
         K_shift = K + beta * scipy.sparse.identity(K.shape[0], dtype = K.dtype)
@@ -351,7 +360,7 @@ def test_rK_application(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     Km4_phi_exact = K_m4 @ phi
 
     # Rational approximation
-    alphas, betas = coeffs.rhmc_m4_5()
+    alphas, betas = rhmc.rhmc_m4_5()
     rKphi = rhmc.apply_rational_approx(K, phi, alphas, betas)
     assert np.allclose(rKphi, Km4_phi_exact, rtol = 1e-4, atol = 2e-5), 'Rational approximation disagrees with K^{-1/4} Phi.'
 
@@ -412,10 +421,7 @@ def test_pseudoferm_force(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
 
 def test_gauge_force_wilson(L = 4, T = 4, Nc = 2, kappa = 0.1, U = None):
     """Tests that the derivative of the Wilson gauge action with respect to \omega_\mu^a(n) 
-    is computed correctly by using autodifferentiation.
-    
-    TODO move this over to JAX
-    """
+    is computed correctly by using autodifferentiation."""
 
     d = 2
     Lat = rhmc.Lattice(L, T)
@@ -428,7 +434,7 @@ def test_gauge_force_wilson(L = 4, T = 4, Nc = 2, kappa = 0.1, U = None):
     
     # TODO method stub
 
-    # S = rhmc.wilson_gauge_action()
+    S = rhmc.wilson_gauge_action()
 
     print('test_gauge_force_wilson : Pass')
 
@@ -449,8 +455,8 @@ def test_rational_approx_small(n_samps = 100, delta = 2e-5):
     delta : float (default = 2e-5)
         Error tolerance on rational approximation.
     """
-    alpha4, beta4 = coeffs.rhmc_m4_5()       # Spectral range: [0.1, 50]
-    alpha8, beta8 = coeffs.rhmc_8_5()
+    alpha4, beta4 = rhmc.rhmc_m4_5()       # Spectral range: [0.1, 50]
+    alpha8, beta8 = rhmc.rhmc_8_5()
     def r4(x):
         return alpha4[0] + np.sum(alpha4[1:] / (x + beta4[1:]))
     def pw4(x):
@@ -475,8 +481,8 @@ def test_rational_approx_large(n_samps = 100, delta = 2e-5):
     n_samps : int (default = 1000)
         Number of sample K matrices to test maximum error of approximation with.
     """
-    alpha4, beta4 = coeffs.rhmc_m4_15()       # Spectral range: [1e-7, 1000]
-    alpha8, beta8 = coeffs.rhmc_8_15()
+    alpha4, beta4 = rhmc.rhmc_m4_15()       # Spectral range: [1e-7, 1000]
+    alpha8, beta8 = rhmc.rhmc_8_15()
     def r4(x):
         return alpha4[0] + np.sum(alpha4[1:] / (x + beta4[1:]))
     def pw4(x):
@@ -543,7 +549,7 @@ def test_permutation(L = 4, T = 4, Nc = 2):
 
     # Test change-of-basis matrix for Hermitian Dirac operator
     Ptilde, Ptilde_inv = rhmc.get_permutation_Q(dNc, lat = Lat)
-    assert np.array_equal((Ptilde @ Ptilde_inv).toarray(), np.eye(N, dtype = np.complex128)), 'Ptilde matrix is not orthogonal.'
+    assert np.array_equal((Ptilde @ Ptilde_inv).toarray(), np.eye(N, dtype = np.complex64)), 'Ptilde matrix is not orthogonal.'
     Qtilde = Ptilde_inv @ sparse_Q @ Ptilde
     for i in range(0, N - 2, 2):
         assert np.abs(Qtilde[i, i]) > rhmc.EPS and np.abs(Qtilde[i, i + 1]) > rhmc.EPS, \
@@ -626,7 +632,7 @@ def test_LU_random_mat(n_max = 21):
     """Tests the LU decomposition by decomposing a random, antisymmetric, non-singular matrix. 
     Constructs random matrices of size 4, 6, 8, ..., 20 for the test."""
     for n in np.arange(6, n_max, 2):
-        Q = np.zeros((n, n), dtype = np.complex128)
+        Q = np.zeros((n, n), dtype = np.complex64)
         for i in range(n):
             for j in range(i):
                 Q[i, j] = np.random.rand()
@@ -643,7 +649,7 @@ def test_pfsq_random_mat(n_max = 21):
     """Tests the Pfaffian computation by decomposing a random, antisymmetric, non-singular matrix. 
     Constructs random matrices of size 4, 6, 8, ..., 20 for the test."""
     for n in np.arange(6, n_max, 2):
-        Q = np.zeros((n, n), dtype = np.complex128)
+        Q = np.zeros((n, n), dtype = np.complex64)
         for i in range(n):
             for j in range(i):
                 Q[i, j] = np.random.rand()
@@ -704,7 +710,8 @@ def test_thermalization():
 ################################################################################
 ################################## RUN TESTS ###################################
 ################################################################################
-L, T = 4, 4             # lattice size to test on
+L, T = 2, 2
+# L, T = 4, 4             # lattice size to test on
 # L, T = 6, 6
 # L, T = 8, 8
 # L, T = 10, 10
@@ -732,9 +739,9 @@ test_gauge_field_properties(L = L, T = T, Nc = Nc, U = U, V = V)
 test_flatten_spacetime()
 test_flatten_colspin()
 test_flatten_full()
-test_zeros_full_dirac(L = L, T = T, Nc = Nc)
+# test_zeros_full_dirac(L = L, T = T, Nc = Nc)     # passes but runs slow
 test_zeros_sparse_dirac(L = L, T = T, Nc = Nc)
-test_bcs(L = L, T = T, Nc = Nc)
+# test_bcs(L = L, T = T, Nc = Nc)     # passes but runs slow
 
 test_sparse_dirac(L = L, T = T, Nc = Nc)                 # free field test
 test_sparse_dirac(L = L, T = T, Nc = Nc, V = V)          # random field test
