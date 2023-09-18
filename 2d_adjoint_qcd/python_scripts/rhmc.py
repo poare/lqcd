@@ -39,7 +39,7 @@ import matplotlib.pyplot as plt
 import scipy
 from scipy.sparse import bsr_matrix, csr_matrix
 from scipy.optimize import root
-from scipy.linalg import block_diag
+from scipy.linalg import block_diag, expm
 import h5py
 import os
 import itertools
@@ -49,8 +49,6 @@ import lsqfit
 
 import sys
 sys.path.append(util_path)
-# from constants import *
-# from formattools import *
 import constants as const
 import formattools as ft
 import plottools as pt
@@ -59,7 +57,6 @@ import suNtools as suN
 style = ft.styles['prd_twocol']
 pt.set_font()
 
-# from rhmc_coeffs import *
 import rhmc_coeffs as coeffs
 
 ################################################################################
@@ -83,7 +80,6 @@ alpha_m4, beta_m4 = coeffs.rhmc_m4_15()     # Approximation coefficients for K^{
 alpha_8, beta_8 = coeffs.rhmc_8_15()        # Approximation coefficients for K^{+1/8}
 
 DEFAULT_BCS = (1, -1)                       # Boundary conditions for fermion fields
-# DEFAULT_BCS = (1, 1)                        # Boundary conditions
 
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
@@ -553,7 +549,36 @@ def dagger(U):
     """
     return np.conjugate(np.einsum('...ab->...ba', U))
 
-def plaquette(U, Nc):
+def plaquette_gauge_field(U):
+    """
+    Computes the plaquette of U (note that in a 2d lattice, there is only one direction 
+    possible for the plaquette, P_{01}(x)) with Nc colors. This plaquette does not trace 
+    over color indices, and the plaquette function is related to it by 
+    ```
+        rhmc.plaquette(U) = np.trace(rhmc.plaquette_gauge_field(U)) / Nc
+    ```
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+
+    Returns
+    -------
+    np.array [L, T, Nc, Nc]
+        Wilson loop field P(x) (untraced, in the algebra).
+    """
+    Nc = U.shape[-1]
+    mu, nu = 0, 1
+    Un_mu = U[mu]
+    Unpmu_nu = np.roll(U[nu], -1, axis = mu)
+    Unpnu_mu = np.roll(U[mu], -1, axis = nu)
+    Un_nu = U[nu]
+    return np.einsum('...ab,...bc,...cd,...de->...ae', 
+        Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu)
+    )
+
+def plaquette(U):
     """
     Computes the plaquette of U (note that in a 2d lattice, there is only one direction 
     possible for the plaquette, P_{01}(x)) with Nc colors. Note the plaquette is normalized 
@@ -563,14 +588,13 @@ def plaquette(U, Nc):
     ----------
     U : np.array [2, L, T, Nc, Nc]
         Gauge field array.
-    Nc : int
-        Number of colors for the gauge field.
 
     Returns
     -------
     np.array [L, T]
         Wilson loop field (1/N_c) Tr P(x).
     """
+    Nc = U.shape[-1]
     mu, nu = 0, 1
     Un_mu = U[mu]
     Unpmu_nu = np.roll(U[nu], -1, axis = mu)
@@ -578,11 +602,68 @@ def plaquette(U, Nc):
     Un_nu = U[nu]
 
     # return np.real(np.einsum('...ab,...bc,...cd,...da->...', 
-    #     Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu)
-    # )) / Nc
+    #     Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu),
+    # optimize = 'optimal')) / Nc
     return np.real(np.einsum('...ab,...bc,...cd,...da->...', 
-        Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu),
-    optimize = 'optimal')) / Nc
+        Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu)
+    )) / Nc
+
+def one_side_staple(U):
+    """
+    Returns the one-sided staple field from a gauge field configuration U. The one-sided staple 
+    field is just the staple field for a single plaquette, not for a sum of a plaquette plus its 
+    conjugate. 
+
+    TODO note that this assumes the input link is un-daggered, as the resulting staple returned 
+    has two daggers. 
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+    
+    Returns
+    -------
+    A : np.array [2, L, T, Nc, Nc]
+        Staple field array.
+    """
+    A = np.zeros(U.shape, U.dtype)
+    for mu in range(d):
+        nu = (mu + 1) % 2
+        A[mu] = np.einsum('...ab,...bc,...cd->...ad', \
+                    np.roll(U[nu], -1, axis = mu), \
+                    np.roll(dagger(U[mu]), -1, axis = nu), \
+                    dagger(U[nu]))
+    return A
+
+def staple(U):
+    """
+    Returns the staple field from a gauge field configuration U. Since we are working 
+    in d = 2 dimensions, there is only one staple to consider, as opposed to 
+    a sum of staples. 
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+    
+    Returns
+    -------
+    A : np.array [2, L, T, Nc, Nc]
+        Staple field array.
+    """
+    A = np.zeros(U.shape, U.dtype)
+    for mu in range(d):
+        nu = (mu + 1) % 2
+        A[mu] = np.einsum('...ab,...bc,...cd->...ad', \
+                    np.roll(U[nu], -1, axis = mu), \
+                    np.roll(dagger(U[mu]), -1, axis = nu), \
+                    dagger(U[nu])) \
+                + np.einsum('...ab,...bc,...cd->...ad', \
+                    np.roll(np.roll(dagger(U[nu]), -1, axis = mu), 1, axis = nu), \
+                    np.roll(dagger(U[mu]), 1, axis = nu), \
+                    np.roll(U[nu], 1, axis = nu))
+    return A
 
 def wilson_gauge_action(U, beta, Nc):
     """
@@ -606,7 +687,7 @@ def wilson_gauge_action(U, beta, Nc):
     np.float64
         Value of the action for the configuration U.
     """
-    plaqs = np.real(plaquette(U, Nc))
+    plaqs = np.real(plaquette(U))
     return beta * np.sum(1 - plaqs)
 
 def construct_adjoint_links(U, gens, lat = LAT):
@@ -623,6 +704,11 @@ def construct_adjoint_links(U, gens, lat = LAT):
         Gauge field array.
     gens : np.array [Nc^2 - 1, Nc, Nc]
         Generators {t^a} of SU(Nc).
+    
+    Returns
+    -------
+    V : np.array [d, L, T, dNc, dNc]
+        Adjoint link field corresponding to U.
     """
     Nc = U.shape[-1]
     dNc = Nc**2 - 1
@@ -630,6 +716,30 @@ def construct_adjoint_links(U, gens, lat = LAT):
     for mu, x, t, a, b in itertools.product(*[range(zz) for zz in V.shape]):
         V[mu, x, t, a, b] = 2 * trace(dagger(U[mu, x, t]) @ gens[a] @ U[mu, x, t] @ gens[b])
     return V
+
+def get_fund_field(omega, gens):
+    """
+    Given a set of su(Nc) coordinates {\omega_\mu^a(n)} and the su(Nc) generators, 
+    constructs the fundamental gauge field U_\mu(n) = \exp (i\omega_\mu^a(n) t^a) 
+    from these coordinates. 
+
+    Parameters
+    ----------
+    omega : np.array [d, dNc, L, T] (np.real64)
+        Coordinates for the gauge field to construct. 
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators.
+    
+    Returns
+    -------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    """
+    omega_t = np.einsum('maxt,aij->mxtij', omega, gens)
+    U = np.zeros(omega_t.shape, dtype = omega_t.dtype)
+    for mu, x, t in itertools.product(*[range(ii) for ii in U.shape[:3]]):
+        U[mu, x, t] = expm(1j*omega_t[mu, x, t])
+    return U
 
 def gen_random_fund_field_near_1(Nc, eps, lat = LAT):
     """
@@ -974,7 +1084,7 @@ def apply_rational_approx(K, phi, alphas, betas, cg_tol = CG_TOL, max_iter = CG_
         rKphi += alphas[i] * psi_i
     return rKphi
 
-def force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
+def force(dirac, U, phi, gens, kappa, beta, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
     """
     Computes the force used for an HMC update. 
 
@@ -987,13 +1097,35 @@ def force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_
     # TODO probably don't need
     return
 
-def gauge_force():
-    # TODO implement
-    return
+def gauge_force_wilson(omega, gens, beta):
+    """
+    Computes the gauge driving force for RHMC with the Wilson gauge action, which is dS_g / dw, 
+    where w is the SU(Nc) coordinate \omega_\mu^a(n). Note this computation is performed in terms of
+    U = \exp (i\omega_\mu^a t^a). 
 
+    Parameters
+    ----------
+    omega : np.array [d, dNc, L, T]
+        Fundamental gauge field configuration.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    
+    Returns
+    -------
+    dSdw : np.array [d, dNc, L, T]
+        Derivative of the gauge action with respect to \omega_\mu^a(n).
+    """
+    U = get_fund_field(omega, gens)
+    Nc = U.shape[-1]
+    A = staple(U)
+    deriv = np.einsum('aij,mxtjk,mxtki->maxt', gens, U, A)
+    # deriv_conj = np.einsum('mxtij,mxtjk,aki->maxt', dagger(A), dagger(U), gens)    # Just equals deriv.conj()
+    return -(1j*beta) / (2*Nc) * (deriv - deriv.conj())
+
+# TODO change variable on forces to omega instead of U
 def pf_force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
     """
-    Computes the pseudofermion force d/dU (Phi^\dagger r(K) \Phi) \approx d/dw (Phi^\dagger K^{-1/4} \Phi).
+    Computes the pseudofermion force d/dw (Phi^\dagger r(K) \Phi) \approx d/dw (Phi^\dagger K^{-1/4} \Phi).
     Note this force assumes the parameter \omega_\mu^a(n) is used as the position coordinate that needs to 
     be updated, hence it has the same shape as \omega_\mu^a(n).
 
@@ -1016,8 +1148,8 @@ def pf_force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = 
     
     Returns
     -------
-    dKdU : np.array [d, L, T, Nc, Nc]
-        Derivative of pseudofermion part of action by the fundamental gauge field.
+    dKdU : np.array [d, dNc, L, T]
+        Derivative of pseudofermion part of action by the su(N) coordinate \omega_\mu^a
     """
     dNc = gens.shape[0]
     alphas, betas = alpha_m4, beta_m4
@@ -1028,7 +1160,7 @@ def pf_force(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = 
         psi_i = cg_shift(K, phi, betas[i], cg_tol, max_iter)
         psi_dKdw_psi = form_dKdw_bilinear(U, dirac, psi_i, gens, lat = lat, bcs = bcs)
         force += alphas[i] * psi_dKdw_psi
-    return (-4j*kappa) * force
+    return (4j*kappa) * force
 
 def pf_force_U(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter = CG_MAX_ITER, bcs = DEFAULT_BCS):
     """
@@ -1055,8 +1187,8 @@ def pf_force_U(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter 
     
     Returns
     -------
-    dKdU : np.array [d, L, T, Nc, Nc]
-        Derivative of pseudofermion part of action by the fundamental gauge field.
+    dKdU : np.array [d, dNc, L, T]
+        Derivative of pseudofermion part of action by the su(N) coordinate \omega_\mu^a
     """
     alphas, betas = alpha_m4, beta_m4
     Q = hermitize_dirac(dirac)
@@ -1068,12 +1200,11 @@ def pf_force_U(dirac, U, phi, gens, kappa, lat = LAT, cg_tol = CG_TOL, max_iter 
         force += alphas[i] * psi_dKdU_psi
     return (-2*kappa) * force
 
-def form_tW_tensor(U, gens, lat = LAT):
+def form_W_tensor(U, gens, lat = LAT):
     """
-    Forms the tensor Tr[t^a W^{bc}], where t^a are the SU(Nc) generators and W^{bc} is the 
-    traceless shuffled product of link matrices and generators,
+    Forms the tensor W^{abc}, which is the traceless shuffled product of link matrices and generators,
     $$
-    W_\mu^{ab}\equiv U_\mu^\dagger(n) t^a U_\mu(n) t^b - U_\mu(n) t^b U_\mu^\dagger(n) t^a
+    W_\mu^{ab}\equiv Tr[ U_\mu^\dagger(n) t^a U_\mu(n) t^b - U_\mu(n) t^b U_\mu^\dagger(n) t^a ]
     $$
 
     Parameters
@@ -1085,18 +1216,18 @@ def form_tW_tensor(U, gens, lat = LAT):
 
     Returns
     -------
-    tW : np.array [d, L, T, dNc, dNc, dNc]
-        The tensor Tr[ t^a W^{bc}(n) ].
+    W : np.array [d, L, T, dNc, dNc, dNc]
+        The tensor W^{abc}.
     """
     dNc, Nc = gens.shape[0], gens.shape[1]
-    Udag = dagger(U)
-    tW = np.zeros((d, lat.L, lat.T, dNc, dNc, dNc), dtype = U.dtype)
+    # Udag = dagger(U)
+    W = np.zeros((d, lat.L, lat.T, dNc, dNc, dNc), dtype = U.dtype)
     for mu, nx, nt in itertools.product(range(d), range(lat.L), range(lat.T)):
         U_col = U[mu, nx, nt]
         U_col_dag = dagger(U_col)
         for a, b, c in itertools.product(range(dNc), repeat = 3):
-            tW[mu, nx, nt, a, b, c] = trace(gens[a] @ (U_col_dag @ gens[b] @ U_col @ gens[c] - U_col @ gens[c] @ U_col_dag @ gens[b]))
-    return tW
+            W[mu, nx, nt, a, b, c] = trace(U_col_dag @ gens[b] @ gens[a] @ U_col @ gens[c] - U_col_dag @ gens[a] @ gens[b] @ U_col @ gens[c])
+    return W
 
 def form_dKdw_bilinear(U, dirac, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
     """
@@ -1118,40 +1249,156 @@ def form_dKdw_bilinear(U, dirac, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
 
     Returns
     -------
-    np.array [d, L, T, Nc, Nc]
+    np.array [d, dNc, L, T]
         Derivative dK/dw contracted with psi^\dagger and psi. Shape should be that 
         of the su(Nc) coordinates \omega_\mu^a(n).
     """
     dNc = gens.shape[0]
     dKdw_bilinear = np.zeros((d, dNc, lat.L, lat.T), U.dtype)
-    Dpsi_dagger = (dirac @ psi).conj().transpose()
-
-    # psi_blk = unflatten_ferm_field(psi, dNc, lat = lat)
-    # Dpsi_dagger_blk = unflatten_ferm_field((dirac @ psi).conj().transpose(), dNc, lat = lat)
-
-    tW = form_tW_tensor(U, gens, lat = lat)
+    # Dpsi_dagger = (dirac @ psi).conj().transpose()
+    Dpsi = dirac @ psi
+    W = form_W_tensor(U, gens, lat = lat)
     for mu, a, nx, nt in itertools.product(range(d), range(dNc), range(lat.L), range(lat.T)):
         n = np.array([nx, nt])
         npmu = lat.mod(n + hat(mu))
+        if np.abs(n[mu] - npmu[mu]) > 1:            # then we traversed the 0 boundary
+            sign = bcs[mu]
+        else:
+            sign = 1
 
         # get necessary fermion spin-col blocks (this can be optimized I think)
-        psi_n = unflatten_colspin_vec(flat_field_evalat(psi, nx, nt), dNc)
-        psi_npmu = unflatten_colspin_vec(flat_field_evalat(psi, npmu[0], npmu[1]), dNc)
-        Dpsi_dagger_n = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, nx, nt), dNc)
-        Dpsi_dagger_npmu = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, npmu[0], npmu[1]), dNc)
-        tW_comp = tW[mu, n[0], n[1], a]
+        psi_n = unflatten_colspin_vec(flat_field_evalat(psi, nx, nt, dNc, lat = lat), dNc)
+        psi_npmu = sign * unflatten_colspin_vec(flat_field_evalat(psi, npmu[0], npmu[1], dNc, lat = lat), dNc)
+        # TODO: be careful here! Need to evaluate the same spacetime-block and **then** dagger it. 
+        # Dpsi_dagger_n = unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, nx, nt, dNc, lat = lat), dNc)
+        # Dpsi_dagger_npmu = sign * unflatten_colspin_vec(flat_field_evalat(Dpsi_dagger, npmu[0], npmu[1], dNc, lat = lat), dNc)
+        Dpsi_dagger_n = unflatten_colspin_vec(flat_field_evalat(Dpsi, nx, nt, dNc, lat = lat), dNc).conj().transpose()
+        Dpsi_dagger_npmu = sign * unflatten_colspin_vec(flat_field_evalat(Dpsi, npmu[0], npmu[1], dNc, lat = lat), dNc).conj().transpose()
+        W_comp = W[mu, n[0], n[1], a]
 
         # contract
         dKdw_bilinear[mu, a, nx, nt] = np.einsum(
-            'bi,bc,ij,jc->',
-            Dpsi_dagger_n, tW_comp, delta - gamma[mu], psi_npmu
+            'ib,bc,ij,cj->',
+            # 'bi,bc,ij,cj->',
+            Dpsi_dagger_n, W_comp, delta - gamma[mu], psi_npmu
         ) + np.einsum(
-            'bi,bc,ij,jc->',
-            Dpsi_dagger_npmu, tW_comp, delta + gamma[mu], psi_n
+            'ib,cb,ij,cj->',
+            # 'bi,cb,ij,cj->',
+            Dpsi_dagger_npmu, W_comp, delta + gamma[mu], psi_n
         )
-        # TODO: determine whether it's faster to do this, or to do a matrix multiplication by combining tW and 
-        # the gamma structure into a single spin-color matrix. 
     return dKdw_bilinear
+
+def test_dDdw_bilinear(U, psi, kappa, gens, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    Evaluates the derivative \overline{\psi} dD/dw \psi. Note that this is only used for testing purposes, 
+    to test that dD/dw is implemented correctly; if you wants the pseudofermion force, you should use the 
+    function form_dKdw_bilinear. 
+    
+    Parameters
+    ----------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    psi : np.array [dNc*Ns*L*T]
+        Solution psi to the equation (K + \beta_i) \psi = \phi.
+    kappa : float
+        Hopping parameter.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+
+    Returns
+    -------
+    np.array [d, dNc, L, T]
+        Derivative dD/dw contracted with psi^\dagger and psi. Shape should be that 
+        of the su(Nc) coordinates \omega_\mu^a(n).
+    """
+    dNc = gens.shape[0]
+    dDdw_bilinear = np.zeros((d, dNc, lat.L, lat.T), U.dtype)
+    psi_dagger = psi.conj().transpose()
+    delta_bcs = lat.get_delta_bcs(bcs = bcs)
+
+    W = form_W_tensor(U, gens, lat = lat)
+    for mu, a, nx, nt in itertools.product(range(d), range(dNc), range(lat.L), range(lat.T)):
+        n = np.array([nx, nt])
+        npmu = lat.mod(n + hat(mu))
+        if np.abs(n[mu] - npmu[mu]) > 1:            # then we traversed the 0 boundary
+            sign = bcs[mu]
+        else:
+            sign = 1
+
+        # get necessary fermion spin-col blocks (this can be optimized I think)
+        psi_n = unflatten_colspin_vec(flat_field_evalat(psi, nx, nt, dNc, lat = lat), dNc)
+        psi_npmu = sign * unflatten_colspin_vec(flat_field_evalat(psi, npmu[0], npmu[1], dNc, lat = lat), dNc)
+        psi_dagger_n = psi_n.conj().transpose()
+        psi_dagger_npmu = psi_npmu.conj().transpose()
+        W_comp = W[mu, nx, nt, a]
+
+        # contract
+        dDdw_bilinear[mu, a, nx, nt] = np.einsum(
+            'ib,bc,ij,cj->',
+            psi_dagger_n, W_comp, delta - gamma[mu], psi_npmu
+        ) + np.einsum(
+            'ib,cb,ij,cj->',
+            psi_dagger_npmu, W_comp, delta + gamma[mu], psi_n
+        )
+    return np.imag(2*kappa * dDdw_bilinear)
+
+def test_dKdw_bilinear(U, dirac, psi, kappa, gens, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    Evaluates the derivative \overline{\psi} dK/dw \psi. Note that this is only used for testing purposes, 
+    to test that dK/dw is implemented correctly; if you wants the pseudofermion force, you should use the 
+    function form_dKdw_bilinear. 
+    
+    Parameters
+    ----------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    dirac : scipy.sparse.bsr_matrix [dNc*Ns*L*T, dNc*Ns*L*T]
+        Sparse Dirac operator D.
+    psi : np.array [dNc*Ns*L*T]
+        Solution psi to the equation (K + \beta_i) \psi = \phi.
+    kappa : float
+        Hopping parameter.
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+
+    Returns
+    -------
+    np.array [d, dNc, L, T]
+        Derivative dK/dw contracted with psi^\dagger and psi. Shape should be that 
+        of the su(Nc) coordinates \omega_\mu^a(n).
+    """
+    dNc = gens.shape[0]
+    dKdw_bilinear = np.zeros((d, dNc, lat.L, lat.T), U.dtype)
+    Dpsi = dirac @ psi
+    delta_bcs = lat.get_delta_bcs(bcs = bcs)
+
+    W = form_W_tensor(U, gens, lat = lat)
+    for mu, a, nx, nt in itertools.product(range(d), range(dNc), range(lat.L), range(lat.T)):
+        n = np.array([nx, nt])
+        npmu = lat.mod(n + hat(mu))
+        if np.abs(n[mu] - npmu[mu]) > 1:            # then we traversed the 0 boundary
+            sign = bcs[mu]
+        else:
+            sign = 1
+
+        # get necessary fermion spin-col blocks (this can be optimized I think)
+        psi_n = unflatten_colspin_vec(flat_field_evalat(psi, nx, nt, dNc, lat = lat), dNc)
+        psi_npmu = sign * unflatten_colspin_vec(flat_field_evalat(psi, npmu[0], npmu[1], dNc, lat = lat), dNc)
+        Dpsi_dagger_n = unflatten_colspin_vec(flat_field_evalat(Dpsi, nx, nt, dNc, lat = lat), dNc).conj().transpose()
+        Dpsi_dagger_npmu = sign * unflatten_colspin_vec(flat_field_evalat(Dpsi, npmu[0], npmu[1], dNc, lat = lat), dNc).conj().transpose()
+        W_comp = W[mu, nx, nt, a]
+
+        # contract
+        dKdw_bilinear[mu, a, nx, nt] = np.einsum(
+            'ib,bc,ij,cj->',
+            # 'bi,bc,ij,cj->',
+            Dpsi_dagger_n, W_comp, delta - gamma[mu], psi_npmu
+        ) + np.einsum(
+            'ib,cb,ij,cj->',
+            # 'bi,cb,ij,cj->',
+            Dpsi_dagger_npmu, W_comp, delta + gamma[mu], psi_n
+        )
+    return np.imag(4*kappa * dKdw_bilinear)
 
 def form_dKdU_bilinear(U, Q, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
     """

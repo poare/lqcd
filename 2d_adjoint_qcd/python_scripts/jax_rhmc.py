@@ -34,8 +34,14 @@ util_path = '/Users/theoares/lqcd/utilities'
 #################################### IMPORTS ###################################
 ################################################################################
 import numpy
+
+import jax
+import jaxlib
 import jax.numpy as np
 from jax import grad, jit, vmap
+from jax.scipy.linalg import expm
+from jax.lax import cond
+from functools import partial
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -52,9 +58,6 @@ import lsqfit
 
 import sys
 sys.path.append(util_path)
-# from constants import *
-# from fittools import *
-# from formattools import *
 import constants as const
 import formattools as ft
 import plottools as pt
@@ -65,6 +68,7 @@ pt.set_font()
 
 # from rhmc_coeffs import *
 import rhmc_coeffs as coeffs
+import rhmc
 
 ################################################################################
 ############################### INPUT PARAMETERS ###############################
@@ -92,15 +96,21 @@ DEFAULT_BCS = (1, -1)                       # Boundary conditions for fermion fi
 ################################################################################
 ############################## UTILITY FUNCTIONS ###############################
 ################################################################################
+# def kron_delta(a, b):
+#     """Returns the Kronecker delta between two objects a and b."""
+#     if type(a) == np.ndarray or isinstance(a, np.ndarray):
+#         if np.array_equal(a, b):
+#             return 1
+#         return 0
+#     if a == b:
+#         return 1
+#     return 0
+@jax.jit
 def kron_delta(a, b):
-    """Returns the Kronecker delta between two objects a and b."""
-    if type(a) == np.ndarray or isinstance(a, np.ndarray):
-        if np.array_equal(a, b):
-            return 1
-        return 0
-    if a == b:
-        return 1
-    return 0
+    """Returns the Kronecker delta between two objects a and b. Conditionals are written with 
+    jax.lax.cond to enable JIT."""
+    a_arr, b_arr = np.array(a), np.array(b)
+    return np.array_equal(a_arr, b_arr).astype(np.int32)
 
 def hat(mu):
     """Returns the position vector \hat{\mu} for \mu = 0, 1, ..., d."""
@@ -139,11 +149,15 @@ class Lattice:
         if dx[1] > self.T // 2:
             dx = dx.at[1].set(self.T - dx[1])
         return np.sum(dx)
+    # @partial(jit, static_argnums=(0,))
+    # def taxicab_distance(self, x, y):
+    #     """Computes the periodic taxicab distance between x and y. Written to be used with JIT."""
+    #     dx = np.abs(x - y)
+    #     return cond(dx[0] > self.L // 2, lambda : self.L - dx[0], lambda : dx[0]) \
+    #             + cond(dx[1] > self.T // 2, lambda : self.T - dx[1], lambda : dx[1])
 
     def next_to(self, x, y):
         """Returns True if the 2-positions x and y are nearest neighbors."""
-        # return np.sum(np.abs(x - y)) == 1
-        # return np.sum(np.abs(x % self.LL - y % self.LL)) == 1
         return self.taxicab_distance(x, y) == 1
     
     def next_to_equal(self, x, y):
@@ -154,6 +168,8 @@ class Lattice:
         """
         Returns the Kronecker delta for spacetime points x, y adjusted with a 
         sign for boundary conditions.
+
+        TODO: if we want to JIT this, we'll need to remove the conditionals.
         
         Parameters
         ----------
@@ -167,6 +183,25 @@ class Lattice:
         function
             Delta function, adjusted to boundary conditions.
         """
+        # @jax.jit
+        def delta_fn_jax(x, y):
+            """Kronecker delta for spacetime points, adjusted with given boundary conditions. Note 
+            this is written to be compatible with jax.jit."""
+            def branch0(a, b):
+                def branch1(a, b):
+                    return cond(x[0] % self.L == y[0] % self.L and x[1] == y[1], lambda : bcs[0], lambda : bcs[1])
+                return cond(
+                    np.array_equal(self.mod(x), self.mod(y)),
+                    branch1(a, b),
+                    0,
+                    a, b
+                    )
+            return cond(
+                np.array_equal(x, y),
+                lambda a, b : 1,
+                lambda a, b : branch0(a, b),               # false branch
+                x, y                                            # operands to pass to conditional
+            )
         def delta_fn(x, y):
             """Kronecker delta for spacetime points, adjusted with given boundary conditions."""
             if np.array_equal(x, y):                            # x and y are equal
@@ -177,6 +212,7 @@ class Lattice:
                 if x[0] == y[0] and x[1] % self.T == y[1] % self.T:
                     return bcs[1]
             return 0                                            # x and y are not equal
+        # return delta_fn_jax
         return delta_fn
 
     def __str__(self):
@@ -376,12 +412,14 @@ def flat_field_putat(psi, blk, x, t, dNc, mutate = False, lat = LAT):
     np.array [dNc*Ns]
         Flattened color-spin matrix psi(x, t).
     """
-    if blk.shape == (dNc, Ns):
-        blk = flatten_colspin_vec(blk)
-    if mutate:
-        new_psi = psi
-    else:
-        new_psi = np.copy(psi)
+    blk = cond(blk.shape == (dNc, Ns), lambda : flatten_colspin_vec(blk), lambda : blk)
+    new_psi = cond(mutate, lambda : psi, lambda : np.copy(psi))
+    # if blk.shape == (dNc, Ns):
+    #     blk = flatten_colspin_vec(blk)
+    # if mutate:
+    #     new_psi = psi
+    # else:
+    #     new_psi = np.copy(psi)
     for colspin_idx in itertools.product(range(dNc), range(Ns)):
         a, alpha = colspin_idx
         new_psi = new_psi.at[flatten_full_idx((a, alpha, x, t), dNc, lat = lat)].set(
@@ -559,7 +597,36 @@ def dagger(U):
     """
     return np.conjugate(np.einsum('...ab->...ba', U))
 
-def plaquette(U, Nc):
+def plaquette_gauge_field(U):
+    """
+    Computes the plaquette of U (note that in a 2d lattice, there is only one direction 
+    possible for the plaquette, P_{01}(x)) with Nc colors. This plaquette does not trace 
+    over color indices, and the plaquette function is related to it by 
+    ```
+        rhmc.plaquette(U) = np.trace(rhmc.plaquette_gauge_field(U)) / Nc
+    ```
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+
+    Returns
+    -------
+    np.array [L, T, Nc, Nc]
+        Wilson loop field P(x).
+    """
+    Nc = U.shape[-1]
+    mu, nu = 0, 1
+    Un_mu = U[mu]
+    Unpmu_nu = np.roll(U[nu], -1, axis = mu)
+    Unpnu_mu = np.roll(U[mu], -1, axis = nu)
+    Un_nu = U[nu]
+    return np.einsum('...ab,...bc,...cd,...de->...ae', 
+        Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu)
+    )
+
+def plaquette(U):
     """
     Computes the plaquette of U (note that in a 2d lattice, there is only one direction 
     possible for the plaquette, P_{01}(x)) with Nc colors. Note the plaquette is normalized 
@@ -569,14 +636,13 @@ def plaquette(U, Nc):
     ----------
     U : np.array [2, L, T, Nc, Nc]
         Gauge field array.
-    Nc : int
-        Number of colors for the gauge field.
 
     Returns
     -------
     np.array [L, T]
         Wilson loop field (1/N_c) Tr P(x).
     """
+    Nc = U.shape[-1]
     mu, nu = 0, 1
     Un_mu = U[mu]
     Unpmu_nu = np.roll(U[nu], -1, axis = mu)
@@ -612,7 +678,7 @@ def wilson_gauge_action(U, beta, Nc):
     np.float64
         Value of the action for the configuration U.
     """
-    plaqs = np.real(plaquette(U, Nc))
+    plaqs = np.real(plaquette(U))
     return beta * np.sum(1 - plaqs)
 
 def construct_adjoint_links(U, gens, lat = LAT):
@@ -629,6 +695,11 @@ def construct_adjoint_links(U, gens, lat = LAT):
         Gauge field array.
     gens : np.array [Nc^2 - 1, Nc, Nc]
         Generators {t^a} of SU(Nc).
+    
+    Returns
+    -------
+    V : np.array [d, L, T, dNc, dNc]
+        Adjoint link field corresponding to U.
     """
     Nc = U.shape[-1]
     dNc = Nc**2 - 1
@@ -636,6 +707,31 @@ def construct_adjoint_links(U, gens, lat = LAT):
     for mu, x, t, a, b in itertools.product(*[range(zz) for zz in V.shape]):
         V = V.at[mu, x, t, a, b].set(2 * trace(dagger(U[mu, x, t]) @ gens[a] @ U[mu, x, t] @ gens[b]))
     return V
+
+def get_fund_field(omega, gens):
+    """
+    Given a set of su(Nc) coordinates {\omega_\mu^a(n)} and the su(Nc) generators, 
+    constructs the fundamental gauge field U_\mu(n) = \exp (i\omega_\mu^a(n) t^a) 
+    from these coordinates. 
+
+    Parameters
+    ----------
+    omega : np.array [d, dNc, L, T] (np.real64)
+        Coordinates for the gauge field to construct. 
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators.
+    
+    Returns
+    -------
+    U : np.array [d, L, T, Nc, Nc]
+        Fundamental gauge field.
+    """
+    # TODO figure out how to use jax.vmap for this
+    omega_t = np.einsum('maxt,aij->mxtij', omega, gens)
+    U = np.zeros(omega_t.shape, dtype = omega_t.dtype)
+    for mu, x, t in itertools.product(*[range(ii) for ii in U.shape[:3]]):
+        U = U.at[mu, x, t].set(expm(1j*omega_t[mu, x, t]))
+    return U
 
 def gen_random_fund_field_near_1(Nc, eps, lat = LAT):
     """
@@ -686,6 +782,7 @@ def gen_random_fund_field(Nc, lat = LAT):
 ############################## FERMION FUNCTIONS ###############################
 ################################################################################
 
+# @jax.jit
 def get_dirac_op_idxs(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns the Dirac operator between two sets of indices ((a, alpha, x), (b, beta, y)), for a 
@@ -722,6 +819,7 @@ def get_dirac_op_idxs(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
             for mu in range(d)]))
     return dirac_op_idxs
 
+# @jax.jit
 def get_dirac_op_full(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns the full Dirac operator as a numpy array. This should only be used to check the sparse 
@@ -740,13 +838,15 @@ def get_dirac_op_full(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
         Dirac operator.
     """
     dNc = V.shape[-1]                       # dimension of adjoint rep of SU(Nc)
-    dirac_op_full = np.zeros((dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T), dtype = np.complex64)
     dirac_op_idxs = get_dirac_op_idxs(kappa, V, bcs = bcs, lat = lat)
-    for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in dirac_op_full.shape]):
+    dirac_shape = (dNc, Ns, lat.L, lat.T, dNc, Ns, lat.L, lat.T)
+    dirac_op_full = np.zeros(dirac_shape).tolist()
+    for a, alpha, lx, tx, b, beta, ly, ty in itertools.product(*[range(zz) for zz in dirac_shape]):
         x, y = np.array([lx, tx]), np.array([ly, ty])
-        dirac_op_full = dirac_op_full.at[a, alpha, lx, tx, b, beta, ly, ty].set(dirac_op_idxs(a, alpha, x, b, beta, y))
-    return dirac_op_full
+        dirac_op_full[a][alpha][lx][tx][b][beta][ly][ty] = dirac_op_idxs(a, alpha, x, b, beta, y)
+    return np.array(dirac_op_full)
 
+# @jax.jit
 def get_dirac_op_block(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     """
     Returns a function D(x, y) which gives the Dirac operator from sites x to y as a 
@@ -825,7 +925,7 @@ def dirac_op_sparse(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
 def dagger_op(dirac):
     """
     Returns the Hermitian conjugate of the input operator. Note that the transpose is taken 
-    over all indices.
+    over all indices. For jax, assumes we have no sparse implementations.
 
     Parameters
     ----------
@@ -837,8 +937,8 @@ def dagger_op(dirac):
     np.array [dNc, Ns, L, T, dNc, Ns, L, T] or scipy.sparse.bsr_matrix
         Hermitian conjugate of input operator.
     """
-    if type(dirac) == bsr_matrix or type(dirac) == csr_matrix:
-        return dirac.conj().transpose()
+    # if type(dirac) == bsr_matrix or type(dirac) == csr_matrix:
+    #     return dirac.conj().transpose()
     return np.einsum('aixtbjys->bjysaixt', dirac.conj())
 
 def hermitize_dirac(dirac):
@@ -881,8 +981,8 @@ def construct_K(dirac):
         Squared Dirac operator K = D^\dagger D.
     """
     dirac_dagger = dagger_op(dirac)
-    if type(dirac) == bsr_matrix or type(dirac) == csr_matrix:
-        return dirac_dagger @ dirac
+    # if type(dirac) == bsr_matrix or type(dirac) == csr_matrix:
+    #     return dirac_dagger @ dirac
     return np.einsum('aixtbjys,bjysclzr->aixtclzr', dirac_dagger, dirac)
 
 ################################################################################
