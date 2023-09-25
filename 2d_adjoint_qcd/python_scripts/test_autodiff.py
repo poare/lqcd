@@ -26,9 +26,8 @@ import jax_rhmc as jrhmc
 ############################################################
 
 # TODO: run with this, then run with the next set of parameters. Will likely take a while...
-Nc = 2
-L, T = 4, 4
-# L, T = 2, 4
+Nc = 3
+L, T = 2, 4
 
 # Nc = 3
 # L, T = 6, 10
@@ -119,7 +118,11 @@ assert np.allclose(grad_trU_omega, grad_trU_analytic), 'Derivative of Re Tr U_0(
 print('Testing derivative of Re Tr U0 A.')
 
 np.random.seed(1)
-A_list = [[np.random.rand(), np.random.rand()], [np.random.rand(), np.random.rand()]]
+# A_list = [[np.random.rand(), np.random.rand()], [np.random.rand(), np.random.rand()]]
+# A_list = [[np.random.rand(), np.random.rand()], [np.random.rand(), np.random.rand()]]
+A_list = [0 for _ in range(Nc)]
+for i in range(Nc):
+    A_list[i] = [np.random.rand() for _ in range(Nc)]
 A_np = np.array(A_list)
 A_jax = jnp.array(A_list)
 
@@ -223,7 +226,7 @@ print(grad_wilson)
 
 # Implemented derivative
 gens_np = rhmc.get_generators(Nc)
-grad_wilson_analytic = np.real(rhmc.gauge_force_wilson(jnp.asarray(omega), gens_np, beta))
+grad_wilson_analytic = np.real(rhmc.gauge_force_wilson_omega(jnp.asarray(omega), gens_np, beta))
 print('Analytic formula for dS_g / dw')
 print(grad_wilson_analytic)
 

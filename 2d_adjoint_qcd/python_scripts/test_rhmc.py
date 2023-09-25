@@ -364,11 +364,9 @@ def test_init_fields(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     dNc = Nc**2 - 1
     if V is None:
         V = rhmc.id_field_adjoint(Nc, lat = Lat)
-    dirac = rhmc.dirac_op_sparse(kappa, V, lat = Lat)
-    K = rhmc.construct_K(dirac)
 
-    # TODO method stub, finish implementing tomorrow
-    phi, U, V, Pi = rhmc.init_fields(K, Nc, gens, hot_start = False, lat = Lat)
+    # TODO method stub, finish implementing
+    phi, U, V, Pi = rhmc.init_fields(kappa, Nc, gens, hot_start = False, lat = Lat)
 
     print('test_init_fields : Pass')
 
