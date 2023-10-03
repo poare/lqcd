@@ -401,10 +401,10 @@ def plot_1d_data(xvals, cvs, ax = None, col = [pal[0], pal[1]], ax_label = ['x',
             fig = ax.get_figure()
         if np.iscomplexobj(cvs):
             ax.plot(xvals, np.real(cvs), color = col[0], label = r'$\mathrm{Re}[' + fn_label + r']$', markersize = 0, **kwargs)
-            ax.plot(xvals, np.imag(cvs), color = col[0], label = r'$\mathrm{Im}[' + fn_label + r']$', markersize = 0, **kwargs)
+            ax.plot(xvals, np.imag(cvs), color = col[1], label = r'$\mathrm{Im}[' + fn_label + r']$', markersize = 0, **kwargs)
         else:
-            color = col[0] if type(col) is list else col
-            ax.plot(xvals, cvs, color = color, label = fn_label, markersize = 0, **kwargs)
+            # color = col[0] if type(col) is list else col
+            ax.plot(xvals, cvs, color = col, label = fn_label, markersize = 0, **kwargs)
         if title:
             ax.set_title(title, fontsize = style['fontsize'])
         if logy:

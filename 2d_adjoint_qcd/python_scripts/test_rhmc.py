@@ -384,7 +384,7 @@ def test_pseudoferm_action(L = 4, T = 4, Nc = 2, kappa = 0.1, V = None):
     phi = np.random.rand(dim) + 1j*np.random.rand(dim)
 
     K_m4 = scipy.linalg.fractional_matrix_power(K.toarray(), -1/4)
-    S_full = - phi.conj().transpose() @ (K_m4 @ phi)
+    S_full = phi.conj().transpose() @ (K_m4 @ phi)
 
     S_cg = rhmc.pseudofermion_action(dirac, phi)
     assert np.allclose(S_cg, S_full, rtol = 1e-4, atol = 2e-5), 'Rational approximation disagrees with exact pseudofermion action.'

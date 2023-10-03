@@ -58,6 +58,7 @@ from scipy.optimize import root
 from scipy.linalg import block_diag, expm
 import h5py
 import os
+import time
 import argparse
 import itertools
 import pandas as pd
@@ -77,27 +78,35 @@ pt.set_font()
 
 import rhmc_coeffs as coeffs
 
+import pfapack
+
 ################################################################################
 ############################### INPUT PARAMETERS ###############################
 ################################################################################
 L = 8                                       # Spatial size of the lattice
 T = 8                                       # Temporal size of the lattice
 
-DEFAULT_NC = 3                              # Default number of colors
+DEFAULT_NC = 2                              # Default number of colors
 
-DEFAULT_STEP_SIZE = 0.24                    # Step size for RHMC updates.
-DEFAULT_RHMC_ITERS = 100                    # Default RHMC iterations per trajectory.
+DEFAULT_STEP_SIZE = 0.005                    # Step size for RHMC updates.
+DEFAULT_RHMC_ITERS = 50                     # Default RHMC iterations per trajectory. Want n\epsilon\approx 1
 EPS = 1e-8                                  # Round-off for floating points.
 
 CG_TOL = 1e-12                              # CG error tolerance
 CG_MAX_ITER = 1000                          # Max number of iterations for CG
 
-P = 15                                      # Degree of rational approximation for Dirac operator 
-lambda_low = 1e-5                           # Smallest eigenvalue possible for K for valid rational approximation
-lambda_high = 1000                          # Largest eigenvalue possible for K for valid rational approximation
+# P = 15                                      # Degree of rational approximation for Dirac operator 
+# lambda_low = 1e-5                           # Smallest eigenvalue possible for K for valid rational approximation
+# lambda_high = 1000                          # Largest eigenvalue possible for K for valid rational approximation
 
-alpha_m4, beta_m4 = coeffs.rhmc_m4_15()     # Approximation coefficients for K^{-1/4}
-alpha_8, beta_8 = coeffs.rhmc_8_15()        # Approximation coefficients for K^{+1/8}
+# alpha_m4, beta_m4 = coeffs.rhmc_m4_15()     # Approximation coefficients for K^{-1/4}
+# alpha_8, beta_8 = coeffs.rhmc_8_15()        # Approximation coefficients for K^{+1/8}
+
+P = 5
+# lambda_low = 
+
+alpha_m4, beta_m4 = coeffs.rhmc_m4_5()     # Approximation coefficients for K^{-1/4}
+alpha_8, beta_8 = coeffs.rhmc_8_5()        # Approximation coefficients for K^{+1/8}
 
 DEFAULT_BCS = (1, -1)                       # Boundary conditions for fermion fields
 
@@ -708,6 +717,15 @@ def wilson_gauge_action(U, beta, Nc):
     plaqs = np.real(plaquette(U))
     return beta * np.sum(1 - plaqs)
 
+# def dwilson_gauge_action(n, mu, U, Up, beta, Nc):
+#     """
+#     Computes the change in the Wilson gauge action at the point (n, \mu):
+#     $$
+#         \Delta S = -(beta / Nc) Tr [(U_\mu(n) - U_\mu'(n)) A_\mu(n)]
+#     $$
+#     """
+#     return 
+
 def construct_adjoint_links(U, gens, lat = LAT):
     """
     Constructs the adjoint link variables
@@ -939,8 +957,6 @@ def dirac_op_sparse(kappa, V, bcs = DEFAULT_BCS, lat = LAT):
     This is done by blocking the Dirac operator by spacetime dimension, since it only connects 
     x and y if they have taxicab metric <= 1 (in lattice units). We have lat.vol blocks 
     (for concreteness, 16) of size dNc*Ns (for concreteness for SU(2), size 6).
-
-    TODO deal with boundary conditions
 
     Parameters
     ----------
@@ -1602,7 +1618,7 @@ def form_Mmu_psi(deriv_coord, tUt, psi, gens, lat = LAT, bcs = DEFAULT_BCS):
 
 def pseudofermion_action(dirac, phi, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
     """
-    Returns the pseudofermion action, -|phi^\dagger K^{-1/4} \phi, where K is the square of 
+    Returns the pseudofermion action, \phi^\dagger K^{-1/4} \phi, where K is the square of 
     the Dirac operator D^\dagger D. 
 
     Parameters
@@ -1614,14 +1630,14 @@ def pseudofermion_action(dirac, phi, cg_tol = CG_TOL, max_iter = CG_MAX_ITER):
     
     Returns
     -------
-    S : np.complex128 (or real64?)
-        Pseudofermion action -\Phi^\dagger K^{-1/4} \Phi.
+    S : np.complex64 (or float64?)
+        Pseudofermion action \Phi^\dagger K^{-1/4} \Phi.
     """
     # dNc = gens.shape[0]
     alphas, betas = alpha_m4, beta_m4
     K = construct_K(dirac)
     rK_phi = apply_rational_approx(K, phi, alphas, betas, cg_tol = cg_tol, max_iter = max_iter)
-    return -(phi.transpose().conj() @ rK_phi)
+    return phi.transpose().conj() @ rK_phi
 
 ################################################################################
 ################################ RHMC UPDATES ##################################
@@ -1717,32 +1733,80 @@ def update_fields(U, phi, Pi, gens, kappa, beta, eps, niters, lat = LAT, cg_tol 
     """
     # Utility update functions
     force = get_force(gens, kappa, beta, lat = lat, cg_tol = cg_tol, max_iter = max_iter, bcs = bcs)
-    def first_update(U, phi, Pi):
+    def first_update(U, Pi):
         """ Initial RHMC update $Pi --> Pi - (eps / 2) * F[U, Phi]$. """
         V = construct_adjoint_links(U, gens, lat = lat)
         dirac = dirac_op_sparse(kappa, V, bcs = bcs, lat = lat)
         return Pi - (eps / 2.) * force(dirac, U, phi)
-    def inner_update(U, phi, Pi):
+    def inner_update(U, Pi):
         """ Intermediate RHMC update $U --> exp(i\epsilon\Pi) U \\ \Pi --> \Pi - \epsilon * F[U, Phi]$. """
+        V = construct_adjoint_links(U, gens, lat = lat)
+        dirac = dirac_op_sparse(kappa, V, bcs = bcs, lat = lat)
         Pi_group = alg_to_group_near_1(eps, Pi)
         U_p = np.einsum('...ij,...jk->...ik', Pi_group, U)
         Pi_p = Pi - eps * force(dirac, U_p, phi)
         return U_p, Pi_p
-    def final_update(U, phi, Pi):
+    def final_update(U, Pi):
         """ Final RHMC update $U --> exp(i\epsilon\Pi) U \\ \Pi --> \Pi - (\epsilon / 2) * F[U, Phi]$. """
+        V = construct_adjoint_links(U, gens, lat = lat)
+        dirac = dirac_op_sparse(kappa, V, bcs = bcs, lat = lat)
         Pi_group = alg_to_group_near_1(eps, Pi)
         U_p = np.einsum('...ij,...jk->...ik', Pi_group, U)
         Pi_p = Pi - (eps / 2) * force(dirac, U_p, phi)
         return U_p, Pi_p
     # update loop
-    # phi, Pi = init_fields(U, kappa, Nc, gens, lat = Lat, bcs = bcs)          # init phi, Pi
-    Pi = first_update(U, phi, Pi)                                            # initial update
-    for idx in range(1, inner_iters):                                        # perform inner iterations
-        U, Pi = inner_update(U, phi, Pi)
-    U, Pi = final_update(U, phi, Pi)                                         # Final update
+    Pi = first_update(U, Pi)                                            # initial update
+    for idx in range(1, niters):                                        # perform inner iterations
+        U, Pi = inner_update(U, Pi)
+    U, Pi = final_update(U, Pi)                                         # Final update
+    # TODO return final K^{-1/4} \Phi so we don't have to recompute
     return U, Pi
 
-def accept_reject(U, U_prime, phi, Pi, Pi_prime, r, lat = LAT, bcs = DEFAULT_BCS):
+def get_full_action(gens, kappa, beta, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    Returns a function for the full action. For the gauge field, we use the Wilson 
+    gauge action, for the Majorana fermion field we use a Wilson action, and for the 
+    conjugate momenta field, we use the standard Tr[\Pi^2].
+
+    Parameters
+    ----------
+    gens : np.array [dNc, Nc, Nc]
+        SU(Nc) generators t^a.
+    kappa : float
+        Hopping parameter.
+    beta : int
+        Gauge coupling.
+    
+    Returns
+    -------
+    function : (U, phi, Pi) --> \mathbb{R}
+    """
+    Nc = gens.shape[-1]
+    def action(U, phi, Pi):
+        """
+        Function that yields the full action.
+
+        Parameters
+        ----------
+        U : np.array [d, L, T, Nc, Nc]
+            Fundamental gauge field.
+        phi : np.array [dNc*Ns*L*T]
+            Flattened pseudofermion field, distributed as phi = D[U] g where g ~ N(0, 1) is a standard Gaussian 
+            and D[U] is the Dirac operator corresponding to the input field U.
+        Pi : np.array [d, L, T, Nc, Nc]
+            Conjugate momenta to input SU(N) gauge field U.
+        
+        Returns
+        -------
+        S : np.complex64
+            Value of the action corresponding to fields U, phi, Pi.
+        """
+        V = construct_adjoint_links(U, gens, lat = lat)
+        dirac = dirac_op_sparse(kappa, V, lat = lat, bcs = bcs)
+        return np.einsum('mxtij,mxtji->', Pi, Pi) + wilson_gauge_action(U, beta, Nc) + pseudofermion_action(dirac, phi)
+    return action
+
+def accept_reject(U, U_prime, phi, Pi, Pi_prime, r, action):
     """
     Accept-reject step for the RHMC update. Returns True if the new configuration should be accepted. 
 
@@ -1758,14 +1822,22 @@ def accept_reject(U, U_prime, phi, Pi, Pi_prime, r, lat = LAT, bcs = DEFAULT_BCS
         Original conjugate momenta field.
     Pi_prime : np.array [d, L, T, Nc, Nc]
         Updated conjugate momenta field.
+    r : float
+        Random number in [0, 1) drawn from a uniform distribution.
+    action : function (U, phi, Pi) --> \mathbb R
+        Function for the action (result of get_full_action).
     
     Returns
     -------
     accept : bool
         Whether to accept the new configuration (True) or reject it (False).
+    dS : float 
+        Change in the action.
     """
-
-    return
+    deltaS = action(U, phi, Pi) - action(U_prime, phi, Pi_prime)
+    if r < np.exp(deltaS):
+        return True, deltaS
+    return False, deltaS
 
 ################################################################################
 ############################ PFAFFIAN CALCULATION ##############################
@@ -1796,6 +1868,19 @@ def pfaffian(Q):
     n = Q.shape[0]
     P, _, Pi = lu_decomp(Q, compute_J = False)
     pf = np.prod([P[i, i] for i in range(n)])           # Pfaffian is product of diagonal elements.
+    return pf
+
+def get_pf_observable(kappa, gens, lat = LAT, bcs = DEFAULT_BCS):
+    """
+    Gets the Pfaffian observable for the gauge field U. Note that this uses pfapack.pfaffian,
+    and will hopefully be switched over to my pfaffian implementation in the future once all 
+    the edge cases are debugged. 
+    """
+    def pf(U):
+        V = construct_adjoint_links(U, gens, lat = lat)
+        D = dirac_op_sparse(kappa, V, bcs = bcs, lat = lat)
+        Q = hermitize_dirac(D)
+        return pfapack.pfaffian.pfaffian(Q.toarray())
     return pf
 
 def arg_pf(Q):
@@ -2032,29 +2117,35 @@ def read_gauge_field(file):
 ################################################################################
 def main(args):
 
+    np.random.seed(20)
+
     # Initialize parser
     parser = argparse.ArgumentParser()
     parser.add_argument('-N', '--Nc', help = 'Number of colors', type = int, required = True)
     parser.add_argument('-L', '--L', help = 'Spatial size', type = int, required = True)
     parser.add_argument('-T', '--T', help = 'Temporal size', type = int, required = True)
     parser.add_argument('-k', '--kappa', help = 'Hopping parameter', type = float, required = True)
+    parser.add_argument('-b', '--beta', help = 'Gauge coupling', type = float, required = True)
     parser.add_argument('-o', '--out_dir', help = 'Output directory', type = str, required = True)
     parser.add_argument('-M', '--ntraj', help = 'Number of trajectories', type = int, required = True)
-    parser.add_argument('--in_file', help = 'Input directory', type = str)
-    parser.add_argument('--eps', help = 'Step size for update', type = float)
-    parser.add_argument('-i', '--inner_iters', help = 'Inner iterations for RHMC', type = int)
-    parser.add_argument('--hot_start', help = 'Hot start?', type = bool)
+    parser.add_argument('--in_file', help = 'Input directory', type = str, required = False)
+    parser.add_argument('--eps', help = 'Step size for update', type = float, required = False)
+    parser.add_argument('-i', '--inner_iters', help = 'Inner iterations for RHMC', type = int, required = False)
+    # parser.add_argument('--hot_start', help = 'Hot start?', type = bool, required = False)
+    parser.add_argument('--hot', default=False, action='store_true')
+    parser.add_argument('--cold', dest='hot', action='store_false')
     kwargs = parser.parse_args()
 
     # Parse input
     Nc, L, T = kwargs.Nc, kwargs.L, kwargs.T
     Ntraj = kwargs.ntraj
     kappa = kwargs.kappa
+    beta = kwargs.beta
     out_dir, in_file = kwargs.out_dir, kwargs.in_file
     eps = kwargs.eps if kwargs.eps is not None else DEFAULT_STEP_SIZE
     inner_iters = kwargs.inner_iters if kwargs.inner_iters else DEFAULT_RHMC_ITERS
-    hstart = kwargs.hot_start if kwargs.hot_start is not None else False
-    print(f'Number of colors: {Nc}.\nSize of lattice: ({L}, {T}).\nHopping parameter: {kappa}.\nOutput dir: {out_dir}.')
+    hstart = kwargs.hot
+    print(f'Number of colors: {Nc}.\nSize of lattice: ({L}, {T}).\nHopping parameter: {kappa}.\nOutput dir: {out_dir}.\nBeta: {beta}.')
     print(f'Computing {Ntraj} RHMC trajectories.')
     if in_file:
         print(f'Reading input from {in_file}.')
@@ -2062,50 +2153,83 @@ def main(args):
     print(f'RHMC Inner Iterations: {inner_iters}')
     print(f'Hot start? {hstart}')
     
-    dNc = Nc**2 - 1                             # Dimension of SU(N)
-    gens = get_generators(Nc)                   # Generators of SU(N)
+    dNc = Nc**2 - 1                                                 # Dimension of SU(N)
+    gens = get_generators(Nc)                                       # Generators of SU(N)
     Lat = Lattice(L, T)
     bcs = DEFAULT_BCS
 
     # Initialize gauge field
     if in_file is not None:
         field = read_gauge_field(in_file)
-        if field.shape == (d, lat.L, lat.T, Nc, Nc):                # input field is fundamental U
+        if field.shape == (d, Lat.L, Lat.T, Nc, Nc):                # input field is fundamental U
             U = field
-        elif field.shape == (d, dNc, lat.L, lat.T):                 # input field is coordinates \omega
+        elif field.shape == (d, dNc, Lat.L, Lat.T):                 # input field is coordinates \omega
             U = get_fund_field(field, gens)
         else:
             raise Exception('Input field is not the correct shape.')
     else:
         if hstart:
-            U = gen_random_fund_field(Nc, lat = lat)
+            U = gen_random_fund_field(Nc, lat = Lat)
         else:
-            U = id_field(Nc, lat = lat)
+            U = id_field(Nc, lat = Lat)
 
-    U_out = np.zeros((N_traj, d, Lat.L, Lat.T, Nc, Nc), dtype = np.complex64)    # output field
-    plaq_out = np.zeros((N_traj), np.float64)
+    # Initialize output. U_out = output gauge field, obs_meas = output observables. Each 
+    # observable should be solely a function of the gauge field U.
+    U_out = np.zeros((Ntraj, d, Lat.L, Lat.T, Nc, Nc), dtype = np.complex64)    # output field
     U_out[0] = U
-    plaq_out[0] = np.sum(plaquette(U))
-    total_itrs = 0
-    for traj in range(1, Ntraj):
-        phi, Pi = init_fields(U, kappa, Nc, gens, lat = Lat, bcs = bcs)          # init phi, Pi
-        U_prime, Pi_prime = update_fields(U, phi, Pi, gens, kappa, beta, eps, niters, lat = Lat, bcs = bcs)
+    # TODO make this a dict
+    observables = [
+        lambda U : np.sum(plaquette(U))
+    ]
+    obs_names = ['plaquette']
+    obs_labels = [r'$\sum_{x\in\Lambda} \mathcal{P}(x)$']
+    # observables = [
+    #     lambda u : np.sum(plaquette(u)),                            # Plaquette sum
+    #     get_pf_observable(kappa, gens, lat = Lat, bcs = bcs)        # Pfaffian of Dirac operator
+    # ]
+    # obs_names = ['plaquette', 'pfaffian']
+    # obs_labels = [r'$\sum_{x\in\Lambda} \mathcal P(x)$', r'$\mathrm{Pf}[\mathcal D[U]]$']
+    obs_meas = np.zeros((len(observables), Ntraj), dtype = np.complex64)
+    for oidx, obs in enumerate(observables):
+        obs_meas[oidx, 0] = obs(U)
+    action = get_full_action(gens, kappa, beta, lat = Lat, bcs = bcs)
 
-        # TODO implement and test that accept_reject calculates the correct change in action.
+    total_itrs = 1
+    traj = 1
+    # for traj in range(1, Ntraj):
+    while traj < Ntraj:
+        start = time.time()
+        phi, Pi = init_fields(U, kappa, Nc, gens, lat = Lat, bcs = bcs)          # init phi, Pi
+        U_prime, Pi_prime = update_fields(U, phi, Pi, gens, kappa, beta, eps, inner_iters, lat = Lat, bcs = bcs)
         r = np.random.rand()
-        if accept_reject(U, U_prime, phi, Pi, Pi_prime, r, lat = Lat, bcs = bcs):
+        acc_traj, dS = accept_reject(U, U_prime, phi, Pi, Pi_prime, r, action)
+        print(dS)
+        if acc_traj:
             U = U_prime
             U_out[traj] = U
-            plaq = np.sum(plaquette(U))                                           # monitor the plaquette
-            plaq_out[traj] = plaq
+            for oidx, obs in enumerate(observables):                             # compute observables on trajectory
+                obs_meas[oidx, traj] = obs(U)
+            print(f'Trajectory {traj} computed.\n -- dS = {dS}.\n -- plaq = {obs_meas[0, traj]}.')
+            traj += 1
         else:
-            traj -= 1
+            print(f'Trajectory rejected.')
         total_itrs += 1
-    acc_rej_rate = N_traj / total_itrs
+        print(f'Update time for trajectory: {time.time() - start}')
+    acc_rej_rate = Ntraj / total_itrs
     print(f'Accept-reject rate: {acc_rej_rate}.')
 
     # Write to file
+    f = h5py.File(f'{out_dir}/cfgs.h5', 'w')
+    f['U'] = U_out
+    f.close()
 
+    for oidx in range(len(observables)):
+        oname, obs = obs_names[oidx], obs_meas[oidx]
+        obs_path = f'{out_dir}/{oname}'
+        pt.plot_1d_data(np.arange(Ntraj), obs, ax_label = ['Trajectory', obs_labels[oidx]], saveat_path = f'{obs_path}.pdf')
+        f = h5py.File(f'{obs_path}.h5', 'w')
+        f[oname] = obs
+        f.close()
 
 if __name__ == '__main__':
     main(sys.argv)
