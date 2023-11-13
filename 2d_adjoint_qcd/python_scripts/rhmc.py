@@ -78,7 +78,8 @@ pt.set_font()
 
 import rhmc_coeffs as coeffs
 
-import pfapack
+# import pfapack
+from pfapack import pfaffian as pf
 
 ################################################################################
 ############################### INPUT PARAMETERS ###############################
@@ -89,7 +90,7 @@ T = 8                                       # Temporal size of the lattice
 DEFAULT_NC = 2                              # Default number of colors
 
 DEFAULT_STEP_SIZE = 0.005                    # Step size for RHMC updates.
-DEFAULT_RHMC_ITERS = 50                     # Default RHMC iterations per trajectory. Want n\epsilon\approx 1
+DEFAULT_RHMC_ITERS = 40                     # Default RHMC iterations per trajectory. Want n\epsilon\approx 1
 EPS = 1e-8                                  # Round-off for floating points.
 
 CG_TOL = 1e-12                              # CG error tolerance
@@ -634,6 +635,96 @@ def plaquette(U):
     return np.real(np.einsum('...ab,...bc,...cd,...da->...', 
         Un_mu, Unpmu_nu, dagger(Unpnu_mu), dagger(Un_nu)
     )) / Nc
+
+def polyakov_loop_field(U):
+    """
+    Returns the Polyakov loop field
+    $$
+        p(x) = Tr [\prod_{t = 0}^T U_t(x, t)]
+    $$
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+
+    Returns
+    -------
+    P : np.array [L]
+        Polyakov loop field Tr \prod_{t = 0}^T U_t(x, t).
+    """
+    Ut = U[0]
+    L, T, Nc = Ut.shape[0], Ut.shape[1], Ut.shape[-1]
+    poly = np.zeros((L), dtype = U.dtype)       # output Polyakov loop
+    for x in range(L):
+        loop = np.identity(Nc, dtype = U.dtype)
+        for t in range(T):
+            loop = loop @ Ut[x, t]
+        poly[x] = np.trace(loop)
+    return poly
+
+def polyakov_loop(U):
+    """
+    Returns the Polyakov loop field summed over all spatial positions.
+    
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+
+    Returns
+    -------
+    P : np.complex128
+        Summed Polyakov loop field \sum_{x} Tr \prod_{t = 0}^T U_t(x, t).
+    """
+    return np.sum(polyakov_loop_field(U))
+
+def topological_charge_density(U):
+    """
+    Computes the topological charge density for a gauge field configuration U. The topological 
+    charge density q_P is defined as in https://journals.aps.org/prd/pdf/10.1103/PhysRevD.99.054503 as:
+    $$
+        q_P = -i/(2\pi) \log \det P
+    $$
+    where P is a plaquette.
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+
+    Returns
+    -------
+    q : np.array [L, T]
+        Topological charge density q_P.
+    """
+    L, T = U.shape[1], U.shape[2]
+    plaqs = plaquette_gauge_field(U)
+    q = np.zeros((L, T), dtype = U.dtype)
+    for x, t in itertools.product(range(L), range(T)):
+        q[x, t] = -1j/(2*np.pi)*np.log(np.linalg.det(plaqs[x, t]))
+    return q
+
+def topological_charge(U):
+    """
+    Returns the topological charge
+    $$
+        Q = \sum_P q_P
+    $$
+    where \{P\} is the set of all plaquettes, and q_P is the associated topological charge density, defined 
+    in rhmc.topological_charge_density.
+
+    Parameters
+    ----------
+    U : np.array [2, L, T, Nc, Nc]
+        Gauge field array.
+
+    Returns
+    -------
+    Q : np.complex128
+        Topological charge on the configuration.
+    """
+    return np.sum(topological_charge_density(U))
 
 def one_side_staple(U):
     """
@@ -1877,10 +1968,12 @@ def get_pf_observable(kappa, gens, lat = LAT, bcs = DEFAULT_BCS):
     the edge cases are debugged. 
     """
     def pf(U):
+        from pfapack import pfaffian as pf
         V = construct_adjoint_links(U, gens, lat = lat)
         D = dirac_op_sparse(kappa, V, bcs = bcs, lat = lat)
         Q = hermitize_dirac(D)
-        return pfapack.pfaffian.pfaffian(Q.toarray())
+        # return pfapack.pfaffian.pfaffian(Q.toarray())
+        return pf.pfaffian(Q.toarray())
     return pf
 
 def arg_pf(Q):
@@ -2179,10 +2272,23 @@ def main(args):
     U_out[0] = U
     # TODO make this a dict
     observables = [
-        lambda U : np.sum(plaquette(U))
+        lambda U : np.sum(plaquette(U)),
+        polyakov_loop,
+        topological_charge,
+        # rhmc.get_pf_observable(kappa, gens, lat = Lat, bcs = bcs)
     ]
-    obs_names = ['plaquette']
-    obs_labels = [r'$\sum_{x\in\Lambda} \mathcal{P}(x)$']
+    obs_names = [
+        'plaquette',
+        'polyakov',
+        'top_charge',
+        # 'pfaffian'
+    ]
+    obs_labels = [
+        r'P',
+        r'P_{\mathrm{Polyakov}}',
+        r'Q',
+        # r'\mathrm{Pf}\,D_W[U]'
+    ]
     # observables = [
     #     lambda u : np.sum(plaquette(u)),                            # Plaquette sum
     #     get_pf_observable(kappa, gens, lat = Lat, bcs = bcs)        # Pfaffian of Dirac operator
