@@ -41,10 +41,10 @@
 ############################# SYSTEM SPECIFIC PATHS ############################
 ################################################################################
 # Macbook
-util_path = '/Users/theoares/lqcd/utilities'
+# util_path = '/Users/theoares/lqcd/utilities'
 
 # Desktop
-# util_path = ''
+util_path = '/home/patrickoare/lqcd/utilities'
 
 ################################################################################
 #################################### IMPORTS ###################################
@@ -89,9 +89,15 @@ T = 8                                       # Temporal size of the lattice
 
 DEFAULT_NC = 2                              # Default number of colors
 
-DEFAULT_STEP_SIZE = 0.005                    # Step size for RHMC updates.
-DEFAULT_RHMC_ITERS = 40                     # Default RHMC iterations per trajectory. Want n\epsilon\approx 1
+# works well for 8x8
+DEFAULT_STEP_SIZE = 0.005                   # Step size for RHMC updates.
+DEFAULT_RHMC_ITERS = 25                     # Default RHMC iterations per trajectory. Want n\epsilon\approx 1
+
+# DEFAULT_STEP_SIZE = 0.001                   # Step size for RHMC updates.
+# DEFAULT_RHMC_ITERS = 25                     # Default RHMC iterations per trajectory. Want n\epsilon\approx 1
 EPS = 1e-8                                  # Round-off for floating points.
+
+DEFAULT_SEED = 20
 
 CG_TOL = 1e-12                              # CG error tolerance
 CG_MAX_ITER = 1000                          # Max number of iterations for CG
@@ -2210,8 +2216,6 @@ def read_gauge_field(file):
 ################################################################################
 def main(args):
 
-    np.random.seed(20)
-
     # Initialize parser
     parser = argparse.ArgumentParser()
     parser.add_argument('-N', '--Nc', help = 'Number of colors', type = int, required = True)
@@ -2225,6 +2229,7 @@ def main(args):
     parser.add_argument('--eps', help = 'Step size for update', type = float, required = False)
     parser.add_argument('-i', '--inner_iters', help = 'Inner iterations for RHMC', type = int, required = False)
     # parser.add_argument('--hot_start', help = 'Hot start?', type = bool, required = False)
+    parser.add_argument('-s', '--seed', help = 'Seed for hot start', type = int, required = False)
     parser.add_argument('--hot', default=False, action='store_true')
     parser.add_argument('--cold', dest='hot', action='store_false')
     kwargs = parser.parse_args()
@@ -2237,6 +2242,7 @@ def main(args):
     out_dir, in_file = kwargs.out_dir, kwargs.in_file
     eps = kwargs.eps if kwargs.eps is not None else DEFAULT_STEP_SIZE
     inner_iters = kwargs.inner_iters if kwargs.inner_iters else DEFAULT_RHMC_ITERS
+    seed = kwargs.seed if kwargs.seed else DEFAULT_SEED
     hstart = kwargs.hot
     print(f'Number of colors: {Nc}.\nSize of lattice: ({L}, {T}).\nHopping parameter: {kappa}.\nOutput dir: {out_dir}.\nBeta: {beta}.')
     print(f'Computing {Ntraj} RHMC trajectories.')
@@ -2245,6 +2251,10 @@ def main(args):
     print(f'RHMC step size: {eps}')
     print(f'RHMC Inner Iterations: {inner_iters}')
     print(f'Hot start? {hstart}')
+    if hstart:
+        print(f'Seed for start: {seed}')
+
+    np.random.seed(seed)
     
     dNc = Nc**2 - 1                                                 # Dimension of SU(N)
     gens = get_generators(Nc)                                       # Generators of SU(N)
@@ -2325,7 +2335,11 @@ def main(args):
     print(f'Accept-reject rate: {acc_rej_rate}.')
 
     # Write to file
-    f = h5py.File(f'{out_dir}/cfgs.h5', 'w')
+    if seed == DEFAULT_SEED:
+        out_fname = 'cfgs'
+    else:
+        out_fname = f'cfgs{seed}'
+    f = h5py.File(f'{out_dir}/{out_fname}.h5', 'w')
     f['U'] = U_out
     f.close()
 

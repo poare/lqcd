@@ -404,7 +404,8 @@ def plot_1d_data(xvals, cvs, ax = None, col = [pal[0], pal[1]], ax_label = ['x',
             ax.plot(xvals, np.imag(cvs), color = col[1], label = r'$\mathrm{Im}[' + fn_label + r']$', markersize = 0, **kwargs)
         else:
             # color = col[0] if type(col) is list else col
-            ax.plot(xvals, cvs, color = col, label = fn_label, markersize = 0, **kwargs)
+            color = col[0] if len(col) != 3 else col
+            ax.plot(xvals, cvs, color = color, label = fn_label, markersize = 0, **kwargs)
         if title:
             ax.set_title(title, fontsize = style['fontsize'])
         if logy:
