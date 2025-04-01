@@ -421,3 +421,13 @@ def average_O3_orbits(Z, k_list):
         Zavg.append(np.mean(Z[idx_list, :]))
         sigma.append(np.std(Z[idx_list, :]))
     return k_rep_list, Zavg, sigma
+
+def fold(corr, sign = 1):
+    """Folds a correlator about its midpoint. For sign = 1, folds symmetrically; for sign = -1, folds asymmetrically."""
+    n_boot, T = corr.shape
+    n_pts = (T + 1) // 2         # number of points in folded correlator
+    corr_folded = np.zeros((n_boot, n_pts), dtype = corr.dtype)
+    for t in range(n_pts):
+        tsym = -1 - t
+        corr_folded[:, t] = (corr[:, t] + sign * corr[:, tsym]) / 2
+    return corr_folded

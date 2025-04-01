@@ -265,7 +265,7 @@ def errorbar_1d(xvals, cvs, stds, ax = None, col = [pal[0], pal[1]], ax_label = 
     return fig, ax
 
 def scatter_1d(xvals, cvs, ax = None, col = [pal[0], pal[1]], ax_label = ['x', 'y'], title = None, fn_label = 'f', legend = False, style \
-    = default_style, mkr = '.', fig_size = None, xlims = None, ylims = None, tight_layout = True, saveat_path = None, logy = False, **kwargs):
+    = default_style, mkr = '.', fig_size = None, xlims = None, ylims = None, tight_layout = True, saveat_path = None, logy = False, logx = False, **kwargs):
     """
     Originally the function `plot_1d_points` with smooth = False.
     Plots a function of one real variable, f, which can either be real or complex-valued. Assumes f 
@@ -327,6 +327,8 @@ def scatter_1d(xvals, cvs, ax = None, col = [pal[0], pal[1]], ax_label = ['x', '
             ax.set_title(title, fontsize = style['fontsize'])
         if logy:
             ax.set_yscale('log')
+        if logx:
+            ax.set_xscale('log')
         ax.set_xlabel(ax_label[0], fontsize = style['fontsize'])
         ax.set_ylabel(ax_label[1], fontsize = style['fontsize'])
         if xlims != None:
@@ -759,11 +761,11 @@ def plot_fn_CR_2D(func, ax = None,  fig = None, x_bounds = [-2, 2], y_bounds = [
         else:
             fig = ax.get_figure()
         
-        X, Y = np.meshgrid(
+        XX, YY = np.meshgrid(
             np.linspace(x_bounds[0], x_bounds[1], nx),
             np.linspace(y_bounds[0], y_bounds[1], ny)
         )
-        Z = X + 1j * Y
+        Z = XX + 1j * YY
 
         graph = ax.pcolormesh(XX, YY, dat, cmap = col, **kwargs)
 

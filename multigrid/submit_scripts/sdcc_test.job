@@ -1,0 +1,20 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=lqcd_test
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=lqcd
+#SBATCH --account=lqcdtest
+#SBATCH -t 00:30:00
+
+root=/sdcc/u/poare
+logs=${root}/lqcd/multigrid/logs
+cd ${root}/Grid/build/examples
+
+# export OMP_NUM_THREADS=6
+
+./Example_Laplacian > ${logs}/sdcc_test.out
+
+# mpirun -np 4 Example_Laplacian > ${logs}/cfg${cfg}.txt

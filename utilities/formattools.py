@@ -226,6 +226,26 @@ def format_float(f, ndec = 2):
     f_str_p = [c if c != '.' else 'p' for c in f_str]
     return ''.join(f_str_p)
 
+def str_to_float(s):
+    """
+    Parses a string s and returns it as a float, with the character 'p' denoting a decimal point.
+
+    Parameters
+    ----------
+    s : str
+        String to parse
+    
+    Returns
+    -------
+    d : float
+        String represented as a float.
+    """
+    if 'p' not in s:
+        return float(s)
+    tokens = s.split('p')
+    assert len(tokens) == 2, 's has the wrong number of decimal points'
+    return float(f'{tokens[0]}.{tokens[1]}')
+
 # TODO change over to using pandas
 import pandas as pd
 
