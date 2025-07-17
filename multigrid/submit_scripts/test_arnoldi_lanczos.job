@@ -1,0 +1,18 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=arnoldi
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=lqcd
+#SBATCH --account=lqcdtest
+#SBATCH -t 06:00:00
+
+root=/sdcc/u/poare
+logs=${root}/lqcd/multigrid/logs
+cd ${root}/Grid/build/examples
+
+# export OMP_NUM_THREADS=6
+./Example_arnoldi > ${logs}/arnoldi_${SLURM_JOB_ID}.out
+
