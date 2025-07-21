@@ -6,13 +6,17 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --partition=lqcd
-#SBATCH --account=lqcdtest
-#SBATCH -t 06:00:00
+#SBATCH --account=class-c-arnoldi
+#SBATCH -t 01:00:00
+
+nodes=1
 
 root=/sdcc/u/poare
 logs=${root}/lqcd/multigrid/logs
 cd ${root}/Grid/build/examples
 
-# export OMP_NUM_THREADS=6
+# export OMP_NUM_THREADS=4
 ./Example_arnoldi > ${logs}/arnoldi_${SLURM_JOB_ID}.out
+srun -N$nodes -n$nodes ./Example_arnoldi > ${logs}/arnoldi_${SLURM_JOB_ID}.out
+
 
