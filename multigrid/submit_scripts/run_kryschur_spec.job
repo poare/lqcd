@@ -16,5 +16,5 @@ logs=${root}/lqcd/multigrid/logs
 cd ${root}/Grid/build/examples
 
 # export OMP_NUM_THREADS=4
-./Example_arnoldi > ${logs}/kryschur_${SLURM_JOB_ID}.out
+./Example_spec_kryschur > ${logs}/kryschur_${SLURM_JOB_ID}.out
 srun -N$nodes -n$nodes ./Example_kryschur > ${logs}/kryschur_${SLURM_JOB_ID}.out
