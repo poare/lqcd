@@ -1,0 +1,20 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=kryschur
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=lqcd
+#SBATCH --account=class-c-arnoldi
+#SBATCH -t 12:00:00
+
+nodes=1
+
+root=/sdcc/u/poare
+logs=${root}/lqcd/multigrid/logs
+cd ${root}/Grid/build/examples
+
+# export OMP_NUM_THREADS=4
+./Example_arnoldi > ${logs}/kryschur_${SLURM_JOB_ID}.out
+srun -N$nodes -n$nodes ./Example_kryschur > ${logs}/kryschur_${SLURM_JOB_ID}.out
