@@ -12,23 +12,24 @@
 nodes=1
 
 Nm=200
-Nk=110
+Nk=120
 maxIter=10000
 Nstop=100
 
 root="ckpoint_EODWF_lat.125"
-dirname="${root}_Nm${Nm}_Nk${Nk}"
+# runname="Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
+runname="unprec_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
 inFile="${homedir}/PETSc-Grid/${root}"
 
-logDir=${homedir}/lqcd/multigrid/logs
-outDir="${homedir}/lqcd/multigrid/spectra/${dirname}_${SLURM_JOB_ID}"
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
 
 mkdir -p ${logDir}
 mkdir -p ${outDir}
 
-logs="${logDir}/${dirname}_${SLURM_JOB_ID}.out"
+logs="${logDir}/${runname}.log"
 rf="EvalReSmall"
 
 cd ${homedir}/Grid/build/examples
