@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#ulimit -c unlimited
+
+#PBS -N ks_topology
+#PBS -j oe
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=12:00:00
+#PBS -q small
+#PBS -A LatticeQCD_aesp_CNDA
+#PBS -l filesystems=home
+#PBS -M poare@bnl.gov
+
+module load hdf5
+module load c-lime
+
+nodes=1
+
+Nm=200
+Nk=120
+maxIter=10000
+Nstop=100
+
+homedir=/home/poare
+rf="EvalReSmall"
+
+# TUNE on config U_smr_3.000000, later run on more
+for idx in "3.000000"
+do
+
+    cfg="U_smr_${idx}"
+    echo "Running cfg ${cfg}."
+
+    root="32cube-rho0.124-tau4/${cfg}"
+    runname="Nm${Nm}_Nk${Nk}_${PBS_JOBID}"
+    inFile="/home/sy3394/src/Grid/systems/Aurora2/HMC/32cube-rho0.124-tau4/snapshots/702/${cfg}"
+
+    logDir="${homedir}/lqcd/multigrid/logs/${root}"
+    outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
+
+    mkdir -p ${logDir}
+    mkdir -p ${outDir}
+
+    logs="${logDir}/${runname}.log"
+
+    cd ${homedir}/Grid/build/examples
+
+    # export OMP_NUM_THREADS=4
+    # srun -N$nodes -n$nodes ./Example_wilson_spectrum ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} > ${logs}
+    mpirun -np 4 -- ./Example_wilson_spectrum ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} > ${logs}
+
+done
