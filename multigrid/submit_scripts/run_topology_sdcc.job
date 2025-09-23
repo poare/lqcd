@@ -27,7 +27,7 @@ do
     echo "Running cfg ${cfg}."
 
     root="32cube-rho0.124-tau4/${cfg}"
-    runname="Nm${Nm}_Nk${Nk}_${PBS_JOBID}"
+    runname="Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
     inFile="${homedir}/configs/32cube-rho0.124-tau4/snapshots/702/${cfg}"
 
     logDir="${homedir}/lqcd/multigrid/logs/${root}"
