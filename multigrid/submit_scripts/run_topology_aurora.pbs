@@ -2,12 +2,13 @@
 
 #ulimit -c unlimited
 
+#PBS -A LatticeQCD_aesp_CNDA
 #PBS -N ks_topology
 #PBS -j oe
 #PBS -l nodes=1:ppn=4
 #PBS -l walltime=12:00:00
-#PBS -q small
-#PBS -A LatticeQCD_aesp_CNDA
+#PBS -q prod
+#PBS -l filesystems=home
 #PBS -l filesystems=home
 #PBS -M poare@bnl.gov
 
