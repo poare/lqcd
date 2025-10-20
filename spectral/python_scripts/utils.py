@@ -1,5 +1,5 @@
 import numpy as np
-import gmpy2 as gmp
+# import gmpy2 as gmp
 import h5py
 import os
 import time
@@ -8,6 +8,9 @@ import itertools
 import io
 import random
 import matplotlib.pyplot as plt
+import mpmath as mp
+import scipy
+from abc import ABC
 
 ################################################################################
 ###################################### IO ######################################
@@ -35,44 +38,99 @@ def read_param_file(fname):
         Number of points on the omega line.
     int
         Number of temporal points.
-    np.array[float64 or gmpy2.mpc]
+    np.array[float64 or mp.mpc]
         Spectral function
 
     """
-    return n_omega, n_tau, rho, G
+    # return n_omega, n_tau, rho, G
+    return
 
 
 ################################################################################
 ################################## Nevanlinna ##################################
 ################################################################################
 
-# Set precision for gmpy2 and initialize complex numbers
-prec = 128
-gmp.get_context().allow_complex = True
-gmp.get_context().precision = prec
+# Set precision for mp and define some basic functions / constants.
+mp.dps = 100
 
-# Mobius transform
-I = gmp.mpc(0, 1)
+# Basic data type for manipulation: np.ndarray with objects of type mp.mpc or mp.mpf. Note that 
+# given either an mp.matrix or np.ndarray A, one can cast it to this type with `to_np(to_mp(A))`.
+def to_np(A):
+    """Converts a mp.matrix to an np.array."""
+    return np.array(A.tolist())
+def to_mp(A):
+    """Converts a np.ndarray to a mp.matrix. Note this only works for square matrices."""
+    return mp.matrix(A.tolist())
+
+ZERO = mp.mpf("0")
+ONE  = mp.mpf("1")
+I    = mp.mpc("0", "1")
+PI   = mp.pi()
+
+def zeros(n):
+    """Creates a zero matrix of dimension n with mpmath."""
+    # return np.array(mp.zeros(n)).reshape(n, n)
+    return to_np(mp.zeros(n))
+
+def eye(n):
+    """Creates a zero matrix of dimension n with mpmath."""
+    # return np.array(mp.eye(n)).reshape(n, n)
+    return to_np(mp.eye(n))
+
+def minv(A):
+    """Inverts a matrix represented as a np.ndarray of mp.mpc numbers."""
+    return to_np(mp.inverse(to_mp(A)))
+
+def msqrt(A):
+    """Evaluates the matrix square root of a matrix."""
+    return to_np(mp.sqrtm(to_mp(A)))
+
+def mlog(A):
+    """Evaluates the matrix logarithm of a matrix."""
+    return to_np(mp.logm(to_mp(A)))
+
+def twoNorm(v):
+    """Evaluates the L2 norm of a vector of mp.mpc objects."""
+    return mp.sqrt(sum([z*z.conjugate() for z in v]))
+
+def factor_2by2(A):
+    """Unpacks a 2x2 block matrix A into its four components."""
+    n = A.shape[0] // 2
+    return np.array([
+        [A[:n, :n], A[:n, n:]],
+        [A[n:, :n], A[n:, n:]]
+    ])
+
+def unit_vector(i, N):
+    """Constructs the ith unit vector in R^n with mp.mpc numbers."""
+    ei = np.array([ZERO for _ in range(N)])
+    ei[i] = ONE
+    return ei
+
+SIGMA2 = to_np(mp.matrix([[0, -I], [I, 0]]))
+
+# Cayley transform
 h = lambda z : (z - I) / (z + I)
-hinv = lambda q : I * (gmp.mpc(1, 0) + q) / (gmp.mpc(1, 0) - q)
+hinv = lambda q : I * (ONE + q) / (ONE - q)
+
 # for some reason mpc segfaults when it uses the built in conjugate values, so just use this
-def conj(z):
-    """Returns the conjugate of a gmp.mpc value z. For some reason, the built in mpc function .conj
-    breaks when it is called."""
-    return gmp.mpc(z.real, -z.imag)
+# def conj(z):
+#     """Returns the conjugate of a mp.mpc value z. For some reason, the built in mpc function .conj
+#     breaks when it is called."""
+#     return mp.mpc(z.real, -z.imag)
 
 def to_mpfr(z):
-    """Reformats a np.real number into a gmpy2.mpfr number"""
-    return gmp.mpfr(z)
+    """Reformats a np.real number into a mp.mpf number"""
+    return mp.mpf(z)
 
 def to_mpc(z):
     """Reformats a np.complex number into a gmpy2.mpc number"""
-    return gmp.mpc(z)
+    return mp.mpc(z)
 
 # def is_zero(z, epsilon = 1e-10):
 def is_zero(z, epsilon = 1e-20):
     """
-    Returns whether a gmp.mpc number z is consistent with 0 to the precision epsilon in both the
+    Returns whether a mp.mpc number z is consistent with 0 to the precision epsilon in both the
     real and imaginary parts.
     """
     return np.abs(np.float64(z.real)) < epsilon and np.abs(np.float64(z.imag)) < epsilon
@@ -88,12 +146,12 @@ def hardy(k):
 
     Returns
     -------
-    function fk : gmp.mpc -> gmp.mpc
+    function fk : mp.mpc -> mp.mpc
         kth basis function for the Hardy space.
     """
     def fk(z):
         """kth basis element for the standard Hardy space basis. Acts on gmpy2.mpc numbers."""
-        return 1 / (gmp.sqrt(gmp.const_pi()) * (z + I)) * ((z - I) / (z + I)) ** k
+        return 1 / (mp.sqrt(PI) * (z + I)) * ((z - I) / (z + I)) ** k
     return fk
 
 def read_txt_input(data_path):
@@ -109,11 +167,11 @@ def read_txt_input(data_path):
 
     Returns
     -------
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         Matsubara frequencies Y.
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         Correlator values C.
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         Mobius transformed correlator values lambda.
     int
         Number of points the correlator is evaluated at, i.e. card(C)
@@ -127,8 +185,8 @@ def read_txt_input(data_path):
             tokens = line.split()
             # TODO depending on the input precision we may need to be more careful about the next line
             freq, reG, imG = float(tokens[0]), float(tokens[1]), float(tokens[2])
-            Y.append(gmp.mpc(0, freq))
-            C.append(gmp.mpc(-reG, -imG))
+            Y.append(mp.mpc(0, freq))
+            C.append(mp.mpc(-reG, -imG))
             Npts += 1
         f.close()
     Y.reverse()         # code states that the algorithm is more robust with reverse order
@@ -145,22 +203,22 @@ def construct_Pick(Y, lam):
 
     Parameters
     ----------
-    Y : np.array[gmp.mpc]
+    Y : np.array[mp.mpc]
         Matsubara frequencies the correlator is measured at.
-    lam : np.array[gmp.mpc]
+    lam : np.array[mp.mpc]
         Mobius transform of the input correlator.
 
     Returns
     -------
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         len(lam) by len(lam) array for the Pick matrix.
     """
     Npts = len(Y)
     Pick = np.empty((Npts, Npts), dtype = object)
     for i in range(Npts):
         for j in range(Npts):
-            num = 1 - lam[i] * conj(lam[j])
-            denom = 1 - h(Y[i]) * conj(h(Y[j]))
+            num = 1 - lam[i] * mp.conj(lam[j])
+            denom = 1 - h(Y[i]) * mp.conj(h(Y[j]))
             Pick[i, j] = num / denom
     return Pick
 
@@ -170,9 +228,9 @@ def is_soluble(Y, lam, prec = 1e-10):
 
     Parameters
     ----------
-    Y : np.array[gmp.mpc]
+    Y : np.array[mp.mpc]
         Matsubara frequencies the correlator is measured at.
-    lam : np.array[gmp.mpc]
+    lam : np.array[mp.mpc]
         Mobius transform of the input correlator.
 
     Returns
@@ -198,29 +256,29 @@ def construct_phis(Y, lam):
 
     Parameters
     ----------
-    Y : np.array[gmp.mpc]
+    Y : np.array[mp.mpc]
         Matsubara frequencies the correlator is measured at.
-    lam : np.array[gmp.mpc]
+    lam : np.array[mp.mpc]
         Mobius transform of the input correlator.
 
     Returns
     -------
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         Values of phi[k] = theta_k(Y_k).
     """
     Npts = len(Y)
-    phi = np.full((Npts), gmp.mpc(0, 0), dtype = object)
+    phi = np.full((Npts), ZERO, dtype = object)
     phi[0] = lam[0]
     for j in range(1, Npts):
         arr = np.array([
-            [gmp.mpc(1, 0), gmp.mpc(0, 0)],
-            [gmp.mpc(0, 0), gmp.mpc(1, 0)]
+            [ONE, ZERO],
+            [ZERO, ONE]
         ])
         for k in range(0, j):
-            xik = (Y[j] - Y[k]) / (Y[j] - conj(Y[k]))
+            xik = (Y[j] - Y[k]) / (Y[j] - mp.conj(Y[k]))
             factor = np.array([
                 [xik, phi[k]],
-                [conj(phi[k]) * xik, gmp.mpc(1, 0)]
+                [mp.conj(phi[k]) * xik, ONE]
             ])
             arr = arr @ factor
         [[a, b], [c, d]] = arr
@@ -241,32 +299,32 @@ def construct_phis_non_lex(Y, lam):
 
     Parameters
     ----------
-    Y : np.array[gmp.mpc]
+    Y : np.array[mp.mpc]
         Mobius transform of Matsubara frequencies the correlator is measured at.
-    lam : np.array[gmp.mpc]
+    lam : np.array[mp.mpc]
         Mobius transform of the input correlator.
 
     Returns
     -------
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         Values of phi[k] = theta_k(Y_k).
     """
     Npts = len(Y)
     abcd_bar_lst = []
     for k in range(Npts - 1):
         id = np.array([
-            [gmp.mpc(1, 0), gmp.mpc(0, 0)],
-            [gmp.mpc(0, 0), gmp.mpc(1, 0)]
+            [ONE, ZERO],
+            [ZERO, ONE]
         ])
         abcd_bar_lst.append(id)
-    phi = np.full((Npts), gmp.mpc(0, 0), dtype = object)
+    phi = np.full((Npts), ZERO, dtype = object)         # TODO make sure this doesn't break anything if it's by reference
     phi[0] = lam[0]
     for k in range(Npts - 1):
         for j in range(k, Npts - 1):
-            xik = (Y[j + 1] - Y[k]) / (Y[j + 1] - conj(Y[k]))
+            xik = (Y[j + 1] - Y[k]) / (Y[j + 1] - mp.conj(Y[k]))
             factor = np.array([
                 [xik, phi[k]],
-                [conj(phi[k]) * xik, gmp.mpc(1, 0)]
+                [mp.conj(phi[k]) * xik, ONE]
             ])
             abcd_bar_lst[j] = abcd_bar_lst[j] @ factor
         num = lam[k + 1] * abcd_bar_lst[k][1, 1] - abcd_bar_lst[k][0, 1]
@@ -274,7 +332,7 @@ def construct_phis_non_lex(Y, lam):
         print('num: ' + str(num))
         print('denom: ' + str(denom))
         if is_zero(num):
-            phi[k + 1] = gmp.mpc(0, 0)
+            phi[k + 1] = ZERO
         else:
             phi[k + 1] = num / denom
     return phi
@@ -286,9 +344,9 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
 
     Parameters
     ----------
-    Y : np.array[gmp.mpc]
+    Y : np.array[mp.mpc]
         Matsubara frequencies the correlator is measured at.
-    phi : np.array[gmp.mpc]
+    phi : np.array[mp.mpc]
         Vector of phi[k] = theta_k(Y_k) values to input.
     zspace : np.array[np.float64]
         Linspace to evaluate the analytic continuation at, defined on C+
@@ -297,27 +355,27 @@ def analytic_continuation(Y, phi, zspace, theta_mp1 = lambda z : 0):
 
     Returns
     -------
-    np.array[gmp.mpc]
+    np.array[mp.mpc]
         len(zspace) array of values for the analytic continuation performed on zspace.
     """
     Nreal, Npts = len(zspace), len(Y)
     cont = np.empty((Nreal), dtype = object)
     for idx, z in enumerate(zspace):
         abcd = np.array([
-            [gmp.mpc(1, 0), gmp.mpc(0, 0)],
-            [gmp.mpc(0, 0), gmp.mpc(1, 0)]
+            [ONE, ZERO],
+            [ZERO, ONE]
         ])
         for k in range(Npts):
-            xikz = (z - Y[k]) / (z - conj(Y[k]))
+            xikz = (z - Y[k]) / (z - mp.conj(Y[k]))
             factor = np.array([
                 [xikz, phi[k]],
-                [conj(phi[k]) * xikz, gmp.mpc(1, 0)]
+                [mp.conj(phi[k]) * xikz, ONE]
             ])
             abcd = abcd @ factor
         num = abcd[0, 0] * theta_mp1(z) + abcd[0, 1]
         denom = abcd[1, 0] * theta_mp1(z) + abcd[1, 1]
         if is_zero(num):
-            theta = gmp.mpc(0, 0)
+            theta = ZERO
         else:
             theta = num / denom         # contractive function theta(z)
         # print(theta)    # theta(z) should have norm <= 1
@@ -332,7 +390,7 @@ def write_txt_output(out_path, data, Nreal, omega, eta):
     ----------
     out_path : string
         Output file path to write to. Should be a .txt file.
-    data : np.array[gmp.mpc]
+    data : np.array[mp.mpc]
         Datapoints for function to write to file.
     Nreal : int
         Size of linspace that the function is evaluated on.
@@ -352,6 +410,358 @@ def write_txt_output(out_path, data, Nreal, omega, eta):
         f.write(s)
     f.close()
     return True
+
+################################################################################
+################################## Kovalishina #################################
+################################################################################
+
+class WeylBall:
+    """
+    Implements a Weyl matrix ball, defined as,
+    $$
+        B(C; L, R) := \{C + LXR : 1 - X^\dagger X\succeq 0 \}.
+    $$
+    The Weyl matrix ball generalizes the disk to matrices 
+    of dimension n. 
+
+    Fields
+    ------
+    n : int
+        Dimension of the Weyl matrix ball
+    center : np.array [N, N], dtype = np.complex128 or mp.mpc
+        Center of the matrix ball.
+    lRad : np.array [N, N], dtype = mp.mpc or np.complex128
+        Left (gauche) radius for the matrix ball.
+    rRad : np.array [N, N], dtype = np.complex128 or mp.mpc
+        Right (droit) radius for the matrix ball. 
+    """
+    n      : int
+    center : np.ndarray
+    lRad   : np.ndarray
+    rRad   : np.ndarray
+
+    def __init__(self, _center, _lRad, _rRad):
+        """
+        Initializes a Weyl matrix ball. 
+        """
+        self.n      = _center.shape[0]
+        self.center = _center
+        self.lRad   = _lRad
+        self.rRad   = _rRad
+        return
+    
+    def elementof(self, Z : np.ndarray):
+        """
+        Returns true if Z is a member of the given Weyl matrix ball.
+        """
+        # eye(n) - mp.inverse(self.lRad) * (Z - self.center) * mp.inverse(self.rRad)
+
+        return
+    
+    def projection(self, a : np.ndarray, b : np.ndarray):
+        """
+        Projects the Weyl ball into a disk.
+        """
+        return
+
+class Hankel:
+    """
+    Fields
+    ------
+    n : int
+        Number of moments n. The Hankel matrix stores information about the moments 0, 1, ..., n, n+1, ..., 2n.
+    k : int
+        Dimension of the problem (size of each matrix / moment).
+    moments : np.ndarray [2n+1, k], dtype = np.complex128 or mp.mpc
+        Moments [C0, ..., C_{2n}] for the Hankel matrix.
+    hankel : np.ndarray [(n+1)k, (n+1)k], dtype = np.complex128 or mp.mpc
+        Hankel matrix,
+        $$
+            [
+                [C0, C1, ..., C_n],
+                [C1, C2, ..., C_n+1],
+                ...
+                [Cn, C_n+1, ..., C_2n],
+            ].
+        $$
+    """
+    n       : int
+    k       : int
+    moments : np.ndarray
+    hankel  : np.ndarray
+
+    def __init__(self, _mvec : np.ndarray):
+        """
+        Parameters
+        ----------
+        _mvec : np.ndarray (2n+1, k, k), dtype = mp.mpc or np.complex128
+            Vector of 2n+1 moments [C0, C1, ..., C_{2n}], each of which is a k-dimensional matrix.
+        """
+        # _mvec = to_np(to_mp(_mvec))                 # cast _mvec to np.ndarray of mp.mpc elements
+        # self.n       = (_mvec.shape[0] - 1) // 2
+        self.n       = _mvec.shape[0] // 2
+        self.k       = _mvec.shape[1]
+        self.moments = _mvec
+        _hankel = []
+        # for i in range(self.n + 1):                 # populate ith row
+        for i in range(self.n):                 # populate ith row
+            row = []
+            # for j in range(i, self.n + 1 + i):      # get N+1 moments i, i+1, ..., i+1+N
+            for j in range(i, self.n + i):      # get N+1 moments i, i+1, ..., i+1+N
+                # row[i].append(_mvec[j])
+                row.append(_mvec[j])
+            _hankel.append(row)
+        self.hankel = np.block(_hankel)
+    
+    def isPSD(self):
+        """
+        Returns true if self.hankel is positive semi-definite, false otherwise. 
+        """
+        try:
+            mp.cholesky(to_mp(self.hankel))
+        except ValueError as e:
+            print(e)
+            return False
+        return True
+
+# TODO: make an abstract parent class Kovalishina that can 
+# then have specific implementations for NevanlinnaPick, 
+# Caratheodory, and Hamburger.
+# class Kovalishina (ABC):
+#     """
+#     Abstract class to generalize the Kovalishina interpolation.
+#     """
+#     # moments : mp.matrix
+#     def __init__(self, _moments):
+#         self.moments = _moments
+#         return
+
+# class Hamburger (Kovalishina):
+class Hamburger:
+    """
+    Computes the solution to the Hamburger moment problem, given either 
+        (a) A list of moments [C0, C1, ..., C_{2n}], or
+        (b) A Hankel matrix of type 'Hankel'.
+    The 'Hamburger' class can take in an optional parameter _eval_line, which is the 
+    evaluation axis for the problem. In this case, it will store the matrix U(z) and 
+    the Weyl matrix W(z), computed for each z in _eval_line. If _eval_line is not input 
+    when instantiating a 'Hamburger' object, one can still compute U(z) and W(z) for a 
+    given z or pass in an evaluation axis later. 
+
+    hankel    : Hankel
+        Hankel matrix of moments H (or allow a vector to be input).
+    n         : int
+        n parameter from paper, moments C0, C1, ..., C_{2n} calculated.
+    k         : int
+        Size of the block problem (each moment is a k by k matrix).
+    J         : np.ndarray (2k, 2k), dtype = np.complex128 or mp.mpc
+        k by k J-matrix. For Hamburger moment problem, J is block sigma2.
+    eval_axis : None or np.ndarray (M), dtype = np.complex128 or mp.mpc
+        Axis to evaluate the Weyl matrix at. Can be None and computed later. 
+    M         : int
+        Size of evaluation axis
+    U         : np.ndarray (2k, 2k, M), dtype = np.complex128 or mp.mpc
+        U matrix from Kovalishina. 
+    W         : np.ndarray (2k, 2k, M), dtype = np.complex128 or mp.mpc
+        Weyl matrix from Kovalishina. 
+    center    : np.ndarray (k, k, M), dtype = np.complex128 or mp.mpc
+        Center of the component-wise Wertevorrat. 
+    radius    : np.ndarray (k, k, M), dtype = np.complex128 or mp.mpc
+        Radius of the component-wise Wertevorrat. 
+    """
+    hankel      : Hankel
+    n           : int
+    k           : int
+    J           : np.ndarray
+    eval_axis   : np.ndarray
+    M           : int
+    U           : np.ndarray
+    W           : np.ndarray
+    center      : np.ndarray            # [k, k, N] center of component-wise Wertevorrat
+    radius      : np.ndarray            # radius of component-wise Wertevorrat
+
+    def __init__(self, _moments, _eval_axis = None):
+        # super().__init__(_moments)
+        if isinstance(_moments, np.ndarray):
+            self.hankel = Hankel(_moments)
+        elif isinstance(_moments, Hankel):
+            self.hankel = _moments
+        else:
+            raise Exception('_moments must either be a vector of moments or a Hankel matrix.')
+        
+        self.n       = self.hankel.n
+        self.k       = self.hankel.k
+        self.J = np.block([
+            [zeros(self.k),  I*eye(self.k)],
+            [-I*eye(self.k), zeros(self.k)]
+        ])
+
+        self.eval_axis = None
+        self.M = 0
+        self.U = None; self.W = None
+        self.center = None; self.radius = None
+        if _eval_axis:                  # if eval_line is passed in, then compute coeffs
+            self(_eval_axis)
+        return
+
+    # def set_evaluation_axis(self, _eval_axis):
+    def __call__(self, _eval_axis):
+        self.M = len(_eval_axis)
+        self.eval_axis = _eval_axis
+        U = []; W = []
+        # center = []; rad = []
+        self.center = np.full((self.k, self.k, self.M), ZERO)
+        self.radius = np.full((self.k, self.k, self.M), ZERO)
+        for idx, z in enumerate(_eval_axis):
+            Uz = self.compute_U(z)
+            print(Uz)
+            Wz = self.compute_Weyl(Uz)
+            U.append(Uz); W.append(Wz)
+
+            # unpack Weyl matrix. W = block matrix of [[-R, S], [S^dag, -T]]
+            blocks = factor_2by2(Wz)
+            Rz = -blocks[0, 0]
+            Sz =  blocks[0, 1]
+            Tz = -blocks[1, 1]
+
+            # Compute radius and center of Wertevorrat
+            left = minv(Rz)
+            C = left @ Sz
+            right = Sz.conjugate().transpose() @ C - Tz
+
+            # project Wertevorrat onto components
+            left_sqrt = msqrt(left)
+            right_sqrt = msqrt(right)
+            for i in range(self.k):
+                for j in range(i, self.k):
+                    ei = unit_vector(i, self.k); ej = unit_vector(j, self.k)
+                    self.center[i, j, idx] = ei.transpose() @ C @ ej
+                    self.radius[i, j, idx] = twoNorm(left_sqrt.transpose().T @ ei) \
+                                                * twoNorm(right_sqrt @ ej)
+                    if i != j:          # populate bottom triangular elements as well
+                        self.center[j, i, idx] = self.center[i, j, idx]
+                        self.radius[j, i, idx] = self.radius[i, j, idx]
+
+        self.U = np.array(U); self.W = np.array(W)
+        return
+    
+    def map_back(self, phases = np.array([mp.expjpi(n) for n in mp.linspace(0, 4, 50)])):
+        """
+        Maps the Wertevorrat back to the complex energy plane. 
+        """
+        upper = np.full((self.k, self.k, self.M), ZERO)
+        lower = np.full((self.k, self.k, self.M), ZERO)
+        for i in range(self.k):
+            for j in range(i, self.k):
+                for zidx in range(self.M):
+                    # TODO figure out if I need the - or not
+                    wv_imag = np.array([(self.center[i, j, zidx] + p * self.radius[i, j, zidx]).imag for p in phases])
+                    upper[i, j, zidx] = np.max(wv_imag)
+                    lower[i, j, zidx] = np.min(wv_imag)
+                    if i != j:
+                        upper[j, i, zidx] = upper[i, j, zidx]
+                        lower[j, i, zidx] = lower[i, j, zidx]
+        return upper, lower
+
+    def compute_Weyl(self, U):
+        """
+        Computes the Weyl matrix given U(z). To compute the Weyl matrix at z, simply 
+        run compute_U(z) first. 
+        ```
+        # ham is an instance of Hamburger class
+        U = ham.compute_U(z)
+        W = ham.compute_W(U)
+        ```
+        """
+        # U = self.compute_U(z)
+        Uinv = minv(U)
+        W = Uinv.conjugate().transpose() @ self.J @ Uinv
+        return W
+
+    def compute_U(self, z):
+        """
+        Computes the U(z) matrix containing the Kovalishina coefficients using Eq. (A.22).
+        
+        Parameters
+        ----------
+        z : np.complex128 or mp.mpc
+            Complex number z to evaluate U(z) at.
+        
+        Returns
+        -------
+        U(z) : np.ndarray [2k, 2k], dtype = mp.mpc
+            2x2 block matrix U solving the FMI. 
+        """
+        vec1 = np.block(
+            [-self.compute_c(ZERO), self.compute_b(ZERO)]
+        )           # (nk, 2k) dimensional
+        vec2 = np.block(
+            [
+                [-self.compute_c(mp.conj(z)).conjugate().transpose()],
+                [ self.compute_b(mp.conj(z)).conjugate().transpose()]
+            ]
+        )           # (2k, nk) dimensional
+        # return eye(2*self.k) - I * (vec2 @ minv(self.hankel.hankel) @ vec1)
+        # return eye(2*self.k) - I * z* (vec2 @ minv(self.hankel.hankel) @ vec1)
+        vec1 = np.block(
+            [self.compute_b(ZERO), -self.compute_c(ZERO)]
+        )           # (nk, 2k) dimensional
+        vec2 = np.block(
+            [
+                [self.compute_b(mp.conj(z)).conjugate().transpose()],
+                [-self.compute_c(mp.conj(z)).conjugate().transpose()],
+            ]
+        )           # (2k, nk) dimensional
+        return eye(2*self.k) - I * z * self.J @ (vec2 @ minv(self.hankel.hankel) @ vec1)
+
+    def compute_b(self, z):
+        """
+        Computes the b block vector b(z) = (I zI z^2I ... z^{n-1} I).
+
+        Parameters
+        ----------
+        z : np.complex128 or mp.mpc
+            Complex number z to evaluate b(z) at.
+        
+        Returns
+        -------
+        b(z) : np.ndarray [nk, k], dtype = mp.mpc
+            n-dimensional block vector b(z).
+        """
+        return np.block(
+            [[mp.power(z, i)*eye(self.k)] for i in range(self.n)]
+        )
+    
+    def compute_c(self, z):
+        """
+        Computes the c block vector evaluated at z,
+        $$
+            -c(z) = [
+                0 
+                C_0 
+                C_1+zC_0
+                ...
+                C_{n-2} + z C_{n-1} + ... + z^{n-2} C_0
+            ]
+        $$
+
+        Parameters
+        ----------
+        z : np.complex128 or mp.mpc
+            Complex number z to evaluate c(z) at.
+
+        Returns
+        -------
+        c(z) : np.ndarray [nk, k], dtype = mp.mpc
+            n-dimensional block vector c(z).
+        """
+        c_lst = []
+        for i in range(self.n):
+            tmp = zeros(self.k)
+            for j in range(i):
+                tmp += mp.power(z, j) * self.hankel.moments[i-j-1]
+            c_lst.append([tmp])
+        return -np.block(c_lst)
 
 ################################################################################
 ################################ Sparse Modeling ###############################
