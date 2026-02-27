@@ -32,10 +32,13 @@ mstr_lst = ['0p01']
 
 m_lst = [fmt.str_to_float(mstr) for mstr in mstr_lst]
 
-directory = '/Users/patrickoare/Dropbox (MIT)/research/multigrid/gcr_coeffs/run1'
+run = 2
+directory = f'/Users/patrickoare/Dropbox (MIT)/research/multigrid/gcr_coeffs/run{run}'
 methods = [
-    'invert_50',
-    'relax_50',
+    'invert_200',
+    'relax_200',
+    # 'invert_50',
+    # 'relax_50',
     # 'invert_5',
     # 'relax_5',
 ]
