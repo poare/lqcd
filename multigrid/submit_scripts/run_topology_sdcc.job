@@ -4,17 +4,26 @@
 
 #SBATCH --job-name=ks_topology
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
-#SBATCH --partition=lqcd_ice
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=lqcd
 #SBATCH --account=class-c-arnoldi
-#SBATCH -t 24:00:00
+#SBATCH -t 06:00:00
 
 nodes=1
 
-Nm=200
-Nk=120
-maxIter=10000
-Nstop=100
+# Nm=50
+# Nk=32
+# maxIter=10000
+# Nstop=30
+
+# Nm=30
+# Nk=20
+# maxIter=10000
+# Nstop=16
+Nm=24
+Nk=8
+maxIter=1000
+Nstop=8
 
 homedir=/sdcc/u/poare
 rf="EvalReSmall"

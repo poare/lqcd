@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#ulimit -c unlimited
+
+#SBATCH --job-name=mres
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+##SBATCH --partition=lqcd
+##SBATCH --account=class-c-arnoldi
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 24:00:00
+
+nodes=1
+
+homedir=/sdcc/u/poare
+# rf="EvalReSmall"
+
+# eventually will use evecs stored in spectra for job 331989, for now use 330800
+
+root="ckpoint_lat.4000"
+runname="MG_PVdag_${SLURM_JOB_ID}"
+
+# Job 333941 = first run of evec MG
+
+homedir=/sdcc/u/poare
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+# logs="${logDir}/mres_0p001.log"               # default is Ls = 16
+logs="${logDir}/mres_0p001_hot.log"
+# logs="${logDir}/mres_0p001_Ls24.log"
+# logs="${logDir}/mres_0p001_Ls24_hot.log"
+
+mkdir -p ${logDir}
+# mkdir -p ${outDir}
+
+cd ${homedir}/Grid/build/tests/debug
+
+# export OMP_NUM_THREADS=4
+srun -N$nodes -n$nodes ./Test_cayley_mres > ${logs}
+

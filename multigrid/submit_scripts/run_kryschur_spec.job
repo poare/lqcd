@@ -3,28 +3,36 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=kryschur
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
-#SBATCH --partition=lqcd
-#SBATCH --account=class-c-arnoldi
+#SBATCH --nodes=8
+##SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
 #SBATCH -t 24:00:00
 
-nodes=1
+nodes=8
+# nproc=128       # 128 = 8*16
+nproc=8
+MPIRUN='srun -N8 -n'${nproc}
+# MPIRUN='srun --mpi=pmix -N8 -n'${nproc}
 
-Nm=200
-Nk=120
-maxIter=10000
-Nstop=100
+Nm=80
+Nk=40
+maxIter=5000
+Nstop=32
 
-root="ckpoint_EODWF_lat.125"
-# runname="Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
-runname="unprec_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
+root="ckpoint_lat.4000"
+runname="PVdagM_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
+outname="PVdagM_Nm${Nm}_Nk${Nk}_Niter${maxIter}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
-inFile="${homedir}/PETSc-Grid/${root}"
+# inFile="/hpcgpfs01/work/lqcd/staging/RBC/32Ifine-rho0.124-tau4/702/${root}"
+inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
 
 logDir="${homedir}/lqcd/multigrid/logs/${root}"
-outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
+# outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
+outDir="/hpcgpfs01/work/lqcd/staging/RBC/${root}/ks_evecs/${outname}"
 
 mkdir -p ${logDir}
 mkdir -p ${outDir}
@@ -34,5 +42,30 @@ rf="EvalReSmall"
 
 cd ${homedir}/Grid/build/examples
 
+# mpigrid=2.4.4.4
+mpigrid=2.2.2.1
+# vol=32.32.32.32
+vol=16.16.16.32
+
+# original aurora params
+# PARAMS="--mpi ${mpigrid} --accelerator-threads 32 --device-mem 48000 --shm 2048 --shm-mpi 1 --grid ${vol}"
+
+# ARGS="--StartingType ColdStart --StartingTrajectory  0 --Trajectories 1"
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+OPT2='  --auto-tune --verbose_add stout_performance --verbose_add cg_performance '
+
 # export OMP_NUM_THREADS=4
-srun -N$nodes -n$nodes ./Example_spec_kryschur ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} > ${logs}
+# export OMP_PLACES=cores
+# export OMP_PROC_BIND=close
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=0:64:1
+
+echo $nodes
+echo $nproc
+echo $mpigrid
+
+module load openmpi
+
+# $MPIRUN ./Example_spec_kryschur --mpi "$NX"."$NY"."$NZ"."$NT" --grid $vol ${OPT} ${OPT2} > ${logs}
+$MPIRUN ./Example_spec_kryschur ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}

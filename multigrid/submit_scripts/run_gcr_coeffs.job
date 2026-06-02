@@ -15,7 +15,7 @@ cd ${root}/Grid/build/examples
 
 # export OMP_NUM_THREADS=6
 
-N=50
+N=200
 ./Example_deflation_basis ${N} > ${logs}/gcr_coeffs_N${N}.out
 
 # mpirun -np 4 Example_Laplacian > ${logs}/cfg${cfg}.txt
