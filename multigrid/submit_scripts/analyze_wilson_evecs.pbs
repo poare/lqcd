@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#PBS -A LatticeFlavor
-#PBS -N KS_Topology
+#PBS -A LatticeQCD_aesp_CNDA
+#PBS -N wilson_evecs
 #PBS -l select=1
-#PBS -l walltime=01:00:00
+#PBS -l walltime=00:30:00
 #PBS -l filesystems=home
 #PBS -l filesystems=flare
-#PBS -q debug-scaling
+#PBS -q debug
 #PBS -j oe
-#PBS -o out/ksout
+#PBS -o out/evecout
 #PBS -M poare@bnl.gov
 
 module load hdf5
@@ -16,19 +16,9 @@ module load c-lime
 
 nodes=1
 
-Nm=128
-Nk=64
-maxIter=10000
-Nstop=60
-# Nm=24
-# Nk=8
-# maxIter=1000
-# Nstop=8
-
 homedir=/home/poare
 # rf="EvalImNormSmall"
-rf="EvalReSmall"
-# rf="EvalImSmall"
+# rf="EvalReSmall"
 
 # TUNE on config U_smr_3.000000, later run on more
 # for idx in "3.020833"
@@ -38,15 +28,15 @@ do
     cfg="U_smr_${idx}"
     echo "Running cfg ${cfg}, job ${PBS_JOBID}."
 
-    root="32cube-rho0.124-tau4/PVdagM_${cfg}"
+    root="32cube-rho0.124-tau4/${cfg}"
     runname="Nm${Nm}_Nk${Nk}_${PBS_JOBID}"
     inFile="/home/sy3394/src/Grid/systems/Aurora2/HMC/32cube-rho0.124-tau4/snapshots/702/${cfg}"
 
-    logDir="${homedir}/lqcd/multigrid/logs/${root}"
-    outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
+    logDir="${homedir}/lqcd/multigrid/logs/${root}/evec_log"
+    # outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
 
     mkdir -p ${logDir}
-    mkdir -p ${outDir}
+    # mkdir -p ${outDir}
 
     logs="${logDir}/${runname}.log"
 
@@ -58,7 +48,7 @@ do
     vol=32.32.32.32
     # PARAMS="--mpi ${mpigrid} --accelerator-threads 32 --device-mem 48000 --shm 2048 --shm-mpi 1 --grid ${vol} --log Debug"
     PARAMS="--mpi ${mpigrid} --accelerator-threads 32 --device-mem 48000 --shm 2048 --shm-mpi 1 --grid ${vol}"
-    mpiexec -n 8 -ppn 8 ./gpu_tile.sh ./Example_wilson_spectrum ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} ${PARAMS} > ${logs}
+    mpiexec -n 8 -ppn 8 ./gpu_tile.sh ./Example_wilson_evecs ${inFile} ${PARAMS} > ${logs}
     # mpiexec -n 8 -ppn 8 ./Example_wilson_spectrum ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} ${PARAMS} > ${logs}
 
 done
