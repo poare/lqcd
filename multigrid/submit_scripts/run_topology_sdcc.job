@@ -5,7 +5,7 @@
 #SBATCH --job-name=ks_topology
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --partition=lqcd
+#SBATCH --partition=lqcd_ice
 #SBATCH --account=class-c-arnoldi
 #SBATCH -t 24:00:00
 
