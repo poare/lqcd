@@ -1,2 +1,0 @@
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 346849 ON genoahost090 CANCELLED AT 2026-04-23T20:38:12 ***

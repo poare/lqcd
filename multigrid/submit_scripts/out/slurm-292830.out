@@ -1,4 +1,0 @@
-Running cfg U_smr_3.000000.
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 292830 ON genoahost037 CANCELLED AT 2025-10-31T11:43:16 ***
-slurmstepd: error: *** STEP 292830.0 ON genoahost037 CANCELLED AT 2025-10-31T11:43:16 ***
