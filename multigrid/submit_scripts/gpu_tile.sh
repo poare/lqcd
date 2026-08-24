@@ -4,8 +4,26 @@
 #export NUMA_MAP=(0 0 1 1 0 0 1 1 0 0 1 1);
 #export  GPU_MAP=(0.0 0.1 3.0 3.1 1.0 1.1 4.0 4.1 2.0 2.1 5.0 5.1)
 
-export NUMA_PMAP=(0 0 1 1 0 0 1 1 );
-export  GPU_MAP=(0.0 1.0 3.0 4.0 0.1 1.1 3.1 4.1 )
+# aurora
+# export NUMA_PMAP=(0 0 1 1 0 0 1 1 );
+# export  GPU_MAP=(0.0 1.0 3.0 4.0 0.1 1.1 3.1 4.1 )
+
+# riken (trying it out)
+export NUMA_PMAP=(
+  0 0 0 0 0 0 0 0
+  1 1 1 1 1 1 1 1
+)
+
+export GPU_MAP=(
+  0.0 0.1
+  1.0 1.1
+  2.0 2.1
+  3.0 3.1
+  4.0 4.1
+  5.0 5.1
+  6.0 6.1
+  7.0 7.1
+)
 
 export NUMAP=${NUMA_PMAP[$PALS_LOCAL_RANKID]}
 export gpu_id=${GPU_MAP[$PALS_LOCAL_RANKID]}

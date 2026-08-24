@@ -1,0 +1,184 @@
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+[genoahost090:3450887] *** Process received signal ***
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+[genoahost096:4115892] *** Process received signal ***
+[genoahost096:4115892] Signal: Aborted (6)
+[genoahost096:4115892] Signal code:  (-6)
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  stod
+[genoahost089:1574229] *** Process received signal ***
+[genoahost093:155477] *** Process received signal ***
+[genoahost093:155477] Signal: Aborted (6)
+[genoahost093:155477] Signal code:  (-6)
+[genoahost092:3317850] *** Process received signal ***
+[genoahost092:3317850] Signal: Aborted (6)
+[genoahost092:3317850] Signal code:  (-6)
+[genoahost095:253549] *** Process received signal ***
+[genoahost095:253549] Signal: Aborted (6)
+[genoahost095:253549] Signal code:  (-6)
+[genoahost090:3450887] Signal: Aborted (6)
+[genoahost090:3450887] Signal code:  (-6)
+[genoahost096:4115892] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14bb03e3fc30]
+[genoahost094:4114787] *** Process received signal ***
+[genoahost094:4114787] Signal: Aborted (6)
+[genoahost094:4114787] Signal code:  (-6)
+[genoahost091:2031949] *** Process received signal ***
+[genoahost091:2031949] Signal: Aborted (6)
+[genoahost091:2031949] Signal code:  (-6)
+[genoahost089:1574229] Signal: Aborted (6)
+[genoahost089:1574229] Signal code:  (-6)
+[genoahost093:155477] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14dbca83fc30]
+[genoahost092:3317850] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14922b23fc30]
+[genoahost095:253549] [ 0] /lib64/libc.so.6(+0x3fc30)[0x15344ec3fc30]
+[genoahost090:3450887] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14e9de63fc30]
+[genoahost096:4115892] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14bb03e8d02c]
+[genoahost094:4114787] [ 0] /lib64/libc.so.6(+0x3fc30)[0x150ba3e3fc30]
+[genoahost091:2031949] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14cf5943fc30]
+[genoahost089:1574229] [ 0] /lib64/libc.so.6(+0x3fc30)[0x15403103fc30]
+[genoahost093:155477] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14dbca88d02c]
+[genoahost092:3317850] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14922b28d02c]
+[genoahost095:253549] [ 1] /lib64/libc.so.6(+0x8d02c)[0x15344ec8d02c]
+[genoahost090:3450887] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14e9de68d02c]
+[genoahost096:4115892] [ 2] /lib64/libc.so.6(raise+0x16)[0x14bb03e3fb86]
+[genoahost094:4114787] [ 1] /lib64/libc.so.6(+0x8d02c)[0x150ba3e8d02c]
+[genoahost091:2031949] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14cf5948d02c]
+[genoahost089:1574229] [ 1] /lib64/libc.so.6(+0x8d02c)[0x15403108d02c]
+[genoahost093:155477] [ 2] /lib64/libc.so.6(raise+0x16)[0x14dbca83fb86]
+[genoahost092:3317850] [ 2] /lib64/libc.so.6(raise+0x16)[0x14922b23fb86]
+[genoahost095:253549] [ 2] /lib64/libc.so.6(raise+0x16)[0x15344ec3fb86]
+[genoahost090:3450887] [ 2] /lib64/libc.so.6(raise+0x16)[0x14e9de63fb86]
+[genoahost096:4115892] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14bb03e29873]
+[genoahost094:4114787] [ 2] /lib64/libc.so.6(raise+0x16)[0x150ba3e3fb86]
+[genoahost091:2031949] [ 2] /lib64/libc.so.6(raise+0x16)[0x14cf5943fb86]
+[genoahost089:1574229] [ 2] /lib64/libc.so.6(raise+0x16)[0x15403103fb86]
+[genoahost093:155477] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14dbca829873]
+[genoahost092:3317850] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14922b229873]
+[genoahost095:253549] [ 3] /lib64/libc.so.6(abort+0xd3)[0x15344ec29873]
+[genoahost090:3450887] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14e9de629873]
+[genoahost096:4115892] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x14bb046a1b21]
+[genoahost094:4114787] [ 3] /lib64/libc.so.6(abort+0xd3)[0x150ba3e29873]
+[genoahost091:2031949] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14cf59429873]
+[genoahost089:1574229] [ 3] /lib64/libc.so.6(abort+0xd3)[0x154031029873]
+[genoahost093:155477] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x14dbcb2a1b21]
+[genoahost092:3317850] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x14922baa1b21]
+[genoahost095:253549] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x15344f4a1b21]
+[genoahost090:3450887] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x14e9deea1b21]
+[genoahost096:4115892] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x14bb046ad53c]
+[genoahost094:4114787] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x150ba48a1b21]
+[genoahost094:4114787] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x150ba48ad53c]
+[genoahost091:2031949] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x14cf59ea1b21]
+[genoahost089:1574229] [ 4] /lib64/libstdc++.so.6(+0xa1b21)[0x154031aa1b21]
+[genoahost093:155477] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x14dbcb2ad53c]
+[genoahost092:3317850] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x14922baad53c]
+[genoahost095:253549] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x15344f4ad53c]
+[genoahost090:3450887] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x14e9deead53c]
+[genoahost096:4115892] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x14bb046ad5a7]
+[genoahost094:4114787] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x150ba48ad5a7]
+[genoahost094:4114787] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x150ba48ad809]
+[genoahost091:2031949] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x14cf59ead53c]
+[genoahost089:1574229] [ 5] /lib64/libstdc++.so.6(+0xad53c)[0x154031aad53c]
+[genoahost093:155477] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x14dbcb2ad5a7]
+[genoahost092:3317850] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x14922baad5a7]
+[genoahost095:253549] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x15344f4ad5a7]
+[genoahost090:3450887] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x14e9deead5a7]
+[genoahost096:4115892] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x14bb046ad809]
+[genoahost094:4114787] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x150ba48a4483]
+[genoahost094:4114787] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost091:2031949] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x14cf59ead5a7]
+[genoahost089:1574229] [ 6] /lib64/libstdc++.so.6(+0xad5a7)[0x154031aad5a7]
+[genoahost093:155477] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x14dbcb2ad809]
+[genoahost092:3317850] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x14922baad809]
+[genoahost095:253549] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x15344f4ad809]
+[genoahost090:3450887] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x14e9deead809]
+[genoahost096:4115892] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x14bb046a4483]
+[genoahost094:4114787] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost091:2031949] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x14cf59ead809]
+[genoahost089:1574229] [ 7] /lib64/libstdc++.so.6(+0xad809)[0x154031aad809]
+[genoahost093:155477] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x14dbcb2a4483]
+[genoahost093:155477] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost092:3317850] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x14922baa4483]
+[genoahost095:253549] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x15344f4a4483]
+[genoahost090:3450887] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x14e9deea4483]
+[genoahost096:4115892] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost094:4114787] [11] /lib64/libc.so.6(+0x2a610)[0x150ba3e2a610]
+[genoahost094:4114787] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x150ba3e2a6c0]
+[genoahost091:2031949] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x14cf59ea4483]
+[genoahost091:2031949] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost089:1574229] [ 8] /lib64/libstdc++.so.6(_ZSt24__throw_invalid_argumentPKc+0x41)[0x154031aa4483]
+[genoahost093:155477] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost092:3317850] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost095:253549] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost095:253549] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost090:3450887] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost090:3450887] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost096:4115892] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost094:4114787] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost094:4114787] *** End of error message ***
+[genoahost091:2031949] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost089:1574229] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x44815b]
+[genoahost093:155477] [11] /lib64/libc.so.6(+0x2a610)[0x14dbca82a610]
+[genoahost092:3317850] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost095:253549] [11] /lib64/libc.so.6(+0x2a610)[0x15344ec2a610]
+[genoahost090:3450887] [11] /lib64/libc.so.6(+0x2a610)[0x14e9de62a610]
+[genoahost096:4115892] [11] /lib64/libc.so.6(+0x2a610)[0x14bb03e2a610]
+[genoahost091:2031949] [11] /lib64/libc.so.6(+0x2a610)[0x14cf5942a610]
+[genoahost089:1574229] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4159e5]
+[genoahost093:155477] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x14dbca82a6c0]
+[genoahost093:155477] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost092:3317850] [11] /lib64/libc.so.6(+0x2a610)[0x14922b22a610]
+[genoahost095:253549] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x15344ec2a6c0]
+[genoahost095:253549] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost090:3450887] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x14e9de62a6c0]
+[genoahost096:4115892] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x14bb03e2a6c0]
+[genoahost096:4115892] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost091:2031949] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x14cf5942a6c0]
+[genoahost089:1574229] [11] /lib64/libc.so.6(+0x2a610)[0x15403102a610]
+[genoahost093:155477] *** End of error message ***
+[genoahost092:3317850] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x14922b22a6c0]
+[genoahost095:253549] *** End of error message ***
+[genoahost090:3450887] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost096:4115892] *** End of error message ***
+[genoahost091:2031949] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost091:2031949] *** End of error message ***
+[genoahost089:1574229] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x15403102a6c0]
+[genoahost092:3317850] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost090:3450887] *** End of error message ***
+[genoahost089:1574229] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x417365]
+[genoahost092:3317850] *** End of error message ***
+[genoahost089:1574229] *** End of error message ***
+srun: error: genoahost089: task 0: Aborted (core dumped)
+srun: error: genoahost096: task 7: Aborted (core dumped)
+srun: error: genoahost092: task 3: Aborted (core dumped)
+srun: error: genoahost091: task 2: Aborted (core dumped)
+srun: error: genoahost090: task 1: Aborted (core dumped)
+srun: error: genoahost095: task 6: Aborted (core dumped)
+srun: error: genoahost093: task 4: Aborted (core dumped)
+srun: error: genoahost094: task 5: Aborted (core dumped)

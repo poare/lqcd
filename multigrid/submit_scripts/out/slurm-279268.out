@@ -1,0 +1,17 @@
+Running cfg U_smr_3.000000.
+[icehost036:3254126:0:3254126] Caught signal 8 (Floating point exception: integer divide by zero)
+==== backtrace (tid:3254126) ====
+ 0  /lib64/libucs.so.0(ucs_handle_error+0x2e4) [0x14ee72055e44]
+ 1  /lib64/libucs.so.0(+0x2a4cd) [0x14ee720574cd]
+ 2  /lib64/libucs.so.0(+0x2a7aa) [0x14ee720577aa]
+ 3  /lib64/libc.so.6(+0x3e730) [0x14ee71e3e730]
+ 4  /direct/sdcc+u/poare/Grid/build/examples/./Example_wilson_spectrum() [0x6bcd8c]
+ 5  /direct/sdcc+u/poare/Grid/build/examples/./Example_wilson_spectrum() [0x6c57a6]
+ 6  /direct/sdcc+u/poare/Grid/build/examples/./Example_wilson_spectrum() [0x648f1b]
+ 7  /direct/sdcc+u/poare/Grid/build/examples/./Example_wilson_spectrum() [0x461993]
+ 8  /direct/sdcc+u/poare/Grid/build/examples/./Example_wilson_spectrum() [0x413bde]
+ 9  /lib64/libc.so.6(+0x295d0) [0x14ee71e295d0]
+10  /lib64/libc.so.6(__libc_start_main+0x80) [0x14ee71e29680]
+11  /direct/sdcc+u/poare/Grid/build/examples/./Example_wilson_spectrum() [0x415ec5]
+=================================
+srun: error: icehost036: task 0: Floating point exception (core dumped)

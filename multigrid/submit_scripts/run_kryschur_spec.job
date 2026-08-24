@@ -2,7 +2,7 @@
 
 ##ulimit -c unlimited
 
-#SBATCH --job-name=kryschur
+#SBATCH --job-name=kryschur_ps
 #SBATCH --nodes=8
 ##SBATCH --ntasks-per-node=16
 #SBATCH --ntasks-per-node=1
@@ -17,14 +17,16 @@ nproc=8
 MPIRUN='srun -N8 -n'${nproc}
 # MPIRUN='srun --mpi=pmix -N8 -n'${nproc}
 
-Nm=80
-Nk=40
-maxIter=5000
-Nstop=32
+Nm=100
+Nk=50
+maxIter=10000
+Nstop=40
 
 root="ckpoint_lat.4000"
-runname="PVdagM_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
-outname="PVdagM_Nm${Nm}_Nk${Nk}_Niter${maxIter}_${SLURM_JOB_ID}"
+# runname="PVdagM_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
+# outname="PVdagM_Nm${Nm}_Nk${Nk}_Niter${maxIter}_${SLURM_JOB_ID}"
+runname="PVdagMps_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
+outname="PVdagMps_Nm${Nm}_Nk${Nk}_Niter${maxIter}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
 # inFile="/hpcgpfs01/work/lqcd/staging/RBC/32Ifine-rho0.124-tau4/702/${root}"
@@ -32,7 +34,8 @@ inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
 
 logDir="${homedir}/lqcd/multigrid/logs/${root}"
 # outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
-outDir="/hpcgpfs01/work/lqcd/staging/RBC/${root}/ks_evecs/${outname}"
+# outDir="/hpcgpfs01/work/lqcd/staging/RBC/${root}/ks_evecs/${outname}"
+outDir="${homedir}/lqcd/multigrid/pseudospectra/${root}/${runname}"
 
 mkdir -p ${logDir}
 mkdir -p ${outDir}

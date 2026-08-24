@@ -1,0 +1,19 @@
+Example_pvdagm_svd: ../../examples/Example_pvdagm_svd.cc:75: void PVdagMLinearOperator<Matrix, Field>::HermOpAndNorm(const Field&, Field&, Grid::RealD&, Grid::RealD&) [with Matrix = Grid::DomainWallFermion<Grid::WilsonImpl<Grid::Grid_simd<std::complex<double>, __vector(8) double>, Grid::FundamentalRep<3, Grid::GroupName::SU>, Grid::CoeffReal> >; Field = Grid::Lattice<Grid::iScalar<Grid::iVector<Grid::iVector<Grid::Grid_simd<std::complex<double>, __vector(8) double>, 3>, 4> > >; Grid::RealD = double]: Assertion `0' failed.
+[genoahost033:938108] *** Process received signal ***
+[genoahost033:938108] Signal: Aborted (6)
+[genoahost033:938108] Signal code:  (-6)
+[genoahost033:938108] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14a37d63fc30]
+[genoahost033:938108] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14a37d68d02c]
+[genoahost033:938108] [ 2] /lib64/libc.so.6(raise+0x16)[0x14a37d63fb86]
+[genoahost033:938108] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14a37d629873]
+[genoahost033:938108] [ 4] /lib64/libc.so.6(+0x2979b)[0x14a37d62979b]
+[genoahost033:938108] [ 5] /lib64/libc.so.6(+0x388c6)[0x14a37d6388c6]
+[genoahost033:938108] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x434dbd]
+[genoahost033:938108] [ 7] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4b3a2e]
+[genoahost033:938108] [ 8] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4b43a0]
+[genoahost033:938108] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x417a96]
+[genoahost033:938108] [10] /lib64/libc.so.6(+0x2a610)[0x14a37d62a610]
+[genoahost033:938108] [11] /lib64/libc.so.6(__libc_start_main+0x80)[0x14a37d62a6c0]
+[genoahost033:938108] [12] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x41ae35]
+[genoahost033:938108] *** End of error message ***
+srun: error: genoahost033: task 0: Aborted (core dumped)

@@ -1,0 +1,20 @@
+munmap_chunk(): invalid pointer
+[genoahost001:146729] *** Process received signal ***
+[genoahost001:146729] Signal: Aborted (6)
+[genoahost001:146729] Signal code:  (-6)
+[genoahost001:146729] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14a0db83fc30]
+[genoahost001:146729] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14a0db88d02c]
+[genoahost001:146729] [ 2] /lib64/libc.so.6(raise+0x16)[0x14a0db83fb86]
+[genoahost001:146729] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14a0db829873]
+[genoahost001:146729] [ 4] /lib64/libc.so.6(+0x2a1b2)[0x14a0db82a1b2]
+[genoahost001:146729] [ 5] /lib64/libc.so.6(+0x970d7)[0x14a0db8970d7]
+[genoahost001:146729] [ 6] /lib64/libc.so.6(+0x9736c)[0x14a0db89736c]
+[genoahost001:146729] [ 7] /lib64/libc.so.6(free+0x9a)[0x14a0db89b45a]
+[genoahost001:146729] [ 8] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4ab195]
+[genoahost001:146729] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4ad1b8]
+[genoahost001:146729] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x419c18]
+[genoahost001:146729] [11] /lib64/libc.so.6(+0x2a610)[0x14a0db82a610]
+[genoahost001:146729] [12] /lib64/libc.so.6(__libc_start_main+0x80)[0x14a0db82a6c0]
+[genoahost001:146729] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x41b835]
+[genoahost001:146729] *** End of error message ***
+srun: error: genoahost001: task 0: Aborted (core dumped)

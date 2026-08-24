@@ -1,0 +1,21 @@
+8
+8
+2.2.2.1
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 381567 ON genoahost090 CANCELLED AT 2026-07-26T11:41:11 ***

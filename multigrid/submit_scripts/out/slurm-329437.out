@@ -1,0 +1,6 @@
+8
+128
+2.4.4.4
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 329437 ON genoahost089 CANCELLED AT 2026-03-04T15:36:37 ***
+slurmstepd: error: *** STEP 329437.0 ON genoahost089 CANCELLED AT 2026-03-04T15:36:37 ***

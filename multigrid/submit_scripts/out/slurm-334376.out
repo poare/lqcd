@@ -1,0 +1,16 @@
+Example_pvdagm_svd: ../../examples/Example_pvdagm_svd.cc:337: int main(int, char**): Assertion `nbasis <= Nevecs' failed.
+[genoahost033:937678] *** Process received signal ***
+[genoahost033:937678] Signal: Aborted (6)
+[genoahost033:937678] Signal code:  (-6)
+[genoahost033:937678] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14dbd823fc30]
+[genoahost033:937678] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14dbd828d02c]
+[genoahost033:937678] [ 2] /lib64/libc.so.6(raise+0x16)[0x14dbd823fb86]
+[genoahost033:937678] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14dbd8229873]
+[genoahost033:937678] [ 4] /lib64/libc.so.6(+0x2979b)[0x14dbd822979b]
+[genoahost033:937678] [ 5] /lib64/libc.so.6(+0x388c6)[0x14dbd82388c6]
+[genoahost033:937678] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4154b2]
+[genoahost033:937678] [ 7] /lib64/libc.so.6(+0x2a610)[0x14dbd822a610]
+[genoahost033:937678] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x14dbd822a6c0]
+[genoahost033:937678] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x416cb5]
+[genoahost033:937678] *** End of error message ***
+srun: error: genoahost033: task 0: Aborted (core dumped)

@@ -1,0 +1,18 @@
+Test_general_coarse_pvdagm_svd_cg: /direct/sdcc+u/poare/Grid/Grid/parallelIO/NerscIO.h:111: static int Grid::NerscIO::readHeader(std::string, Grid::GridBase*, Grid::FieldMetaData&): Assertion `grid->_fdimensions[d]==field.dimension[d]' failed.
+[genoahost001:1190712] *** Process received signal ***
+[genoahost001:1190712] Signal: Aborted (6)
+[genoahost001:1190712] Signal code:  (-6)
+[genoahost001:1190712] [ 0] /lib64/libc.so.6(+0x3fc30)[0x1520be83fc30]
+[genoahost001:1190712] [ 1] /lib64/libc.so.6(+0x8d02c)[0x1520be88d02c]
+[genoahost001:1190712] [ 2] /lib64/libc.so.6(raise+0x16)[0x1520be83fb86]
+[genoahost001:1190712] [ 3] /lib64/libc.so.6(abort+0xd3)[0x1520be829873]
+[genoahost001:1190712] [ 4] /lib64/libc.so.6(+0x2979b)[0x1520be82979b]
+[genoahost001:1190712] [ 5] /lib64/libc.so.6(+0x388c6)[0x1520be8388c6]
+[genoahost001:1190712] [ 6] /sdcc/u/poare/Grid/build/tests/debug/./Test_general_coarse_pvdagm_svd_cg[0x451e79]
+[genoahost001:1190712] [ 7] /sdcc/u/poare/Grid/build/tests/debug/./Test_general_coarse_pvdagm_svd_cg[0x431cfa]
+[genoahost001:1190712] [ 8] /sdcc/u/poare/Grid/build/tests/debug/./Test_general_coarse_pvdagm_svd_cg[0x4152de]
+[genoahost001:1190712] [ 9] /lib64/libc.so.6(+0x2a610)[0x1520be82a610]
+[genoahost001:1190712] [10] /lib64/libc.so.6(__libc_start_main+0x80)[0x1520be82a6c0]
+[genoahost001:1190712] [11] /sdcc/u/poare/Grid/build/tests/debug/./Test_general_coarse_pvdagm_svd_cg[0x419185]
+[genoahost001:1190712] *** End of error message ***
+srun: error: genoahost001: task 0: Aborted (core dumped)

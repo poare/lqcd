@@ -1,0 +1,3 @@
+Running cfg U_smr_3.000000.
+srun: error: icehost036: task 0: Killed
+srun: Force Terminated StepId=280483.0

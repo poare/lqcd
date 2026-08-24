@@ -1,0 +1,28 @@
+[genoahost019:1798228] *** Process received signal ***
+[genoahost019:1798228] Signal: Aborted (6)
+[genoahost019:1798228] Signal code:  (-6)
+[genoahost019:1798228] [ 0] /lib64/libc.so.6(+0x3e730)[0x1533cae3e730]
+[genoahost019:1798228] [ 1] /lib64/libc.so.6(+0x8ba6c)[0x1533cae8ba6c]
+[genoahost019:1798228] [ 2] /lib64/libc.so.6(raise+0x16)[0x1533cae3e686]
+[genoahost019:1798228] [ 3] /lib64/libc.so.6(abort+0xd3)[0x1533cae28833]
+[genoahost019:1798228] [ 4] ./Example_arnoldi[0x4c4f20]
+[genoahost019:1798228] [ 5] ./Example_arnoldi[0x411b05]
+[genoahost019:1798228] [ 6] /lib64/libc.so.6(+0x295d0)[0x1533cae295d0]
+[genoahost019:1798228] [ 7] /lib64/libc.so.6(__libc_start_main+0x80)[0x1533cae29680]
+[genoahost019:1798228] [ 8] ./Example_arnoldi[0x413515]
+[genoahost019:1798228] *** End of error message ***
+/var/spool/slurmd/job252533/slurm_script: line 19: 1798228 Aborted                 (core dumped) ./Example_arnoldi > ${logs}/arnoldi_${SLURM_JOB_ID}.out
+[genoahost019:1805368] *** Process received signal ***
+[genoahost019:1805368] Signal: Aborted (6)
+[genoahost019:1805368] Signal code:  (-6)
+[genoahost019:1805368] [ 0] /lib64/libc.so.6(+0x3e730)[0x145d3f03e730]
+[genoahost019:1805368] [ 1] /lib64/libc.so.6(+0x8ba6c)[0x145d3f08ba6c]
+[genoahost019:1805368] [ 2] /lib64/libc.so.6(raise+0x16)[0x145d3f03e686]
+[genoahost019:1805368] [ 3] /lib64/libc.so.6(abort+0xd3)[0x145d3f028833]
+[genoahost019:1805368] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_arnoldi[0x4c4f20]
+[genoahost019:1805368] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_arnoldi[0x411b05]
+[genoahost019:1805368] [ 6] /lib64/libc.so.6(+0x295d0)[0x145d3f0295d0]
+[genoahost019:1805368] [ 7] /lib64/libc.so.6(__libc_start_main+0x80)[0x145d3f029680]
+[genoahost019:1805368] [ 8] /direct/sdcc+u/poare/Grid/build/examples/./Example_arnoldi[0x413515]
+[genoahost019:1805368] *** End of error message ***
+srun: error: genoahost019: task 0: Aborted (core dumped)

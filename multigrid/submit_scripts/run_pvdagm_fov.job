@@ -17,12 +17,14 @@ nproc=8
 MPIRUN='srun -N8 -n'${nproc}
 # MPIRUN='srun --mpi=pmix -N8 -n'${nproc}
 
-Nangles=36
+# Nangles=21
+Nangles=17           # to quickly test theta = 0
+Theta=30
 madj=1
 
 root="ckpoint_lat.4000"
-runname="PVdagM_fov_Nang${Nangles}_madj${madj}_${SLURM_JOB_ID}"
-outname="PVdagM_fov_Nang${Nangles}_madj${madj}_${SLURM_JOB_ID}"
+runname="PVdagM_fov_Nang${Nangles}_theta${Theta}_madj${madj}_${SLURM_JOB_ID}"
+outname="PVdagM_fov_Nang${Nangles}_theta${Theta}_madj${madj}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
 # inFile="/hpcgpfs01/work/lqcd/staging/RBC/32Ifine-rho0.124-tau4/702/${root}"
@@ -61,4 +63,6 @@ export OMP_PLACES=0:64:1
 module load openmpi
 
 # echo "$MPIRUN ./Example_pvdagm_fov ${inFile} ${outDir} ${Nangles} ${madj} --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}"
-$MPIRUN ./Example_pvdagm_fov ${inFile} ${outDir} ${Nangles} ${madj} --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}
+# $MPIRUN ./Example_pvdagm_fov --config ${inFile} --outdir ${outDir} --nangle ${Nangles} --theta ${Theta} --madj ${madj} --cheby-order 61 --cheby-lo 0.1 --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}
+$MPIRUN ./Example_pvdagm_fov --config ${inFile} --outdir ${outDir} --nangle ${Nangles} --theta ${Theta} --madj ${madj} --cheby-order 11 --cheby-lo 0.1 --write-vecs 0,8,16 --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}
+

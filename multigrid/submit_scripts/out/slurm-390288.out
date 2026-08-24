@@ -1,0 +1,136 @@
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Invalid value for environment variable OMP_PLACES
+[genoahost094:4115354] *** Process received signal ***
+[genoahost094:4115354] Signal: Aborted (6)
+[genoahost094:4115354] Signal code:  (-6)
+[genoahost094:4115354] [ 0] /lib64/libc.so.6(+0x3fc30)[0x1551aae3fc30]
+[genoahost095:254245] *** Process received signal ***
+[genoahost095:254245] Signal: Aborted (6)
+[genoahost095:254245] Signal code:  (-6)
+[genoahost095:254245] [ 0] /lib64/libc.so.6(+0x3fc30)[0x152563c3fc30]
+[genoahost095:254245] [ 1] /lib64/libc.so.6(+0x8d02c)[0x152563c8d02c]
+[genoahost094:4115354] [ 1] /lib64/libc.so.6(+0x8d02c)[0x1551aae8d02c]
+[genoahost092:3318729] *** Process received signal ***
+[genoahost092:3318729] Signal: Aborted (6)
+[genoahost092:3318729] Signal code:  (-6)
+[genoahost092:3318729] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14796c23fc30]
+[genoahost092:3318729] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14796c28d02c]
+[genoahost092:3318729] [ 2] /lib64/libc.so.6(raise+0x16)[0x14796c23fb86]
+[genoahost092:3318729] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14796c229873]
+[genoahost092:3318729] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost092:3318729] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost092:3318729] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost092:3318729] [ 7] /lib64/libc.so.6(+0x2a610)[0x14796c22a610]
+[genoahost092:3318729] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x14796c22a6c0]
+[genoahost092:3318729] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost090:3451932] *** Process received signal ***
+[genoahost090:3451932] Signal: Aborted (6)
+[genoahost090:3451932] Signal code:  (-6)
+[genoahost090:3451932] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14af5fe3fc30]
+[genoahost090:3451932] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14af5fe8d02c]
+[genoahost090:3451932] [ 2] /lib64/libc.so.6(raise+0x16)[0x14af5fe3fb86]
+[genoahost090:3451932] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14af5fe29873]
+[genoahost090:3451932] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost090:3451932] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost090:3451932] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost090:3451932] [ 7] /lib64/libc.so.6(+0x2a610)[0x14af5fe2a610]
+[genoahost090:3451932] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x14af5fe2a6c0]
+[genoahost090:3451932] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost095:254245] [ 2] /lib64/libc.so.6(raise+0x16)[0x152563c3fb86]
+[genoahost095:254245] [ 3] /lib64/libc.so.6(abort+0xd3)[0x152563c29873]
+[genoahost095:254245] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost095:254245] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost091:2032455] *** Process received signal ***
+[genoahost091:2032455] Signal: Aborted (6)
+[genoahost091:2032455] Signal code:  (-6)
+[genoahost091:2032455] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14ce0b03fc30]
+[genoahost091:2032455] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14ce0b08d02c]
+[genoahost091:2032455] [ 2] /lib64/libc.so.6(raise+0x16)[0x14ce0b03fb86]
+[genoahost091:2032455] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14ce0b029873]
+[genoahost091:2032455] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost091:2032455] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost091:2032455] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost091:2032455] [ 7] /lib64/libc.so.6(+0x2a610)[0x14ce0b02a610]
+[genoahost091:2032455] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x14ce0b02a6c0]
+[genoahost091:2032455] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost089:1574934] *** Process received signal ***
+[genoahost089:1574934] Signal: Aborted (6)
+[genoahost089:1574934] Signal code:  (-6)
+[genoahost089:1574934] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14b6e943fc30]
+[genoahost089:1574934] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14b6e948d02c]
+[genoahost089:1574934] [ 2] /lib64/libc.so.6(raise+0x16)[0x14b6e943fb86]
+[genoahost089:1574934] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14b6e9429873]
+[genoahost089:1574934] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost089:1574934] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost089:1574934] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost089:1574934] [ 7] /lib64/libc.so.6(+0x2a610)[0x14b6e942a610]
+[genoahost089:1574934] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x14b6e942a6c0]
+[genoahost089:1574934] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost093:156109] *** Process received signal ***
+[genoahost093:156109] Signal: Aborted (6)
+[genoahost093:156109] Signal code:  (-6)
+[genoahost093:156109] [ 0] /lib64/libc.so.6(+0x3fc30)[0x148753a3fc30]
+[genoahost093:156109] [ 1] /lib64/libc.so.6(+0x8d02c)[0x148753a8d02c]
+[genoahost093:156109] [ 2] /lib64/libc.so.6(raise+0x16)[0x148753a3fb86]
+[genoahost093:156109] [ 3] /lib64/libc.so.6(abort+0xd3)[0x148753a29873]
+[genoahost093:156109] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost093:156109] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost093:156109] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost093:156109] [ 7] /lib64/libc.so.6(+0x2a610)[0x148753a2a610]
+[genoahost093:156109] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x148753a2a6c0]
+[genoahost093:156109] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost093:156109] *** End of error message ***
+[genoahost094:4115354] [ 2] /lib64/libc.so.6(raise+0x16)[0x1551aae3fb86]
+[genoahost094:4115354] [ 3] /lib64/libc.so.6(abort+0xd3)[0x1551aae29873]
+[genoahost094:4115354] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost094:4115354] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost094:4115354] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost094:4115354] [ 7] /lib64/libc.so.6(+0x2a610)[0x1551aae2a610]
+[genoahost094:4115354] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x1551aae2a6c0]
+[genoahost094:4115354] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost094:4115354] *** End of error message ***
+[genoahost092:3318729] *** End of error message ***
+[genoahost090:3451932] *** End of error message ***
+[genoahost095:254245] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost095:254245] [ 7] /lib64/libc.so.6(+0x2a610)[0x152563c2a610]
+[genoahost095:254245] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x152563c2a6c0]
+[genoahost095:254245] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost095:254245] *** End of error message ***
+[genoahost091:2032455] *** End of error message ***
+[genoahost089:1574934] *** End of error message ***
+[genoahost096:4116572] *** Process received signal ***
+[genoahost096:4116572] Signal: Aborted (6)
+[genoahost096:4116572] Signal code:  (-6)
+[genoahost096:4116572] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14e24803fc30]
+[genoahost096:4116572] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14e24808d02c]
+[genoahost096:4116572] [ 2] /lib64/libc.so.6(raise+0x16)[0x14e24803fb86]
+[genoahost096:4116572] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14e248029873]
+[genoahost096:4116572] [ 4] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x485d4e]
+[genoahost096:4116572] [ 5] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4871f0]
+[genoahost096:4116572] [ 6] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x415c59]
+[genoahost096:4116572] [ 7] /lib64/libc.so.6(+0x2a610)[0x14e24802a610]
+[genoahost096:4116572] [ 8] /lib64/libc.so.6(__libc_start_main+0x80)[0x14e24802a6c0]
+[genoahost096:4116572] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_fov[0x4187c5]
+[genoahost096:4116572] *** End of error message ***
+srun: error: genoahost095: task 6: Aborted (core dumped)
+srun: error: genoahost091: task 2: Aborted (core dumped)
+srun: error: genoahost092: task 3: Aborted (core dumped)
+srun: error: genoahost089: task 0: Aborted (core dumped)
+srun: error: genoahost093: task 4: Aborted (core dumped)
+srun: error: genoahost096: task 7: Aborted (core dumped)
+srun: error: genoahost090: task 1: Aborted (core dumped)
+srun: error: genoahost094: task 5: Aborted (core dumped)

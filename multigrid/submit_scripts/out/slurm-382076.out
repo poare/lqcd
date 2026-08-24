@@ -1,0 +1,24 @@
+free(): invalid size
+[genoahost090:662164] *** Process received signal ***
+[genoahost090:662164] Signal: Aborted (6)
+[genoahost090:662164] Signal code:  (-6)
+[genoahost090:662164] [ 0] /lib64/libc.so.6(+0x3fc30)[0x14ebd123fc30]
+[genoahost090:662164] [ 1] /lib64/libc.so.6(+0x8d02c)[0x14ebd128d02c]
+[genoahost090:662164] [ 2] /lib64/libc.so.6(raise+0x16)[0x14ebd123fb86]
+[genoahost090:662164] [ 3] /lib64/libc.so.6(abort+0xd3)[0x14ebd1229873]
+[genoahost090:662164] [ 4] /lib64/libc.so.6(+0x2a1b2)[0x14ebd122a1b2]
+[genoahost090:662164] [ 5] /lib64/libc.so.6(+0x970d7)[0x14ebd12970d7]
+[genoahost090:662164] [ 6] /lib64/libc.so.6(+0x9899c)[0x14ebd129899c]
+[genoahost090:662164] [ 7] /lib64/libc.so.6(free+0x55)[0x14ebd129b415]
+[genoahost090:662164] [ 8] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x485853]
+[genoahost090:662164] [ 9] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4877ba]
+[genoahost090:662164] [10] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x47a4f3]
+[genoahost090:662164] [11] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x485215]
+[genoahost090:662164] [12] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x430fda]
+[genoahost090:662164] [13] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4cc2a2]
+[genoahost090:662164] [14] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x4179b1]
+[genoahost090:662164] [15] /lib64/libc.so.6(+0x2a610)[0x14ebd122a610]
+[genoahost090:662164] [16] /lib64/libc.so.6(__libc_start_main+0x80)[0x14ebd122a6c0]
+[genoahost090:662164] [17] /direct/sdcc+u/poare/Grid/build/examples/./Example_pvdagm_svd[0x419345]
+[genoahost090:662164] *** End of error message ***
+srun: error: genoahost090: task 0: Aborted (core dumped)
