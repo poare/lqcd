@@ -100,7 +100,7 @@ def add_ylabel(ax, label, style = default_style):
 ################################################################################
 
 def plot_1d_func(func, ax = None, x_bounds = [-5, 5], nx = 100, col = [pal[0], pal[1]], ax_label = ['x', 'y'], title = None, fn_label = 'f', legend = False, \
-                    style = default_style, fig_size = None, tight_layout = True, saveat_path = None):
+                    style = default_style, fig_size = None, tight_layout = True, saveat_path = None, ls = 'solid'):
     """
     Plots a function of one real variable, f, which can either be real or complex-valued. Either creates a new axis if 
     one is not passed in, or uses an existing axis.
@@ -154,7 +154,7 @@ def plot_1d_func(func, ax = None, x_bounds = [-5, 5], nx = 100, col = [pal[0], p
             ax.plot(xx, np.imag(dat), color = col[1], label = 'Im[' + fn_label + ']', linewidth = style['linewidth'])
         else:
             color = col[0] if type(col) is list else col
-            ax.plot(xx, dat, color = color, label = fn_label, linewidth = style['linewidth'])
+            ax.plot(xx, dat, color = color, label = fn_label, linewidth = style['linewidth'], linestyle = ls)
         if title:
             ax.set_title(title, fontsize = style['fontsize'])
         ax.set_xlabel(ax_label[0], fontsize = style['fontsize'])
