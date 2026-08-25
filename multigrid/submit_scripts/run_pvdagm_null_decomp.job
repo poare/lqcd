@@ -1,0 +1,65 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=pvdagm_null_decomp
+#SBATCH --nodes=8
+##SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 24:00:00
+
+nodes=8
+# nproc=128       # 128 = 8*16
+nproc=8
+MPIRUN='srun -N8 -n'${nproc}
+# MPIRUN='srun --mpi=pmix -N8 -n'${nproc}
+
+Nbasis=40            # how many evec{i} to read; <= Nk of the kryschur run
+Ls=16
+
+root="ckpoint_lat.4000"
+runname="PVdagM_null_decomp_Nbasis${Nbasis}_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+outDir="${homedir}/lqcd/multigrid/pseudospectra/decomp/${root}/${runname}"
+
+mkdir -p ${logDir}
+mkdir -p ${outDir}
+
+# Krylov-Schur basis: evec0..evec$((Nbasis-1)) and evals.txt from Example_spec_kryschur
+# ksDir="/hpcgpfs01/work/lqcd/staging/RBC/${root}/ks_evecs/PVdagMps_Nm100_Nk50_Niter10000_XXXXXX"
+ksDir="/hpcgpfs01/work/lqcd/staging/RBC/ckpoint_lat.4000/ks_evecs/PVdagM_Nm80_Nk40_Niter5000_337342"
+
+# Sources to decompose: stagnate_r0 and stagnate_control from Example_pvdagm_stagnate
+vecDir="/sdcc/u/poare/lqcd/multigrid/pseudospectra/fov/ckpoint_lat.4000/PVdagM_stagnate_Nang17_theta30_madj1_nstep1_394217/stagnate_r0"
+
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+# mpigrid=2.4.4.4
+mpigrid=2.2.2.1
+# vol=32.32.32.32
+vol=16.16.16.32
+
+# ARGS="--StartingType ColdStart --StartingTrajectory  0 --Trajectories 1"
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+OPT2='  --auto-tune --verbose_add stout_performance --verbose_add cg_performance '
+
+# export OMP_NUM_THREADS=4
+# export OMP_PLACES=cores
+# export OMP_PROC_BIND=close
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=0:64:1
+
+module load openmpi
+
+# Smoke test against the 3 FoV vectors, which are known to span both sources exactly.
+# $MPIRUN ./Example_deflation_decomp --basis ${vecDir} --nbasis 3 --prefix fov --vecs ${vecDir}/stagnate_r0,${vecDir}/stagnate_control --ls ${Ls} --out ${outDir}/decomp.txt --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}
+$MPIRUN ./Example_deflation_decomp --basis ${ksDir} --nbasis ${Nbasis} --prefix evec --vecs ${vecDir}/stagnate_r0,${vecDir}/stagnate_control --evals ${ksDir}/evals.txt --ls ${Ls} --out ${outDir}/decomp.txt --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}
