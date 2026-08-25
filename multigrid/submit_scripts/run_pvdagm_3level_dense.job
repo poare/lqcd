@@ -1,0 +1,74 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=pvdagm_3level
+#SBATCH --nodes=8
+##SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 24:00:00
+
+nodes=8
+# nproc=128       # 128 = 8*16
+nproc=8
+MPIRUN='srun -N8 -n'${nproc}
+# MPIRUN='srun --mpi=pmix -N8 -n'${nproc}
+
+root="ckpoint_lat.4000"
+variant="r0"                 # r0 | gauss ; only labels the run
+runname="PVdagM_3level_dense_${variant}_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+outDir="${homedir}/lqcd/multigrid/mg3level/${root}/${runname}"
+
+mkdir -p ${logDir}
+mkdir -p ${outDir}
+
+# The engineered stagnant source written by Example_pvdagm_stagnate
+vecDir="${homedir}/lqcd/multigrid/pseudospectra/fov/${root}/PVdagM_stagnate_Nang17_theta30_madj1_nstep1_394217"
+srcFile="${vecDir}/stagnate_r0"
+# srcFile="${vecDir}/stagnate_control"
+
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+# mpigrid=2.4.4.4
+mpigrid=2.2.2.1
+# vol=32.32.32.32
+vol=16.16.16.32
+
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+OPT2='  --auto-tune --verbose_add stout_performance --verbose_add cg_performance '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=0:64:1
+
+module load openmpi
+
+# --- Driver knobs. This driver has no ParseEnvironment(); these are the only nine
+#     environment variables it reads. NRHS, OuterMmax and OuterNstep do NOT exist here
+#     -- the outer PGCR is hardcoded as (tol 1e-8, maxit 1000, mmax 16, nstep 16), so
+#     the mmax 1 variant needs a source edit, not an export.
+export MASS=0.01
+export DENSE_CC=1            # 1 = dense coarse-coarse inverse, 0 = L3 PGCR instead
+# export CC_TOL=0.05         # tolerance of the iterative CC solve, DENSE_CC=0 only
+# export DENSE_CC_CHECK=1    # per-apply defect check on the dense inverse; worth one run
+# export coarse_smoother_nstep=8
+# export coarse_smoother_shift=0.1
+
+# The 60-vector setup is the expensive part of the run. Cache it OUTSIDE the per-job
+# outDir so later jobs reload instead of regenerating; delete the file to force a rebuild.
+# The load path reproduces the generate path exactly (see the GlobalOrthonormalise note
+# in the driver), so a reloaded subspace gives the same preconditioner.
+export SUBSPACE_FILE="${homedir}/lqcd/multigrid/mg3level/${root}/subspace_nb60.scidac"
+
+# One job solves BOTH sources against the same hierarchy: the engineered r0 first, then a
+# random source as the benchmark. Drop --src to run the random source alone.
+$MPIRUN ./Example_pvdagm_3level_dense --config ${inFile} --src ${srcFile} --mpi ${mpigrid} --grid ${vol} ${OPT} ${OPT2} > ${logs}
