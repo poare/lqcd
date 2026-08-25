@@ -36,7 +36,7 @@ mkdir -p ${outDir}
 ksDir="/hpcgpfs01/work/lqcd/staging/RBC/ckpoint_lat.4000/ks_evecs/PVdagM_Nm80_Nk40_Niter5000_337342"
 
 # Sources to decompose: stagnate_r0 and stagnate_control from Example_pvdagm_stagnate
-vecDir="/sdcc/u/poare/lqcd/multigrid/pseudospectra/fov/ckpoint_lat.4000/PVdagM_stagnate_Nang17_theta30_madj1_nstep1_394217/stagnate_r0"
+vecDir="/sdcc/u/poare/lqcd/multigrid/pseudospectra/fov/ckpoint_lat.4000/PVdagM_stagnate_Nang17_theta30_madj1_nstep1_394217"
 
 logs="${logDir}/${runname}.log"
 
