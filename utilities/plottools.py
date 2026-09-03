@@ -100,7 +100,9 @@ def add_ylabel(ax, label, style = default_style):
 ############################ REAL-VALUED FUNCTIONS #############################
 ################################################################################
 
-def plot_1d_func(func, ax = None, x_bounds = [-5, 5], nx = 100, col = [pal[0], pal[1]], ax_label = ['x', 'y'], title = None, fn_label = 'f', legend = False, \
+# def plot_1d_func(func, ax = None, x_bounds = [-5, 5], nx = 100, col = [pal[0], pal[1]], ax_label = ['x', 'y'], title = None, fn_label = 'f', legend = False, \
+#                     style = default_style, fig_size = None, tight_layout = True, saveat_path = None, ls = 'solid'):
+def plot_1d_func(func, ax = None, x_bounds = [-5, 5], nx = 100, col = MAROON, ax_label = ['x', 'y'], title = None, fn_label = 'f', legend = False, \
                     style = default_style, fig_size = None, tight_layout = True, saveat_path = None, ls = 'solid'):
     """
     Plots a function of one real variable, f, which can either be real or complex-valued. Either creates a new axis if 

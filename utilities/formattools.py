@@ -192,16 +192,63 @@ styles = {
         'leg_fontsize'      : 25.0,
         'wfontsize'         : 150,
     },
+    'blog_post' : {
+        'colwidth'          : 10.5,         # inches
+        'textwidth'         : 510.0 / pts_per_inch,         # inches
+        'fontsize'          : 20.0,                         # pts
+        'tickwidth'         : 1.0,                          # pts
+        'ticklength'        : 4.0,                          # pts
+        'axeswidth'         : 1.0,                          # pts
+        'markersize'        : 30.0,                         # pts
+        'ebar_width'        : 1.0,                          # pts
+        'endcaps'           : 2.0,                          # pts
+        'ecap_width'        : 1.0,                          # pts
+        'bottom_pad'        : 0.5,                          # pts
+        'top_pad'           : 1.5,                          # pts
+        'left_pad'          : 0.5,                          # pts
+        'right_pad'         : 1.5,                          # pts
+        'asp_ratio'         : 2.0,
+        'linewidth'         : 3.0,
+    }
 }
 
 # initialize empty keys
-default_style = styles['notebook']
+# NOTE: this is a copy of styles['notebook'], not an alias for it. set_default_style
+# below switches styles by mutating this dict in place, which would otherwise
+# overwrite the notebook entry and make it unrecoverable.
+default_style = dict(styles['notebook'])
 for sty in styles.values():
     if sty == default_style:
         continue
     for key in default_style:
         if not key in sty:
             sty[key] = default_style[key]
+
+def set_default_style(name):
+    """
+    Switches the default style used by plottools to styles[name].
+
+    The switch is made by mutating default_style in place rather than by
+    rebinding it. plottools takes default_style as a default argument value in
+    its function signatures, and Python evaluates those once, when the module is
+    imported -- so rebinding this name afterwards is invisible to every function
+    that has already been defined, and fails silently. Mutating the dict that
+    those signatures already hold a reference to is what makes the switch take
+    effect, and it works no matter which module was imported first.
+
+    Note that plot_data_CR_2D, plot_fn_CR_2D and plot_fn_CC_2D take
+    styles['notebook'] directly rather than default_style, so they do not follow
+    this switch.
+
+    Parameters
+    ----------
+    name : str
+        Key into styles, e.g. 'notebook', 'prd_twocol', 'blog_post'.
+    """
+    if name not in styles:
+        raise KeyError(f'unknown style {name}, options are {sorted(styles)}')
+    default_style.clear()
+    default_style.update(styles[name])
 
 """List of all spines in matplotlib."""
 spinedirs = ['top', 'bottom', 'left', 'right']
