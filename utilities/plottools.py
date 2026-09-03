@@ -26,6 +26,7 @@ from matplotlib import cm
 import matplotlib.font_manager as font_manager
 
 pal = sns.color_palette()
+MAROON = "#750014"
 
 def set_font():
     """
