@@ -1,0 +1,47 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=emt_npr
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --partition=prod
+#SBATCH -t 06:00:00
+
+set -x
+
+# cd /data/wombat/users/mlwagman/mosaic
+cd /home/lqcd/poare/lqcd/mosaic
+
+bash
+module load openmpi/3.1.5
+# module load qlua
+#module load qlua/20200107
+ module load qlua/20200107-gpu1080
+
+EXE=qlua
+
+# cfgpath="/data/d10b/ensembles/isoClover/"
+# cfgbase="cl3_16_48_b6p1_m0p2450"
+cfgpath="/work/lqcd/d10b/ensembles/isoClover/"
+cfgbase="cl21_12_24_b6p1_m0p2800m0p2450"
+gf=true
+gpu=true
+#gpu=false
+
+home=/home/lqcd/poare/lqcd/gradflow_npr
+logs=${home}/logs/${cfgbase}_${SLURM_JOB_ID}
+output=/data/d10b/users/poare/gradflow_npr/output/${cfgbase}_${SLURM_JOB_ID}
+
+mkdir ${logs}
+mkdir ${logs}/no_output
+mkdir ${output}
+
+parameters="jobid = ${SLURM_JOB_ID} cfgpath = '${cfgpath}' cfgbase = '${cfgbase}' gf=${gf} gpu=${gpu}"
+export OMP_NUM_THREADS=6
+
+# for cfg in `seq 1000 10 1010`
+# do
+cfg=1010
+	mpirun -np 4 $EXE -e "$parameters cfgnum = ${cfg}" ${home}/emt_npr.qlua > ${logs}/cfg${cfg}.txt
+# done
