@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!--
+  NPR momentum-fraction measurement, one configuration per run.
+
+  To retarget this to a different fermion action -- the exponential clover in
+  particular -- edit ONLY the <FermionAction> block. Nothing else in this file
+  and nothing in npr_momfrac_chroma.cc has to change, because the action and
+  the inverter are built from Chroma's own XML factories. If the action lives
+  in a tree other than stock Chroma (LALIBE, say), compile
+  npr_momfrac_chroma.cc into THAT binary with -DNPR_MOMFRAC_NO_MAIN and add
+  NprMomfrac::registerAll() to its linkage hack; the XML below is unchanged.
+-->
+<chroma>
+<Param>
+  <InlineMeasurements>
+    <elem>
+      <Name>NPR_MOMFRAC</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>1</version>
+
+        <!-- Source point y, explicit. The 2020 runs drew this from a seeded
+             RNG; for a reproducible cross-check it is stated outright.
+             cfg 1600 of job 22560 used (14,6,7,37). -->
+        <t_srce>14 6 7 37</t_srce>
+
+        <!-- Momenta. Exactly one of <mom_list> or <mom_range>.
+             Nested <elem> rather than a comma-separated string, so each
+             momentum reads as a multi1d<int> the way Chroma reads vectors
+             everywhere else. -->
+        <mom_list>
+          <elem>1 1 1 1</elem>
+          <elem>3 0 0 0</elem>
+        </mom_list>
+
+        <!-- Production: an inclusive per-direction range. This is a HYPERCUBE
+             (L-infinity), not a taxicab ball. The bounds below reproduce 2020
+             exactly: 13^4 = 28561 momenta.
+        <mom_range>
+          <k_min>-6 -6 -6 -6</k_min>
+          <k_max> 6  6  6  6</k_max>
+        </mom_range>
+        -->
+
+        <!-- Optional, applied on top of <mom_range>: drop momenta with
+             (a p~)^2 above this, where p~_mu = 2 sin(pi (k_mu + b_mu) / L_mu).
+             Omit to reproduce 2020.
+        <max_psq>10.0</max_psq>
+        -->
+
+        <!-- Momentum twist. (0,0,0,1/2) for antiperiodic time. Must agree with
+             the time component of FermionBC/boundary below; they are two halves
+             of the same convention and silently disagreeing is a real risk. -->
+        <bvec>0 0 0 0.5</bvec>
+
+        <output_type>TEXT</output_type>
+        <output_file>./cfg1600_chroma.txt</output_file>
+
+        <!-- THE EXTENSION POINT. Replace this block to change the action;
+             nothing else in this file or in the .cc changes. -->
+        <FermionAction>
+          <FermAct>CLOVER</FermAct>
+          <Mass>-0.2450</Mass>
+          <clovCoeff>1.2493</clovCoeff>
+          <AnisoParam>
+            <anisoP>false</anisoP><t_dir>3</t_dir><xi_0>1</xi_0><nu>1</nu>
+          </AnisoParam>
+          <FermionBC>
+            <FermBC>SIMPLE_FERMBC</FermBC>
+            <boundary>1 1 1 -1</boundary>
+          </FermionBC>
+        </FermionAction>
+
+        <InvertParam>
+          <invType>CG_INVERTER</invType>
+          <RsdCG>1.0e-14</RsdCG>
+          <MaxCG>10000</MaxCG>
+        </InvertParam>
+
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+      </NamedObject>
+    </elem>
+
+  </InlineMeasurements>
+  <nrow>16 16 16 48</nrow>
+</Param>
+
+<RNG><Seed><elem>11</elem><elem>11</elem><elem>11</elem><elem>0</elem></Seed></RNG>
+<Cfg>
+  <cfg_type>SCIDAC</cfg_type>
+  <cfg_file>/home/poare/Dropbox/research/gf-pdf-npr/npr_conv_tests/cl3_16_48_b6p1_m0p2450_cfg_1600.lime</cfg_file>
+</Cfg>
+</chroma>

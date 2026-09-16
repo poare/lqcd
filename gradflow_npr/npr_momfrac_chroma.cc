@@ -14,6 +14,9 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
+#include <vector>
+#include <cmath>
 
 using namespace Chroma;
 
@@ -29,6 +32,20 @@ namespace NprMomfrac {
     bool          test_seqsrc;  // Task 4: self-test the sequential source
     multi1d<int>  t_srce;       // source point y, explicit -- never drawn
     multi1d<Real> bvec;         // twist, (0,0,0,1/2) for antiperiodic time
+
+    // Momenta: exactly one of mom_list or mom_range, with an optional cut.
+    bool                  have_mom_list;
+    multi1d<multi1d<int> > mom_list;
+    bool                  have_mom_range;
+    multi1d<int>          k_min, k_max;
+    bool                  have_max_psq;
+    double                max_psq;
+
+    std::string output_type;    // TEXT (HDF5 not implemented yet)
+    std::string output_file;
+
+    GroupXML_t fermact;         // THE extension point -- swap the action here
+    GroupXML_t invParam;
   };
 
   Params::Params(XMLReader& xml_in, const std::string& path) {
@@ -66,6 +83,55 @@ namespace NprMomfrac {
       bvec.resize(Nd);
       for (int mu = 0; mu < Nd; ++mu) bvec[mu] = Real(0);
       bvec[Nd-1] = Real(0.5);
+    }
+
+    // Momenta. Exactly one of the two forms; a run that gives both is almost
+    // certainly a mistake, so refuse it rather than silently picking one.
+    have_mom_list  = (paramtop.count("Param/mom_list")  == 1);
+    have_mom_range = (paramtop.count("Param/mom_range") == 1);
+
+    if (have_mom_list && have_mom_range) {
+      QDPIO::cerr << "NPR_MOMFRAC: give exactly one of <mom_list> and "
+                  << "<mom_range>, not both" << std::endl;
+      QDP_abort(1);
+    }
+    if (have_mom_list)  read(paramtop, "Param/mom_list", mom_list);
+    if (have_mom_range) {
+      read(paramtop, "Param/mom_range/k_min", k_min);
+      read(paramtop, "Param/mom_range/k_max", k_max);
+    }
+
+    have_max_psq = (paramtop.count("Param/max_psq") == 1);
+    max_psq = 0.0;
+    if (have_max_psq) {
+      Real tmp; read(paramtop, "Param/max_psq", tmp); max_psq = toDouble(tmp);
+    }
+
+    if (paramtop.count("Param/output_type") == 1)
+      read(paramtop, "Param/output_type", output_type);
+    else
+      output_type = "TEXT";
+
+    output_file = "";
+    if (paramtop.count("Param/output_file") == 1)
+      read(paramtop, "Param/output_file", output_file);
+
+    // The action and the inverter come from Chroma's own XML factories, which
+    // is exactly what makes the action swappable without touching code.
+    //
+    // Read these through a sub-reader rooted at Param, so the path handed to
+    // readXMLGroup is a bare element name. readXMLGroup stores path = "/" +
+    // path while capturing only the named subtree, so passing
+    // "Param/FermionAction" here records "/Param/FermionAction" against XML
+    // whose root is <FermionAction> -- and the factory lookup then fails at
+    // measurement time, not at read time, which makes it look like a solver
+    // problem rather than a path problem.
+    {
+      XMLReader ptop(paramtop, "Param");
+      if (ptop.count("FermionAction") == 1)
+        fermact = readXMLGroup(ptop, "FermionAction", "FermAct");
+      if (ptop.count("InvertParam") == 1)
+        invParam = readXMLGroup(ptop, "InvertParam", "invType");
     }
   }
 
@@ -119,6 +185,68 @@ namespace NprMomfrac {
          - adj(shift(u[mu], BACKWARD, mu)) * (Gamma(1 << mu) * shift(S, BACKWARD, mu));
   }
 
+  //! The momentum set: a HYPERCUBE in k, not a ball.
+  /*!
+   * The distinction is not cosmetic: |k|_inf <= 6 is 28561 momenta while
+   * |k|_1 <= 6 is 1289, a factor of 22. The 2020 production used the
+   * hypercube, so the range form takes explicit per-direction bounds rather
+   * than a single half-width -- which also allows a non-cubic range, and this
+   * geometry arguably wants one (L_t = 48 against L_s = 16).
+   *
+   * The optional max_psq cut is applied on top; omit it to reproduce 2020.
+   */
+  multi1d<multi1d<int> > buildMomenta(const Params& p)
+  {
+    std::vector<multi1d<int> > out;
+
+    if (p.have_mom_list) {
+      for (int i = 0; i < p.mom_list.size(); ++i) out.push_back(p.mom_list[i]);
+    } else {
+      multi1d<int> k(Nd);
+      for (k[0] = p.k_min[0]; k[0] <= p.k_max[0]; ++k[0])
+      for (k[1] = p.k_min[1]; k[1] <= p.k_max[1]; ++k[1])
+      for (k[2] = p.k_min[2]; k[2] <= p.k_max[2]; ++k[2])
+      for (k[3] = p.k_min[3]; k[3] <= p.k_max[3]; ++k[3]) {
+        if (p.have_max_psq) {
+          double psq = 0.0;
+          for (int m = 0; m < Nd; ++m) {
+            double s = 2.0 * std::sin(M_PI * (k[m] + toDouble(p.bvec[m]))
+                                      / Layout::lattSize()[m]);
+            psq += s * s;
+          }
+          if (psq > p.max_psq) continue;
+        }
+        out.push_back(k);
+      }
+    }
+
+    multi1d<multi1d<int> > res(out.size());
+    for (size_t i = 0; i < out.size(); ++i) res[i] = out[i];
+    return res;
+  }
+
+  //! One line per entry:
+  //!   <tag> k0 k1 k2 k3 spin_row spin_col colour_row colour_col re im
+  /*!
+   * DPropagator is site-local and identical on every node after sum(), so
+   * guarding on primaryNode() writes each entry exactly once.
+   */
+  void writeEntry(std::ofstream& fout, const std::string& tag,
+                  const multi1d<int>& k, const DPropagator& P)
+  {
+    if (!Layout::primaryNode()) return;
+    for (int s0 = 0; s0 < Ns; ++s0)
+    for (int s1 = 0; s1 < Ns; ++s1)
+    for (int c0 = 0; c0 < Nc; ++c0)
+    for (int c1 = 0; c1 < Nc; ++c1) {
+      ColorMatrix cm = peekSpin(P, s0, s1);
+      Complex     z  = peekColor(cm, c0, c1);
+      fout << tag << " " << k[0] << " " << k[1] << " " << k[2] << " " << k[3]
+           << " " << s0 << " " << s1 << " " << c0 << " " << c1
+           << " " << toDouble(real(z)) << " " << toDouble(imag(z)) << "\n";
+    }
+  }
+
   class InlineNprMomfrac : public AbsInlineMeasurement {
   public:
     InlineNprMomfrac(const Params& p) : params(p) {}
@@ -130,6 +258,11 @@ namespace NprMomfrac {
       if (params.dump_gamma)   { dumpGamma(); }
       if (params.test_project) { testProject(); }
       if (params.test_seqsrc)  { testSeqSource(); }
+
+      // The three flags above are self-tests that run instead of the
+      // measurement. With none of them set, do the real thing.
+      if (!params.dump_gamma && !params.test_project && !params.test_seqsrc)
+        measure(xml_out);
       push(xml_out, "NprMomfrac");
       write(xml_out, "update_no", update_no);
       pop(xml_out);
@@ -209,6 +342,112 @@ namespace NprMomfrac {
            << toDouble(real(z)) << " " << toDouble(imag(z));
         QDPIO::cout << os.str() << std::endl;
       }
+    }
+
+    //! The measurement proper: one point-source solve, four sequential
+    //! solves, then projection at every requested momentum.
+    void measure(XMLWriter& xml_out) {
+      StopWatch swatch;
+
+      // 1. RAW links. Never state->getLinks() -- that carries the antiperiodic
+      //    boundary phase, which belongs in the Dirac operator alone.
+      const multi1d<LatticeColorMatrix>& u =
+        TheNamedObjMap::Instance()
+          .getData<multi1d<LatticeColorMatrix> >(params.gauge_id);
+
+      // 2. Action and solver, from the XML factories.
+      typedef LatticeFermion               T;
+      typedef multi1d<LatticeColorMatrix>  P;
+      typedef multi1d<LatticeColorMatrix>  Q;
+
+      std::istringstream xml_s(params.fermact.xml);
+      XMLReader fermacttop(xml_s);
+      Handle<FermionAction<T,P,Q> > S_f(
+        TheFermionActionFactory::Instance()
+          .createObject(params.fermact.id, fermacttop, params.fermact.path));
+      Handle<FermState<T,P,Q> > state(S_f->createState(u));
+
+      // 3. Point source at y, then the propagator S.
+      LatticePropagator src = zero;
+      {
+        Propagator one_site = 1;              // identity in spin and colour
+        pokeSite(src, one_site, params.t_srce);
+      }
+
+      int ncg_had = 0;
+      XMLBufferWriter solver_xml;
+      push(solver_xml, "Solves");
+
+      LatticePropagator S;
+      swatch.reset(); swatch.start();
+      S_f->quarkProp(S, solver_xml, src, 0, Nd-1, state, params.invParam,
+                     QUARK_SPIN_TYPE_FULL, false, ncg_had);
+      swatch.stop();
+      QDPIO::cout << "NPR_MOMFRAC: point propagator done, " << ncg_had
+                  << " iters, " << swatch.getTimeInSeconds() << " s" << std::endl;
+
+      // 4. Four sequential sources and solves. RAW u again, deliberately.
+      multi1d<LatticePropagator> M(Nd);
+      for (int mu = 0; mu < Nd; ++mu) {
+        LatticePropagator b = seqSource(u, S, mu);
+        swatch.reset(); swatch.start();
+        S_f->quarkProp(M[mu], solver_xml, b, 0, Nd-1, state, params.invParam,
+                       QUARK_SPIN_TYPE_FULL, false, ncg_had);
+        swatch.stop();
+        QDPIO::cout << "NPR_MOMFRAC: sequential propagator mu = " << mu
+                    << " done, " << swatch.getTimeInSeconds() << " s" << std::endl;
+      }
+      pop(solver_xml);
+
+      // 5. Project and write.
+      if (params.output_type != "TEXT") {
+        QDPIO::cerr << "NPR_MOMFRAC: output_type '" << params.output_type
+                    << "' not implemented; only TEXT is" << std::endl;
+        QDP_abort(1);
+      }
+
+      multi1d<multi1d<int> > moms = buildMomenta(params);
+      QDPIO::cout << "NPR_MOMFRAC: projecting at " << moms.size()
+                  << " momenta" << std::endl;
+
+      std::ofstream fout;
+      if (Layout::primaryNode()) {
+        fout.open(params.output_file.c_str());
+        if (!fout) {
+          QDPIO::cerr << "NPR_MOMFRAC: cannot open output file "
+                      << params.output_file << std::endl;
+          QDP_abort(1);
+        }
+        fout.precision(17);
+        fout << std::scientific;
+      }
+
+      swatch.reset(); swatch.start();
+      for (int i = 0; i < moms.size(); ++i) {
+        const multi1d<int>& k = moms[i];
+
+        DPropagator Sp = projectMomentum(S, k, params.t_srce, params.bvec);
+        writeEntry(fout, "prop", k, Sp);
+
+        for (int mu = 0; mu < Nd; ++mu) {
+          DPropagator Op = projectMomentum(M[mu], k, params.t_srce, params.bvec);
+          std::ostringstream tag; tag << "O" << (mu+1) << (mu+1);
+          writeEntry(fout, tag.str(), k, Op);
+        }
+      }
+      swatch.stop();
+
+      if (Layout::primaryNode()) fout.close();
+
+      QDPIO::cout << "NPR_MOMFRAC: projection done in "
+                  << swatch.getTimeInSeconds() << " s; wrote "
+                  << params.output_file << std::endl;
+
+      push(xml_out, "NprMomfracResults");
+      write(xml_out, "num_momenta", moms.size());
+      write(xml_out, "t_srce", params.t_srce);
+      write(xml_out, "output_file", params.output_file);
+      pop(xml_out);
     }
 
     // Free-field test of seqSource.
