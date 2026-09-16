@@ -25,6 +25,9 @@ namespace NprMomfrac {
     unsigned long frequency;
     std::string   gauge_id;
     bool          dump_gamma;   // Task 2: dump Gamma(1<<mu) and exit the measurement
+    bool          test_project; // Task 3: self-test the momentum projection
+    multi1d<int>  t_srce;       // source point y, explicit -- never drawn
+    multi1d<Real> bvec;         // twist, (0,0,0,1/2) for antiperiodic time
   };
 
   Params::Params(XMLReader& xml_in, const std::string& path) {
@@ -37,6 +40,54 @@ namespace NprMomfrac {
       read(paramtop, "Param/dump_gamma", dump_gamma);
     else
       dump_gamma = false;
+
+    if (paramtop.count("Param/test_project") == 1)
+      read(paramtop, "Param/test_project", test_project);
+    else
+      test_project = false;
+
+    if (paramtop.count("Param/t_srce") == 1) {
+      read(paramtop, "Param/t_srce", t_srce);
+    } else {
+      t_srce.resize(Nd);
+      for (int mu = 0; mu < Nd; ++mu) t_srce[mu] = 0;
+    }
+
+    if (paramtop.count("Param/bvec") == 1) {
+      read(paramtop, "Param/bvec", bvec);
+    } else {
+      // Default is the production convention: antiperiodic in time.
+      bvec.resize(Nd);
+      for (int mu = 0; mu < Nd; ++mu) bvec[mu] = Real(0);
+      bvec[Nd-1] = Real(0.5);
+    }
+  }
+
+  const Real twopi = Real(6.283185307179586476925286766559);
+
+  //! Momentum projection.
+  /*!
+   * sum_x exp( i sum_mu (x-y)_mu (k_mu + b_mu) 2pi / L_mu ) F(x).
+   *
+   * Three conventions are baked in here and all three are load-bearing; see
+   * chroma-port-design.md. The phase is e^{+ip.(x-y)}, so the source point y
+   * enters as an offset rather than an overall phase. The twist b makes the
+   * momentum match the fermion boundary conditions, b = (0,0,0,1/2). And
+   * there is NO 1/V -- QLUA's production script had that normalisation
+   * deleted, and the 2020 analysis assumes it is absent.
+   *
+   * The sign convention matches Chroma's own SftMom (sftmom.cc:440).
+   */
+  DPropagator projectMomentum(const LatticePropagator& F,
+                              const multi1d<int>& k, const multi1d<int>& y,
+                              const multi1d<Real>& bvec)
+  {
+    LatticeReal arg = zero;
+    for (int mu = 0; mu < Nd; ++mu) {
+      arg += LatticeReal(Layout::latticeCoordinate(mu) - y[mu])
+           * twopi * (Real(k[mu]) + bvec[mu]) / Real(Layout::lattSize()[mu]);
+    }
+    return sum(cmplx(cos(arg), sin(arg)) * F);
   }
 
   class InlineNprMomfrac : public AbsInlineMeasurement {
@@ -47,7 +98,8 @@ namespace NprMomfrac {
       QDPIO::cout << "NPR_MOMFRAC: measurement reached, gauge_id = "
                   << params.gauge_id << std::endl;
 
-      if (params.dump_gamma) { dumpGamma(); }
+      if (params.dump_gamma)   { dumpGamma(); }
+      if (params.test_project) { testProject(); }
       push(xml_out, "NprMomfrac");
       write(xml_out, "update_no", update_no);
       pop(xml_out);
@@ -82,6 +134,50 @@ namespace NprMomfrac {
             QDPIO::cout << os.str() << std::endl;
           }
         }
+      }
+    }
+
+    // Self-test for projectMomentum, exploiting exact orthogonality.
+    //
+    // Feed F(x) = exp(-i q.(x-y)) * 1 at the twisted momentum for k0. The
+    // projector carries e^{+i(k+b).(x-y)} (QLUA's sign, emt_npr.qlua:303-307),
+    // so field and projector cancel at k = k0 and the sum is exactly V; at
+    // every other k the phases are orthogonal and the sum is exactly 0.
+    //
+    // Note the CONJUGATE phase on F. That is deliberate and it is what makes
+    // this a test rather than a tautology: the projector's own sign stays as
+    // the physics dictates. A sign error in projectMomentum would match at
+    // k = -k0, which is outside the scanned box, so the diagonal would vanish
+    // entirely. A dropped twist likewise leaves no diagonal. A dropped y
+    // offset leaves the magnitude at V but rotates its phase, which the
+    // checker's |diag - V| test catches.
+    void testProject() const {
+      multi1d<int> k0(Nd); k0[0] = 1; k0[1] = 1; k0[2] = 1; k0[3] = 2;
+
+      LatticeReal arg = zero;
+      for (int mu = 0; mu < Nd; ++mu) {
+        arg += LatticeReal(Layout::latticeCoordinate(mu) - params.t_srce[mu])
+             * twopi * (Real(k0[mu]) + params.bvec[mu])
+             / Real(Layout::lattSize()[mu]);
+      }
+
+      LatticePropagator one = 1;
+      LatticeComplex   ph  = cmplx(cos(arg), -sin(arg));   // conjugate: see above
+      LatticePropagator F  = ph * one;
+
+      multi1d<int> ks(Nd);
+      for (ks[0] = 0; ks[0] < 3; ++ks[0])
+      for (ks[1] = 0; ks[1] < 3; ++ks[1])
+      for (ks[2] = 0; ks[2] < 3; ++ks[2])
+      for (ks[3] = 0; ks[3] < 4; ++ks[3]) {
+        DPropagator P = projectMomentum(F, ks, params.t_srce, params.bvec);
+        ColorMatrix cm = peekSpin(P, 0, 0);
+        Complex     z  = peekColor(cm, 0, 0);
+        std::ostringstream os;
+        os << std::setprecision(17)
+           << "PROJ " << ks[0] << ks[1] << ks[2] << ks[3] << " "
+           << toDouble(real(z)) << " " << toDouble(imag(z));
+        QDPIO::cout << os.str() << std::endl;
       }
     }
 
