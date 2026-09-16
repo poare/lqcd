@@ -26,6 +26,7 @@ namespace NprMomfrac {
     std::string   gauge_id;
     bool          dump_gamma;   // Task 2: dump Gamma(1<<mu) and exit the measurement
     bool          test_project; // Task 3: self-test the momentum projection
+    bool          test_seqsrc;  // Task 4: self-test the sequential source
     multi1d<int>  t_srce;       // source point y, explicit -- never drawn
     multi1d<Real> bvec;         // twist, (0,0,0,1/2) for antiperiodic time
   };
@@ -45,6 +46,11 @@ namespace NprMomfrac {
       read(paramtop, "Param/test_project", test_project);
     else
       test_project = false;
+
+    if (paramtop.count("Param/test_seqsrc") == 1)
+      read(paramtop, "Param/test_seqsrc", test_seqsrc);
+    else
+      test_seqsrc = false;
 
     if (paramtop.count("Param/t_srce") == 1) {
       read(paramtop, "Param/t_srce", t_srce);
@@ -90,6 +96,29 @@ namespace NprMomfrac {
     return sum(cmplx(cos(arg), sin(arg)) * F);
   }
 
+  //! The sequential source for the operator O_{mu mu}.
+  /*!
+   * b_mu(x) = U_mu(x) gamma_mu S(x+mu) - U_mu^dag(x-mu) gamma_mu S(x-mu)
+   *
+   * This is emt_npr.qlua's get_sequential_source (line 127), NOT
+   * get_sequential_source_full (line 115). The two differ by the trace
+   * subtraction, and the production data was made with the plain one -- proved
+   * from the data itself, since sum_mu O_{mu mu} is O(1) rather than zero.
+   * There is also no factor of 1/2 here; the 1/2 lives in the O() helper,
+   * which this routine does not go through.
+   *
+   * NOTE: u MUST be the raw gauge field, never FermState::getLinks(), which
+   * carries the antiperiodic boundary phase. QLUA applied its bcs inside the
+   * Dirac operator only; the derivative above used raw links and a periodic
+   * shift. This is the predicted source of any O_44 discrepancy.
+   */
+  LatticePropagator seqSource(const multi1d<LatticeColorMatrix>& u,
+                              const LatticePropagator& S, int mu)
+  {
+    return u[mu] * (Gamma(1 << mu) * shift(S, FORWARD, mu))
+         - adj(shift(u[mu], BACKWARD, mu)) * (Gamma(1 << mu) * shift(S, BACKWARD, mu));
+  }
+
   class InlineNprMomfrac : public AbsInlineMeasurement {
   public:
     InlineNprMomfrac(const Params& p) : params(p) {}
@@ -100,6 +129,7 @@ namespace NprMomfrac {
 
       if (params.dump_gamma)   { dumpGamma(); }
       if (params.test_project) { testProject(); }
+      if (params.test_seqsrc)  { testSeqSource(); }
       push(xml_out, "NprMomfrac");
       write(xml_out, "update_no", update_no);
       pop(xml_out);
@@ -178,6 +208,72 @@ namespace NprMomfrac {
            << "PROJ " << ks[0] << ks[1] << ks[2] << ks[3] << " "
            << toDouble(real(z)) << " " << toDouble(imag(z));
         QDPIO::cout << os.str() << std::endl;
+      }
+    }
+
+    // Free-field test of seqSource.
+    //
+    // On a unit gauge field b_mu(x) = gamma_mu [S(x+mu) - S(x-mu)]. Feeding
+    // the CONJUGATE plane wave S(x) = exp(-i q.x) * 1 gives
+    //   b_mu(x) = gamma_mu S(x) (e^{-i q_mu} - e^{+i q_mu})
+    //           = -2i sin(q_mu) gamma_mu S(x),
+    // so projecting at q -- whose own phase is e^{+i q.x} -- gives exactly
+    // -2i sin(q_mu) V gamma_mu. The conjugate is needed for the same reason as
+    // in testProject: the projector's sign is fixed by the physics, so the
+    // test field is the thing that has to be conjugate for the two to cancel.
+    //
+    // A swapped FORWARD/BACKWARD negates this exactly, which the checker names
+    // explicitly rather than reporting as a generic mismatch.
+    //
+    // The test runs with bvec = 0, deliberately. A twisted plane wave is
+    // antiperiodic in time (e^{-i q_3 L_3} = -1 for b_3 = 1/2) while QDP++'s
+    // shift is periodic, so the analytic reference above is simply wrong on the
+    // boundary time slices -- with the twist on, mu=3 misses by exactly 1/4
+    // while mu=0,1,2 agree to 1e-16. That is a property of the REFERENCE, not
+    // of seqSource, and it is worth stating plainly because it CONFIRMS the
+    // design rather than contradicting it: the derivative is supposed to use
+    // raw links and a periodic shift, with the antiperiodic boundary living in
+    // the Dirac operator alone, which is what QLUA did. Task 3 tested the twist
+    // on its own, where it belongs.
+    //
+    // Note the deliberate y = 0 here, in BOTH the plane wave and the projector.
+    // The two must agree or they differ by a constant phase and the comparison
+    // fails for a reason that has nothing to do with seqSource. Task 3 already
+    // tested the y offset on its own.
+    void testSeqSource() const {
+      multi1d<int> k0(Nd); k0[0] = 1; k0[1] = 1; k0[2] = 1; k0[3] = 2;
+
+      LatticeReal arg = zero;
+      for (int mu = 0; mu < Nd; ++mu) {
+        arg += LatticeReal(Layout::latticeCoordinate(mu))
+             * twopi * (Real(k0[mu]) + params.bvec[mu])
+             / Real(Layout::lattSize()[mu]);
+      }
+
+      LatticePropagator one = 1;
+      LatticePropagator S = cmplx(cos(arg), -sin(arg)) * one;   // conjugate
+
+      const multi1d<LatticeColorMatrix>& u =
+        TheNamedObjMap::Instance()
+          .getData<multi1d<LatticeColorMatrix> >(params.gauge_id);
+
+      multi1d<int> yzero(Nd);
+      for (int m = 0; m < Nd; ++m) yzero[m] = 0;
+
+      for (int mu = 0; mu < Nd; ++mu) {
+        LatticePropagator b = seqSource(u, S, mu);
+        DPropagator P = projectMomentum(b, k0, yzero, params.bvec);
+        for (int r = 0; r < Ns; ++r) {
+          for (int c = 0; c < Ns; ++c) {
+            ColorMatrix cm = peekSpin(P, r, c);
+            Complex     z  = peekColor(cm, 0, 0);
+            std::ostringstream os;
+            os << std::setprecision(17)
+               << "SEQ " << mu << " " << r << " " << c << " "
+               << toDouble(real(z)) << " " << toDouble(imag(z));
+            QDPIO::cout << os.str() << std::endl;
+          }
+        }
       }
     }
 
