@@ -150,16 +150,41 @@ namespace NprMomfrac {
    *
    * The sign convention matches Chroma's own SftMom (sftmom.cc:440).
    */
-  DPropagator projectMomentum(const LatticePropagator& F,
-                              const multi1d<int>& k, const multi1d<int>& y,
-                              const multi1d<Real>& bvec)
+  //! The phase field exp(i (k+b).(x-y)) on its own.
+  /*!
+   * Hoisted out of projectMomentum because it is the expensive part and it
+   * does not depend on the field being projected. The design note flags the
+   * momentum loop, not the solver, as the production bottleneck -- at 28561
+   * momenta on 16^3 x 48 the five projections per momentum dominate the five
+   * inversions by orders of magnitude -- so building this once per momentum
+   * and reusing it across tags is where the time actually goes.
+   */
+  LatticeComplex momentumPhase(const multi1d<int>& k, const multi1d<int>& y,
+                               const multi1d<Real>& bvec)
   {
     LatticeReal arg = zero;
     for (int mu = 0; mu < Nd; ++mu) {
       arg += LatticeReal(Layout::latticeCoordinate(mu) - y[mu])
            * twopi * (Real(k[mu]) + bvec[mu]) / Real(Layout::lattSize()[mu]);
     }
-    return sum(cmplx(cos(arg), sin(arg)) * F);
+    return cmplx(cos(arg), sin(arg));
+  }
+
+  //! Contract a precomputed phase against a field. No 1/V.
+  DPropagator projectWithPhase(const LatticeComplex& ph,
+                               const LatticePropagator& F)
+  {
+    return sum(ph * F);
+  }
+
+  //! Convenience wrapper: phase and contraction in one call.
+  /*! Kept so the Task 3 and 4 self-tests exercise the same code path they
+   *  were written against. The measurement itself uses the two-step form. */
+  DPropagator projectMomentum(const LatticePropagator& F,
+                              const multi1d<int>& k, const multi1d<int>& y,
+                              const multi1d<Real>& bvec)
+  {
+    return projectWithPhase(momentumPhase(k, y, bvec), F);
   }
 
   //! The sequential source for the operator O_{mu mu}.
@@ -374,32 +399,9 @@ namespace NprMomfrac {
         pokeSite(src, one_site, params.t_srce);
       }
 
-      int ncg_had = 0;
-      XMLBufferWriter solver_xml;
-      push(solver_xml, "Solves");
-
-      LatticePropagator S;
-      swatch.reset(); swatch.start();
-      S_f->quarkProp(S, solver_xml, src, 0, Nd-1, state, params.invParam,
-                     QUARK_SPIN_TYPE_FULL, false, ncg_had);
-      swatch.stop();
-      QDPIO::cout << "NPR_MOMFRAC: point propagator done, " << ncg_had
-                  << " iters, " << swatch.getTimeInSeconds() << " s" << std::endl;
-
-      // 4. Four sequential sources and solves. RAW u again, deliberately.
-      multi1d<LatticePropagator> M(Nd);
-      for (int mu = 0; mu < Nd; ++mu) {
-        LatticePropagator b = seqSource(u, S, mu);
-        swatch.reset(); swatch.start();
-        S_f->quarkProp(M[mu], solver_xml, b, 0, Nd-1, state, params.invParam,
-                       QUARK_SPIN_TYPE_FULL, false, ncg_had);
-        swatch.stop();
-        QDPIO::cout << "NPR_MOMFRAC: sequential propagator mu = " << mu
-                    << " done, " << swatch.getTimeInSeconds() << " s" << std::endl;
-      }
-      pop(solver_xml);
-
-      // 5. Project and write.
+      // Momentum set and output file are prepared BEFORE any solving, so a
+      // bad path or a malformed momentum spec fails in seconds rather than
+      // after an hour of inversions.
       if (params.output_type != "TEXT") {
         QDPIO::cerr << "NPR_MOMFRAC: output_type '" << params.output_type
                     << "' not implemented; only TEXT is" << std::endl;
@@ -407,7 +409,7 @@ namespace NprMomfrac {
       }
 
       multi1d<multi1d<int> > moms = buildMomenta(params);
-      QDPIO::cout << "NPR_MOMFRAC: projecting at " << moms.size()
+      QDPIO::cout << "NPR_MOMFRAC: will project at " << moms.size()
                   << " momenta" << std::endl;
 
       std::ofstream fout;
@@ -422,24 +424,66 @@ namespace NprMomfrac {
         fout << std::scientific;
       }
 
+      int ncg_had = 0;
+      XMLBufferWriter solver_xml;
+      push(solver_xml, "Solves");
+
+      LatticePropagator S;
+      swatch.reset(); swatch.start();
+      S_f->quarkProp(S, solver_xml, src, 0, Nd-1, state, params.invParam,
+                     QUARK_SPIN_TYPE_FULL, false, ncg_had);
+      swatch.stop();
+      QDPIO::cout << "NPR_MOMFRAC: point propagator done, " << ncg_had
+                  << " iters, " << swatch.getTimeInSeconds() << " s" << std::endl;
+
+      // 3b. Write `prop` NOW, before the operator solves.
+      //
+      // prop needs one solve and nothing from J_mu, so gating it behind four
+      // more inversions only slows down the iteration it is meant to speed up:
+      // it is the comparison that isolates the action, the gauge field and the
+      // phase convention from the operator entirely. Flushed so the file can
+      // be compared while the sequential solves are still running.
+      swatch.reset(); swatch.start();
+      for (int i = 0; i < moms.size(); ++i) {
+        LatticeComplex ph = momentumPhase(moms[i], params.t_srce, params.bvec);
+        writeEntry(fout, "prop", moms[i], projectWithPhase(ph, S));
+      }
+      if (Layout::primaryNode()) fout.flush();
+      swatch.stop();
+      QDPIO::cout << "NPR_MOMFRAC: prop projected and written in "
+                  << swatch.getTimeInSeconds() << " s -- comparable now"
+                  << std::endl;
+
+      // 4. Four sequential sources and solves. RAW u again, deliberately.
+      multi1d<LatticePropagator> M(Nd);
+      for (int mu = 0; mu < Nd; ++mu) {
+        LatticePropagator b = seqSource(u, S, mu);
+        swatch.reset(); swatch.start();
+        S_f->quarkProp(M[mu], solver_xml, b, 0, Nd-1, state, params.invParam,
+                       QUARK_SPIN_TYPE_FULL, false, ncg_had);
+        swatch.stop();
+        QDPIO::cout << "NPR_MOMFRAC: sequential propagator mu = " << mu
+                    << " done, " << swatch.getTimeInSeconds() << " s" << std::endl;
+      }
+      pop(solver_xml);
+
+      // 5. Second pass: the four operators, one phase field per momentum
+      //    shared across all four tags.
       swatch.reset(); swatch.start();
       for (int i = 0; i < moms.size(); ++i) {
         const multi1d<int>& k = moms[i];
-
-        DPropagator Sp = projectMomentum(S, k, params.t_srce, params.bvec);
-        writeEntry(fout, "prop", k, Sp);
+        LatticeComplex ph = momentumPhase(k, params.t_srce, params.bvec);
 
         for (int mu = 0; mu < Nd; ++mu) {
-          DPropagator Op = projectMomentum(M[mu], k, params.t_srce, params.bvec);
           std::ostringstream tag; tag << "O" << (mu+1) << (mu+1);
-          writeEntry(fout, tag.str(), k, Op);
+          writeEntry(fout, tag.str(), k, projectWithPhase(ph, M[mu]));
         }
       }
       swatch.stop();
 
       if (Layout::primaryNode()) fout.close();
 
-      QDPIO::cout << "NPR_MOMFRAC: projection done in "
+      QDPIO::cout << "NPR_MOMFRAC: operators projected in "
                   << swatch.getTimeInSeconds() << " s; wrote "
                   << params.output_file << std::endl;
 
@@ -639,8 +683,23 @@ int main(int argc, char* argv[]) {
   config_xml << gauge_xml;
   write(xml_out, "Config_info", gauge_xml);
 
-  // Cheap sanity check: on a unit field this must print plaquette 1.
+  // Cheap sanity check before anything expensive. On a unit field this is
+  // exactly 1. For cfg 1600 -- beta = 6.1, stout-smeared once at rho = 0.125 --
+  // it should sit visibly above the 0.58-0.60 an unsmeared field would give.
+  // A value outside (0,1) means the gauge read is wrong and nothing downstream
+  // is meaningful.
   MesPlq(xml_out, "Observables", u);
+  {
+    Double w_plaq, s_plaq, t_plaq, link;
+    MesPlq(u, w_plaq, s_plaq, t_plaq, link);
+    std::ostringstream os;
+    os << std::setprecision(12)
+       << "NPR_MOMFRAC: w_plaq = " << toDouble(w_plaq)
+       << "  s_plaq = "            << toDouble(s_plaq)
+       << "  t_plaq = "            << toDouble(t_plaq)
+       << "  link = "              << toDouble(link);
+    QDPIO::cout << os.str() << std::endl;
+  }
 
   try {
     std::istringstream Measurements_is(input.inline_measurement_xml);

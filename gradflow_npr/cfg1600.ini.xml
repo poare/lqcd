@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
 <!--
+  Task 6/7: reproduce cfg 1600 of job 22560 against cfg1600.h5.
+
+  The configuration is ALREADY stout-smeared and Landau gauge-fixed, so there
+  is no COULOMB_GAUGEFIX element here and gauge_id is default_gauge_field.
+  t_srce is the source point job 22560 actually drew, recovered by inverting
+  the QLUA RNG.
+
   NPR momentum-fraction measurement, one configuration per run.
 
   To retarget this to a different fermion action (the exponential clover in
@@ -54,7 +61,7 @@
         <bvec>0 0 0 0.5</bvec>
 
         <output_type>TEXT</output_type>
-        <output_file>./cfg1600_chroma.txt</output_file>
+        <output_file>./cfg1600_chroma_v2.txt</output_file>
 
         <!-- THE EXTENSION POINT. Replace this block to change the action;
              nothing else in this file or in the .cc changes. -->
@@ -90,6 +97,6 @@
 <RNG><Seed><elem>11</elem><elem>11</elem><elem>11</elem><elem>0</elem></Seed></RNG>
 <Cfg>
   <cfg_type>SCIDAC</cfg_type>
-  <cfg_file>/home/poare/Dropbox/research/gf-pdf-npr/npr_conv_tests/cl3_16_48_b6p1_m0p2450_cfg_1600.lime</cfg_file>
+  <cfg_file>/home/poare/Dropbox/research/gf-pdf-npr/npr_conv_tests/cl3_16_48_b6p1_m0p2450_cfg_1600_smeared_gf_xmlfix.lime</cfg_file>
 </Cfg>
 </chroma>
