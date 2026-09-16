@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<chroma>
+<Param>
+  <InlineMeasurements>
+    <elem>
+      <Name>NPR_MOMFRAC</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>1</version>
+        <dump_gamma>true</dump_gamma>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+      </NamedObject>
+    </elem>
+  </InlineMeasurements>
+  <nrow>4 4 4 8</nrow>
+</Param>
+<RNG><Seed><elem>11</elem><elem>11</elem><elem>11</elem><elem>0</elem></Seed></RNG>
+<Cfg><cfg_type>UNIT</cfg_type><cfg_file>dummy</cfg_file></Cfg>
+</chroma>

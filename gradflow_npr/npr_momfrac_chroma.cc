@@ -12,6 +12,8 @@
 //       clover), since it must be registered in whichever binary runs.
 #include "chroma.h"
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 using namespace Chroma;
 
@@ -22,6 +24,7 @@ namespace NprMomfrac {
     Params(XMLReader& xml_in, const std::string& path);
     unsigned long frequency;
     std::string   gauge_id;
+    bool          dump_gamma;   // Task 2: dump Gamma(1<<mu) and exit the measurement
   };
 
   Params::Params(XMLReader& xml_in, const std::string& path) {
@@ -29,6 +32,11 @@ namespace NprMomfrac {
     if (paramtop.count("Frequency") == 1) read(paramtop, "Frequency", frequency);
     else frequency = 1;
     read(paramtop, "NamedObject/gauge_id", gauge_id);
+
+    if (paramtop.count("Param/dump_gamma") == 1)
+      read(paramtop, "Param/dump_gamma", dump_gamma);
+    else
+      dump_gamma = false;
   }
 
   class InlineNprMomfrac : public AbsInlineMeasurement {
@@ -38,11 +46,45 @@ namespace NprMomfrac {
     void operator()(unsigned long update_no, XMLWriter& xml_out) {
       QDPIO::cout << "NPR_MOMFRAC: measurement reached, gauge_id = "
                   << params.gauge_id << std::endl;
+
+      if (params.dump_gamma) { dumpGamma(); }
       push(xml_out, "NprMomfrac");
       write(xml_out, "update_no", update_no);
       pop(xml_out);
     }
   private:
+    // Dump Chroma's Gamma(1<<mu) entry by entry, so the claim that it matches
+    // the 2020 analysis basis can be checked rather than assumed. Column col
+    // is extracted by applying the matrix to the spin basis vector e_col.
+    // The action is site-independent, so the origin is as good as any site.
+    void dumpGamma() const {
+      multi1d<int> orig(Nd);
+      for (int mu = 0; mu < Nd; ++mu) orig[mu] = 0;
+
+      // The identity propagator is delta_spin * delta_colour, so
+      // Gamma(1<<mu) * one has spin entry (row,col) equal to gamma[mu][row][col]
+      // times the colour identity. The action is site-independent, so the
+      // origin is as good as any site.
+      LatticePropagator one = 1;
+
+      for (int mu = 0; mu < Nd; ++mu) {
+        LatticePropagator ge = Gamma(1 << mu) * one;
+        Propagator p = peekSite(ge, orig);
+
+        for (int row = 0; row < Ns; ++row) {
+          for (int col = 0; col < Ns; ++col) {
+            ColorMatrix cm = peekSpin(p, row, col);
+            Complex     z  = peekColor(cm, 0, 0);
+            std::ostringstream os;
+            os << std::setprecision(17)
+               << "GAMMA " << mu << " " << row << " " << col << " "
+               << toDouble(real(z)) << " " << toDouble(imag(z));
+            QDPIO::cout << os.str() << std::endl;
+          }
+        }
+      }
+    }
+
     Params params;
   };
 

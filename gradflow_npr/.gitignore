@@ -1,0 +1,3 @@
+# Build products and run output from the Chroma port.
+npr_momfrac
+*.out.xml
