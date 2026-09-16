@@ -1,6 +1,12 @@
 # Compare the Chroma port's text output against the QLUA reference HDF5.
 #
-#   python3 compare_cfg1600.py <chroma_txt> <ref_h5> <y_group> [tag,tag,...]
+#   python3 compare_cfg1600.py <chroma_txt> <ref_h5> <y_group> [tag,tag,...] [assign.json]
+#
+# With an assignment JSON (as written by the momentum selector), each tag is
+# compared only at the momenta assigned to it, rather than at every momentum
+# present in the file. That is what makes a per-operator random sample mean
+# anything: without it every tag would be compared at all 17 momenta and the
+# per-operator choice would be decorative.
 #
 # The reference layout is <tag>/<y_group>/p<k0><k1><k2><k3>/cfg<n>, a scalar
 # dataset of compound type (4,4) of (3,3) complex -- spin outer, colour inner,
@@ -8,10 +14,15 @@
 #
 # Momentum keys are bare %d concatenation, so p(-1,-1,-1,-1) is "p-1-1-1-1".
 # Ambiguous to read, but deterministic to write, and it is what QLUA wrote.
-import sys, numpy as np, h5py
+import sys, json, numpy as np, h5py
 
 chroma_txt, ref_h5, ygrp = sys.argv[1], sys.argv[2], sys.argv[3]
 tags = (sys.argv[4].split(",") if len(sys.argv) > 4 else ["prop"])
+
+assign = None
+if len(sys.argv) > 5:
+    raw = json.load(open(sys.argv[5]))["assign"]
+    assign = {t: {tuple(k) for k in v} for t, v in raw.items()}
 
 got = {}
 for line in open(chroma_txt):
@@ -28,8 +39,12 @@ TOL = 1e-10
 f = h5py.File(ref_h5, "r")
 worst = 0.0; failed = False; n = 0
 for tag in tags:
+    wanted = assign.get(tag) if assign else None
+    seen_for_tag = 0
     for (t,k) in sorted(got):
         if t != tag: continue
+        if wanted is not None and k not in wanted: continue
+        seen_for_tag += 1
         grp = f[tag][ygrp][kstr(k)]
         cfg = list(grp.keys())[0]
         ref = np.array(grp[cfg][()].tolist())          # (4,4,3,3)
@@ -39,6 +54,12 @@ for tag in tags:
         flag = "" if r < TOL else "   <-- MISMATCH"
         print(f"{tag:5s} {kstr(k):12s} abs {a:.3e}  rel {r:.3e}{flag}")
         if r >= TOL: failed = True
+
+    if wanted is not None and seen_for_tag != len(wanted):
+        missing = sorted(wanted - {k for (t,k) in got if t == tag})
+        print(f"  !! {tag}: expected {len(wanted)} momenta, compared "
+              f"{seen_for_tag}; missing {missing}")
+        failed = True
 
 print(f"\n{n} entries compared; worst relative deviation: {worst:.3e}")
 sys.exit(1 if failed else 0)
