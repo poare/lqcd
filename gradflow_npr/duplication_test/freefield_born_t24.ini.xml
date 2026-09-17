@@ -38,11 +38,11 @@
   the Born term is generated at the SAME L_t as the data.
 
   Momenta: born_term.h5 stores the full k in [0,5]^4 box (1296). This run
-  takes the [0,2]^4 sub-box (81), all of which are present in the reference.
-  Widen k_max to 5 5 5 5 for the complete comparison.
+  takes the [0,2]^4 sub-box (81) as an explicit list, all of which are
+  present in the reference. Extend the list for the complete comparison.
 -->
 <!--
-  VARIANT of freefield_born.ini.xml: identical except t_srce is moved from the
+  VARIANT of freefield_born.ini.xml: identical except tsrc is moved from the
   origin to the middle of the time extent.
 
   WHY. Chroma's SIMPLE_FERMBC puts the antiperiodic sign flip on the link at
@@ -50,7 +50,7 @@
   wrong-operator insertion. Its size goes like the time-slice propagator at
   separation |y_t - (L_t - 1)|, so it is exponentially suppressed when the
   source sits in the bulk and O(1) when the source is adjacent to the
-  boundary. With t_srce = 0 0 0 0 the source IS adjacent to it, and O44 came
+  boundary. With tsrc = 0 0 0 0 the source IS adjacent to it, and O44 came
   out 96% wrong against born_term.h5 while prop and O11-O33 agreed to 2e-13.
 
   PREDICTIONS for this run:
@@ -77,12 +77,91 @@
 
         <!-- Free field is translation invariant, so the source point is
              arbitrary; the origin keeps the phases clean. -->
-        <t_srce>0 0 0 24</t_srce>
+        <tsrc>0 0 0 24</tsrc>
 
-        <mom_range>
-          <k_min>0 0 0 0</k_min>
-          <k_max>2 2 2 2</k_max>
-        </mom_range>
+        <mom_list>
+          <elem>0 0 0 0</elem>
+          <elem>0 0 0 1</elem>
+          <elem>0 0 0 2</elem>
+          <elem>0 0 1 0</elem>
+          <elem>0 0 1 1</elem>
+          <elem>0 0 1 2</elem>
+          <elem>0 0 2 0</elem>
+          <elem>0 0 2 1</elem>
+          <elem>0 0 2 2</elem>
+          <elem>0 1 0 0</elem>
+          <elem>0 1 0 1</elem>
+          <elem>0 1 0 2</elem>
+          <elem>0 1 1 0</elem>
+          <elem>0 1 1 1</elem>
+          <elem>0 1 1 2</elem>
+          <elem>0 1 2 0</elem>
+          <elem>0 1 2 1</elem>
+          <elem>0 1 2 2</elem>
+          <elem>0 2 0 0</elem>
+          <elem>0 2 0 1</elem>
+          <elem>0 2 0 2</elem>
+          <elem>0 2 1 0</elem>
+          <elem>0 2 1 1</elem>
+          <elem>0 2 1 2</elem>
+          <elem>0 2 2 0</elem>
+          <elem>0 2 2 1</elem>
+          <elem>0 2 2 2</elem>
+          <elem>1 0 0 0</elem>
+          <elem>1 0 0 1</elem>
+          <elem>1 0 0 2</elem>
+          <elem>1 0 1 0</elem>
+          <elem>1 0 1 1</elem>
+          <elem>1 0 1 2</elem>
+          <elem>1 0 2 0</elem>
+          <elem>1 0 2 1</elem>
+          <elem>1 0 2 2</elem>
+          <elem>1 1 0 0</elem>
+          <elem>1 1 0 1</elem>
+          <elem>1 1 0 2</elem>
+          <elem>1 1 1 0</elem>
+          <elem>1 1 1 1</elem>
+          <elem>1 1 1 2</elem>
+          <elem>1 1 2 0</elem>
+          <elem>1 1 2 1</elem>
+          <elem>1 1 2 2</elem>
+          <elem>1 2 0 0</elem>
+          <elem>1 2 0 1</elem>
+          <elem>1 2 0 2</elem>
+          <elem>1 2 1 0</elem>
+          <elem>1 2 1 1</elem>
+          <elem>1 2 1 2</elem>
+          <elem>1 2 2 0</elem>
+          <elem>1 2 2 1</elem>
+          <elem>1 2 2 2</elem>
+          <elem>2 0 0 0</elem>
+          <elem>2 0 0 1</elem>
+          <elem>2 0 0 2</elem>
+          <elem>2 0 1 0</elem>
+          <elem>2 0 1 1</elem>
+          <elem>2 0 1 2</elem>
+          <elem>2 0 2 0</elem>
+          <elem>2 0 2 1</elem>
+          <elem>2 0 2 2</elem>
+          <elem>2 1 0 0</elem>
+          <elem>2 1 0 1</elem>
+          <elem>2 1 0 2</elem>
+          <elem>2 1 1 0</elem>
+          <elem>2 1 1 1</elem>
+          <elem>2 1 1 2</elem>
+          <elem>2 1 2 0</elem>
+          <elem>2 1 2 1</elem>
+          <elem>2 1 2 2</elem>
+          <elem>2 2 0 0</elem>
+          <elem>2 2 0 1</elem>
+          <elem>2 2 0 2</elem>
+          <elem>2 2 1 0</elem>
+          <elem>2 2 1 1</elem>
+          <elem>2 2 1 2</elem>
+          <elem>2 2 2 0</elem>
+          <elem>2 2 2 1</elem>
+          <elem>2 2 2 2</elem>
+        </mom_list>
 
         <!-- Must agree with the time component of FermionBC/boundary. -->
         <bvec>0 0 0 0.5</bvec>

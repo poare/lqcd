@@ -30,16 +30,19 @@ namespace NprMomfrac {
     bool          dump_gamma;   // Task 2: dump Gamma(1<<mu) and exit the measurement
     bool          test_project; // Task 3: self-test the momentum projection
     bool          test_seqsrc;  // Task 4: self-test the sequential source
-    multi1d<int>  t_srce;       // source point y, explicit -- never drawn
+    bool          have_tsrc;    // false until drawn, if absent from the XML
+    bool          have_tsrc_from_xml;
+    multi1d<int>  tsrc;         // source point y
     multi1d<Real> bvec;         // twist, (0,0,0,1/2) for antiperiodic time
 
-    // Momenta: exactly one of mom_list or mom_range, with an optional cut.
+    // Momenta: exactly one of mom_list or ksq_cut. h_cut and all_pos refine
+    // ksq_cut only; an explicit list is taken exactly as written.
     bool                  have_mom_list;
     multi1d<multi1d<int> > mom_list;
-    bool                  have_mom_range;
-    multi1d<int>          k_min, k_max;
-    bool                  have_max_psq;
-    double                max_psq;
+    bool                  have_ksq_cut;  // the ball sum_mu k_mu^2 <= ksq_cut
+    int                   ksq_cut;
+    double                h_cut;         // keep h(k) <= h_cut; default 1 = no cut
+    bool                  all_pos;       // keep k_mu >= 0 only; default true
 
     std::string output_type;    // TEXT (HDF5 not implemented yet)
     std::string output_file;
@@ -69,12 +72,15 @@ namespace NprMomfrac {
     else
       test_seqsrc = false;
 
-    if (paramtop.count("Param/t_srce") == 1) {
-      read(paramtop, "Param/t_srce", t_srce);
-    } else {
-      t_srce.resize(Nd);
-      for (int mu = 0; mu < Nd; ++mu) t_srce[mu] = 0;
-    }
+    // Source point. If absent it is drawn uniformly at measurement time, from
+    // the RNG main() seeds with <RNG><Seed>; see drawSourcePoint().
+    //
+    // This used to default silently to the origin, which is the worst possible
+    // point: t = 0 is adjacent to the antiperiodic boundary slice, where the
+    // raw-link O_44 defect is O(1).
+    have_tsrc = (paramtop.count("Param/tsrc") == 1);
+    if (have_tsrc) read(paramtop, "Param/tsrc", tsrc);
+    have_tsrc_from_xml = have_tsrc;
 
     if (paramtop.count("Param/bvec") == 1) {
       read(paramtop, "Param/bvec", bvec);
@@ -85,26 +91,35 @@ namespace NprMomfrac {
       bvec[Nd-1] = Real(0.5);
     }
 
-    // Momenta. Exactly one of the two forms; a run that gives both is almost
-    // certainly a mistake, so refuse it rather than silently picking one.
-    have_mom_list  = (paramtop.count("Param/mom_list")  == 1);
-    have_mom_range = (paramtop.count("Param/mom_range") == 1);
-
-    if (have_mom_list && have_mom_range) {
+    // Momenta. Exactly one of the two forms; a run that gives both, or
+    // neither, is a mistake, so refuse it rather than silently picking one.
+    have_mom_list = (paramtop.count("Param/mom_list") == 1);
+    have_ksq_cut  = (paramtop.count("Param/ksq_cut")  == 1);
+    if (have_mom_list == have_ksq_cut) {
       QDPIO::cerr << "NPR_MOMFRAC: give exactly one of <mom_list> and "
-                  << "<mom_range>, not both" << std::endl;
+                  << "<ksq_cut>" << std::endl;
       QDP_abort(1);
     }
-    if (have_mom_list)  read(paramtop, "Param/mom_list", mom_list);
-    if (have_mom_range) {
-      read(paramtop, "Param/mom_range/k_min", k_min);
-      read(paramtop, "Param/mom_range/k_max", k_max);
-    }
+    if (have_mom_list) read(paramtop, "Param/mom_list", mom_list);
+    ksq_cut = 0;
+    if (have_ksq_cut) read(paramtop, "Param/ksq_cut", ksq_cut);
 
-    have_max_psq = (paramtop.count("Param/max_psq") == 1);
-    max_psq = 0.0;
-    if (have_max_psq) {
-      Real tmp; read(paramtop, "Param/max_psq", tmp); max_psq = toDouble(tmp);
+    // Refinements of the ball, on the INTEGER k -- not the lattice momentum,
+    // and not k + b.
+    h_cut = 1.0;
+    if (paramtop.count("Param/h_cut") == 1) {
+      Real tmp; read(paramtop, "Param/h_cut", tmp); h_cut = toDouble(tmp);
+    }
+    all_pos = true;
+    if (paramtop.count("Param/all_pos") == 1) read(paramtop, "Param/all_pos", all_pos);
+
+    // Beside an explicit list these would be silently ignored, which reads
+    // as though they were applied.
+    if (have_mom_list && (paramtop.count("Param/h_cut") == 1
+                          || paramtop.count("Param/all_pos") == 1)) {
+      QDPIO::cerr << "NPR_MOMFRAC: <h_cut> and <all_pos> apply to <ksq_cut> "
+                  << "only; remove them when using <mom_list>" << std::endl;
+      QDP_abort(1);
     }
 
     if (paramtop.count("Param/output_type") == 1)
@@ -116,16 +131,6 @@ namespace NprMomfrac {
     if (paramtop.count("Param/output_file") == 1)
       read(paramtop, "Param/output_file", output_file);
 
-    // The action and the inverter come from Chroma's own XML factories, which
-    // is exactly what makes the action swappable without touching code.
-    //
-    // Read these through a sub-reader rooted at Param, so the path handed to
-    // readXMLGroup is a bare element name. readXMLGroup stores path = "/" +
-    // path while capturing only the named subtree, so passing
-    // "Param/FermionAction" here records "/Param/FermionAction" against XML
-    // whose root is <FermionAction> -- and the factory lookup then fails at
-    // measurement time, not at read time, which makes it look like a solver
-    // problem rather than a path problem.
     {
       XMLReader ptop(paramtop, "Param");
       if (ptop.count("FermionAction") == 1)
@@ -138,27 +143,6 @@ namespace NprMomfrac {
   const Real twopi = Real(6.283185307179586476925286766559);
 
   //! Momentum projection.
-  /*!
-   * sum_x exp( i sum_mu (x-y)_mu (k_mu + b_mu) 2pi / L_mu ) F(x).
-   *
-   * Three conventions are baked in here and all three are load-bearing; see
-   * chroma-port-design.md. The phase is e^{+ip.(x-y)}, so the source point y
-   * enters as an offset rather than an overall phase. The twist b makes the
-   * momentum match the fermion boundary conditions, b = (0,0,0,1/2). And
-   * there is NO 1/V -- QLUA's production script had that normalisation
-   * deleted, and the 2020 analysis assumes it is absent.
-   *
-   * The sign convention matches Chroma's own SftMom (sftmom.cc:440).
-   */
-  //! The phase field exp(i (k+b).(x-y)) on its own.
-  /*!
-   * Hoisted out of projectMomentum because it is the expensive part and it
-   * does not depend on the field being projected. The design note flags the
-   * momentum loop, not the solver, as the production bottleneck -- at 28561
-   * momenta on 16^3 x 48 the five projections per momentum dominate the five
-   * inversions by orders of magnitude -- so building this once per momentum
-   * and reusing it across tags is where the time actually goes.
-   */
   LatticeComplex momentumPhase(const multi1d<int>& k, const multi1d<int>& y,
                                const multi1d<Real>& bvec)
   {
@@ -178,8 +162,6 @@ namespace NprMomfrac {
   }
 
   //! Convenience wrapper: phase and contraction in one call.
-  /*! Kept so the Task 3 and 4 self-tests exercise the same code path they
-   *  were written against. The measurement itself uses the two-step form. */
   DPropagator projectMomentum(const LatticePropagator& F,
                               const multi1d<int>& k, const multi1d<int>& y,
                               const multi1d<Real>& bvec)
@@ -188,21 +170,6 @@ namespace NprMomfrac {
   }
 
   //! The sequential source for the operator O_{mu mu}.
-  /*!
-   * b_mu(x) = U_mu(x) gamma_mu S(x+mu) - U_mu^dag(x-mu) gamma_mu S(x-mu)
-   *
-   * This is emt_npr.qlua's get_sequential_source (line 127), NOT
-   * get_sequential_source_full (line 115). The two differ by the trace
-   * subtraction, and the production data was made with the plain one -- proved
-   * from the data itself, since sum_mu O_{mu mu} is O(1) rather than zero.
-   * There is also no factor of 1/2 here; the 1/2 lives in the O() helper,
-   * which this routine does not go through.
-   *
-   * NOTE: u MUST be the raw gauge field, never FermState::getLinks(), which
-   * carries the antiperiodic boundary phase. QLUA applied its bcs inside the
-   * Dirac operator only; the derivative above used raw links and a periodic
-   * shift. This is the predicted source of any O_44 discrepancy.
-   */
   LatticePropagator seqSource(const multi1d<LatticeColorMatrix>& u,
                               const LatticePropagator& S, int mu)
   {
@@ -210,16 +177,7 @@ namespace NprMomfrac {
          - adj(shift(u[mu], BACKWARD, mu)) * (Gamma(1 << mu) * shift(S, BACKWARD, mu));
   }
 
-  //! The momentum set: a HYPERCUBE in k, not a ball.
-  /*!
-   * The distinction is not cosmetic: |k|_inf <= 6 is 28561 momenta while
-   * |k|_1 <= 6 is 1289, a factor of 22. The 2020 production used the
-   * hypercube, so the range form takes explicit per-direction bounds rather
-   * than a single half-width -- which also allows a non-cubic range, and this
-   * geometry arguably wants one (L_t = 48 against L_s = 16).
-   *
-   * The optional max_psq cut is applied on top; omit it to reproduce 2020.
-   */
+  //! The momentum set: a Euclidean ball in the integer k.
   multi1d<multi1d<int> > buildMomenta(const Params& p)
   {
     std::vector<multi1d<int> > out;
@@ -227,22 +185,40 @@ namespace NprMomfrac {
     if (p.have_mom_list) {
       for (int i = 0; i < p.mom_list.size(); ++i) out.push_back(p.mom_list[i]);
     } else {
+      int r  = static_cast<int>(std::floor(std::sqrt(double(p.ksq_cut))));
+      int lo = p.all_pos ? 0 : -r;
+
+      long n_ball = 0, n_h = 0;
       multi1d<int> k(Nd);
-      for (k[0] = p.k_min[0]; k[0] <= p.k_max[0]; ++k[0])
-      for (k[1] = p.k_min[1]; k[1] <= p.k_max[1]; ++k[1])
-      for (k[2] = p.k_min[2]; k[2] <= p.k_max[2]; ++k[2])
-      for (k[3] = p.k_min[3]; k[3] <= p.k_max[3]; ++k[3]) {
-        if (p.have_max_psq) {
-          double psq = 0.0;
-          for (int m = 0; m < Nd; ++m) {
-            double s = 2.0 * std::sin(M_PI * (k[m] + toDouble(p.bvec[m]))
-                                      / Layout::lattSize()[m]);
-            psq += s * s;
+      for (k[0] = lo; k[0] <= r; ++k[0])
+      for (k[1] = lo; k[1] <= r; ++k[1])
+      for (k[2] = lo; k[2] <= r; ++k[2])
+      for (k[3] = lo; k[3] <= r; ++k[3]) {
+        long ksq = 0, k4 = 0;
+        for (int m = 0; m < Nd; ++m) {
+          long k2 = long(k[m]) * k[m];
+          ksq += k2; k4 += k2 * k2;
+        }
+        if (ksq > p.ksq_cut) continue;
+        ++n_ball;
+        if (p.h_cut < 1.0) {
+          double denom = double(ksq) * double(ksq);
+          if (ksq == 0 || double(k4) > p.h_cut * denom * (1.0 + 1e-12)) {
+            ++n_h; continue;
           }
-          if (psq > p.max_psq) continue;
         }
         out.push_back(k);
       }
+
+      QDPIO::cout << "NPR_MOMFRAC: momenta: " << n_ball << " with k^2 <= "
+                  << p.ksq_cut << (p.all_pos ? " (all_pos)" : "")
+                  << ", " << n_h << " removed by h_cut <= " << p.h_cut
+                  << ", " << out.size() << " kept" << std::endl;
+    }
+
+    if (out.empty()) {
+      QDPIO::cerr << "NPR_MOMFRAC: the momentum selection is empty" << std::endl;
+      QDP_abort(1);
     }
 
     multi1d<multi1d<int> > res(out.size());
@@ -252,10 +228,6 @@ namespace NprMomfrac {
 
   //! One line per entry:
   //!   <tag> k0 k1 k2 k3 spin_row spin_col colour_row colour_col re im
-  /*!
-   * DPropagator is site-local and identical on every node after sum(), so
-   * guarding on primaryNode() writes each entry exactly once.
-   */
   void writeEntry(std::ofstream& fout, const std::string& tag,
                   const multi1d<int>& k, const DPropagator& P)
   {
@@ -280,6 +252,15 @@ namespace NprMomfrac {
       QDPIO::cout << "NPR_MOMFRAC: measurement reached, gauge_id = "
                   << params.gauge_id << std::endl;
 
+      // Resolve the source point before anything uses it, self-tests included.
+      if (!params.have_tsrc) drawSourcePoint();
+      QDPIO::cout << "NPR_MOMFRAC: source point tsrc = ("
+                  << params.tsrc[0] << "," << params.tsrc[1] << ","
+                  << params.tsrc[2] << "," << params.tsrc[3] << ")  "
+                  << (params.have_tsrc_from_xml ? "[given in XML]"
+                                                : "[drawn from the RNG seed above]")
+                  << std::endl;
+
       if (params.dump_gamma)   { dumpGamma(); }
       if (params.test_project) { testProject(); }
       if (params.test_seqsrc)  { testSeqSource(); }
@@ -293,18 +274,10 @@ namespace NprMomfrac {
       pop(xml_out);
     }
   private:
-    // Dump Chroma's Gamma(1<<mu) entry by entry, so the claim that it matches
-    // the 2020 analysis basis can be checked rather than assumed. Column col
-    // is extracted by applying the matrix to the spin basis vector e_col.
-    // The action is site-independent, so the origin is as good as any site.
     void dumpGamma() const {
       multi1d<int> orig(Nd);
       for (int mu = 0; mu < Nd; ++mu) orig[mu] = 0;
 
-      // The identity propagator is delta_spin * delta_colour, so
-      // Gamma(1<<mu) * one has spin entry (row,col) equal to gamma[mu][row][col]
-      // times the colour identity. The action is site-independent, so the
-      // origin is as good as any site.
       LatticePropagator one = 1;
 
       for (int mu = 0; mu < Nd; ++mu) {
@@ -326,25 +299,12 @@ namespace NprMomfrac {
     }
 
     // Self-test for projectMomentum, exploiting exact orthogonality.
-    //
-    // Feed F(x) = exp(-i q.(x-y)) * 1 at the twisted momentum for k0. The
-    // projector carries e^{+i(k+b).(x-y)} (QLUA's sign, emt_npr.qlua:303-307),
-    // so field and projector cancel at k = k0 and the sum is exactly V; at
-    // every other k the phases are orthogonal and the sum is exactly 0.
-    //
-    // Note the CONJUGATE phase on F. That is deliberate and it is what makes
-    // this a test rather than a tautology: the projector's own sign stays as
-    // the physics dictates. A sign error in projectMomentum would match at
-    // k = -k0, which is outside the scanned box, so the diagonal would vanish
-    // entirely. A dropped twist likewise leaves no diagonal. A dropped y
-    // offset leaves the magnitude at V but rotates its phase, which the
-    // checker's |diag - V| test catches.
     void testProject() const {
       multi1d<int> k0(Nd); k0[0] = 1; k0[1] = 1; k0[2] = 1; k0[3] = 2;
 
       LatticeReal arg = zero;
       for (int mu = 0; mu < Nd; ++mu) {
-        arg += LatticeReal(Layout::latticeCoordinate(mu) - params.t_srce[mu])
+        arg += LatticeReal(Layout::latticeCoordinate(mu) - params.tsrc[mu])
              * twopi * (Real(k0[mu]) + params.bvec[mu])
              / Real(Layout::lattSize()[mu]);
       }
@@ -358,7 +318,7 @@ namespace NprMomfrac {
       for (ks[1] = 0; ks[1] < 3; ++ks[1])
       for (ks[2] = 0; ks[2] < 3; ++ks[2])
       for (ks[3] = 0; ks[3] < 4; ++ks[3]) {
-        DPropagator P = projectMomentum(F, ks, params.t_srce, params.bvec);
+        DPropagator P = projectMomentum(F, ks, params.tsrc, params.bvec);
         ColorMatrix cm = peekSpin(P, 0, 0);
         Complex     z  = peekColor(cm, 0, 0);
         std::ostringstream os;
@@ -371,6 +331,21 @@ namespace NprMomfrac {
 
     //! The measurement proper: one point-source solve, four sequential
     //! solves, then projection at every requested momentum.
+    //! Draw tsrc uniformly on the lattice from the XML-seeded RNG.
+    void drawSourcePoint() {
+      params.tsrc.resize(Nd);
+      for (int mu = 0; mu < Nd; ++mu) {
+        int L = Layout::lattSize()[mu];
+        Real r;
+        random(r);                                  // uniform in [0,1)
+        int c = static_cast<int>(toDouble(r) * L);
+        if (c >= L) c = L - 1;                      // guard against r rounding to 1
+        QDPInternal::broadcast(c);
+        params.tsrc[mu] = c;
+      }
+      params.have_tsrc = true;
+    }
+
     void measure(XMLWriter& xml_out) {
       StopWatch swatch;
 
@@ -396,12 +371,9 @@ namespace NprMomfrac {
       LatticePropagator src = zero;
       {
         Propagator one_site = 1;              // identity in spin and colour
-        pokeSite(src, one_site, params.t_srce);
+        pokeSite(src, one_site, params.tsrc);
       }
 
-      // Momentum set and output file are prepared BEFORE any solving, so a
-      // bad path or a malformed momentum spec fails in seconds rather than
-      // after an hour of inversions.
       if (params.output_type != "TEXT") {
         QDPIO::cerr << "NPR_MOMFRAC: output_type '" << params.output_type
                     << "' not implemented; only TEXT is" << std::endl;
@@ -436,16 +408,9 @@ namespace NprMomfrac {
       QDPIO::cout << "NPR_MOMFRAC: point propagator done, " << ncg_had
                   << " iters, " << swatch.getTimeInSeconds() << " s" << std::endl;
 
-      // 3b. Write `prop` NOW, before the operator solves.
-      //
-      // prop needs one solve and nothing from J_mu, so gating it behind four
-      // more inversions only slows down the iteration it is meant to speed up:
-      // it is the comparison that isolates the action, the gauge field and the
-      // phase convention from the operator entirely. Flushed so the file can
-      // be compared while the sequential solves are still running.
       swatch.reset(); swatch.start();
       for (int i = 0; i < moms.size(); ++i) {
-        LatticeComplex ph = momentumPhase(moms[i], params.t_srce, params.bvec);
+        LatticeComplex ph = momentumPhase(moms[i], params.tsrc, params.bvec);
         writeEntry(fout, "prop", moms[i], projectWithPhase(ph, S));
       }
       if (Layout::primaryNode()) fout.flush();
@@ -472,7 +437,7 @@ namespace NprMomfrac {
       swatch.reset(); swatch.start();
       for (int i = 0; i < moms.size(); ++i) {
         const multi1d<int>& k = moms[i];
-        LatticeComplex ph = momentumPhase(k, params.t_srce, params.bvec);
+        LatticeComplex ph = momentumPhase(k, params.tsrc, params.bvec);
 
         for (int mu = 0; mu < Nd; ++mu) {
           std::ostringstream tag; tag << "O" << (mu+1) << (mu+1);
@@ -489,40 +454,11 @@ namespace NprMomfrac {
 
       push(xml_out, "NprMomfracResults");
       write(xml_out, "num_momenta", moms.size());
-      write(xml_out, "t_srce", params.t_srce);
+      write(xml_out, "tsrc", params.tsrc);
       write(xml_out, "output_file", params.output_file);
       pop(xml_out);
     }
 
-    // Free-field test of seqSource.
-    //
-    // On a unit gauge field b_mu(x) = gamma_mu [S(x+mu) - S(x-mu)]. Feeding
-    // the CONJUGATE plane wave S(x) = exp(-i q.x) * 1 gives
-    //   b_mu(x) = gamma_mu S(x) (e^{-i q_mu} - e^{+i q_mu})
-    //           = -2i sin(q_mu) gamma_mu S(x),
-    // so projecting at q -- whose own phase is e^{+i q.x} -- gives exactly
-    // -2i sin(q_mu) V gamma_mu. The conjugate is needed for the same reason as
-    // in testProject: the projector's sign is fixed by the physics, so the
-    // test field is the thing that has to be conjugate for the two to cancel.
-    //
-    // A swapped FORWARD/BACKWARD negates this exactly, which the checker names
-    // explicitly rather than reporting as a generic mismatch.
-    //
-    // The test runs with bvec = 0, deliberately. A twisted plane wave is
-    // antiperiodic in time (e^{-i q_3 L_3} = -1 for b_3 = 1/2) while QDP++'s
-    // shift is periodic, so the analytic reference above is simply wrong on the
-    // boundary time slices -- with the twist on, mu=3 misses by exactly 1/4
-    // while mu=0,1,2 agree to 1e-16. That is a property of the REFERENCE, not
-    // of seqSource, and it is worth stating plainly because it CONFIRMS the
-    // design rather than contradicting it: the derivative is supposed to use
-    // raw links and a periodic shift, with the antiperiodic boundary living in
-    // the Dirac operator alone, which is what QLUA did. Task 3 tested the twist
-    // on its own, where it belongs.
-    //
-    // Note the deliberate y = 0 here, in BOTH the plane wave and the projector.
-    // The two must agree or they differ by a constant phase and the comparison
-    // fails for a reason that has nothing to do with seqSource. Task 3 already
-    // tested the y offset on its own.
     void testSeqSource() const {
       multi1d<int> k0(Nd); k0[0] = 1; k0[1] = 1; k0[2] = 1; k0[3] = 2;
 
@@ -588,11 +524,6 @@ namespace NprMomfrac {
 
 #ifndef NPR_MOMFRAC_NO_MAIN
 
-// Driver. This follows mainprogs/main/chroma.cc closely and deliberately: the
-// point of the standalone route is to be stock Chroma's own loop with one
-// extra registerAll() in front of the measurement read. Deviating from it is
-// how the gauge field or the RNG ends up in a subtly different state.
-
 namespace {
 
   struct DriverInput {
@@ -624,13 +555,6 @@ int main(int argc, char* argv[]) {
   Chroma::initialize(&argc, &argv);
   START_CODE();
 
-  // Stock Chroma's registrations, exactly as chroma.cc's linkageHack() does
-  // them, then ours on top. Both must precede the measurement read below --
-  // that ordering is what makes runtime registration work.
-  //
-  // Note: this value is 0 in a stock Chroma too. Some sub-aggregate returns
-  // false on this build; it is not a failure signal. The real check is that
-  // the factory resolves NPR_MOMFRAC below.
   bool linkage = true;
   linkage &= InlineAggregateEnv::registerAll();
   linkage &= GaugeInitEnv::registerAll();
@@ -659,6 +583,20 @@ int main(int argc, char* argv[]) {
 
   QDP::RNG::setrn(input.rng_seed);
   write(xml_out, "RNG", input.rng_seed);
+  {
+    // Logged because a source point drawn from it is only reproducible with it.
+    XMLBufferWriter sx;
+    write(sx, "Seed", input.rng_seed);
+    // Print just the integers, e.g. "11 11 11 0", in the order <Seed> takes.
+    const std::string str = sx.str();
+    std::string out;
+    for (std::string::size_type a = str.find("<elem>"); a != std::string::npos;
+         a = str.find("<elem>", a + 1)) {
+      std::string::size_type b = str.find("</elem>", a);
+      out += (out.empty() ? "" : " ") + str.substr(a + 6, b - a - 6);
+    }
+    QDPIO::cout << "NPR_MOMFRAC: RNG seed = " << out << std::endl;
+  }
 
   // Gauge field, through the same factory chroma.cc uses.
   multi1d<LatticeColorMatrix> u(Nd);
@@ -683,11 +621,6 @@ int main(int argc, char* argv[]) {
   config_xml << gauge_xml;
   write(xml_out, "Config_info", gauge_xml);
 
-  // Cheap sanity check before anything expensive. On a unit field this is
-  // exactly 1. For cfg 1600 -- beta = 6.1, stout-smeared once at rho = 0.125 --
-  // it should sit visibly above the 0.58-0.60 an unsmeared field would give.
-  // A value outside (0,1) means the gauge read is wrong and nothing downstream
-  // is meaningful.
   MesPlq(xml_out, "Observables", u);
   {
     Double w_plaq, s_plaq, t_plaq, link;

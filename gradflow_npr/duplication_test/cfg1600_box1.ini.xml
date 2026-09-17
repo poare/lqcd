@@ -4,7 +4,7 @@
 
   The configuration is ALREADY stout-smeared and Landau gauge-fixed, so there
   is no COULOMB_GAUGEFIX element here and gauge_id is default_gauge_field.
-  t_srce is the source point job 22560 actually drew, recovered by inverting
+  tsrc is the source point job 22560 actually drew, recovered by inverting
   the QLUA RNG.
 
   NPR momentum-fraction measurement, one configuration per run.
@@ -29,31 +29,95 @@
         <!-- Source point y, explicit. The 2020 runs drew this from a seeded
              RNG; for a reproducible cross-check it is stated outright.
              cfg 1600 of job 22560 used (14,6,7,37). -->
-        <t_srce>14 6 7 37</t_srce>
+        <tsrc>14 6 7 37</tsrc>
 
-        <!-- Momenta. Exactly one of <mom_list> or <mom_range>.
+        <!-- Momenta. Exactly one of <mom_list> or <ksq_cut>.
              Nested <elem> rather than a comma-separated string, so each
              momentum reads as a multi1d<int> the way Chroma reads vectors
              everywhere else. -->
-        <mom_range>
-          <k_min>-1 -1 -1 -1</k_min>
-          <k_max> 1  1  1  1</k_max>
-        </mom_range>
-
-        <!-- Production: an inclusive per-direction range. This is a HYPERCUBE
-             (L-infinity), not a taxicab ball. The bounds below reproduce 2020
-             exactly: 13^4 = 28561 momenta.
-        <mom_range>
-          <k_min>-6 -6 -6 -6</k_min>
-          <k_max> 6  6  6  6</k_max>
-        </mom_range>
-        -->
-
-        <!-- Optional, applied on top of <mom_range>: drop momenta with
-             (a p~)^2 above this, where p~_mu = 2 sin(pi (k_mu + b_mu) / L_mu).
-             Omit to reproduce 2020.
-        <max_psq>10.0</max_psq>
-        -->
+        <mom_list>
+          <elem>-1 -1 -1 -1</elem>
+          <elem>-1 -1 -1 0</elem>
+          <elem>-1 -1 -1 1</elem>
+          <elem>-1 -1 0 -1</elem>
+          <elem>-1 -1 0 0</elem>
+          <elem>-1 -1 0 1</elem>
+          <elem>-1 -1 1 -1</elem>
+          <elem>-1 -1 1 0</elem>
+          <elem>-1 -1 1 1</elem>
+          <elem>-1 0 -1 -1</elem>
+          <elem>-1 0 -1 0</elem>
+          <elem>-1 0 -1 1</elem>
+          <elem>-1 0 0 -1</elem>
+          <elem>-1 0 0 0</elem>
+          <elem>-1 0 0 1</elem>
+          <elem>-1 0 1 -1</elem>
+          <elem>-1 0 1 0</elem>
+          <elem>-1 0 1 1</elem>
+          <elem>-1 1 -1 -1</elem>
+          <elem>-1 1 -1 0</elem>
+          <elem>-1 1 -1 1</elem>
+          <elem>-1 1 0 -1</elem>
+          <elem>-1 1 0 0</elem>
+          <elem>-1 1 0 1</elem>
+          <elem>-1 1 1 -1</elem>
+          <elem>-1 1 1 0</elem>
+          <elem>-1 1 1 1</elem>
+          <elem>0 -1 -1 -1</elem>
+          <elem>0 -1 -1 0</elem>
+          <elem>0 -1 -1 1</elem>
+          <elem>0 -1 0 -1</elem>
+          <elem>0 -1 0 0</elem>
+          <elem>0 -1 0 1</elem>
+          <elem>0 -1 1 -1</elem>
+          <elem>0 -1 1 0</elem>
+          <elem>0 -1 1 1</elem>
+          <elem>0 0 -1 -1</elem>
+          <elem>0 0 -1 0</elem>
+          <elem>0 0 -1 1</elem>
+          <elem>0 0 0 -1</elem>
+          <elem>0 0 0 0</elem>
+          <elem>0 0 0 1</elem>
+          <elem>0 0 1 -1</elem>
+          <elem>0 0 1 0</elem>
+          <elem>0 0 1 1</elem>
+          <elem>0 1 -1 -1</elem>
+          <elem>0 1 -1 0</elem>
+          <elem>0 1 -1 1</elem>
+          <elem>0 1 0 -1</elem>
+          <elem>0 1 0 0</elem>
+          <elem>0 1 0 1</elem>
+          <elem>0 1 1 -1</elem>
+          <elem>0 1 1 0</elem>
+          <elem>0 1 1 1</elem>
+          <elem>1 -1 -1 -1</elem>
+          <elem>1 -1 -1 0</elem>
+          <elem>1 -1 -1 1</elem>
+          <elem>1 -1 0 -1</elem>
+          <elem>1 -1 0 0</elem>
+          <elem>1 -1 0 1</elem>
+          <elem>1 -1 1 -1</elem>
+          <elem>1 -1 1 0</elem>
+          <elem>1 -1 1 1</elem>
+          <elem>1 0 -1 -1</elem>
+          <elem>1 0 -1 0</elem>
+          <elem>1 0 -1 1</elem>
+          <elem>1 0 0 -1</elem>
+          <elem>1 0 0 0</elem>
+          <elem>1 0 0 1</elem>
+          <elem>1 0 1 -1</elem>
+          <elem>1 0 1 0</elem>
+          <elem>1 0 1 1</elem>
+          <elem>1 1 -1 -1</elem>
+          <elem>1 1 -1 0</elem>
+          <elem>1 1 -1 1</elem>
+          <elem>1 1 0 -1</elem>
+          <elem>1 1 0 0</elem>
+          <elem>1 1 0 1</elem>
+          <elem>1 1 1 -1</elem>
+          <elem>1 1 1 0</elem>
+          <elem>1 1 1 1</elem>
+        </mom_list>
 
         <!-- Momentum twist. (0,0,0,1/2) for antiperiodic time. Must agree with
              the time component of FermionBC/boundary below; they are two halves

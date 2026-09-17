@@ -7,7 +7,7 @@
       <Frequency>1</Frequency>
       <Param>
         <version>1</version>
-        <t_srce>1 2 3 5</t_srce>
+        <tsrc>1 2 3 5</tsrc>
         <bvec>0 0 0 0</bvec>
         <test_seqsrc>true</test_seqsrc>
       </Param>

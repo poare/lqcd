@@ -1,14 +1,6 @@
 <?xml version="1.0"?>
 <!--
   NPR momentum-fraction measurement, one configuration per run.
-
-  To retarget this to a different fermion action (the exponential clover in
-  particular), edit ONLY the <FermionAction> block. Nothing else in this file
-  and nothing in npr_momfrac_chroma.cc has to change, because the action and
-  the inverter are built from Chroma's own XML factories. If the action lives
-  in a tree other than stock Chroma (LALIBE, say), compile
-  npr_momfrac_chroma.cc into THAT binary with -DNPR_MOMFRAC_NO_MAIN and add
-  NprMomfrac::registerAll() to its linkage hack; the XML below is unchanged.
 -->
 <chroma>
 <Param>
@@ -19,53 +11,28 @@
       <Param>
         <version>1</version>
 
-        <!-- Source point y, explicit. The 2020 runs drew this from a seeded
-             RNG; for a reproducible cross-check it is stated outright.
-             cfg 1600 of job 22560 used (14,6,7,37). -->
-        <t_srce>14 6 7 37</t_srce>
+        <!-- Point source location. If unspecified, picks a random pt source. -->
+        <tsrc>14 6 7 37</tsrc>
 
-        <!-- Momenta. Exactly one of <mom_range> or <mom_list>.
+        <ksq_cut>20</ksq_cut>
+        <h_cut>0.5</h_cut>
+        <all_pos>true</all_pos>
 
-             <mom_range> is an inclusive per-direction range, i.e. a HYPERCUBE
-             in k (max norm, L-infinity), NOT a taxicab ball. The distinction
-             is not cosmetic: |k|_inf <= 6 is 28561 momenta while |k|_1 <= 6 is
-             1289. Count is prod_mu (k_max - k_min + 1), so a symmetric box of
-             half-width n gives (2n+1)^4: n=1 -> 81, n=2 -> 625, n=6 -> 28561,
-             which is what the 2020 production used.
-
-             Start small. The momentum loop, not the solver, is the cost: five
-             inversions take ~50 min on one node of a 16^3 x 48 lattice and do
-             not depend on the momenta at all, while each momentum adds a
-             full-volume phase field and five lattice sums. -->
-        <mom_range>
-          <k_min>-1 -1 -1 -1</k_min>
-          <k_max> 1  1  1  1</k_max>
-        </mom_range>
-
-        <!-- Explicit list, for testing against known values. Use instead of
-             <mom_range>, never alongside it; giving both is refused.
+        <!-- Explicit mode list, for testing against known values. -->
+        <!--
         <mom_list>
           <elem>1 1 1 1</elem>
           <elem>3 0 0 0</elem>
         </mom_list>
         -->
 
-        <!-- Optional, applied on top of <mom_range>: drop momenta with
-             (a p~)^2 above this, where p~_mu = 2 sin(pi (k_mu + b_mu) / L_mu).
-             Omit to reproduce 2020.
-        <max_psq>10.0</max_psq>
-        -->
-
-        <!-- Momentum twist. (0,0,0,1/2) for antiperiodic time. Must agree with
-             the time component of FermionBC/boundary below; they are two halves
-             of the same convention and silently disagreeing is a real risk. -->
+        <!-- Momentum twist. (0,0,0,1/2) for antiperiodic time.-->
         <bvec>0 0 0 0.5</bvec>
 
         <output_type>TEXT</output_type>
         <output_file>./cfg1600_chroma.txt</output_file>
 
-        <!-- THE EXTENSION POINT. Replace this block to change the action;
-             nothing else in this file or in the .cc changes. -->
+        <!-- Replace this block to change the action. -->
         <FermionAction>
           <FermAct>CLOVER</FermAct>
           <Mass>-0.2450</Mass>
@@ -81,7 +48,7 @@
 
         <InvertParam>
           <invType>CG_INVERTER</invType>
-          <RsdCG>1.0e-14</RsdCG>
+          <RsdCG>1.0e-8</RsdCG>
           <MaxCG>10000</MaxCG>
         </InvertParam>
 

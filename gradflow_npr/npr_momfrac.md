@@ -63,7 +63,9 @@ The configuration must already be smeared and Landau gauge-fixed; this code does
 </FermionAction>
 ```
 
-**Momenta** — `<mom_range>`, an inclusive per-direction box. This is a max norm $p^2\leq \mathrm{mom\_range}$, *not* a taxicab ball: a symmetric box of half-width `n` gives `(2n+1)^4` momenta. The template ships with `n = 1`, i.e. 81 momenta; `n = 6` is the 28561 the 2020 paper used. `<mom_list>` takes an explicit list instead, for testing. Giving both is refused rather than silently resolved.
+**Momenta** — Two ways to specify the input set of momenta. 
+1. `<ksq_cut>`, a max norm $k^2\leq \mathrm{ksq\_cut}$, *not* a taxicab ball. This also takes in parameters `h_cut`, which specifies a maximum democracy $p^{[4]} / (p^2)^2$ to cut on, and `all_pos`, whether or not it should only consider momenta with positive components. By default `h_cut` is set to 1.0 and `all_pos` is set to `true`. 
+2. `<mom_list>`, an explicit list if one needs to test at a specific set of momenta. 
 
 **`<bvec>`** is the momentum twist, `(0,0,0,1/2)` for antiperiodic time, which has to agree with the time component of `<FermionBC>/<boundary>`.
 
