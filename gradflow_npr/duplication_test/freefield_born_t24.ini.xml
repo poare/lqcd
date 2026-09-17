@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<!--
+  Free-field Born-term cross-check against the 2020 reference data at
+  ~/lqcd/npr_momfrac/testing/free_field/born_term.h5
+
+  Setup matches testing/free_field/zero_field_npr.qlua exactly:
+    Lx = 16, Lt = 48, unit gauge field, mq = -0.2450 (kappa = 1/7.51),
+    csw = 1.2493, bcs = {1, 1, 1, -1}, bvec = {0, 0, 0, 0.5}.
+
+  clovCoeff is kept at 1.2493 rather than zeroed. With U = 1 the field
+  strength vanishes, so the clover term must drop out on its own; leaving
+  the coefficient in place tests that instead of assuming it.
+
+  NORMALIZATION. born_term.h5 was made by compute_npr, which uses a
+  MOMENTUM WALL source and projects through the sink, giving V * S~(p) and
+  V * S~ V~_mu S~. This measurement uses a POINT source, giving S~(p) and
+  S~ V~_mu S~. In the free field S(x,y) depends only on x - y, so the two
+  differ by exactly V = 16^3 * 48 = 196608 in every entry, independent of
+  the source point. That single global constant is itself a check.
+
+  EXPECTED RESULT. The operator insertion is a pure point-split gamma_mu
+  term with no Wilson piece, so S~(p) cancels under amputation and the
+  tree-level vertex is independent of kappa, csw and the Wilson term:
+
+      Gamma_mu(p) = -2i sin(p_mu) gamma_mu,   p_mu = 2 pi (k_mu + b_mu) / L_mu
+
+  with the FULL angle sin(p_mu), not the half-angle 2 sin(p_mu / 2).
+
+  The time direction carries a known boundary correction. Antiperiodicity is
+  implemented by flipping U_3 on the last time slice inside the Dirac
+  operator, while seqSource uses the RAW link, so one slice per term enters
+  with the wrong sign. Each slice carries weight 1 / L_t, giving
+
+      Gamma_3(p) = -2i sin(p_3) (1 - 2 / L_t) gamma_3
+
+  i.e. 23/24 at L_t = 48. Verified to 1e-14 at all 1296 momenta of
+  born_term.h5. This is a convention, not a bug: it cancels in Z provided
+  the Born term is generated at the SAME L_t as the data.
+
+  Momenta: born_term.h5 stores the full k in [0,5]^4 box (1296). This run
+  takes the [0,2]^4 sub-box (81), all of which are present in the reference.
+  Widen k_max to 5 5 5 5 for the complete comparison.
+-->
+<!--
+  VARIANT of freefield_born.ini.xml: identical except t_srce is moved from the
+  origin to the middle of the time extent.
+
+  WHY. Chroma's SIMPLE_FERMBC puts the antiperiodic sign flip on the link at
+  t = L_t - 1, while seqSource uses the RAW link, so that one slice is a
+  wrong-operator insertion. Its size goes like the time-slice propagator at
+  separation |y_t - (L_t - 1)|, so it is exponentially suppressed when the
+  source sits in the bulk and O(1) when the source is adjacent to the
+  boundary. With t_srce = 0 0 0 0 the source IS adjacent to it, and O44 came
+  out 96% wrong against born_term.h5 while prop and O11-O33 agreed to 2e-13.
+
+  PREDICTIONS for this run:
+    prop, O11, O22, O33   unchanged, ~1e-13 (no twist in the spatial links)
+    O44 amputated         ratio to -2i sin(p_3) gamma_3 goes to 1.000,
+                          NOT the 23/24 the momentum-wall reference shows
+    O44 raw vs reference   settles at about 2 / L_t = 4.2%
+
+  The last point is the substantive one: a point source in the bulk and a
+  momentum wall cannot agree in the time direction even in principle. The wall
+  y-averages the defect to a uniform 1 - 2/L_t; a bulk point source suppresses
+  it exponentially instead. So born_term.h5's O44 is not the right Born term
+  for point-source data, and a numerical Born term is not transferable between
+  lattices with different L_t.
+-->
+<chroma>
+<Param>
+  <InlineMeasurements>
+    <elem>
+      <Name>NPR_MOMFRAC</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>1</version>
+
+        <!-- Free field is translation invariant, so the source point is
+             arbitrary; the origin keeps the phases clean. -->
+        <t_srce>0 0 0 24</t_srce>
+
+        <mom_range>
+          <k_min>0 0 0 0</k_min>
+          <k_max>2 2 2 2</k_max>
+        </mom_range>
+
+        <!-- Must agree with the time component of FermionBC/boundary. -->
+        <bvec>0 0 0 0.5</bvec>
+
+        <output_type>TEXT</output_type>
+        <output_file>./freefield_born_t24.txt</output_file>
+
+        <FermionAction>
+          <FermAct>CLOVER</FermAct>
+          <Mass>-0.2450</Mass>
+          <clovCoeff>1.2493</clovCoeff>
+          <AnisoParam>
+            <anisoP>false</anisoP><t_dir>3</t_dir><xi_0>1</xi_0><nu>1</nu>
+          </AnisoParam>
+          <FermionBC>
+            <FermBC>SIMPLE_FERMBC</FermBC>
+            <boundary>1 1 1 -1</boundary>
+          </FermionBC>
+        </FermionAction>
+
+        <InvertParam>
+          <invType>CG_INVERTER</invType>
+          <RsdCG>1.0e-14</RsdCG>
+          <MaxCG>10000</MaxCG>
+        </InvertParam>
+
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+      </NamedObject>
+    </elem>
+
+  </InlineMeasurements>
+  <nrow>16 16 16 48</nrow>
+</Param>
+
+<RNG><Seed><elem>11</elem><elem>11</elem><elem>11</elem><elem>0</elem></Seed></RNG>
+<Cfg>
+  <cfg_type>UNIT</cfg_type>
+  <cfg_file>dummy</cfg_file>
+</Cfg>
+</chroma>

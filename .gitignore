@@ -77,3 +77,5 @@ chiral/discrete_geom.code-workspace
 2d_adjoint_qcd/python_scripts/__pycache__
 
 utilities/__pycache__
+
+gradflow_npr/python_scripts/__pycache__/

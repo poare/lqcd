@@ -102,7 +102,7 @@ function gauge_transform(L, U, group)
   return Uprime
 end
 
--- Computes the operator O_{\nu\nu} for direction \nu.
+-- Computes the operator O_{\nu\nu} for direction \nu. Note \nu = 0 is x, ..., \nu = 3 is t.
 function O(U, prop, antiprop, nu)
   local D_prop = 0.5 * (U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) -
             U[nu + 1]:shift(nu, "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward")))
@@ -112,7 +112,7 @@ function O(U, prop, antiprop, nu)
 end
 
 -- Get sequential source for \gamma_mu D_nu - 1/4 \slashed{D}
-function get_sequential_source_traceless(U, prop, nu)
+function get_sequential_source_full(U, prop, nu)
   local Jprop = U[nu + 1] * (gamma{mu = nu} * prop:shift(nu, "from_forward")) - U[nu + 1]:shift(nu,
           "from_backward"):adjoin() * (gamma{mu = nu} * prop:shift(nu, "from_backward"))
   for lambda = 0, #L - 1 do
@@ -216,6 +216,8 @@ function compute_quark_renormalization(L, U, ferm_prop, p_list, hypervolume, L_m
       printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
       local FTarg = L:Real(0)
       for mu = 0, #L - 1 do
+        -- FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+        -- e^{ip(x - y)}
         FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
       end
       local FT = FTarg:expi()
@@ -230,70 +232,111 @@ function compute_quark_renormalization(L, U, ferm_prop, p_list, hypervolume, L_m
   end
 end
 
---[[
-  Computes the three point function G_\mu(p) and the two point propagator S(p) by
-  a sequential propagator inversion through the operator.
-]]
+-- Performs the computation through the operator, which should be faster for more sink / src momenta.
 function compute_npr_through_op(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum, jobid)
   print("Computing through the operator.")
   local bvec = {0, 0, 0, 0.5}
   local origin = {0, 0, 0, 0}
 
-  -- Computes a random point propagator.
-  -- local seed = cfgnum + jobid
-  local seed = 10
+  -- Compute point propagators at N random points on the lattice.
+  local N = 1    -- number of points to compute propagators at
+  local seed = cfgnum + jobid
   math.randomseed(seed)
-  local y = {}
-  for mu = 0, #L - 1 do
-    y[mu + 1] = math.random(0, L[mu] - 1)    -- integer in range 0, L[d] - 1
+  local S_list = {}
+  local pts = {}
+  printf("Computing %d random point sources.", N)
+  for i = 1, N do
+    local y = {}
+    for mu = 0, #L - 1 do
+      y[mu + 1] = math.random(0, L[mu] - 1)    -- integer in range 0, L[d] - 1
+    end
+    pts[i] = y
+    local src = compute_point_source(U, y)
+    S_list[i] = compute_propagator(U, ferm_prop, src)
   end
-  -- y = {0, 0, 0, 0}
-  local src = compute_point_source(U, y)
-  local prop = compute_propagator(U, ferm_prop, src)
   print("Point sources computed.")
 
-  local b = {}
-  local M = {}
-  printf("Computing for propagator at point (%d, %d, %d, %d).\n", y[1], y[2], y[3], y[4])
-  for mu = 0, #L - 1 do
-    printf("Computing full sequential propagator for operator mu = %d.\n", mu)
-    b[mu] = get_sequential_source(U, prop, mu)
-    M[mu] = compute_propagator(U, ferm_prop, b[mu])
+  -- Single point source at the origin.
+  -- local src = compute_point_source(U, origin)
+  -- print("Computing point source")
+  -- local pt_prop = compute_propagator(U, ferm_prop, src)
+  -- print("Point source computed")
+  -- local S_list = {pt_prop}
+
+  -- Run with different point sources.
+  --[[
+  local S_list = {}
+  local S_p_list = {{0, 0, 0, 0}, {1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}}
+  for i = 1, #S_p_list do
+    local p = S_p_list[i]
+    printf("pidx is: %d", i)
+    printf("Momentum source (%d, %d, %d, %d) computed", p[1], p[2], p[3], p[4])
+    local src = compute_spacetime_wall_source_antiperiodicBC(U, S_p_list[i])
+    local prop = compute_propagator(U, ferm_prop, src)
+    S_list[#S_list + 1] = prop
   end
-  print("Sequential sources initialized.")
+  ]]
 
-  for pidx = 1, #p_list do
-    printf("p index: %d\n", pidx)
-    local p = p_list[pidx]
-    printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
-    local FTarg = L:Real(0)
+  -- Enumerate propagators to run this on
+  for i = 1, #S_list do
+    local b = {}
+    local M = {}
+    local prop = S_list[i]
+    local y = pts[i]
+    printf("Computing for propagator %d at point (%d, %d, %d, %d).\n", i, y[1], y[2], y[3], y[4])
+    -- Operator of interest only uses mu = 2, 3
     for mu = 0, #L - 1 do
-      FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      printf("Computing full sequential propagator for operator mu = %d.\n", mu)
+      --b[mu] = get_sequential_source(U, prop, mu)
+      b[mu] = get_sequential_source_full(U, prop, mu)
+      M[mu] = compute_propagator(U, ferm_prop, b[mu])
     end
-    local FT = FTarg:expi()
+    print("Sequential sources initialized.")
 
-    -- Write momentum projected propagator to file
-    local mom4_prop = (FT * prop):sum()
-    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
-    h5_force_write(writer, prop_path, mom4_prop)
-    printf("Propagator written at path: %s\n", prop_path)
+    for pidx = 1, #p_list do
+      printf("p index: %d\n", pidx)
+      local p = p_list[pidx]
+      printf("Momentum is (%d, %d, %d, %d).", p[1], p[2], p[3], p[4])
+      local FTarg = L:Real(0)
+      for mu = 0, #L - 1 do
+        -- FTarg = FTarg + L:Real(L:pcoord(mu)) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+        -- e^{ip(x - y)}
+        FTarg = FTarg + (L:Real(L:pcoord(mu)) - L:Real(y[mu + 1])) * (p[mu + 1] + bvec[mu + 1]) * 2 * math.pi / L[mu]
+      end
+      local FT = FTarg:expi()
 
-    -- compute momentum projected Green's function G(p)
-    for mu = 0, #L - 1 do
-      local matrix_element = (FT * M[mu]):sum()
-      local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4])
-      h5_force_write(writer, op_path, matrix_element)
-      printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
+      local mom4_prop = (FT * prop):sum()
+
+      -- Write momentum projected propagator to file
+      --local prop_path = string.format("prop/x%dy%dz%dt%d/p%d%d%d%d/cfg%d", y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
+      local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
+
+      h5_force_write(writer, prop_path, mom4_prop)
+      printf("Propagator written at path: %s\n", prop_path)
+
+      -- compute momentum projected Green's function G(p)
+      --local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
+
+      --local JS = {}
+      for mu = 0, #L - 1 do
+        local matrix_element = (FT * M[mu]):sum()
+        --JS[mu] = matrix_element
+        --local op_path = string.format("O%d%d/x%dy%dz%dt%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
+        local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4])
+        h5_force_write(writer, op_path, matrix_element)
+        printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
+      end
+      --local G = norm * (JS[2] - JS[3])
+
+      --local threept_path = string.format("threept/x%dy%dz%dt%d/p%d%d%d%d/cfg%d", y[1], y[2], y[3], y[4], p[1], p[2], p[3], p[4], cfgnum)
+      --h5_force_write(writer, threept_path, G)
+      --printf("Three point function written at: %s\n", threept_path)
     end
   end
-
 end
 
---[[
- Computes the three point function G_\mu(p) and the two point propagator S(p) by
- directly inverting a momentum source of e^{-ipx}.
-]]
-function compute_npr_momsource(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum)
+-- Set gauge=true to change the paths which we store the fields at.
+function compute_npr(L, U, ferm_prop, p_list, hypervolume, L_mom, group, clover, writer, Nc, cfgnum)
   local bvec = {0,0,0,0.5}
   print("Computing through sink.")
 
@@ -314,17 +357,49 @@ function compute_npr_momsource(L, U, ferm_prop, p_list, hypervolume, L_mom, grou
     local mom4_prop = (FT * prop):sum()
 
     -- Write momentum projected propagator to file (?)
-    local prop_path = string.format("prop/p%d%d%d%d", p[1], p[2], p[3], p[4])
+    local prop_path = string.format("prop/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
     h5_force_write(writer, prop_path, mom4_prop)
     printf("Propagator written at path: %s\n", prop_path)
 
+    --[[
     -- compute momentum projected Green's function G(p)
-    for mu = 0, #L - 1 do
+    local norm = 1 / (2 * math.sqrt(2))    -- / hypervolume
+    local JS = {}
+    for mu = 2, #L - 1 do
       local matrix_element = O(U, prop, antiprop, mu)
-      local op_path = string.format("O%d%d/p%d%d%d%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4])
+      -- Verify that O(U, prop, antiprop, nu) = (antiprop * get_sequential_source(U, prop, nu)):sum() (it does)
+      --local matrix_element_sequential = (antiprop * get_sequential_source(U, prop, mu)):sum()
+
+      -- This code should compute the same matrix element with a sequential momentum source.
+      local src_seq = get_sequential_source(U, prop, mu)
+      local M = compute_propagator(U, ferm_prop, src_seq)
+      local matrix_element_sequential = (FT * M):sum()
+      JS[mu] = matrix_element
+      local op_path
+      local op_path_sequential
+      if gauge then
+        op_path = string.format("O%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+        op_path_sequential = string.format("O_sequential%d%dprime/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+      else
+        op_path = string.format("O%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+        op_path_sequential = string.format("O_sequential%d%d/p%d%d%d%d/cfg%d", mu + 1, mu + 1, p[1], p[2], p[3], p[4], cfgnum)
+      end
+      -- TODO If these two are the exact same, then the sequential source should be accurate.
       h5_force_write(writer, op_path, matrix_element)
+      h5_force_write(writer, op_path_sequential, matrix_element_sequential)
       printf("Matrix element O%d%d written at: %s\n", mu + 1, mu + 1, op_path)
     end
+    local G = norm * (JS[2] - JS[3])
+
+    local threept_path
+    if gauge then
+      threept_path = string.format("threeptprime/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+    else
+      threept_path = string.format("threept/p%d%d%d%d/cfg%d", p[1], p[2], p[3], p[4], cfgnum)
+    end
+    h5_force_write(writer, threept_path, G)
+    printf("Three point function through sink written at: %s\n", threept_path)
+]]
   end
 end
 
@@ -340,33 +415,17 @@ else
 end
 
 -- Set parameters
--- Lx = 16
--- Lt = 48
+Lx = 16
+Lt = 48
 
---Lx = 24
---Lt = 24
-
--- Lx = 32
--- Lt = 48
-
--- beta = 6.1
--- mq = -0.2450
--- Lx = 48
--- Lt = 96
--- beta = 6.3
--- mq = -0.2416
-
-Lx = 12        -- for testing
-Lt = 24
 beta = 6.1
 mq = -0.2450
-
 kappa = 1 / (2 * mq + 8)
 
 Nc = 3    -- qcd.Nc
 L = qcd.lattice{Lx, Lx, Lx, Lt}
 L_mom = qcd.lattice{Lt}
-lqcd_dir = "/home/lqcd/poare"    -- specify what the file path to lqcd is
+lqcd_dir = "/home/poare"    -- specify what the file path to lqcd is
 -- compare at cfg 200
 -- compare at point source and momentum smeared source, momentum [2 2 2 2]
 
@@ -384,9 +443,8 @@ printf("OUTPUT FILE WILL WRITE TO: %s\n", filename)
 
 local group = group.get(Nc)    -- group = SU3 in su-n.qlua
 
--- local csw = 1.2493
--- local csw = 1    -- uncomment after testing is done
-local csw = 1.20536588031793
+local csw = 1.2493
+--local csw = 1    -- uncomment after testing is done
 local bcs = {1, 1, 1, -1}
 
 local clover
@@ -400,30 +458,27 @@ end
 local ferm_prop = propagator.make_from_ferm(clover, 1e-20, 1000)
 
 -- momenta to compute Z(p) at
--- local p_list_NPR = {{2, 2, 2, 2}, {4, 4, 4, 4}, {6, 6, 6, 6}, {8, 8, 8, 8}, {10, 10, 10, 10}, {3, 0, 0, 0}, {6, 0, 0, 0}, {9, 0, 0, 0}}
-local p_list_NPR = {{1, 1, 1, 1}, {3, 0, 0, 0}}
--- local p_list_NPR = {}
--- for i = -6, 6 do
---  for j = -6, 6 do
---    for k = -6, 6 do
---      for l = -6, 6 do
---         p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
---       end
---     end
---   end
--- end
+local p_list_NPR = {}
+for i = -6, 6 do
+ for j = -6, 6 do
+   for k = -6, 6 do
+     for l = -6, 6 do
+        p_list_NPR[#p_list_NPR + 1] = {i, j, k, l}
+      end
+    end
+  end
+end
 
 printf("Number of momenta to compute at: %d.", #p_list_NPR)
 
 local gauge_file
--- if gf then
---     gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
--- else
---     gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
--- end
-local gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."-a_cfg_%d.lime", cfgnum)
--- gauge_file = string.format("/data/d10b/ensembles/cl21_48_96_b6p3_m0p2416_m0p2050/cl21_48_96_b6p3_m0p2416_m0p2050/cfgs/cl21_48_96_b6p3_m0p2416_m0p2050_cfg_%d.lime", cfgnum)
--- print("Reading gauge file at: %s\n", gauge_file)
+if gf then
+    gauge_file = string.format(cfgpath..cfgbase.."_smeared_gf/landau/"..cfgbase.."_cfg_%d.lime", cfgnum)
+    --gauge_file = string.format("/data/d10a/projects/pshanahan_CollinsSoper/ensembles/su3_24_48_b6p10050_flow1_gf/su3_24_48_b6p10050.lime%d_flow1_gf", cfgnum)
+else
+    gauge_file = string.format(cfgpath..cfgbase.."/cfgs/"..cfgbase.."_cfg_%d.lime", cfgnum)
+end
+print("Reading gauge file at: %s\n", gauge_file)
 
 status, U, finfo, info = pcall(load_conf, L, gauge_file)
 if status then
