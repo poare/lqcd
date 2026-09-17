@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+  FFT projection self-test: a Gaussian random propagator field, projected at
+  every momentum both by fftProject and by the phase sum. Logs
+  "check_fft: max |FFT - phase sum|"; expect roundoff (~1e-12 relative).
+  Off-origin tsrc, the default twist bvec = (0,0,0,1/2), and all_pos false so
+  negative k (wrapped into the transform) are exercised. The ksq_cut radius 3
+  exceeds L/2 = 2 in x, so k = +-3 also wraps. No solves; seconds.
+-->
+<chroma>
+<Param>
+  <InlineMeasurements>
+    <elem>
+      <Name>NPR_MOMFRAC</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>1</version>
+        <test_fft>true</test_fft>
+        <tsrc>3 1 2 5</tsrc>
+        <ksq_cut>9</ksq_cut>
+        <all_pos>false</all_pos>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+      </NamedObject>
+    </elem>
+  </InlineMeasurements>
+  <nrow>4 6 8 12</nrow>
+</Param>
+<RNG>
+  <Seed>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>0</elem>
+  </Seed>
+</RNG>
+<Cfg>
+  <cfg_type>UNIT</cfg_type>
+  <cfg_file>dummy</cfg_file>
+</Cfg>
+</chroma>

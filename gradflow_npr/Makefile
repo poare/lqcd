@@ -10,7 +10,7 @@ CHROMA_CONFIG := $(HOME)/libraries/install/chroma/bin/chroma-config
 CXX      := $(shell $(CHROMA_CONFIG) --cxx)
 CXXFLAGS := $(shell $(CHROMA_CONFIG) --cxxflags)
 LDFLAGS  := $(shell $(CHROMA_CONFIG) --ldflags)
-LIBS     := $(shell $(CHROMA_CONFIG) --libs)
+LIBS     := $(shell $(CHROMA_CONFIG) --libs) -lfftw3
 
 npr_momfrac: npr_momfrac_chroma.cc
 	$(CXX) $(CXXFLAGS) $< $(LDFLAGS) $(LIBS) -o $@

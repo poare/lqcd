@@ -17,10 +17,20 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <fftw3.h>
 
 using namespace Chroma;
 
 namespace NprMomfrac {
+
+  //! The production twist, b = (0,0,0,1/2): antiperiodic in time.
+  multi1d<Real> antiperiodicTwist()
+  {
+    multi1d<Real> b(Nd);
+    for (int mu = 0; mu < Nd; ++mu) b[mu] = Real(0);
+    b[Nd-1] = Real(0.5);
+    return b;
+  }
 
   struct Params {
     Params() : frequency(0) {}
@@ -30,6 +40,7 @@ namespace NprMomfrac {
     bool          dump_gamma;   // Task 2: dump Gamma(1<<mu) and exit the measurement
     bool          test_project; // Task 3: self-test the momentum projection
     bool          test_seqsrc;  // Task 4: self-test the sequential source
+    bool          test_fft;     // self-test: FFT against phase sum, random field
     bool          have_tsrc;    // false until drawn, if absent from the XML
     bool          have_tsrc_from_xml;
     multi1d<int>  tsrc;         // source point y
@@ -43,6 +54,9 @@ namespace NprMomfrac {
     int                   ksq_cut;
     double                h_cut;         // keep h(k) <= h_cut; default 1 = no cut
     bool                  all_pos;       // keep k_mu >= 0 only; default true
+
+    std::string projection;     // FFT (default) or PHASE_SUM
+    bool        check_fft;      // FFT only: also phase-sum, log the difference
 
     std::string output_type;    // TEXT (HDF5 not implemented yet)
     std::string output_file;
@@ -72,6 +86,11 @@ namespace NprMomfrac {
     else
       test_seqsrc = false;
 
+    if (paramtop.count("Param/test_fft") == 1)
+      read(paramtop, "Param/test_fft", test_fft);
+    else
+      test_fft = false;
+
     // Source point. If absent it is drawn uniformly at measurement time, from
     // the RNG main() seeds with <RNG><Seed>; see drawSourcePoint().
     //
@@ -86,9 +105,7 @@ namespace NprMomfrac {
       read(paramtop, "Param/bvec", bvec);
     } else {
       // Default is the production convention: antiperiodic in time.
-      bvec.resize(Nd);
-      for (int mu = 0; mu < Nd; ++mu) bvec[mu] = Real(0);
-      bvec[Nd-1] = Real(0.5);
+      bvec = antiperiodicTwist();
     }
 
     // Momenta. Exactly one of the two forms; a run that gives both, or
@@ -121,6 +138,18 @@ namespace NprMomfrac {
                   << "only; remove them when using <mom_list>" << std::endl;
       QDP_abort(1);
     }
+
+    projection = "FFT";
+    if (paramtop.count("Param/projection") == 1)
+      read(paramtop, "Param/projection", projection);
+    if (projection != "FFT" && projection != "PHASE_SUM") {
+      QDPIO::cerr << "NPR_MOMFRAC: <projection> must be FFT or PHASE_SUM, not '"
+                  << projection << "'" << std::endl;
+      QDP_abort(1);
+    }
+    check_fft = false;
+    if (paramtop.count("Param/check_fft") == 1)
+      read(paramtop, "Param/check_fft", check_fft);
 
     if (paramtop.count("Param/output_type") == 1)
       read(paramtop, "Param/output_type", output_type);
@@ -167,6 +196,118 @@ namespace NprMomfrac {
                               const multi1d<Real>& bvec)
   {
     return projectWithPhase(momentumPhase(k, y, bvec), F);
+  }
+
+  //! Momentum projection by FFT: the same sums as projectMomentum,
+  //!   P(k) = sum_x exp(+i p.(x - y)) F(x),   p_mu = 2 pi (k_mu + b_mu) / L_mu,
+  //! no 1/V, returned in the order of moms. One FFTW_BACKWARD transform per
+  //! spin-colour component gives every integer k at once. The twist enters as
+  //! a premultiplication by exp(+i 2 pi b.x / L), and the source point as the
+  //! scalar phase exp(-i p.y) afterward -- never as a circular shift.
+  //!
+  //! Adapted from FFT4d in Dimitra Pefkou's DeltaG_operator.cc. As there, each
+  //! rank transforms a full-volume buffer holding its own sites and zeros
+  //! elsewhere, and the picked-out values are summed over ranks; by linearity
+  //! that is the transform of the whole field. It costs one volume-sized buffer
+  //! per rank but needs no gather, and the ranks transform concurrently.
+  multi1d<DPropagator> fftProject(const LatticePropagator& F,
+                                  const multi1d<multi1d<int> >& moms,
+                                  const multi1d<int>& y,
+                                  const multi1d<Real>& bvec = antiperiodicTwist())
+  {
+    const multi1d<int>& L = Layout::lattSize();
+    const long V    = long(L[0]) * L[1] * L[2] * L[3];
+    const int  nloc = Layout::sitesOnNode();
+    const int  nmom = moms.size();
+    const int  ncmp = Ns * Ns * Nc * Nc;
+    const double tp = 6.283185307179586476925286766559;
+
+    // Local sites: row-major index (x slowest, t fastest) and twist phase.
+    // QDP++ stores sites checkerboarded, so the index comes from coordinates.
+    std::vector<long>   site_idx(nloc);
+    std::vector<double> tw_re(nloc), tw_im(nloc);
+    {
+      multi1d<multi1d<Int> > coord(Nd);
+      for (int mu = 0; mu < Nd; ++mu) {
+        coord[mu].resize(nloc);
+        QDP_extract(coord[mu], Layout::latticeCoordinate(mu), all);
+      }
+      for (int ii = 0; ii < nloc; ++ii) {
+        long idx = 0; double arg = 0.0;
+        for (int mu = 0; mu < Nd; ++mu) {
+          int x = toInt(coord[mu][ii]);
+          idx  = idx * L[mu] + x;
+          arg += tp * toDouble(bvec[mu]) * x / L[mu];
+        }
+        site_idx[ii] = idx; tw_re[ii] = std::cos(arg); tw_im[ii] = std::sin(arg);
+      }
+    }
+
+    // Requested momenta: wrapped index into the transform, and source phase.
+    // The phase uses the unwrapped k; wrapping would change it by exp(-2 pi i y)
+    // = 1 anyway, but unwrapped is the definition.
+    std::vector<long>   mom_idx(nmom);
+    std::vector<double> sp_re(nmom), sp_im(nmom);
+    for (int i = 0; i < nmom; ++i) {
+      long idx = 0; double arg = 0.0;
+      for (int mu = 0; mu < Nd; ++mu) {
+        int q = ((moms[i][mu] % L[mu]) + L[mu]) % L[mu];
+        idx  = idx * L[mu] + q;
+        arg -= tp * (double(moms[i][mu]) + toDouble(bvec[mu])) * y[mu] / L[mu];
+      }
+      mom_idx[i] = idx; sp_re[i] = std::cos(arg); sp_im[i] = std::sin(arg);
+    }
+
+    multi1d<Propagator> Floc(nloc);
+    QDP_extract(Floc, F, all);
+
+    fftw_complex* buf = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * V);
+    int dims[Nd];
+    for (int mu = 0; mu < Nd; ++mu) dims[mu] = L[mu];
+    // FFTW_BACKWARD is sum_x exp(+i k.x), our sign. ESTIMATE leaves buf alone.
+    fftw_plan plan = fftw_plan_dft(Nd, dims, buf, buf, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+    std::vector<double> out(2L * nmom * ncmp, 0.0);   // [mom, comp, re/im]
+    for (int s0 = 0; s0 < Ns; ++s0)
+    for (int s1 = 0; s1 < Ns; ++s1)
+    for (int c0 = 0; c0 < Nc; ++c0)
+    for (int c1 = 0; c1 < Nc; ++c1) {
+      const int cmp = ((s0 * Ns + s1) * Nc + c0) * Nc + c1;
+
+      for (long j = 0; j < V; ++j) { buf[j][0] = 0.0; buf[j][1] = 0.0; }
+      for (int ii = 0; ii < nloc; ++ii) {
+        const double re = Floc[ii].elem().elem(s0,s1).elem(c0,c1).real();
+        const double im = Floc[ii].elem().elem(s0,s1).elem(c0,c1).imag();
+        buf[site_idx[ii]][0] = re * tw_re[ii] - im * tw_im[ii];
+        buf[site_idx[ii]][1] = re * tw_im[ii] + im * tw_re[ii];
+      }
+
+      fftw_execute(plan);
+
+      for (int i = 0; i < nmom; ++i) {
+        const double re = buf[mom_idx[i]][0], im = buf[mom_idx[i]][1];
+        out[2L * (long(i) * ncmp + cmp)    ] = re * sp_re[i] - im * sp_im[i];
+        out[2L * (long(i) * ncmp + cmp) + 1] = re * sp_im[i] + im * sp_re[i];
+      }
+    }
+    fftw_destroy_plan(plan);
+    fftw_free(buf);
+
+    QDPInternal::globalSumArray(out.data(), int(out.size()));
+
+    multi1d<DPropagator> res(nmom);
+    for (int i = 0; i < nmom; ++i) {
+      res[i] = zero;
+      for (int s0 = 0; s0 < Ns; ++s0)
+      for (int s1 = 0; s1 < Ns; ++s1)
+      for (int c0 = 0; c0 < Nc; ++c0)
+      for (int c1 = 0; c1 < Nc; ++c1) {
+        const long o = 2L * (long(i) * ncmp + ((s0 * Ns + s1) * Nc + c0) * Nc + c1);
+        res[i].elem().elem(s0,s1).elem(c0,c1).real() = out[o];
+        res[i].elem().elem(s0,s1).elem(c0,c1).imag() = out[o + 1];
+      }
+    }
+    return res;
   }
 
   //! The sequential source for the operator O_{mu mu}.
@@ -264,10 +405,12 @@ namespace NprMomfrac {
       if (params.dump_gamma)   { dumpGamma(); }
       if (params.test_project) { testProject(); }
       if (params.test_seqsrc)  { testSeqSource(); }
+      if (params.test_fft)     { testFft(); }
 
-      // The three flags above are self-tests that run instead of the
+      // The flags above are self-tests that run instead of the
       // measurement. With none of them set, do the real thing.
-      if (!params.dump_gamma && !params.test_project && !params.test_seqsrc)
+      if (!params.dump_gamma && !params.test_project && !params.test_seqsrc
+          && !params.test_fft)
         measure(xml_out);
       push(xml_out, "NprMomfrac");
       write(xml_out, "update_no", update_no);
@@ -409,9 +552,11 @@ namespace NprMomfrac {
                   << " iters, " << swatch.getTimeInSeconds() << " s" << std::endl;
 
       swatch.reset(); swatch.start();
-      for (int i = 0; i < moms.size(); ++i) {
-        LatticeComplex ph = momentumPhase(moms[i], params.tsrc, params.bvec);
-        writeEntry(fout, "prop", moms[i], projectWithPhase(ph, S));
+      {
+        std::vector<const LatticePropagator*> fields(1, &S);
+        multi2d<DPropagator> Sk = project(fields, moms, params.check_fft);
+        for (int i = 0; i < moms.size(); ++i)
+          writeEntry(fout, "prop", moms[i], Sk(0, i));
       }
       if (Layout::primaryNode()) fout.flush();
       swatch.stop();
@@ -432,16 +577,17 @@ namespace NprMomfrac {
       }
       pop(solver_xml);
 
-      // 5. Second pass: the four operators, one phase field per momentum
-      //    shared across all four tags.
+      // 5. Second pass: the four operators.
       swatch.reset(); swatch.start();
-      for (int i = 0; i < moms.size(); ++i) {
-        const multi1d<int>& k = moms[i];
-        LatticeComplex ph = momentumPhase(k, params.tsrc, params.bvec);
-
-        for (int mu = 0; mu < Nd; ++mu) {
-          std::ostringstream tag; tag << "O" << (mu+1) << (mu+1);
-          writeEntry(fout, tag.str(), k, projectWithPhase(ph, M[mu]));
+      {
+        std::vector<const LatticePropagator*> fields;
+        for (int mu = 0; mu < Nd; ++mu) fields.push_back(&M[mu]);
+        multi2d<DPropagator> Mk = project(fields, moms, params.check_fft);
+        for (int i = 0; i < moms.size(); ++i) {
+          for (int mu = 0; mu < Nd; ++mu) {
+            std::ostringstream tag; tag << "O" << (mu+1) << (mu+1);
+            writeEntry(fout, tag.str(), moms[i], Mk(mu, i));
+          }
         }
       }
       swatch.stop();
@@ -453,10 +599,76 @@ namespace NprMomfrac {
                   << params.output_file << std::endl;
 
       push(xml_out, "NprMomfracResults");
+      write(xml_out, "projection", params.projection);
       write(xml_out, "num_momenta", moms.size());
       write(xml_out, "tsrc", params.tsrc);
       write(xml_out, "output_file", params.output_file);
       pop(xml_out);
+    }
+
+    //! Project each field at every momentum, by the method <projection> names.
+    //! Returns [field, momentum]. PHASE_SUM builds one phase field per momentum
+    //! and shares it across the fields; FFT does one transform per component.
+    multi2d<DPropagator> project(const std::vector<const LatticePropagator*>& Fs,
+                                 const multi1d<multi1d<int> >& moms,
+                                 bool check) const
+    {
+      const int nf = Fs.size(), nmom = moms.size();
+      multi2d<DPropagator> P(nf, nmom);
+
+      if (params.projection == "PHASE_SUM" || check) {
+        for (int i = 0; i < nmom; ++i) {
+          LatticeComplex ph = momentumPhase(moms[i], params.tsrc, params.bvec);
+          for (int f = 0; f < nf; ++f) P(f, i) = projectWithPhase(ph, *Fs[f]);
+        }
+        if (params.projection == "PHASE_SUM") return P;
+      }
+
+      StopWatch sw; sw.reset(); sw.start();
+      double max_diff = 0.0, max_abs = 0.0;
+      for (int f = 0; f < nf; ++f) {
+        multi1d<DPropagator> Pf = fftProject(*Fs[f], moms, params.tsrc, params.bvec);
+        for (int i = 0; i < nmom; ++i) {
+          if (check) {
+            // Largest componentwise |FFT - phase sum|, against largest |phase sum|.
+            for (int s0 = 0; s0 < Ns; ++s0)
+            for (int s1 = 0; s1 < Ns; ++s1)
+            for (int c0 = 0; c0 < Nc; ++c0)
+            for (int c1 = 0; c1 < Nc; ++c1) {
+              const RComplex<REAL64>& a = Pf[i].elem().elem(s0,s1).elem(c0,c1);
+              const RComplex<REAL64>& b = P(f, i).elem().elem(s0,s1).elem(c0,c1);
+              max_diff = std::max(max_diff, std::hypot(a.real() - b.real(),
+                                                       a.imag() - b.imag()));
+              max_abs  = std::max(max_abs,  std::hypot(b.real(), b.imag()));
+            }
+          }
+          P(f, i) = Pf[i];
+        }
+      }
+      sw.stop();
+      QDPIO::cout << "NPR_MOMFRAC: FFT projection of " << nf << " field(s), "
+                  << sw.getTimeInSeconds() << " s" << std::endl;
+      if (check) {
+        std::ostringstream os;
+        os << std::setprecision(3) << std::scientific
+           << "NPR_MOMFRAC: check_fft: max |FFT - phase sum| = " << max_diff
+           << ", max |phase sum| = " << max_abs;
+        QDPIO::cout << os.str() << std::endl;
+      }
+      return P;
+    }
+
+    //! Self-test for fftProject: a Gaussian random propagator field has no
+    //! symmetry to hide a misplaced site, sign or twist. Uses the XML momenta,
+    //! tsrc and bvec; give all_pos false to exercise negative (wrapped) k.
+    void testFft() const {
+      LatticePropagator F;
+      gaussian(F);
+      multi1d<multi1d<int> > moms = buildMomenta(params);
+      std::vector<const LatticePropagator*> fields(1, &F);
+      Params p = params;
+      p.projection = "FFT";
+      InlineNprMomfrac(p).project(fields, moms, true);
     }
 
     void testSeqSource() const {
