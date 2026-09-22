@@ -7,6 +7,13 @@
       <Frequency>1</Frequency>
       <Param>
         <version>1</version>
+
+        <!-- This input runs no self-test, so it reaches the measurement proper
+             and therefore needs a momentum form. One momentum is enough: what
+             the test establishes is that the measurement is registered and
+             reached, which the "measurement reached" log line shows. It then
+             aborts on the absent <FermionAction>, which is expected. -->
+        <ksq_cut>1</ksq_cut>
       </Param>
       <NamedObject>
         <gauge_id>default_gauge_field</gauge_id>

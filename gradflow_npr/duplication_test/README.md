@@ -11,11 +11,28 @@ Full reasoning, including what each test rules out and the two traps that cost
 real time, is in the research hub at `projects/gf-pdf-npr/notes/old-pipeline.md`
 under Stage 2b. This file is just how to re-run it.
 
+## The binary
+
+The measurement is a regular inline measurement in
+`lib/meas/inline/hadron/inline_npr_momfrac_w.{h,cc}`, so it runs from a **stock
+`chroma` binary that has been rebuilt to include it** — there is no separate
+driver any more. The commands below use `$CHROMA`; set it to the binary you
+rebuilt:
+
+```bash
+export CHROMA=$HOME/libraries/src/chroma/mainprogs/main/chroma
+```
+
+To get that binary, from `../chroma_inline/`: copy the two files into
+`lib/meas/inline/hadron/`, register them in
+`inline_hadron_aggregate.cc`, add them to the two lists in `lib/Makefile.am`,
+and **link `-lfftw3`** (Chroma's `configure` has no FFTW option, so the link
+fails without it).
+
 ## Run everything from this directory
 
-The binary is one level up; the checking scripts are in `../python_scripts/`.
-Output paths inside the XML are relative, so running from here keeps results
-here.
+The checking scripts are in `../python_scripts/`. Output paths inside the XML
+are relative, so running from here keeps results here.
 
 ```bash
 cd duplication_test
@@ -27,22 +44,34 @@ These run on a **unit gauge field**. They need neither the 113 MB configuration
 nor a machine whose memory has been vindicated, which is why they come first.
 
 ```bash
-../npr_momfrac -i test_unit_skeleton.ini.xml -o skeleton.out.xml
-../npr_momfrac -i test_gamma.ini.xml     -o gamma.out.xml   | python3 ../python_scripts/check_gamma.py
-../npr_momfrac -i test_project.ini.xml   -o project.out.xml | python3 ../python_scripts/check_project.py
-../npr_momfrac -i test_seqsrc.ini.xml    -o seqsrc.out.xml  | python3 ../python_scripts/check_seqsrc.py
-../npr_momfrac -i test_freefield.ini.xml -o freefield.out.xml && python3 ../python_scripts/check_freefield.py freefield.txt
+$CHROMA -i test_unit_skeleton.ini.xml -o skeleton.out.xml
+$CHROMA -i test_gamma.ini.xml     -o gamma.out.xml   | python3 ../python_scripts/check_gamma.py
+$CHROMA -i test_project.ini.xml   -o project.out.xml | python3 ../python_scripts/check_project.py
+$CHROMA -i test_seqsrc.ini.xml    -o seqsrc.out.xml  | python3 ../python_scripts/check_seqsrc.py
+$CHROMA -i test_fft.ini.xml       -o fft.out.xml     | grep check_fft
+$CHROMA -i test_freefield.ini.xml -o freefield.out.xml && python3 ../python_scripts/check_freefield.py freefield.txt
 ```
+
+`test_unit_skeleton` is the one that "fails": it reaches the measurement, prints
+`measurement reached`, then aborts on the absent `<FermionAction>`. That is
+expected — the log line is the whole test.
+
+For the record, `test_gamma`, `test_project` and `test_seqsrc` aborted with
+`give exactly one of <mom_list> and <ksq_cut>` between `55ae22b` and the fix:
+the momentum rework demanded a momentum form even from self-tests that project
+nothing. It is now required only when something will actually project, which is
+the measurement proper or `test_fft`.
 
 What each one pins down:
 
 | test | establishes |
 |---|---|
-| `test_unit_skeleton` | the measurement registers into a stock Chroma at runtime |
+| `test_unit_skeleton` | the measurement is registered and reached by Chroma's driver |
 | `check_gamma` | `Gamma(1 << mu)` equals `analysis.py`'s `gamma[mu]`, bit-for-bit |
 | `check_project` | the projection phase, the `b_4 = 1/2` twist and the `y` offset |
 | `check_seqsrc` | shift directions, gamma placement, relative sign |
 | `check_freefield` | the whole chain: vertex is exactly `-2i sin(p_mu) gamma_mu` |
+| `test_fft` | FFT projection against the phase sum on a Gaussian random field, off-origin `tsrc`, negative and wrapped `k`; expect `~1e-13` |
 
 Two of these run **periodic in time with `bvec = 0`, deliberately.** A twisted
 plane wave is antiperiodic while QDP++'s `shift` is periodic, so the analytic
@@ -52,6 +81,11 @@ formula inapplicable, so the twist is tested in `check_project` where it
 belongs, and the boundary is tested against real data in tasks 6-7.
 
 ## Tasks 6-7: against the reference data, ~52 minutes
+
+These were last run in full with the **old standalone binary**. The in-tree
+build has been checked on `test_fft` (identical numbers) and `check_freefield`
+(pass), but the cfg 1600 comparison has not been repeated since the measurement
+moved into `libchroma`.
 
 **The configuration must be passed through `fix_lime_xml.py` first.** QDP++
 parses the LIME user-metadata records and QLUA writes bare strings there, so
@@ -66,7 +100,7 @@ python3 ../python_scripts/fix_lime_xml.py \
 That patched copy already exists; this is only needed for a new configuration.
 
 ```bash
-../npr_momfrac -i cfg1600_17mom.ini.xml -o cfg1600_17mom.out.xml > cfg1600_17mom.log 2>&1
+$CHROMA -i cfg1600_17mom.ini.xml -o cfg1600_17mom.out.xml > cfg1600_17mom.log 2>&1
 ```
 
 **`prop` is comparable about 10 minutes in**, roughly 40 minutes before the run
@@ -110,7 +144,7 @@ largest, and degenerate momenta with zero components.
 
 | | |
 |---|---|
-| `test_*.ini.xml` | free-field inputs, tasks 1-5 |
+| `test_*.ini.xml` | free-field inputs, tasks 1-5, plus `test_fft.ini.xml` |
 | `cfg1600_17mom.ini.xml` | the reference comparison, 17 momenta |
 | `cfg1600.ini.xml` | the original two-momentum version |
 | `mom_assignment.json` | which momenta each tag is compared at |
