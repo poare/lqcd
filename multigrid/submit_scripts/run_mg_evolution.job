@@ -1,0 +1,46 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=mg_evolution
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+##SBATCH --partition=lqcd
+##SBATCH --account=class-c-arnoldi
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 24:00:00
+
+# Staleness decay of the MG near-null subspace across HMC trajectories:
+# (a) frozen basis + frozen coarse op, (b) frozen + recoarsened, (c) refined.
+# nbasis, Ntraj, beta, MDsteps are compiled into Example_mg_evolution.cc.
+
+nodes=1
+nproc=1
+MPIRUN='srun -N'${nodes}' -n'${nproc}
+
+root="ckpoint_lat.4000"
+runname="MG_evolution_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+mkdir -p ${logDir}
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+mpigrid=1.1.1.1
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=0:64:1
+
+module load openmpi
+
+$MPIRUN ./Example_mg_evolution --config ${inFile} --mpi ${mpigrid} ${OPT} > ${logs}
+
+# One line per trajectory for plotting:
+#   grep MGEVO-SUMMARY ${logs}
