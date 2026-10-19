@@ -36,7 +36,8 @@ mpigrid=2.2.2.1
 OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
 
 export OMP_NUM_THREADS=64
-export OMP_PLACES=0:64:1
+export OMP_PLACES=cores
+export OMP_PROC_BIND=close
 
 module load openmpi
 
