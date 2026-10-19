@@ -3,7 +3,7 @@
 ##ulimit -c unlimited
 
 #SBATCH --job-name=mg_evolution
-#SBATCH --nodes=1
+#SBATCH --nodes=8
 #SBATCH --ntasks-per-node=1
 ##SBATCH --partition=lqcd
 ##SBATCH --account=class-c-arnoldi
@@ -16,8 +16,8 @@
 # (a) frozen basis + frozen coarse op, (b) frozen + recoarsened, (c) refined.
 # nbasis, Ntraj, beta, MDsteps are compiled into Example_mg_evolution.cc.
 
-nodes=1
-nproc=1
+nodes=8
+nproc=8
 MPIRUN='srun -N'${nodes}' -n'${nproc}
 
 root="ckpoint_lat.4000"
@@ -32,7 +32,7 @@ logs="${logDir}/${runname}.log"
 
 cd ${homedir}/Grid/build/examples
 
-mpigrid=1.1.1.1
+mpigrid=2.2.2.1
 OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
 
 export OMP_NUM_THREADS=64
@@ -43,4 +43,4 @@ module load openmpi
 $MPIRUN ./Example_mg_evolution --config ${inFile} --mpi ${mpigrid} ${OPT} > ${logs}
 
 # One line per trajectory for plotting:
-#   grep MGEVO-SUMMARY ${logs}
+#   grep MGEVO ${logs}
