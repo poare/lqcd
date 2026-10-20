@@ -10,18 +10,27 @@
 #SBATCH --partition=riken
 #SBATCH -q riken
 #SBATCH --account=rbrcgeneral
-#SBATCH -t 24:00:00
+#SBATCH -t 03:00:00
 
-# Staleness decay of the MG near-null subspace across HMC trajectories:
-# (a) frozen basis + frozen coarse op, (b) frozen + recoarsened, (c) refined.
-# nbasis, Ntraj, beta, MDsteps are compiled into Example_mg_evolution.cc.
+# Evolution of the MG near-null subspace across HMC trajectories: block-span
+# capture of a re-bred basis by the frozen, refined and previous bases, plus
+# MG solves for (b) recoarsen, (c) refine, (d) fresh. nbasis and beta are
+# compiled in; MDsteps defaults to 80*trajL (at least 4).
+#
+# The trajectory length comes from the environment, so a sweep differs only
+# on the command line:
+#   sbatch --export=ALL,trajL=0.01 run_mg_evolution.job
+# Without it, trajL defaults to 1.0. 424581 (trajL=1, 10 trajectories) took
+# 82 min on 8 nodes.
+
+trajL=${trajL:-1.0}
 
 nodes=8
 nproc=8
 MPIRUN='srun -N'${nodes}' -n'${nproc}
 
 root="ckpoint_lat.4000"
-runname="MG_evolution_${SLURM_JOB_ID}"
+runname="MG_evolution_trajL${trajL}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
 inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
@@ -41,7 +50,7 @@ export OMP_PROC_BIND=close
 
 module load openmpi
 
-$MPIRUN ./Example_mg_evolution --config ${inFile} --mpi ${mpigrid} ${OPT} > ${logs}
+$MPIRUN ./Example_mg_evolution --config ${inFile} --trajL ${trajL} --budget-hours 2.75 --mpi ${mpigrid} ${OPT} > ${logs}
 
 # One line per trajectory for plotting:
 #   grep MGEVO ${logs}
