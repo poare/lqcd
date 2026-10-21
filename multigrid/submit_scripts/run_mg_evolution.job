@@ -21,16 +21,18 @@
 # on the command line:
 #   sbatch --export=ALL,trajL=0.01 run_mg_evolution.job
 # Without it, trajL defaults to 1.0. 424581 (trajL=1, 10 trajectories) took
-# 82 min on 8 nodes.
+# 82 min on 8 nodes. MD steps can be set the same way to tune acceptance:
+#   sbatch --export=ALL,trajL=1.0,mdsteps=40 run_mg_evolution.job
 
 trajL=${trajL:-1.0}
+mdsteps=${mdsteps:-}     # empty: binary default max(4, round(80*trajL))
 
 nodes=8
 nproc=8
 MPIRUN='srun -N'${nodes}' -n'${nproc}
 
 root="ckpoint_lat.4000"
-runname="MG_evolution_trajL${trajL}_${SLURM_JOB_ID}"
+runname="MG_evolution_trajL${trajL}${mdsteps:+_md${mdsteps}}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
 inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
@@ -50,7 +52,7 @@ export OMP_PROC_BIND=close
 
 module load openmpi
 
-$MPIRUN ./Example_mg_evolution --config ${inFile} --trajL ${trajL} --budget-hours 2.75 --mpi ${mpigrid} ${OPT} > ${logs}
+$MPIRUN ./Example_mg_evolution --config ${inFile} --trajL ${trajL} ${mdsteps:+--mdsteps ${mdsteps}} --budget-hours 2.75 --mpi ${mpigrid} ${OPT} > ${logs}
 
 # One line per trajectory for plotting:
 #   grep MGEVO ${logs}
