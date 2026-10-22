@@ -1,0 +1,64 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=mg_hmc
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+##SBATCH --partition=lqcd
+##SBATCH --account=class-c-arnoldi
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 20:00:00
+
+# MG-accelerated quenched HMC with perturbative near-null basis updates
+# (design: research hub, projects/multigrid/notes/deflation-basis-hmc.md).
+# An MG solve stands in for the force solve at every MD step; every k MD steps
+# the N = 40 basis is corrected to first order and recoarsened. Every fine
+# matvec is counted by category. --solver gcr is the plain-GCR baseline on the
+# identical trajectory and sources.
+#
+# Settings come from the environment, so runs differ only on the command line:
+#   sbatch --export=ALL,solver=mg,k=4,mdsteps=40 run_mg_hmc.job
+#   sbatch --export=ALL,solver=gcr,mdsteps=40 run_mg_hmc.job
+# k = 0 never updates the basis (frozen basis, recoarsened never).
+
+solver=${solver:-mg}
+k=${k:-4}
+mdsteps=${mdsteps:-80}
+trajL=${trajL:-1.0}
+ntraj=${ntraj:-3}
+baseline_every=${baseline_every:-1}
+
+nodes=8
+nproc=8
+MPIRUN='srun -N'${nodes}' -n'${nproc}
+
+root="ckpoint_lat.4000"
+runname="MG_hmc_${solver}_k${k}_md${mdsteps}_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+mkdir -p ${logDir}
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+mpigrid=2.2.2.1
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=cores
+export OMP_PROC_BIND=close
+
+module load openmpi
+
+$MPIRUN ./Example_mg_hmc --config ${inFile} --solver ${solver} --update-every ${k} \
+    --mdsteps ${mdsteps} --trajL ${trajL} --ntraj ${ntraj} --baseline-every ${baseline_every} \
+    --budget-hours 19 --mpi ${mpigrid} ${OPT} > ${logs}
+
+# Per-step and per-update lines for the analysis notebook:
+#   grep MGHMC ${logs}
