@@ -10,7 +10,7 @@
 #SBATCH --partition=riken
 #SBATCH -q riken
 #SBATCH --account=rbrcgeneral
-#SBATCH -t 20:00:00
+#SBATCH -t 24:00:00
 
 # MG-accelerated quenched HMC with perturbative near-null basis updates
 # (design: research hub, projects/multigrid/notes/deflation-basis-hmc.md).
@@ -22,7 +22,10 @@
 # Settings come from the environment, so runs differ only on the command line:
 #   sbatch --export=ALL,solver=mg,k=4,mdsteps=40 run_mg_hmc.job
 #   sbatch --export=ALL,solver=gcr,mdsteps=40 run_mg_hmc.job
-# k = 0 never updates the basis (frozen basis, recoarsened never).
+#   sbatch --export=ALL,solver=mg,k=4,mdsteps=40,coarse_tol=0.1,coarse_maxsteps=200 run_mg_hmc.job
+#   sbatch --export=ALL,solver=mg,k=0,recoarsen_every=1,trajL=0.4,mdsteps=16,ntraj=1 run_mg_hmc.job
+# trajL/mdsteps at fixed dtau = 0.025 reproduce the first MD steps of a trajL=1, mdsteps=40 run.
+# k = 0 never updates the basis (frozen basis; recoarsened only if recoarsen_every > 0).
 
 solver=${solver:-mg}
 k=${k:-4}
@@ -30,13 +33,16 @@ mdsteps=${mdsteps:-80}
 trajL=${trajL:-1.0}
 ntraj=${ntraj:-3}
 baseline_every=${baseline_every:-1}
+coarse_tol=${coarse_tol:-0.03}
+coarse_maxsteps=${coarse_maxsteps:-1000}
+recoarsen_every=${recoarsen_every:-0}
 
 nodes=8
 nproc=8
 MPIRUN='srun -N'${nodes}' -n'${nproc}
 
 root="ckpoint_lat.4000"
-runname="MG_hmc_${solver}_k${k}_md${mdsteps}_${SLURM_JOB_ID}"
+runname="MG_hmc_${solver}_k${k}_md${mdsteps}_tau${trajL}_rc${recoarsen_every}_ct${coarse_tol}_cs${coarse_maxsteps}_${SLURM_JOB_ID}"
 
 homedir=/sdcc/u/poare
 inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
@@ -58,7 +64,8 @@ module load openmpi
 
 $MPIRUN ./Example_mg_hmc --config ${inFile} --solver ${solver} --update-every ${k} \
     --mdsteps ${mdsteps} --trajL ${trajL} --ntraj ${ntraj} --baseline-every ${baseline_every} \
-    --budget-hours 19 --mpi ${mpigrid} ${OPT} > ${logs}
+    --coarse-tol ${coarse_tol} --coarse-maxsteps ${coarse_maxsteps} --recoarsen-every ${recoarsen_every} \
+    --budget-hours 23 --mpi ${mpigrid} ${OPT} > ${logs}
 
 # Per-step and per-update lines for the analysis notebook:
 #   grep MGHMC ${logs}
