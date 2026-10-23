@@ -1,0 +1,60 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=mg_gcrupd
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+##SBATCH --partition=lqcd
+##SBATCH --account=class-c-arnoldi
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 8:00:00
+
+# Per-step inverse-iteration refresh (Example_mg_hmc_gcrupdate): along trajectory 1
+# of the MG-HMC runs (tau 0.4, 16 MD steps, dtau 0.025), the live near-null basis
+# is refreshed at every MD step by one GCR pass per vector (tol:maxsteps), the
+# coarse operator is rebuilt, and an MG force solve is timed. A fresh basis is
+# bred as ground truth at the fresh_at steps. One refresh setting per job:
+#   for r in 1e-1:10 1e-2:20 1e-2:50 1e-3:100 1e-4:300; do
+#     sbatch --export=ALL,refine=$r run_mg_hmc_gcrupdate.job
+#   done
+
+refine=${refine:-1e-2:20}
+refine_every=${refine_every:-1}
+fresh_at=${fresh_at:-1.2.4.8.16}
+coarse_tol=${coarse_tol:-0.1}
+coarse_maxsteps=${coarse_maxsteps:-200}
+
+nodes=8
+nproc=8
+MPIRUN='srun -N'${nodes}' -n'${nproc}
+
+root="ckpoint_lat.4000"
+runname="MG_hmc_gcrupdate_r${refine/:/_}_every${refine_every}_ct${coarse_tol}_cs${coarse_maxsteps}_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+mkdir -p ${logDir}
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+mpigrid=2.2.2.1
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=cores
+export OMP_PROC_BIND=close
+
+module load openmpi
+
+$MPIRUN ./Example_mg_hmc_gcrupdate --config ${inFile} --refine ${refine} --refine-every ${refine_every} --fresh-at ${fresh_at} \
+    --coarse-tol ${coarse_tol} --coarse-maxsteps ${coarse_maxsteps} \
+    --mpi ${mpigrid} ${OPT} > ${logs}
+
+# One line per MD step, one per fresh check, and the per-vector refresh steps:
+#   grep GCRUPD ${logs}
