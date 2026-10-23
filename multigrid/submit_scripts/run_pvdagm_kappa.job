@@ -1,0 +1,66 @@
+#!/bin/bash
+
+##ulimit -c unlimited
+
+#SBATCH --job-name=pvdagm_kappa
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+##SBATCH --partition=lqcd
+##SBATCH --account=class-c-arnoldi
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 8:00:00
+
+# Eigenvalue condition numbers kappa(lambda) of the low modes of PV^dag M, and
+# first-order (per-vector and projected) updates of those modes under one MD
+# step (Example_pvdagm_kappa). Reads the Krylov-Schur eigenvectors evec0 ...
+# from evec_dir; left eigenvectors come from gamma_5 R_5 hermiticity, no second
+# eigensolve. action must match the operator the eigenvectors belong to:
+# job 339143 is labelled "DWF, m=0.001" (Shamir); 346851 is Mobius, m=0.001.
+#
+#   sbatch run_pvdagm_kappa.job
+#   sbatch --export=ALL,action=mobius,evec_dir=/hpcgpfs01/work/lqcd/staging/RBC/ckpoint_lat.4000/ks_evecs/PVdagM_Nm80_Nk40_Niter5000_346851 run_pvdagm_kappa.job
+#   sbatch --export=ALL,skip_perturb=1 run_pvdagm_kappa.job      # kappa only, minutes
+
+action=${action:-dwf}
+evec_dir=${evec_dir:-/hpcgpfs01/work/lqcd/staging/RBC/ckpoint_lat.4000/ks_evecs/PVdagM_Nm80_Nk40_Niter5000_m0p001_339143}
+nev=${nev:-40}
+nmodes=${nmodes:-8}
+eps=${eps:-0.025,0.0125,0.00625}
+skip_perturb=${skip_perturb:-0}
+
+nodes=8
+nproc=8
+MPIRUN='srun -N'${nodes}' -n'${nproc}
+
+root="ckpoint_lat.4000"
+runname="PVdagM_kappa_${action}_nev${nev}_nm${nmodes}_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_lat.4000"
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+mkdir -p ${logDir}
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+mpigrid=2.2.2.1
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=cores
+export OMP_PROC_BIND=close
+
+module load openmpi
+
+SKIP=""
+if [ "${skip_perturb}" = "1" ]; then SKIP="--skip-perturb"; fi
+
+$MPIRUN ./Example_pvdagm_kappa --config ${inFile} --action ${action} --evec-dir ${evec_dir} \
+    --nev ${nev} --nmodes ${nmodes} --eps ${eps} ${SKIP} \
+    --mpi ${mpigrid} ${OPT} > ${logs}
+
+# Per-mode eigenvalues and residuals, left vectors and kappa, spaces, perturbation:
+#   grep KAPPA ${logs}
