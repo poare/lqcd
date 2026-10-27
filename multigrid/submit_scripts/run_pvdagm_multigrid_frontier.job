@@ -10,26 +10,29 @@
 #SBATCH --exclusive
 #SBATCH --mem=0
 #SBATCH -S 0
-#SBATCH --exclude=frontier06752
+#SBATCH --exclude=frontier06752,frontier02678
 
 ##############################################################################
-# Frontier step 0: reproduce Peter's 48^3 timings for the three-level mrhs
-# PVdagM multigrid (examples/Example_pvdagm_multigrid.cc on Grid develop).
+# Frontier step 0, A/B: Peter's binary vs ours on identical inputs.
+# 5776637 (our develop 3232b438 build) hung in L2 coarsening inside
+# PaddedCell::Expand; Peter's 5531534 (2026-09-22) passed the same point.
+# The halo exchange was rewritten after that (Grid 3bd5e888, 2026-09-29).
+#   step A: Peter's MGrewrite binary (built 2026-09-28)
+#   step B: our ~/Grid/build-rocm72 binary
+# A runs first: if A hangs and its processes block B, the answer is
+# already "Frontier, not our build".
+# Same XML, env and OPTS for both; the only variable is the binary.
 #
 # Derived from $GRID/systems/Frontier/pvdagm_multigrid.job. Changes from it:
 #   - our build and sourceme, not Peter's tree
 #   - nothing on Lustre: like the rest of the workflow, the job writes one
-#     log, LOGDIR/MG_PVdagM_<jobid>.log, with its params.xml beside it; no
-#     --debug-stdout, so Grid prints rank 0 only and other ranks' errors
-#     arrive through srun's stderr in the same log
-#   - frontier06752 excluded: in 5775582 one rank there died of a bus error
-#     at the first hipBLAS call of the level-1 coarsening, and its processes
-#     outlived the job (the subspace read had completed with checksums OK)
-#   - the run is capped at 30 min by timeout, so a hung step cannot eat the
-#     allocation
+#     log, LOGDIR/MG_PVdagM_<jobid>.log (step A then step B, each under a
+#     ===== STEP header), with its params.xml beside it; no --debug-stdout
+#   - frontier06752 excluded (5775582: bus error at the first hipBLAS call);
+#     frontier02678 excluded (5776637: task 274 there hung and survived kill)
+#   - each step is capped at 15 min by timeout; a clean run needs ~5
 #   - Peter's subspace is read-only: the job stops if it is not readable,
 #     since a missing file makes the driver breed AND SAVE to that path
-#   - one run, not the six-cell dmabuf fault study
 #   - GRID_ALLOC_NCACHE_LARGE=64, the production value in his progress note
 #     (section 11); his job sets 0 deliberately to provoke the fault
 #
@@ -49,9 +52,10 @@ source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
 SUBSPACE=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/subspace_nb64.scidac
 CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here; check the plaquette against Peter's log
 BIN=$BUILD/examples/Example_pvdagm_multigrid
+BIN_PETER=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/MGrewrite/Grid/systems/Frontier/examples/Example_pvdagm_multigrid
 LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
 
-for f in $SUBSPACE $CONFIG $BIN; do
+for f in $SUBSPACE $CONFIG $BIN $BIN_PETER; do
   [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
 done
 
@@ -136,14 +140,27 @@ EOF
 echo "=== $PARAMS ==="; cat $PARAMS; echo "=================="
 
 echo "log $LOG"
-timeout 30m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $BIN --mpi ${MPI_GEOM} --grid $vol $OPTS \
-     --pvdagm-params $PARAMS --log Error,Warning,Message,Performance > $LOG 2>&1
-echo "exit $?"
-if grep -q "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG; then
-  echo "FAULT:"; grep -h "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG | head -5 | cut -c1-160
-  tail -5 $LOG | cut -c1-160
-else
-  echo "no fault; setup, convergence, timing:"
-  grep -h "GALERKIN CERTIFICATE\|dense ||A Ainv\|PVdagMMultiGridSolver: Nrhs\|FINAL Nrhs.*worst\|Fouter MrhsPGCR: Converged" \
-       $LOG | cut -c1-160
-fi
+: > $LOG
+
+run_step () {
+  name=$1; bin=$2
+  echo "===== STEP $name : $bin =====" >> $LOG
+  ls -l --time-style=long-iso $bin >> $LOG
+  timeout 15m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
+       --pvdagm-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
+  rc=$?
+  echo "===== END STEP $name exit $rc =====" >> $LOG
+  echo "step $name exit $rc"
+  sed -n "/===== STEP $name /,/===== END STEP $name /p" $LOG > step.tmp
+  if grep -q "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" step.tmp; then
+    echo "  FAULT:"; grep -h "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" step.tmp | head -5 | cut -c1-160
+  fi
+  echo "  last setup stage and results:"
+  grep -h "CoarsenOperator, batch\|GUARD\|GALERKIN CERTIFICATE\|dense ||A Ainv\|Nrhs .* total\|FINAL Nrhs.*worst\|Fouter MrhsPGCR: Converged" \
+       step.tmp | cut -c1-160
+  tail -3 step.tmp | cut -c1-160
+  sleep 30
+}
+
+run_step A_peter $BIN_PETER
+run_step B_ours  $BIN
