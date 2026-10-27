@@ -13,24 +13,24 @@
 #SBATCH --exclude=frontier06752,frontier02678
 
 ##############################################################################
-# Frontier step 0, A/B: Peter's binary vs ours on identical inputs.
-# 5776637 (our develop 3232b438 build) hung in L2 coarsening inside
-# PaddedCell::Expand; Peter's 5531534 (2026-09-22) passed the same point.
-# The halo exchange was rewritten after that (Grid 3bd5e888, 2026-09-29).
-#   step A: Peter's MGrewrite binary (built 2026-09-28)
-#   step B: our ~/Grid/build-rocm72 binary
-# A runs first: if A hangs and its processes block B, the answer is
-# already "Frontier, not our build".
-# Same XML, env and OPTS for both; the only variable is the binary.
+# Frontier step 0: reproduce Peter's 48^3 three-level PVdagM run with our
+# ~/Grid/build-rocm72 binary.  Three jobs have each lost one node in GPU
+# work: 5775582 bus error at hipblasCreate (frontier06752), 5776637 hang
+# in a halo exchange (frontier02678), 5777472 hipBLAS GEMM error at the
+# first dense apply (frontier07511).  Working hypothesis: device memory
+# oversubscribed -- 11.5 GB resident + 39 GB manager cache + comms + shm
+# is ~60 GB of 64 per GCD before the Nrhs 12 solve.  This job changes
+# only --device-mem 40000 -> 32000, the value in Peter's home production
+# script and in our older run_pvdag_mg_frontier.job.
 #
 # Derived from $GRID/systems/Frontier/pvdagm_multigrid.job. Changes from it:
 #   - our build and sourceme, not Peter's tree
 #   - nothing on Lustre: like the rest of the workflow, the job writes one
-#     log, LOGDIR/MG_PVdagM_<jobid>.log (step A then step B, each under a
-#     ===== STEP header), with its params.xml beside it; no --debug-stdout
+#     log, LOGDIR/MG_PVdagM_<jobid>.log, with its params.xml beside it; no
+#     --debug-stdout
 #   - frontier06752 excluded (5775582: bus error at the first hipBLAS call);
 #     frontier02678 excluded (5776637: task 274 there hung and survived kill)
-#   - each step is capped at 15 min by timeout; a clean run needs ~5
+#   - capped at 15 min by timeout; a clean run needs ~5
 #   - Peter's subspace is read-only: the job stops if it is not readable,
 #     since a missing file makes the driver breed AND SAVE to that path
 #   - GRID_ALLOC_NCACHE_LARGE=64, the production value in his progress note
@@ -52,10 +52,9 @@ source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
 SUBSPACE=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/subspace_nb64.scidac
 CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here; check the plaquette against Peter's log
 BIN=$BUILD/examples/Example_pvdagm_multigrid
-BIN_PETER=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/MGrewrite/Grid/systems/Frontier/examples/Example_pvdagm_multigrid
 LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
 
-for f in $SUBSPACE $CONFIG $BIN $BIN_PETER; do
+for f in $SUBSPACE $CONFIG $BIN; do
   [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
 done
 
@@ -89,7 +88,7 @@ export GRID_ALLOC_NCACHE_LARGE=64
 
 module load libfabric
 
-OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 40000 --comms-overlap"
+OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 32000 --comms-overlap"
 vol=48.48.48.96
 MPI_GEOM=3.6.4.4
 
@@ -162,5 +161,4 @@ run_step () {
   sleep 30
 }
 
-run_step A_peter $BIN_PETER
-run_step B_ours  $BIN
+run_step ours $BIN
