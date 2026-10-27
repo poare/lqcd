@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=7
 #SBATCH --gpus-per-node=8
-#SBATCH --time=1:00:00
+#SBATCH --time=1:30:00
 #SBATCH --account=phy157_dwf
 #SBATCH --gpu-bind=none
 #SBATCH --exclusive
@@ -17,7 +17,14 @@
 #
 # Derived from $GRID/systems/Frontier/pvdagm_multigrid.job. Changes from it:
 #   - our build and sourceme, not Peter's tree
-#   - all output on Lustre scratch (RUNDIR), never $HOME
+#   - per-rank output on Lustre scratch (RUNDIR); the main log of each run
+#     goes to LOGDIR as MG_PVdagM_<jobid>_<run>.log
+#   - the binary is copied to RUNDIR and run from Lustre, as Peter's is:
+#     job 5771429 died in the PMI bootstrap with a few ranks never reaching
+#     MPI_Init, and 288 ranks loading the executable from /ccs/home (NFS) is
+#     the suspect (unverified; a bad node is the other candidate)
+#   - each run is capped at 30 min by timeout, so a hung step cannot eat the
+#     allocation (5771429's srun waited 57 min on unkillable ranks)
 #   - Peter's subspace is read-only: the job stops if it is not readable,
 #     since a missing file makes the driver breed AND SAVE to that path
 #   - two identical cells (run-to-run spread is 1.5-3%), not the six-cell
@@ -40,6 +47,7 @@ source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
 SUBSPACE=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/subspace_nb64.scidac
 CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here; check the plaquette against Peter's log
 BIN=$BUILD/examples/Example_pvdagm_multigrid
+LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
 
 for f in $SUBSPACE $CONFIG $BIN; do
   [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
@@ -48,6 +56,8 @@ done
 RUNDIR=$LUSTRE/runs/${SLURM_JOB_NAME}_${SLURM_JOB_ID}
 mkdir -p $RUNDIR && cd $RUNDIR && echo "RUNDIR $RUNDIR"
 ( cd $GRIDROOT && echo "Grid $(git rev-parse HEAD) $(git status --short | wc -l) modified" )
+mkdir -p $LOGDIR
+cp $BIN $RUNDIR/ && BIN=$RUNDIR/$(basename $BIN)
 
 # Never strip this wrapper: distinct-GCD binding, NUMA locality, SDMA peer copies.
 cat << EOF > select_gpu
@@ -128,8 +138,10 @@ run_cell () {
   name=$1; shift
   echo "----- $name : $* -----"
   export GRID_STDOUT_ROOT=$RUNDIR/mg_$name
-  env "$@" srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $BIN --mpi ${MPI_GEOM} --grid $vol $OPTS \
-       --pvdagm-params params.xml --debug-stdout --log Error,Warning,Message,Performance > log.mg.$name 2>&1
+  log=$LOGDIR/MG_PVdagM_${SLURM_JOB_ID}_${name}.log
+  echo "  log $log"
+  env "$@" timeout 30m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $BIN --mpi ${MPI_GEOM} --grid $vol $OPTS \
+       --pvdagm-params params.xml --debug-stdout --log Error,Warning,Message,Performance > $log 2>&1
   echo "  exit $?"; sleep 30
   f=$(grep -l "Memory access fault\|NO_TRANSLATION" $GRID_STDOUT_ROOT/*/Grid.stderr.* 2>/dev/null | head -1)
   if [ -n "$f" ]; then
