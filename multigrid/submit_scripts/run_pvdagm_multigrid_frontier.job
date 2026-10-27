@@ -1,0 +1,145 @@
+#!/bin/bash -l
+#SBATCH --job-name=pvdagm-mg-bench
+#SBATCH --nodes=36
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=7
+#SBATCH --gpus-per-node=8
+#SBATCH --time=1:00:00
+#SBATCH --account=phy157_dwf
+#SBATCH --gpu-bind=none
+#SBATCH --exclusive
+#SBATCH --mem=0
+#SBATCH -S 0
+
+##############################################################################
+# Frontier step 0: reproduce Peter's 48^3 timings for the three-level mrhs
+# PVdagM multigrid (examples/Example_pvdagm_multigrid.cc on Grid develop).
+#
+# Derived from $GRID/systems/Frontier/pvdagm_multigrid.job. Changes from it:
+#   - our build and sourceme, not Peter's tree
+#   - all output on Lustre scratch (RUNDIR), never $HOME
+#   - Peter's subspace is read-only: the job stops if it is not readable,
+#     since a missing file makes the driver breed AND SAVE to that path
+#   - two identical cells (run-to-run spread is 1.5-3%), not the six-cell
+#     dmabuf fault study
+#   - GRID_ALLOC_NCACHE_LARGE=64, the production value in his progress note
+#     (section 11); his job sets 0 deliberately to provoke the fault
+#
+# Targets (PVdagMMultiGridProgress.md section 6, 2026-09-27/29):
+#   Nrhs 12: ~8.6 s per RHS     Nrhs 1: ~22.4 s     outer its ~60
+#   red-black CG on this partition: 363 s per RHS
+##############################################################################
+
+# --- edit these three ---
+GRIDROOT=/ccs/home/poare/Grid                    # the develop checkout
+BUILD=$GRIDROOT/build-rocm72                     # the build directory configured below
+LUSTRE=/lustre/orion/phy157/proj-shared/phy157_dwf/poare
+
+source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
+
+SUBSPACE=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/subspace_nb64.scidac
+CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here; check the plaquette against Peter's log
+BIN=$BUILD/examples/Example_pvdagm_multigrid
+
+for f in $SUBSPACE $CONFIG $BIN; do
+  [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
+done
+
+RUNDIR=$LUSTRE/runs/${SLURM_JOB_NAME}_${SLURM_JOB_ID}
+mkdir -p $RUNDIR && cd $RUNDIR && echo "RUNDIR $RUNDIR"
+( cd $GRIDROOT && echo "Grid $(git rev-parse HEAD) $(git status --short | wc -l) modified" )
+
+# Never strip this wrapper: distinct-GCD binding, NUMA locality, SDMA peer copies.
+cat << EOF > select_gpu
+#!/bin/bash
+export GPU_MAP=(0 1 2 3 7 6 5 4)
+export NUMA_MAP=(3 3 1 1 2 2 0 0)
+export GPU=\${GPU_MAP[\$SLURM_LOCALID]}
+export NUMA=\${NUMA_MAP[\$SLURM_LOCALID]}
+export HIP_VISIBLE_DEVICES=\$GPU
+unset ROCR_VISIBLE_DEVICES
+if [ \$SLURM_PROCID = "0" ]; then echo \$*; fi
+exec numactl -m \$NUMA -N \$NUMA \$*
+EOF
+chmod +x ./select_gpu
+
+export OMP_NUM_THREADS=7
+ulimit -c 0                             # no 22 GB GPU core dumps
+export FI_MR_CACHE_MONITOR=kdreg2
+export FI_HMEM_ROCR_USE_DMABUF=0        # avoidance of the CXI NO_TRANSLATION fault at Nrhs >= 12
+export MPICH_GPU_SUPPORT_ENABLED=1
+export MPICH_SMP_SINGLE_COPY_MODE=CMA
+export MPICH_OFI_NIC_POLICY=GPU
+export GRID_ALLOC_NCACHE_LARGE=64
+
+module load libfabric
+
+OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 40000 --comms-overlap"
+vol=48.48.48.96
+MPI_GEOM=3.6.4.4
+
+# Peter's banked operating point, verbatim. A mistyped tag silently
+# deserialises to the struct default, so keep this in step with
+# PVdagMMultiGridParams.h.
+cat << EOF > params.xml
+<?xml version="1.0"?>
+<grid>
+  <PVdagMDriver>
+    <Ls>24</Ls>
+    <Mass>0.00078</Mass>
+    <M5>1.8</M5>
+    <MobiusB>1.5</MobiusB>
+    <MobiusC>0.5</MobiusC>
+    <Config>$CONFIG</Config>
+    <Nrhs>12</Nrhs>
+    <SolveSingleRHS>1</SolveSingleRHS>
+    <MultiGrid>
+      <Setup>
+        <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
+        <Block2><elem>4</elem><elem>4</elem><elem>2</elem><elem>4</elem></Block2>
+        <CoarsenBatch>9</CoarsenBatch>
+        <SubspaceFile>$SUBSPACE</SubspaceFile>
+        <FineSloppyComms>1</FineSloppyComms>
+        <FinePrecision>fp64</FinePrecision>
+        <RetainSubspace>0</RetainSubspace>
+      </Setup>
+      <FineSmoother>
+        <Shift>0.1</Shift><Nstep>6</Nstep><Mmax>4</Mmax>
+      </FineSmoother>
+      <CoarseSmoother>
+        <Shift>2.0</Shift><Nstep>2</Nstep><Mmax>2</Mmax>
+      </CoarseSmoother>
+      <CoarseSolver>
+        <Tol>0.05</Tol><Order>200</Order><Mmax>8</Mmax>
+      </CoarseSolver>
+      <Outer>
+        <Tol>1e-8</Tol><MaxIterations>1000</MaxIterations><Mmax>6</Mmax><Nstep>12</Nstep>
+      </Outer>
+      <Dense>
+        <LeafSpan>9</LeafSpan>
+      </Dense>
+    </MultiGrid>
+  </PVdagMDriver>
+</grid>
+EOF
+echo "=== params.xml ==="; cat params.xml; echo "=================="
+
+run_cell () {
+  name=$1; shift
+  echo "----- $name : $* -----"
+  export GRID_STDOUT_ROOT=$RUNDIR/mg_$name
+  env "$@" srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $BIN --mpi ${MPI_GEOM} --grid $vol $OPTS \
+       --pvdagm-params params.xml --debug-stdout --log Error,Warning,Message,Performance > log.mg.$name 2>&1
+  echo "  exit $?"; sleep 30
+  f=$(grep -l "Memory access fault\|NO_TRANSLATION" $GRID_STDOUT_ROOT/*/Grid.stderr.* 2>/dev/null | head -1)
+  if [ -n "$f" ]; then
+    echo "  FAULT in $f  (rank $(basename $f | sed 's/Grid.stderr.//'))"; tail -20 $f | cut -c1-160
+  else
+    echo "  no fault; setup, convergence, timing:"
+    grep -h "GALERKIN CERTIFICATE\|dense ||A Ainv\|PVdagMMultiGridSolver: Nrhs\|FINAL Nrhs.*worst\|Fouter MrhsPGCR: Converged" \
+         $GRID_STDOUT_ROOT/0/Grid.stdout.0 | cut -c1-160
+  fi
+}
+
+run_cell run1
+run_cell run2

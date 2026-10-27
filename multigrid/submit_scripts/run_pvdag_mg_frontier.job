@@ -1,0 +1,75 @@
+#!/bin/bash -l
+#SBATCH --job-name=pvdagm-mg
+#SBATCH --nodes=36
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=7
+#SBATCH --gpus-per-node=8
+#SBATCH --time=2:00:00
+#SBATCH --account=phy157_dwf
+#SBATCH --gpu-bind=none
+#SBATCH --exclusive
+#SBATCH --mem=0
+#SBATCH -q debug
+
+TRACE=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/rocprof
+cat << EOF > select_gpu
+#!/bin/bash
+export GPU_MAP=(0 1 2 3 7 6 5 4)
+export NUMA_MAP=(3 3 1 1 2 2 0 0)
+export GPU=\${GPU_MAP[\$SLURM_LOCALID]}
+export NUMA=\${NUMA_MAP[\$SLURM_LOCALID]}
+export HIP_VISIBLE_DEVICES=\$GPU
+unset ROCR_VISIBLE_DEVICES
+echo RANK \$SLURM_LOCALID using GPU \$GPU and numa $NUMA
+#exec numactl -m \$NUMA -N \$NUMA \$*
+
+#exec numactl -m \$NUMA -N \$NUMA \$*
+
+#if [ \$SLURM_PROCID = "0" ]
+#then
+#exec numactl -m \$NUMA -N \$NUMA rocprof -d $TRACE -o $TRACE/rocprof-trace.csv --hip-trace --trace-period 900s:12s:3000s \$*
+#else 
+exec numactl -m \$NUMA -N \$NUMA \$*
+#fi
+
+EOF
+
+chmod +x ./select_gpu
+
+# root=$HOME/Buffalo/Grid/systems/Frontier/
+source ${HOME}/Grid/build/sourceme.sh
+
+export OMP_NUM_THREADS=7
+export MPICH_GPU_SUPPORT_ENABLED=1
+export MPICH_SMP_SINGLE_COPY_MODE=XPMEM
+
+module load libfabric
+
+#mpi
+vol=48.48.48.96
+# MPI_GEOM=3.3.4.4
+MPI_GEOM=3.3.4.8
+
+# Parameter tuning
+# nbasis=50
+# smooth=16
+# outerIters=30
+# m=0.00078
+
+cfg="ckpoint_lat.1000"
+runname="MG_PVdagM_${SLURM_JOB_ID}"
+# runname="MGPVdagM_nn${nbasis}_sm${smooth}_ou${outerIters}_m${m}_${SLURM_JOB_ID}"
+
+logDir="/ccs/home/poare/lqcd/multigrid/logs/${cfg}"
+mkdir -p ${logDir}
+logs="${logDir}/${runname}.log"
+
+echo "ROCM_PATH=$ROCM_PATH"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+ls /opt/rocm-7.0.2/lib/libamd_comgr.so.3
+
+echo ============================
+# srun -N18 -n144 ./select_gpu /ccs/home/poare/Grid/build/examples/Example_pvdagm --mpi ${MPI_GEOM} --accelerator-threads 8 --shm 4096 --shm-mpi 1 --grid $vol --device-mem 32000 --comms-overlap > ${logs}
+srun -N36 -n288 ./select_gpu /ccs/home/poare/Grid/build/examples/Example_pvdagm --mpi ${MPI_GEOM} --accelerator-threads 8 --shm 4096 --shm-mpi 1 --grid $vol --device-mem 32000 --comms-overlap > ${logs}
+echo ============================
+echo ============================
