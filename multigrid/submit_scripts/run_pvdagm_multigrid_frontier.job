@@ -34,13 +34,15 @@
 #   - GRID_ALLOC_NCACHE_LARGE=64, the production value in his progress note
 #     (section 11); his job sets 0 deliberately to provoke the fault
 #
-# Solver settings: Peter's tuned point (MultiGridSummary sections 5-6):
-# Outer.Mmax 4 and fine smoother Nstep 10.  At Nrhs 12, Mmax 6 puts ~24.5 GB
+# Solver settings: Peter's P0 cell exactly (MultiGridSummary section 3):
+# Outer.Mmax 4, fine smoother Nstep 6.  At Nrhs 12, Mmax 6 puts ~24.5 GB
 # of outer history against the 32 GB manager cache and evicts.
-# Reference (all fp64): with Outer.Mmax 6 and smoother Nstep 6, 5777649
-# (Peter's tree) gave 14.73 s per RHS at Nrhs 12 and 30.20 s at Nrhs 1,
-# 5783429 (fork) 14.58 s and 29.99 s, both 57 outer its; Peter's P0 cell
-# (Mmax 4, Nstep 6) 12.16 s and 30.70 s.  Red-black CG: 363 s per RHS.
+# Reference (all fp64, fork unless noted):
+#   Mmax 6, Nstep 6:  5783429  14.58 s/RHS (Nrhs 12)  29.99 s (Nrhs 1)  57 its
+#                     5777649 (Peter's tree) 14.73 s and 30.20 s, 57 its
+#   Mmax 4, Nstep 10: 5783714  13.40 s/RHS            30.20 s           45 its
+#   Peter's P0 (Mmax 4, Nstep 6): 12.16 s and 30.70 s, 60 its
+# Red-black CG on this partition: 363 s per RHS.
 ##############################################################################
 
 # --- edit these two ---
@@ -118,7 +120,7 @@ cat << EOF > $PARAMS
         <RetainSubspace>0</RetainSubspace>
       </Setup>
       <FineSmoother>
-        <Shift>0.1</Shift><Nstep>10</Nstep><Mmax>4</Mmax>
+        <Shift>0.1</Shift><Nstep>6</Nstep><Mmax>4</Mmax>
       </FineSmoother>
       <CoarseSmoother>
         <Shift>2.0</Shift><Nstep>2</Nstep><Mmax>2</Mmax>
