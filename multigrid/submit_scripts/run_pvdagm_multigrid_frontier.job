@@ -13,15 +13,13 @@
 #SBATCH --exclude=frontier06752,frontier02678
 
 ##############################################################################
-# Frontier step 0: reproduce Peter's 48^3 three-level PVdagM run with our
-# ~/Grid/build-rocm72 binary.  Three jobs have each lost one node in GPU
-# work: 5775582 bus error at hipblasCreate (frontier06752), 5776637 hang
-# in a halo exchange (frontier02678), 5777472 hipBLAS GEMM error at the
-# first dense apply (frontier07511).  Working hypothesis: device memory
-# oversubscribed -- 11.5 GB resident + 39 GB manager cache + comms + shm
-# is ~60 GB of 64 per GCD before the Nrhs 12 solve.  This job changes
-# only --device-mem 40000 -> 32000, the value in Peter's home production
-# script and in our older run_pvdag_mg_frontier.job.
+# Frontier PVdagM 3-level benchmark, 48^3x96.  Default tree: the fork
+# ~/GridPoare (develop f974dae3), step 0b.  Peter's tree ran clean as
+# 5777649 (~/Grid, 3232b438); to rerun it:
+#   sbatch --export=ALL,GRIDROOT=/ccs/home/poare/Grid run_pvdagm_multigrid_frontier.job
+# --device-mem 32000: at 40000 three jobs (5775582, 5776637, 5777472) each
+# lost one node in GPU work; 11.5 GB resident + 39 GB manager cache + comms
+# + shm is ~60 GB of 64 per GCD before the Nrhs 12 solve.
 #
 # Derived from $GRID/systems/Frontier/pvdagm_multigrid.job. Changes from it:
 #   - our build and sourceme, not Peter's tree
@@ -36,15 +34,13 @@
 #   - GRID_ALLOC_NCACHE_LARGE=64, the production value in his progress note
 #     (section 11); his job sets 0 deliberately to provoke the fault
 #
-# Targets (PVdagMMultiGridProgress.md section 6, 2026-09-27/29):
-#   Nrhs 12: ~8.6 s per RHS     Nrhs 1: ~22.4 s     outer its ~60
-#   red-black CG on this partition: 363 s per RHS
-# These are fp32 throughout; this XML has an fp64 fine level, so expect
-# slower (his P2-like cell was ~11.4 s per RHS at Nrhs 12).
+# Reference (all fp64, this XML): 5777649 on Peter's tree gave 14.73 s per
+# RHS at Nrhs 12, 30.20 s at Nrhs 1, 57 outer its; Peter's P0 cell 12.16 s
+# and 30.70 s.  Red-black CG on this partition: 363 s per RHS.
 ##############################################################################
 
 # --- edit these two ---
-GRIDROOT=/ccs/home/poare/Grid                    # the develop checkout
+GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
 BUILD=$GRIDROOT/build-rocm72                     # the build directory configured below
 
 source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
