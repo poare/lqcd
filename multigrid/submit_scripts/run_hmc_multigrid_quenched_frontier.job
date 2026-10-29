@@ -1,0 +1,160 @@
+#!/bin/bash -l
+#SBATCH --job-name=qhmc-mg
+#SBATCH --nodes=36
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=7
+#SBATCH --gpus-per-node=8
+#SBATCH --time=2:00:00
+#SBATCH --account=phy157_dwf
+#SBATCH --gpu-bind=none
+#SBATCH --exclusive
+#SBATCH --mem=0
+#SBATCH -S 0
+#SBATCH --exclude=frontier06752,frontier02678
+
+##############################################################################
+# Frontier quenched HMC with the PVdagM 3-level multigrid attached, 48^3x96:
+# diagnostic test 1 of the deflation-basis-in-HMC plan (research hub,
+# projects/multigrid, writeups/deflation_basis_evolution).
+#   1. breed the 60-vector basis on ckpoint_lat.1000 (timed) and save it
+#   2. coarsen, dense bottom, certificate
+#   3. one Nrhs 12 and one Nrhs 1 solve on it: compare with 5783904
+#      (Peter's basis, same settings: 60 its, 13.00 s/RHS and 30.95 s)
+#   4. one quenched Iwasaki trajectory, MinimumNorm2, TrajL 1, 20 steps
+#
+# Derived from run_pvdagm_multigrid_frontier.job (same partition, environment,
+# select_gpu wrapper, --device-mem 32000 and P0 multigrid settings).  Changes:
+#   - the binary is Example_hmc_multigrid_quenched_frontier
+#   - no subspace is read: the basis is bred and saved to SAVE; the job stops
+#     if SAVE already exists, so a saved basis is never overwritten.  To reuse
+#     it, set <SubspaceFile>$SAVE</SubspaceFile> and empty <SaveSubspace>.
+#   - the saved basis is ~2.9 TB (60 x 49 GB); check the project quota first
+#   - breed time at 48^3 is unknown, hence 2 h; CreateSubspaceGCR logs every
+#     vector, so a timeout still gives the rate per vector
+##############################################################################
+
+# --- edit these two ---
+GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
+BUILD=$GRIDROOT/build-rocm72                     # the build directory configured below
+
+source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
+
+SAVE=/lustre/orion/phy157/proj-shared/phy157_dwf/poare/subspaces/ckpoint_lat.1000_nb60.scidac
+CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here
+BIN=$BUILD/examples/Example_hmc_multigrid_quenched_frontier
+LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
+
+for f in $CONFIG $BIN; do
+  [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
+done
+[ -e $SAVE ] && { echo "EXISTS: $SAVE -- stopping, not overwriting a saved basis"; exit 1; }
+mkdir -p $(dirname $SAVE)
+
+mkdir -p $LOGDIR
+LOG=$LOGDIR/MG_QHMC_${SLURM_JOB_ID}.log
+PARAMS=$LOGDIR/MG_QHMC_${SLURM_JOB_ID}.params.xml
+( cd $GRIDROOT && echo "Grid $(git rev-parse HEAD) $(git status --short | wc -l) modified" )
+
+# Never strip this wrapper: distinct-GCD binding, NUMA locality, SDMA peer copies.
+cat << EOF > select_gpu
+#!/bin/bash
+export GPU_MAP=(0 1 2 3 7 6 5 4)
+export NUMA_MAP=(3 3 1 1 2 2 0 0)
+export GPU=\${GPU_MAP[\$SLURM_LOCALID]}
+export NUMA=\${NUMA_MAP[\$SLURM_LOCALID]}
+export HIP_VISIBLE_DEVICES=\$GPU
+unset ROCR_VISIBLE_DEVICES
+if [ \$SLURM_PROCID = "0" ]; then echo \$*; fi
+exec numactl -m \$NUMA -N \$NUMA \$*
+EOF
+chmod +x ./select_gpu
+
+export OMP_NUM_THREADS=7
+ulimit -c 0                             # no 22 GB GPU core dumps
+export FI_MR_CACHE_MONITOR=kdreg2
+export FI_HMEM_ROCR_USE_DMABUF=0        # avoidance of the CXI NO_TRANSLATION fault at Nrhs >= 12
+export MPICH_GPU_SUPPORT_ENABLED=1
+export MPICH_SMP_SINGLE_COPY_MODE=CMA
+export MPICH_OFI_NIC_POLICY=GPU
+export GRID_ALLOC_NCACHE_LARGE=64
+
+module load libfabric
+
+OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 32000 --comms-overlap"
+vol=48.48.48.96
+MPI_GEOM=3.6.4.4
+
+# Multigrid block: Peter's P0 cell, as in 5783904.  A mistyped tag silently
+# deserialises to the struct default, so keep this in step with
+# PVdagMMultiGridParams.h and the driver's QuenchedHMCDriverParams.
+cat << EOF > $PARAMS
+<?xml version="1.0"?>
+<grid>
+  <QuenchedHMCDriver>
+    <Ls>24</Ls>
+    <Mass>0.00078</Mass>
+    <M5>1.8</M5>
+    <MobiusB>1.5</MobiusB>
+    <MobiusC>0.5</MobiusC>
+    <Config>$CONFIG</Config>
+    <SaveSubspace>$SAVE</SaveSubspace>
+    <Nrhs>12</Nrhs>
+    <SolveSingleRHS>1</SolveSingleRHS>
+    <Beta>2.13</Beta>
+    <TrajL>1.0</TrajL>
+    <MDsteps>20</MDsteps>
+    <MultiGrid>
+      <Setup>
+        <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
+        <Block2><elem>4</elem><elem>4</elem><elem>2</elem><elem>4</elem></Block2>
+        <CoarsenBatch>9</CoarsenBatch>
+        <SubspaceFile></SubspaceFile>
+        <FineSloppyComms>1</FineSloppyComms>
+        <FinePrecision>fp64</FinePrecision>
+        <RetainSubspace>0</RetainSubspace>
+      </Setup>
+      <FineSmoother>
+        <Shift>0.1</Shift><Nstep>6</Nstep><Mmax>4</Mmax>
+      </FineSmoother>
+      <CoarseSmoother>
+        <Shift>2.0</Shift><Nstep>2</Nstep><Mmax>2</Mmax>
+      </CoarseSmoother>
+      <CoarseSolver>
+        <Tol>0.05</Tol><Order>200</Order><Mmax>8</Mmax>
+      </CoarseSolver>
+      <Outer>
+        <Tol>1e-8</Tol><MaxIterations>1000</MaxIterations><Mmax>4</Mmax><Nstep>12</Nstep>
+      </Outer>
+      <Dense>
+        <LeafSpan>9</LeafSpan>
+      </Dense>
+    </MultiGrid>
+  </QuenchedHMCDriver>
+</grid>
+EOF
+echo "=== $PARAMS ==="; cat $PARAMS; echo "=================="
+
+echo "log $LOG"
+: > $LOG
+
+run_step () {
+  name=$1; bin=$2
+  echo "===== STEP $name : $bin =====" >> $LOG
+  ls -l --time-style=long-iso $bin >> $LOG
+  timeout 115m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
+       --hmc-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
+  rc=$?
+  echo "===== END STEP $name exit $rc =====" >> $LOG
+  echo "step $name exit $rc"
+  sed -n "/===== STEP $name /,/===== END STEP $name /p" $LOG > step.tmp
+  if grep -q "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" step.tmp; then
+    echo "  FAULT:"; grep -h "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" step.tmp | head -5 | cut -c1-160
+  fi
+  echo "  last setup stage and results:"
+  grep -h "QHMC-\|CoarsenOperator, batch\|GUARD\|GALERKIN CERTIFICATE\|dense ||A Ainv\|Nrhs .* total\|FINAL Nrhs.*worst\|Fouter MrhsPGCR: Converged" \
+       step.tmp | cut -c1-160
+  tail -3 step.tmp | cut -c1-160
+  sleep 30
+}
+
+run_step qhmc $BIN
