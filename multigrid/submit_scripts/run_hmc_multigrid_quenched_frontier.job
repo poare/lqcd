@@ -13,11 +13,15 @@
 #SBATCH --exclude=frontier06752,frontier02678
 
 ##############################################################################
-# Frontier quenched HMC chain, 48^3x96, Iwasaki beta 2.13, MinimumNorm2: 50
-# trajectories at tau 0.2, N 20 from ckpoint_lat.1000, each continuing from the
-# last, to see whether acceptance holds and how fast plaquette and dH relax.
-# HMC only: RunMultiGrid 0.  The (tau, N) scan was 5800152 (lqcd 37ea2cc): it
-# gave dH 3.13 at tau 1, N 200, and 5/5 accepted at tau 0.2, N 20.
+# Frontier quenched HMC with the PVdagM multigrid as passenger, 48^3x96: stage 1
+# of the test plan (research hub, projects/multigrid,
+# writeups/deflation_basis_evolution).  One trajectory at tau 0.2, N 20, Mode
+# recoarsen, from the saved basis, Nrhs 1, a solve every 5 MD steps.  Pass: the
+# first solve and the QHMC-REBUILD-CHECK solve both take 60 iterations, the 4 MD
+# solves converge, and dH matches trajectory 0 of 5800475 (-1.80537).
+#
+# Stage 2: Ntraj 15, SolveTraj 0 1 2 3 4 5 7 8 10 14 (the first 10 accepted
+# trajectories of 5800475), Mode frozen or recoarsen, --time 2:00:00.
 #
 # Derived from run_pvdagm_multigrid_frontier.job (same partition, environment,
 # select_gpu wrapper and --device-mem 32000).  The step-1 version of this script
@@ -30,11 +34,12 @@ BUILD=$GRIDROOT/build-rocm72                     # the build directory configure
 
 source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
 
+SAVE=/lustre/orion/phy157/proj-shared/phy157_dwf/poare/subspaces/ckpoint_lat.1000_nb60.scidac
 CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here
 BIN=$BUILD/examples/Example_hmc_multigrid_quenched_frontier
 LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
 
-for f in $CONFIG $BIN; do
+for f in $CONFIG $BIN $SAVE; do
   [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
 done
 
@@ -86,23 +91,26 @@ cat << EOF > $PARAMS
     <MobiusC>0.5</MobiusC>
     <Config>$CONFIG</Config>
     <SaveSubspace></SaveSubspace>
-    <RunMultiGrid>0</RunMultiGrid>
-    <Nrhs>12</Nrhs>
-    <SolveSingleRHS>1</SolveSingleRHS>
+    <RunMultiGrid>1</RunMultiGrid>
+    <Nrhs>1</Nrhs>
+    <SolveSingleRHS>0</SolveSingleRHS>
     <Beta>2.13</Beta>
     <TrajL><elem>0.2</elem></TrajL>
     <MDsteps><elem>20</elem></MDsteps>
-    <Ntraj>50</Ntraj>
+    <Ntraj>1</Ntraj>
     <Chain>1</Chain>
+    <Mode>recoarsen</Mode>
+    <SolveEvery>5</SolveEvery>
+    <SolveTraj></SolveTraj>
     <MultiGrid>
       <Setup>
         <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
         <Block2><elem>4</elem><elem>4</elem><elem>2</elem><elem>4</elem></Block2>
         <CoarsenBatch>9</CoarsenBatch>
-        <SubspaceFile></SubspaceFile>
+        <SubspaceFile>$SAVE</SubspaceFile>
         <FineSloppyComms>1</FineSloppyComms>
         <FinePrecision>fp64</FinePrecision>
-        <RetainSubspace>0</RetainSubspace>
+        <RetainSubspace>1</RetainSubspace>
       </Setup>
       <FineSmoother>
         <Shift>0.1</Shift><Nstep>6</Nstep><Mmax>4</Mmax>
