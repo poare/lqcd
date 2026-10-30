@@ -13,13 +13,11 @@
 #SBATCH --exclude=frontier06752,frontier02678
 
 ##############################################################################
-# Frontier quenched HMC integrator scan, 48^3x96, Iwasaki beta 2.13, MinimumNorm2:
-# dH and acceptance against (tau, N), 5 trajectories per pair, each from
-# ckpoint_lat.1000 with fresh momenta.  HMC only: RunMultiGrid 0 skips the basis,
-# the coarsening and the solves.  5794529 (tau 1, N 20, epsilon 0.05) gave
-# dH 336.7.  Pairs:
-#   (0.1, 20) (0.5, 100) (1.0, 200)   epsilon 0.005, predicted dH ~ 0.03
-#   (0.2, 20) (1.0, 100)              epsilon 0.01,  predicted dH ~ 0.5
+# Frontier quenched HMC chain, 48^3x96, Iwasaki beta 2.13, MinimumNorm2: 50
+# trajectories at tau 0.2, N 20 from ckpoint_lat.1000, each continuing from the
+# last, to see whether acceptance holds and how fast plaquette and dH relax.
+# HMC only: RunMultiGrid 0.  The (tau, N) scan was 5800152 (lqcd 37ea2cc): it
+# gave dH 3.13 at tau 1, N 200, and 5/5 accepted at tau 0.2, N 20.
 #
 # Derived from run_pvdagm_multigrid_frontier.job (same partition, environment,
 # select_gpu wrapper and --device-mem 32000).  The step-1 version of this script
@@ -92,9 +90,10 @@ cat << EOF > $PARAMS
     <Nrhs>12</Nrhs>
     <SolveSingleRHS>1</SolveSingleRHS>
     <Beta>2.13</Beta>
-    <TrajL><elem>0.1</elem><elem>0.5</elem><elem>1.0</elem><elem>0.2</elem><elem>1.0</elem></TrajL>
-    <MDsteps><elem>20</elem><elem>100</elem><elem>200</elem><elem>20</elem><elem>100</elem></MDsteps>
-    <Ntraj>5</Ntraj>
+    <TrajL><elem>0.2</elem></TrajL>
+    <MDsteps><elem>20</elem></MDsteps>
+    <Ntraj>50</Ntraj>
+    <Chain>1</Chain>
     <MultiGrid>
       <Setup>
         <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
