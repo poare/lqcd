@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=7
 #SBATCH --gpus-per-node=8
-#SBATCH --time=0:30:00
+#SBATCH --time=1:15:00
 #SBATCH --account=phy157_dwf
 #SBATCH --gpu-bind=none
 #SBATCH --exclusive
@@ -28,6 +28,10 @@
 #
 # Stage 2: SolveEvery 5, MaxIterations 1000, Ntraj 15, SolveTraj 0 1 2 3 4 5 7 8 10 14 (the first 10 accepted
 # trajectories of 5800475), Mode frozen or recoarsen, --time 2:00:00.
+#
+# Stage 2b (replaces stage 2, 5801401 stalled by t_MD 0.04): Mode refresh, one
+# sloppy pass per vector at every MD step, then a rebuild.  Pass: all 20 solves
+# stay near 60 iterations, and dH matches trajectory 0 of 5800475 (-1.80537).
 #
 # Derived from run_pvdagm_multigrid_frontier.job (same partition, environment,
 # select_gpu wrapper and --device-mem 32000).  The step-1 version of this script
@@ -105,9 +109,11 @@ cat << EOF > $PARAMS
     <MDsteps><elem>20</elem></MDsteps>
     <Ntraj>1</Ntraj>
     <Chain>1</Chain>
-    <Mode>recoarsen</Mode>
+    <Mode>refresh</Mode>
     <SolveEvery>1</SolveEvery>
     <SolveTraj></SolveTraj>
+    <RefreshTol>0.1</RefreshTol>
+    <RefreshMaxOuter>1</RefreshMaxOuter>
     <MultiGrid>
       <Setup>
         <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
@@ -146,7 +152,7 @@ run_step () {
   name=$1; bin=$2
   echo "===== STEP $name : $bin =====" >> $LOG
   ls -l --time-style=long-iso $bin >> $LOG
-  timeout 28m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
+  timeout 72m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
        --hmc-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
   rc=$?
   echo "===== END STEP $name exit $rc =====" >> $LOG
