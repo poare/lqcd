@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=7
 #SBATCH --gpus-per-node=8
-#SBATCH --time=1:30:00
+#SBATCH --time=2:00:00
 #SBATCH --account=phy157_dwf
 #SBATCH --gpu-bind=none
 #SBATCH --exclusive
@@ -36,10 +36,21 @@
 # Stage 2c (5801931 held 60-65 iterations to step 8, capped from step 14):
 # RefreshPasses 3, otherwise as stage 2b.
 #
+# Stage 3 (5819892: 3 refresh passes reached 150 iterations by step 20): Mode
+# perturbative, a first-order update and a rebuild at every MD step.  Pass: dH
+# matches -1.80537; the staleness curve compares with 5801401, 5801931, 5819892.
+#
+# Control, the same script (the defaults are stage 3):
+#   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
+#
 # Derived from run_pvdagm_multigrid_frontier.job (same partition, environment,
 # select_gpu wrapper and --device-mem 32000).  The step-1 version of this script
 # (generate and save the basis, solves, one trajectory) is lqcd e9f2e86.
 ##############################################################################
+
+MODE=${MODE:-perturbative}
+RUNMG=${RUNMG:-1}
+SOLVEEVERY=${SOLVEEVERY:-1}
 
 # --- edit these two ---
 GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
@@ -104,7 +115,7 @@ cat << EOF > $PARAMS
     <MobiusC>0.5</MobiusC>
     <Config>$CONFIG</Config>
     <SaveSubspace></SaveSubspace>
-    <RunMultiGrid>1</RunMultiGrid>
+    <RunMultiGrid>$RUNMG</RunMultiGrid>
     <Nrhs>1</Nrhs>
     <SolveSingleRHS>0</SolveSingleRHS>
     <Beta>2.13</Beta>
@@ -112,12 +123,12 @@ cat << EOF > $PARAMS
     <MDsteps><elem>20</elem></MDsteps>
     <Ntraj>1</Ntraj>
     <Chain>1</Chain>
-    <Mode>refresh</Mode>
-    <SolveEvery>1</SolveEvery>
+    <Mode>$MODE</Mode>
+    <SolveEvery>$SOLVEEVERY</SolveEvery>
     <SolveTraj></SolveTraj>
-    <RefreshTol>0.1</RefreshTol>
-    <RefreshMaxOuter>1</RefreshMaxOuter>
-    <RefreshPasses>3</RefreshPasses>
+    <CorrTol>1e-2</CorrTol>
+    <CorrMaxRestarts>4</CorrMaxRestarts>
+    <CorrNrhs>12</CorrNrhs>
     <MultiGrid>
       <Setup>
         <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
@@ -156,7 +167,7 @@ run_step () {
   name=$1; bin=$2
   echo "===== STEP $name : $bin =====" >> $LOG
   ls -l --time-style=long-iso $bin >> $LOG
-  timeout 87m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
+  timeout 115m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
        --hmc-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
   rc=$?
   echo "===== END STEP $name exit $rc =====" >> $LOG
