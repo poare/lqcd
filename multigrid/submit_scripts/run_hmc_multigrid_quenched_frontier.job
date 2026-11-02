@@ -101,9 +101,10 @@ OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 32000 --comms-
 vol=48.48.48.96
 MPI_GEOM=3.6.4.4
 
-# Multigrid block: Peter's P0 cell, as in 5783904.  A mistyped tag silently
-# deserialises to the struct default, so keep this in step with
-# PVdagMMultiGridParams.h and the driver's QuenchedHMCDriverParams.
+# Multigrid block: Peter's P0 cell, as in 5783904.  Every field of the driver's
+# QuenchedHMCDriverParams and of PVdagMMultiGridParams.h must appear here: a
+# missing numeric tag reads as '' and aborts the run (5824735, 5824743), and a
+# missing string tag silently reads as empty.
 cat << EOF > $PARAMS
 <?xml version="1.0"?>
 <grid>
@@ -126,6 +127,9 @@ cat << EOF > $PARAMS
     <Mode>$MODE</Mode>
     <SolveEvery>$SOLVEEVERY</SolveEvery>
     <SolveTraj></SolveTraj>
+    <RefreshTol>0.1</RefreshTol>
+    <RefreshMaxOuter>1</RefreshMaxOuter>
+    <RefreshPasses>3</RefreshPasses>
     <CorrTol>1e-2</CorrTol>
     <CorrMaxRestarts>4</CorrMaxRestarts>
     <CorrNrhs>12</CorrNrhs>
