@@ -44,6 +44,11 @@
 # of 530 s per step at CorrTol 1e-2, 17 GCR steps per batch): CorrTol 0.1, which
 # 5833066's residual history reaches in 4 steps.  CORRTOL overrides.
 #
+# Stage 2d (best case for the sloppy Krylov refresh): Mode refresh, 3 passes of
+# 100 GCR steps per vector at every MD step (RefreshMaxOuter 10, RefreshTol
+# small enough that the cap governs).  About 3 h, so the extended queue:
+#   sbatch -q extended --time=4:00:00 --export=ALL,MODE=refresh,REFRESHPASSES=3,REFRESHMAXOUTER=10,REFRESHTOL=1e-6,TIMEOUT=235m run_hmc_multigrid_quenched_frontier.job
+#
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
 #
@@ -56,6 +61,10 @@ MODE=${MODE:-perturbative}
 RUNMG=${RUNMG:-1}
 SOLVEEVERY=${SOLVEEVERY:-1}
 CORRTOL=${CORRTOL:-1e-1}
+REFRESHTOL=${REFRESHTOL:-0.1}
+REFRESHPASSES=${REFRESHPASSES:-3}
+REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
+TIMEOUT=${TIMEOUT:-115m}                 # keep a few minutes under --time
 
 # --- edit these two ---
 GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
@@ -132,9 +141,9 @@ cat << EOF > $PARAMS
     <Mode>$MODE</Mode>
     <SolveEvery>$SOLVEEVERY</SolveEvery>
     <SolveTraj></SolveTraj>
-    <RefreshTol>0.1</RefreshTol>
-    <RefreshMaxOuter>1</RefreshMaxOuter>
-    <RefreshPasses>3</RefreshPasses>
+    <RefreshTol>$REFRESHTOL</RefreshTol>
+    <RefreshMaxOuter>$REFRESHMAXOUTER</RefreshMaxOuter>
+    <RefreshPasses>$REFRESHPASSES</RefreshPasses>
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>4</CorrMaxRestarts>
     <CorrNrhs>12</CorrNrhs>
@@ -176,7 +185,7 @@ run_step () {
   name=$1; bin=$2
   echo "===== STEP $name : $bin =====" >> $LOG
   ls -l --time-style=long-iso $bin >> $LOG
-  timeout 115m srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
+  timeout $TIMEOUT srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
        --hmc-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
   rc=$?
   echo "===== END STEP $name exit $rc =====" >> $LOG
