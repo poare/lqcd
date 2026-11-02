@@ -40,6 +40,10 @@
 # perturbative, a first-order update and a rebuild at every MD step.  Pass: dH
 # matches -1.80537; the staleness curve compares with 5801401, 5801931, 5819892.
 #
+# Stage 3b (5833066 held 57-64 iterations to step 11, but the update took 437 s
+# of 530 s per step at CorrTol 1e-2, 17 GCR steps per batch): CorrTol 0.1, which
+# 5833066's residual history reaches in 4 steps.  CORRTOL overrides.
+#
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
 #
@@ -51,6 +55,7 @@
 MODE=${MODE:-perturbative}
 RUNMG=${RUNMG:-1}
 SOLVEEVERY=${SOLVEEVERY:-1}
+CORRTOL=${CORRTOL:-1e-1}
 
 # --- edit these two ---
 GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
@@ -130,7 +135,7 @@ cat << EOF > $PARAMS
     <RefreshTol>0.1</RefreshTol>
     <RefreshMaxOuter>1</RefreshMaxOuter>
     <RefreshPasses>3</RefreshPasses>
-    <CorrTol>1e-2</CorrTol>
+    <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>4</CorrMaxRestarts>
     <CorrNrhs>12</CorrNrhs>
     <MultiGrid>
