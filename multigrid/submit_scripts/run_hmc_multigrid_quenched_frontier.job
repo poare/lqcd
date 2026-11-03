@@ -65,6 +65,7 @@ CORRTOL=${CORRTOL:-1e-1}
 REFRESHTOL=${REFRESHTOL:-0.1}
 REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
+REFRESHORTHO=${REFRESHORTHO:-0}
 TIMEOUT=${TIMEOUT:-115m}                 # keep a few minutes under --time
 
 # --- edit these two ---
@@ -145,6 +146,7 @@ cat << EOF > $PARAMS
     <RefreshTol>$REFRESHTOL</RefreshTol>
     <RefreshMaxOuter>$REFRESHMAXOUTER</RefreshMaxOuter>
     <RefreshPasses>$REFRESHPASSES</RefreshPasses>
+    <RefreshOrthonormalise>$REFRESHORTHO</RefreshOrthonormalise>
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>4</CorrMaxRestarts>
     <CorrNrhs>12</CorrNrhs>
