@@ -47,8 +47,17 @@
 #
 # Stage 2d (best case for the sloppy Krylov refresh): Mode refresh, 3 passes of
 # 100 GCR steps per vector at every MD step (RefreshMaxOuter 10, RefreshTol
-# small enough that the cap governs).  About 3 h, so the extended queue:
-#   sbatch -q extended --time=4:00:00 --export=ALL,MODE=refresh,REFRESHPASSES=3,REFRESHMAXOUTER=10,REFRESHTOL=1e-6,TIMEOUT=235m run_hmc_multigrid_quenched_frontier.job
+# small enough that the cap governs).  About 3 h, inside the extended queue's
+# 4 h set above (5835659):
+#   sbatch --export=ALL,MODE=refresh,REFRESHPASSES=3,REFRESHMAXOUTER=10,REFRESHTOL=1e-6 run_hmc_multigrid_quenched_frontier.job
+#
+# Stage 2e (5835659 was worse than 3 passes of 10 steps: the passes drive every
+# vector to the same lowest modes): the same, orthonormalising after each pass:
+#   sbatch --export=ALL,MODE=refresh,REFRESHPASSES=3,REFRESHMAXOUTER=10,REFRESHTOL=1e-6,REFRESHORTHO=1 run_hmc_multigrid_quenched_frontier.job
+#
+# Stage 3c (5834878 at CorrTol 0.1 went stale and ran out of device memory at
+# step 11): CorrTol 3e-2, with the QHMC-MEM line logging free device memory:
+#   sbatch --export=ALL,MODE=perturbative,CORRTOL=3e-2 run_hmc_multigrid_quenched_frontier.job
 #
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
@@ -66,7 +75,7 @@ REFRESHTOL=${REFRESHTOL:-0.1}
 REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
 REFRESHORTHO=${REFRESHORTHO:-0}
-TIMEOUT=${TIMEOUT:-115m}                 # keep a few minutes under --time
+TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
 
 # --- edit these two ---
 GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
