@@ -59,6 +59,19 @@
 # step 11): CorrTol 3e-2, with the QHMC-MEM line logging free device memory:
 #   sbatch --export=ALL,MODE=perturbative,CORRTOL=3e-2 run_hmc_multigrid_quenched_frontier.job
 #
+# Stage 3d (5839214 ran out of device memory inside step 9's update; free
+# memory was flat between steps, so a transient peak): CorrTol 1e-2 again, with
+# no copy of the basis in the update and batches of 6, about 12 GB less:
+#   sbatch --export=ALL,MODE=perturbative,CORRTOL=1e-2,CORRNRHS=6 run_hmc_multigrid_quenched_frontier.job
+#
+# Stage 2f, the A^{-k} scan (5835659 and 5839215 degraded from step 1, where the
+# field has barely moved): at a field held almost fixed, tau 2e-4 (eps 1e-5),
+# each MD step applies ONE more round of inverse iteration as in generation
+# (GCR(10,10) to 5e-4, at most 30 restarts), then rebuilds and solves.  The
+# loaded basis is k = 3, MD step n is k = 3+n.  Outer cap 240 so that a rise
+# past 156 shows; about 3.5 h; dH is meaningless here:
+#   sbatch --export=ALL,MODE=refresh,REFRESHPASSES=1,REFRESHMAXOUTER=30,REFRESHTOL=5e-4,TRAJL=0.0002,OUTERMAXIT=20 run_hmc_multigrid_quenched_frontier.job
+#
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
 #
@@ -71,10 +84,14 @@ MODE=${MODE:-perturbative}
 RUNMG=${RUNMG:-1}
 SOLVEEVERY=${SOLVEEVERY:-1}
 CORRTOL=${CORRTOL:-1e-1}
+CORRNRHS=${CORRNRHS:-12}                 # must divide the basis size, 60
+TRAJL=${TRAJL:-0.2}                      # trajectory length; MDsteps stays 20
 REFRESHTOL=${REFRESHTOL:-0.1}
 REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
 REFRESHORTHO=${REFRESHORTHO:-0}
+REFRESHKICK=${REFRESHKICK:-0}
+OUTERMAXIT=${OUTERMAXIT:-13}             # restarts of the outer GCR, 12 steps each
 TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
 
 # --- edit these two ---
@@ -145,7 +162,7 @@ cat << EOF > $PARAMS
     <Nrhs>1</Nrhs>
     <SolveSingleRHS>0</SolveSingleRHS>
     <Beta>2.13</Beta>
-    <TrajL><elem>0.2</elem></TrajL>
+    <TrajL><elem>$TRAJL</elem></TrajL>
     <MDsteps><elem>20</elem></MDsteps>
     <Ntraj>1</Ntraj>
     <Chain>1</Chain>
@@ -156,9 +173,10 @@ cat << EOF > $PARAMS
     <RefreshMaxOuter>$REFRESHMAXOUTER</RefreshMaxOuter>
     <RefreshPasses>$REFRESHPASSES</RefreshPasses>
     <RefreshOrthonormalise>$REFRESHORTHO</RefreshOrthonormalise>
+    <RefreshKick>$REFRESHKICK</RefreshKick>
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>4</CorrMaxRestarts>
-    <CorrNrhs>12</CorrNrhs>
+    <CorrNrhs>$CORRNRHS</CorrNrhs>
     <MultiGrid>
       <Setup>
         <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
@@ -179,7 +197,7 @@ cat << EOF > $PARAMS
         <Tol>0.05</Tol><Order>200</Order><Mmax>8</Mmax>
       </CoarseSolver>
       <Outer>
-        <Tol>1e-8</Tol><MaxIterations>13</MaxIterations><Mmax>4</Mmax><Nstep>12</Nstep>
+        <Tol>1e-8</Tol><MaxIterations>$OUTERMAXIT</MaxIterations><Mmax>4</Mmax><Nstep>12</Nstep>
       </Outer>
       <Dense>
         <LeafSpan>9</LeafSpan>
@@ -197,9 +215,17 @@ run_step () {
   name=$1; bin=$2
   echo "===== STEP $name : $bin =====" >> $LOG
   ls -l --time-style=long-iso $bin >> $LOG
+  # Grid prints a failed device allocation and returns NULL instead of
+  # aborting, and the job can then hang to the timeout (5839214: 2.8 h on 36
+  # nodes).  Cancel the step on the first one.
+  ( tail -n0 -F $LOG | grep -q -m1 "hipMalloc failed" \
+      && echo "WATCHDOG: hipMalloc failed, cancelling step ${SLURM_JOB_ID}.0" >> $LOG \
+      && scancel ${SLURM_JOB_ID}.0 ) &
+  WATCH=$!
   timeout $TIMEOUT srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
        --hmc-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
   rc=$?
+  kill $WATCH 2>/dev/null
   echo "===== END STEP $name exit $rc =====" >> $LOG
   echo "step $name exit $rc"
   sed -n "/===== STEP $name /,/===== END STEP $name /p" $LOG > step.tmp
