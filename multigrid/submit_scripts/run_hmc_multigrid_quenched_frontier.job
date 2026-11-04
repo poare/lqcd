@@ -72,6 +72,16 @@
 # past 156 shows; about 3.5 h; dH is meaningless here:
 #   sbatch --export=ALL,MODE=refresh,REFRESHPASSES=1,REFRESHMAXOUTER=30,REFRESHTOL=5e-4,TRAJL=0.0002,OUTERMAXIT=20 run_hmc_multigrid_quenched_frontier.job
 #
+# Stage 2g, the A^{-k} scan from k = 0 (5843569 rose monotonically from 59 at
+# k = 3; is 3 the optimum or just the smallest k tested?): as stage 2f, but
+# NOISEBASIS=1 replaces the loaded basis by Gaussian noise, so the solve before
+# the MD is k = 0 and MD step n is k = n, up to 20.  k = 3 repeats 5843569's 59
+# from a different noise draw.  The k = 0 solve will most likely run to the
+# 240 cap.  About 3.3 h at 300 steps per round:
+#   sbatch --export=ALL,MODE=refresh,REFRESHPASSES=1,REFRESHMAXOUTER=30,REFRESHTOL=5e-4,TRAJL=0.0002,OUTERMAXIT=20,NOISEBASIS=1 run_hmc_multigrid_quenched_frontier.job
+# The k x round-budget scan around it (REFRESHMAXOUTER restarts of 10 steps,
+# REFRESHTOL) is submit_ak_scan.sh.
+#
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
 #
@@ -91,6 +101,7 @@ REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
 REFRESHORTHO=${REFRESHORTHO:-0}
 REFRESHKICK=${REFRESHKICK:-0}
+NOISEBASIS=${NOISEBASIS:-0}              # 1: start from Gaussian noise (k = 0 of the A^{-k} scan)
 OUTERMAXIT=${OUTERMAXIT:-13}             # restarts of the outer GCR, 12 steps each
 TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
 
@@ -174,6 +185,7 @@ cat << EOF > $PARAMS
     <RefreshPasses>$REFRESHPASSES</RefreshPasses>
     <RefreshOrthonormalise>$REFRESHORTHO</RefreshOrthonormalise>
     <RefreshKick>$REFRESHKICK</RefreshKick>
+    <NoiseBasis>$NOISEBASIS</NoiseBasis>
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>4</CorrMaxRestarts>
     <CorrNrhs>$CORRNRHS</CorrNrhs>
