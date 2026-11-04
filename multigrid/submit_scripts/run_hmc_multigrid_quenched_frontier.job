@@ -104,6 +104,12 @@ SOLVEEVERY=${SOLVEEVERY:-1}
 CORRTOL=${CORRTOL:-1e-1}
 CORRNRHS=${CORRNRHS:-12}                 # must divide the basis size, 60
 CORRMAXRESTARTS=${CORRMAXRESTARTS:-4}    # restarts of Outer.Nstep per correction batch
+CORRPRECON=${CORRPRECON:-mg}             # mg: mrhs GCR with the V-cycle; none: plain GCR per vector
+CORRKRYLOVNSTEP=${CORRKRYLOVNSTEP:-10}   # CORRPRECON none: GCR(n,n), CORRMAXRESTARTS restarts
+DIAGEVERY=${DIAGEVERY:-0}                # >0: QHMC-DIAG basis diagnostics after setup and every DIAGEVERY MD steps
+DIAGTEST=${DIAGTEST:-10}                 # test vectors from fresh noise (about 25 s each at p0); 0: none
+DIAGTESTREGEN=${DIAGTESTREGEN:-0}        # 1: new test vectors at every diagnostic (moving field)
+DIAGREFERENCE=${DIAGREFERENCE:-1}        # 1: the starting basis, kept in fp32, is the reference
 TRAJL=${TRAJL:-0.2}                      # trajectory length
 MDSTEPS=${MDSTEPS:-20}                   # MD steps per trajectory; eps = TRAJL/MDSTEPS
 REFRESHTOL=${REFRESHTOL:-0.1}
@@ -224,6 +230,12 @@ cat << EOF > $PARAMS
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>$CORRMAXRESTARTS</CorrMaxRestarts>
     <CorrNrhs>$CORRNRHS</CorrNrhs>
+    <CorrPrecon>$CORRPRECON</CorrPrecon>
+    <CorrKrylovNstep>$CORRKRYLOVNSTEP</CorrKrylovNstep>
+    <DiagEvery>$DIAGEVERY</DiagEvery>
+    <DiagTest>$DIAGTEST</DiagTest>
+    <DiagTestRegen>$DIAGTESTREGEN</DiagTestRegen>
+    <DiagReference>$DIAGREFERENCE</DiagReference>
     <MultiGrid>
       <Setup>
         <Block1>$(elems "$BLOCK1")</Block1>
