@@ -83,6 +83,13 @@
 # REFRESHTOL), at either MG parameter set (MGSET p0 or dense3, below), is
 # submit_ak_scan.sh.
 #
+# Stage 4a, the one-step epsilon scan: SCAN="mode:trajl/mode:trajl/..." runs
+# one srun per entry inside this allocation, each from the saved basis with
+# the same seeds, its own params file and log
+# (MG_QHMC_<jobid>_<mode>_eps<trajl>.log).  MDSTEPS and every other knob are
+# shared.  TIMEOUT is per entry; --time must cover them all.
+# submit_eps_scan.sh.
+#
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
 #
@@ -107,6 +114,7 @@ REFRESHKICK=${REFRESHKICK:-0}
 NOISEBASIS=${NOISEBASIS:-0}              # 1: start from Gaussian noise (k = 0 of the A^{-k} scan)
 OUTERMAXIT=${OUTERMAXIT:-13}             # restarts of the outer GCR, 12 steps each
 TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
+SCAN=${SCAN:-}                           # stage 4a: "mode:trajl/..." one srun per entry
 
 # MG parameter set.  p0: Peter's P0 cell of pvdagm-mixed-precision (5531534),
 # with fine shift 0.1 and Outer.Mmax 4 as in 5783904; every run before 2026-11-04.
@@ -183,6 +191,7 @@ MPI_GEOM=3.6.4.4
 # QuenchedHMCDriverParams and of PVdagMMultiGridParams.h must appear here: a
 # missing numeric tag reads as '' and aborts the run (5824735, 5824743), and a
 # missing string tag silently reads as empty.
+write_params () {
 cat << EOF > $PARAMS
 <?xml version="1.0"?>
 <grid>
@@ -243,10 +252,15 @@ cat << EOF > $PARAMS
   </QuenchedHMCDriver>
 </grid>
 EOF
-echo "=== $PARAMS ==="; cat $PARAMS; echo "=================="
+}
 
-echo "log $LOG"
-: > $LOG
+start_run () {
+  write_params
+  echo "=== $PARAMS ==="; cat $PARAMS; echo "=================="
+  echo "log $LOG"
+  : > $LOG
+}
+STEPNO=0    # srun step id: the watchdog must cancel the current step, not step 0
 
 run_step () {
   name=$1; bin=$2
@@ -256,8 +270,8 @@ run_step () {
   # aborting, and the job can then hang to the timeout (5839214: 2.8 h on 36
   # nodes).  Cancel the step on the first one.
   ( tail -n0 -F $LOG | grep -q -m1 "hipMalloc failed" \
-      && echo "WATCHDOG: hipMalloc failed, cancelling step ${SLURM_JOB_ID}.0" >> $LOG \
-      && scancel ${SLURM_JOB_ID}.0 ) &
+      && echo "WATCHDOG: hipMalloc failed, cancelling step ${SLURM_JOB_ID}.$STEPNO" >> $LOG \
+      && scancel ${SLURM_JOB_ID}.$STEPNO ) &
   WATCH=$!
   timeout $TIMEOUT srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $bin --mpi ${MPI_GEOM} --grid $vol $OPTS \
        --hmc-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
@@ -274,6 +288,18 @@ run_step () {
        step.tmp | cut -c1-160
   tail -3 step.tmp | cut -c1-160
   sleep 30
+  STEPNO=$((STEPNO+1))
 }
 
-run_step qhmc $BIN
+if [ -z "$SCAN" ]; then
+  start_run
+  run_step qhmc $BIN
+else
+  for entry in ${SCAN//\// }; do
+    MODE=${entry%%:*}; TRAJL=${entry#*:}
+    LOG=$LOGDIR/MG_QHMC_${SLURM_JOB_ID}_${MODE}_eps${TRAJL}.log
+    PARAMS=$LOGDIR/MG_QHMC_${SLURM_JOB_ID}_${MODE}_eps${TRAJL}.params.xml
+    start_run
+    run_step qhmc $BIN
+  done
+fi
