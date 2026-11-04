@@ -147,6 +147,7 @@ source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
 SAVE=/lustre/orion/phy157/proj-shared/phy157_dwf/poare/subspaces/ckpoint_lat.1000_nb60.scidac
 CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here
 BIN=$BUILD/examples/Example_hmc_multigrid_quenched_frontier
+COMPACT=${COMPACT:-/ccs/home/poare/lqcd/multigrid/python_scripts/qhmc_compact.py}   # writes $LOGDIR/mghmc_compact/<log>_compact.log
 LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
 
 for f in $CONFIG $BIN $SAVE; do
@@ -278,6 +279,7 @@ run_step () {
   rc=$?
   kill $WATCH 2>/dev/null
   echo "===== END STEP $name exit $rc =====" >> $LOG
+  python3 $COMPACT $LOG || echo "  compact log failed: python3 $COMPACT $LOG"
   echo "step $name exit $rc"
   sed -n "/===== STEP $name /,/===== END STEP $name /p" $LOG > step.tmp
   if grep -q "Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" step.tmp; then
