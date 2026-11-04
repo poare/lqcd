@@ -80,7 +80,8 @@
 # 240 cap.  About 3.3 h at 300 steps per round:
 #   sbatch --export=ALL,MODE=refresh,REFRESHPASSES=1,REFRESHMAXOUTER=30,REFRESHTOL=5e-4,TRAJL=0.0002,OUTERMAXIT=20,NOISEBASIS=1 run_hmc_multigrid_quenched_frontier.job
 # The k x round-budget scan around it (REFRESHMAXOUTER restarts of 10 steps,
-# REFRESHTOL) is submit_ak_scan.sh.
+# REFRESHTOL), at either MG parameter set (MGSET p0 or dense3, below), is
+# submit_ak_scan.sh.
 #
 # Control, the same script (the defaults are stage 3):
 #   sbatch --export=ALL,MODE=control,RUNMG=0 run_hmc_multigrid_quenched_frontier.job
@@ -95,7 +96,8 @@ RUNMG=${RUNMG:-1}
 SOLVEEVERY=${SOLVEEVERY:-1}
 CORRTOL=${CORRTOL:-1e-1}
 CORRNRHS=${CORRNRHS:-12}                 # must divide the basis size, 60
-TRAJL=${TRAJL:-0.2}                      # trajectory length; MDsteps stays 20
+TRAJL=${TRAJL:-0.2}                      # trajectory length
+MDSTEPS=${MDSTEPS:-20}                   # MD steps per trajectory; eps = TRAJL/MDSTEPS
 REFRESHTOL=${REFRESHTOL:-0.1}
 REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
@@ -104,6 +106,28 @@ REFRESHKICK=${REFRESHKICK:-0}
 NOISEBASIS=${NOISEBASIS:-0}              # 1: start from Gaussian noise (k = 0 of the A^{-k} scan)
 OUTERMAXIT=${OUTERMAXIT:-13}             # restarts of the outer GCR, 12 steps each
 TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
+
+# MG parameter set.  p0: Peter's P0 cell of pvdagm-mixed-precision (5531534),
+# with fine shift 0.1 and Outer.Mmax 4 as in 5783904; every run before 2026-11-04.
+# dense3: the defaults of Example_pvdagm_mrhs_3level_dense.cc, where Peter tuned
+# the setup in July (supercoarse Block2 to the [3,6,8,8] dense floor).  The same
+# CreateSubspaceGCR basis either way.  Outer.Nstep differs (12 vs 8), so the
+# outer cap is OUTERMAXIT x Nstep iterations.
+MGSET=${MGSET:-p0}
+case $MGSET in
+  p0)     BLOCK1="2 2 3 3"; BLOCK2="4 4 2 4"
+          FSHIFT=0.1; FNSTEP=6;  FMMAX=4
+          CSHIFT=2.0; CNSTEP=2;  CMMAX=2
+          CTOL=0.05;  CORDER=200; CSMMAX=8
+          OMMAX=4;    ONSTEP=12 ;;
+  dense3) BLOCK1="2 2 2 2"; BLOCK2="8 4 3 6"
+          FSHIFT=0.1; FNSTEP=16; FMMAX=16
+          CSHIFT=0.1; CNSTEP=4;  CMMAX=4
+          CTOL=0.03;  CORDER=200; CSMMAX=16
+          OMMAX=8;    ONSTEP=8 ;;
+  *)      echo "unknown MGSET $MGSET -- stopping"; exit 1 ;;
+esac
+elems () { for x in $1; do printf "<elem>%s</elem>" $x; done; }
 
 # --- edit these two ---
 GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
@@ -154,7 +178,7 @@ OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 32000 --comms-
 vol=48.48.48.96
 MPI_GEOM=3.6.4.4
 
-# Multigrid block: Peter's P0 cell, as in 5783904.  Every field of the driver's
+# Multigrid block: the MGSET parameter set above.  Every field of the driver's
 # QuenchedHMCDriverParams and of PVdagMMultiGridParams.h must appear here: a
 # missing numeric tag reads as '' and aborts the run (5824735, 5824743), and a
 # missing string tag silently reads as empty.
@@ -174,7 +198,7 @@ cat << EOF > $PARAMS
     <SolveSingleRHS>0</SolveSingleRHS>
     <Beta>2.13</Beta>
     <TrajL><elem>$TRAJL</elem></TrajL>
-    <MDsteps><elem>20</elem></MDsteps>
+    <MDsteps><elem>$MDSTEPS</elem></MDsteps>
     <Ntraj>1</Ntraj>
     <Chain>1</Chain>
     <Mode>$MODE</Mode>
@@ -191,8 +215,8 @@ cat << EOF > $PARAMS
     <CorrNrhs>$CORRNRHS</CorrNrhs>
     <MultiGrid>
       <Setup>
-        <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
-        <Block2><elem>4</elem><elem>4</elem><elem>2</elem><elem>4</elem></Block2>
+        <Block1>$(elems "$BLOCK1")</Block1>
+        <Block2>$(elems "$BLOCK2")</Block2>
         <CoarsenBatch>9</CoarsenBatch>
         <SubspaceFile>$SAVE</SubspaceFile>
         <FineSloppyComms>1</FineSloppyComms>
@@ -200,16 +224,16 @@ cat << EOF > $PARAMS
         <RetainSubspace>1</RetainSubspace>
       </Setup>
       <FineSmoother>
-        <Shift>0.1</Shift><Nstep>6</Nstep><Mmax>4</Mmax>
+        <Shift>$FSHIFT</Shift><Nstep>$FNSTEP</Nstep><Mmax>$FMMAX</Mmax>
       </FineSmoother>
       <CoarseSmoother>
-        <Shift>2.0</Shift><Nstep>2</Nstep><Mmax>2</Mmax>
+        <Shift>$CSHIFT</Shift><Nstep>$CNSTEP</Nstep><Mmax>$CMMAX</Mmax>
       </CoarseSmoother>
       <CoarseSolver>
-        <Tol>0.05</Tol><Order>200</Order><Mmax>8</Mmax>
+        <Tol>$CTOL</Tol><Order>$CORDER</Order><Mmax>$CSMMAX</Mmax>
       </CoarseSolver>
       <Outer>
-        <Tol>1e-8</Tol><MaxIterations>$OUTERMAXIT</MaxIterations><Mmax>4</Mmax><Nstep>12</Nstep>
+        <Tol>1e-8</Tol><MaxIterations>$OUTERMAXIT</MaxIterations><Mmax>$OMMAX</Mmax><Nstep>$ONSTEP</Nstep>
       </Outer>
       <Dense>
         <LeafSpan>9</LeafSpan>
