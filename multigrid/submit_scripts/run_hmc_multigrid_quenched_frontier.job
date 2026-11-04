@@ -96,6 +96,7 @@ RUNMG=${RUNMG:-1}
 SOLVEEVERY=${SOLVEEVERY:-1}
 CORRTOL=${CORRTOL:-1e-1}
 CORRNRHS=${CORRNRHS:-12}                 # must divide the basis size, 60
+CORRMAXRESTARTS=${CORRMAXRESTARTS:-4}    # restarts of Outer.Nstep per correction batch
 TRAJL=${TRAJL:-0.2}                      # trajectory length
 MDSTEPS=${MDSTEPS:-20}                   # MD steps per trajectory; eps = TRAJL/MDSTEPS
 REFRESHTOL=${REFRESHTOL:-0.1}
@@ -211,7 +212,7 @@ cat << EOF > $PARAMS
     <RefreshKick>$REFRESHKICK</RefreshKick>
     <NoiseBasis>$NOISEBASIS</NoiseBasis>
     <CorrTol>$CORRTOL</CorrTol>
-    <CorrMaxRestarts>4</CorrMaxRestarts>
+    <CorrMaxRestarts>$CORRMAXRESTARTS</CorrMaxRestarts>
     <CorrNrhs>$CORRNRHS</CorrNrhs>
     <MultiGrid>
       <Setup>
