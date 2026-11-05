@@ -104,6 +104,8 @@ SOLVEEVERY=${SOLVEEVERY:-1}
 CORRTOL=${CORRTOL:-1e-1}
 CORRNRHS=${CORRNRHS:-12}                 # must divide the basis size, 60
 CORRMAXRESTARTS=${CORRMAXRESTARTS:-4}    # restarts of Outer.Nstep per correction batch
+CORROPERATOR=${CORROPERATOR:-new}         # new: A(U) on the left of the correction; old: A at the last update
+CORRRECOARSEN=${CORRRECOARSEN:-0}        # 1 (CORROPERATOR new): rebuild the coarse operators at U before the correction's V-cycle
 CORRPRECON=${CORRPRECON:-mg}             # mg: mrhs GCR with the V-cycle; none: plain GCR per vector
 CORRKRYLOVNSTEP=${CORRKRYLOVNSTEP:-10}   # CORRPRECON none: GCR(n,n), CORRMAXRESTARTS restarts
 DIAGEVERY=${DIAGEVERY:-0}                # >0: QHMC-DIAG basis diagnostics after setup and every DIAGEVERY MD steps
@@ -230,6 +232,8 @@ cat << EOF > $PARAMS
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>$CORRMAXRESTARTS</CorrMaxRestarts>
     <CorrNrhs>$CORRNRHS</CorrNrhs>
+    <CorrOperator>$CORROPERATOR</CorrOperator>
+    <CorrRecoarsen>$CORRRECOARSEN</CorrRecoarsen>
     <CorrPrecon>$CORRPRECON</CorrPrecon>
     <CorrKrylovNstep>$CORRKRYLOVNSTEP</CorrKrylovNstep>
     <DiagEvery>$DIAGEVERY</DiagEvery>

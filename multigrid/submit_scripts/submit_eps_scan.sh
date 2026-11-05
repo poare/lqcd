@@ -26,7 +26,7 @@
 # TIMEOUT is per run.
 #
 # Usage (on a Frontier login node, from this directory):
-#   ./submit_eps_scan.sh frozen-refresh|pert-a|pert-b|all
+#   ./submit_eps_scan.sh frozen-refresh|pert-a|pert-b|all|pert-old|pert-recoarsen
 # Each submission is appended to eps_scan_jobs.txt as "jobid label settings".
 ##############################################################################
 set -e
@@ -52,5 +52,10 @@ case "$1" in
   pert-a)         submit eps-pert-a 4:00:00 75m "$(entries perturbative 0.02 0.05 0.1)" $PERT ;;
   pert-b)         submit eps-pert-b 2:30:00 70m "$(entries perturbative 0.2 0.5)" $PERT ;;
   all)            me=./$(basename "$0"); $me frozen-refresh; $me pert-a; $me pert-b ;;
-  *)              echo "usage: $0 frozen-refresh|pert-a|pert-b|all"; exit 1 ;;
+  # 2026-11-05: why the correction stalls at 0.05 and 0.1 (5853853).  pert-old puts
+  # A at the last update on the left (what the basis and the V-cycle were built for);
+  # pert-recoarsen keeps A(U) and rebuilds the coarse operators at U first.
+  pert-old)       submit eps-pert-old 3:00:00 75m "$(entries perturbative 0.05 0.1)" $PERT,CORROPERATOR=old ;;
+  pert-recoarsen) submit eps-pert-recoarsen 3:00:00 75m "$(entries perturbative 0.05 0.1)" $PERT,CORRRECOARSEN=1 ;;
+  *)              echo "usage: $0 frozen-refresh|pert-a|pert-b|all|pert-old|pert-recoarsen"; exit 1 ;;
 esac
