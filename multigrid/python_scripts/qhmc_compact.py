@@ -33,6 +33,10 @@ Synthesized:
                   0's refine-in), and one for the setup's rounds: n rounds, GCR(10,10) steps and final residual,
                   and |<v|Op|v>| before (vopv_in) and after (vopv_out) each round
                   over the vectors, as mean / min / max
+  QHMC-TESTROUNDS the same, for each round of the diagnostics' test vectors
+                  (between QHMC-TESTGEN begin and end; v4)
+  QHMC-CORRGCR    the same, for the plain GCR solves of one correction batch
+                  (CorrPrecon none), just before its QHMC-CORRECT line (v4)
   QHMC-GENROUND   before each setup "intermediate[" line: the final GCR
                   residual of the round it closes
   QHMC-IOCHECK    at the end: checksums verified ok and failed
@@ -53,7 +57,7 @@ import os
 import re
 import sys
 
-VERSION = 3
+VERSION = 4
 MAX_ERRORS = 200
 KEEP = ("QHMC-", "===== STEP", "===== END STEP", "FINAL Nrhs", "GALERKIN", "intermediate[", "Grid Finalize",
         "GUARD:", "CERTIFICATE", "VERIFY", "L3 dense", "CoarsenOperator", "DenseCoarseMatrix:",
@@ -91,6 +95,7 @@ class Compactor:
         self.coarse = []         # coarse solves since the last outer/correction step: steps each
         self.cur_coarse = None
         self.rounds = []         # (steps, resid) since the last ROUNDS line
+        self.round_tag = "QHMC-ROUNDS"   # QHMC-TESTROUNDS between QHMC-TESTGEN begin and end
         self.round_cur = None
         self.last_round_resid = float("nan")
         self.vopv = {"in": [], "out": []}
@@ -127,7 +132,7 @@ class Compactor:
                       % (self.n_corr, len(self.corr), self.corr_target, _hist(self.corr)))
         self.corr = None
 
-    def flush_rounds(self):
+    def flush_rounds(self, tag=None):
         if self.round_cur is not None:      # a round that never reported its end
             self.rounds.append(self.round_cur)
             self.round_cur = None
@@ -135,7 +140,7 @@ class Compactor:
             return
         s = _stats([r[0] for r in self.rounds])
         r = _stats([r[1] for r in self.rounds])
-        body = ("QHMC-ROUNDS n %d steps_mean %.6g steps_min %d steps_max %d resid_mean %.6g resid_min %.6g resid_max %.6g"
+        body = ((tag or self.round_tag) + " n %d steps_mean %.6g steps_min %d steps_max %d resid_mean %.6g resid_min %.6g resid_max %.6g"
                 % (len(self.rounds), s[0], s[1], s[2], r[0], r[1], r[2]))
         for k in ("in", "out"):
             if self.vopv[k]:
@@ -219,6 +224,13 @@ class Compactor:
                 self.flush_outer()          # a capped solve ends without a convergence line
             if "QHMC-CORRECT" in line:
                 self.flush_corr()
+                self.flush_rounds("QHMC-CORRGCR")   # CorrPrecon none: the batch's plain GCR solves
+            if "QHMC-TESTGEN begin" in line:
+                self.flush_rounds()
+                self.round_tag = "QHMC-TESTROUNDS"
+            if "QHMC-TESTGEN end" in line:
+                self.flush_rounds()
+                self.round_tag = "QHMC-ROUNDS"
             m = R_INTER.search(line)
             if m:
                 self.emit("QHMC-GENROUND round %s gcr_resid %.6g" % (m.group(1), self.last_round_resid))
