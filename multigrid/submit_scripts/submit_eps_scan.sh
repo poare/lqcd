@@ -26,7 +26,7 @@
 # TIMEOUT is per run.
 #
 # Usage (on a Frontier login node, from this directory):
-#   ./submit_eps_scan.sh frozen-refresh|pert-a|pert-b|all|pert-old|pert-recoarsen
+#   ./submit_eps_scan.sh frozen-refresh|pert-a|pert-b|all|pert-old|pert-recoarsen|recoarsen-scan
 # Each submission is appended to eps_scan_jobs.txt as "jobid label settings".
 ##############################################################################
 set -e
@@ -57,5 +57,8 @@ case "$1" in
   # pert-recoarsen keeps A(U) and rebuilds the coarse operators at U first.
   pert-old)       submit eps-pert-old 3:00:00 75m "$(entries perturbative 0.05 0.1)" $PERT,CORROPERATOR=old ;;
   pert-recoarsen) submit eps-pert-recoarsen 3:00:00 75m "$(entries perturbative 0.05 0.1)" $PERT,CORRRECOARSEN=1 ;;
-  *)              echo "usage: $0 frozen-refresh|pert-a|pert-b|all|pert-old|pert-recoarsen"; exit 1 ;;
+  # 2026-11-06: CorrRecoarsen 1 fixed the correction at 0.05 and 0.1 (5857707: 8-10 GCR steps
+  # per batch, 61 and 72 outer).  How far in eps does one step hold?
+  recoarsen-scan) submit eps-recoarsen-scan 4:30:00 50m "$(entries perturbative 0.02 0.15 0.2 0.3 0.5)" $PERT,CORRRECOARSEN=1 ;;
+  *)              echo "usage: $0 frozen-refresh|pert-a|pert-b|all|pert-old|pert-recoarsen|recoarsen-scan"; exit 1 ;;
 esac
