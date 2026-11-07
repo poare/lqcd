@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=7
 #SBATCH --gpus-per-node=8
 #SBATCH -p extended
-#SBATCH --time=8:00:00
+#SBATCH --time=12:00:00
 #SBATCH --account=phy157_dwf
 #SBATCH --gpu-bind=none
 #SBATCH --exclusive
@@ -17,24 +17,26 @@
 # Example_pvdagm_inverse_iteration: inverse iteration on Gaussian noise at a
 # FIXED field (ckpoint_lat.1000), k = 0..KMAX rounds, Peter's P0 MG set.  At
 # each k: coarsen on V_k, solve one fixed source (Nrhs 1), nulliness of the
-# basis, one 300-step GCR(10,10) round.  Design:
+# basis, one 300-step GCR(10,10) round; for k in CensusK also Peter's coarse
+# census (Chebyshev-filtered Lanczos on A_c^dag A_c) and coherence checks
+# CHECK 0, 1, A, B.  Design:
 # hub projects/multigrid/notes/inverse-iteration-test-design.md.
 #
-# The census and coherence checks (CensusK) are not in the binary yet; the
-# CensusK fields below are read and ignored.  Without them a run is about
-# 600 s per k (5853868), so k = 0..20 takes about 3.5 h; --time 8 h leaves
-# margin.  Raise --time and TIMEOUT once the census is in.
+# Budget (estimates, not measurements): about 600 s per k without the census
+# (5853868), 3.5 h for k = 0..20; about 20 min per census (restart cap 4) at
+# k = 2, 3, 5, 10, 20, so about 5-6 h in all.  --time 12 h is the safety cap;
+# lanczos_seconds in the II-CENSUS line at k = 2 gives the real census cost.
 #
 # Environment, select_gpu wrapper, --device-mem 32000 and the P0 XML block as
 # run_hmc_multigrid_quenched_frontier.job (MGSET p0).
 #
 # Submit (from this directory, on a Frontier login node):
 #   sbatch run_inverse_iteration_frontier.job
-#   sbatch --export=ALL,KMAX=3 run_inverse_iteration_frontier.job   # short check, about 45 min
+#   sbatch --export=ALL,KMAX=3 run_inverse_iteration_frontier.job   # short check: k = 0..3, census at 2 and 3
 ##############################################################################
 
 KMAX=${KMAX:-20}
-TIMEOUT=${TIMEOUT:-470m}                 # keep a few minutes under --time
+TIMEOUT=${TIMEOUT:-710m}                 # keep a few minutes under --time
 
 # --- edit these two ---
 GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
@@ -100,12 +102,12 @@ cat << EOF > $PARAMS
     <KMax>$KMAX</KMax>
     <RoundTol>5e-4</RoundTol>
     <RoundMaxOuter>30</RoundMaxOuter>
-    <CensusK><elem>0</elem><elem>1</elem><elem>2</elem><elem>3</elem><elem>4</elem><elem>5</elem><elem>7</elem><elem>10</elem><elem>14</elem><elem>20</elem></CensusK>
-    <CensusNstop>60</CensusNstop>
-    <CensusNk>96</CensusNk>
-    <CensusNm>192</CensusNm>
+    <CensusK><elem>2</elem><elem>3</elem><elem>5</elem><elem>10</elem><elem>20</elem></CensusK>
+    <CensusNstop>96</CensusNstop>
+    <CensusNk>128</CensusNk>
+    <CensusNm>160</CensusNm>
     <CensusTol>1e-5</CensusTol>
-    <CensusMaxIt>10</CensusMaxIt>
+    <CensusMaxIt>4</CensusMaxIt>
     <ChebyLo>4.0</ChebyLo>
     <ChebyHi>0</ChebyHi>
     <ChebyOrder>401</ChebyOrder>
@@ -158,5 +160,5 @@ kill $WATCH 2>/dev/null
 echo "===== END STEP inviter exit $rc =====" >> $LOG
 python3 $COMPACT $LOG || echo "  compact log failed: python3 $COMPACT $LOG"
 echo "step inviter exit $rc"
-grep -h "II-SETUP\|II-SOLVE\|II-NUL \|II-ROUND \|II-DONE\|Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG | cut -c1-200
+grep -h "II-SETUP\|II-SOLVE\|II-NUL \|II-ROUND \|II-ADJCHECK\|II-CENSUS \|II-CHECKA \|II-CHECKB \|II-DONE\|Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG | cut -c1-200
 tail -3 $LOG | cut -c1-160
