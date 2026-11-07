@@ -1,0 +1,162 @@
+#!/bin/bash -l
+#SBATCH --job-name=inv-iter
+#SBATCH --nodes=36
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=7
+#SBATCH --gpus-per-node=8
+#SBATCH -p extended
+#SBATCH --time=8:00:00
+#SBATCH --account=phy157_dwf
+#SBATCH --gpu-bind=none
+#SBATCH --exclusive
+#SBATCH --mem=0
+#SBATCH -S 0
+#SBATCH --exclude=frontier06752,frontier02678
+
+##############################################################################
+# Example_pvdagm_inverse_iteration: inverse iteration on Gaussian noise at a
+# FIXED field (ckpoint_lat.1000), k = 0..KMAX rounds, Peter's P0 MG set.  At
+# each k: coarsen on V_k, solve one fixed source (Nrhs 1), nulliness of the
+# basis, one 300-step GCR(10,10) round.  Design:
+# hub projects/multigrid/notes/inverse-iteration-test-design.md.
+#
+# The census and coherence checks (CensusK) are not in the binary yet; the
+# CensusK fields below are read and ignored.  Without them a run is about
+# 600 s per k (5853868), so k = 0..20 takes about 3.5 h; --time 8 h leaves
+# margin.  Raise --time and TIMEOUT once the census is in.
+#
+# Environment, select_gpu wrapper, --device-mem 32000 and the P0 XML block as
+# run_hmc_multigrid_quenched_frontier.job (MGSET p0).
+#
+# Submit (from this directory, on a Frontier login node):
+#   sbatch run_inverse_iteration_frontier.job
+#   sbatch --export=ALL,KMAX=3 run_inverse_iteration_frontier.job   # short check, about 45 min
+##############################################################################
+
+KMAX=${KMAX:-20}
+TIMEOUT=${TIMEOUT:-470m}                 # keep a few minutes under --time
+
+# --- edit these two ---
+GRIDROOT=${GRIDROOT:-/ccs/home/poare/GridPoare}  # fork by default; --export GRIDROOT=... overrides
+BUILD=$GRIDROOT/build-rocm72
+
+source $GRIDROOT/systems/Frontier/sourceme-rocm7.2.sh
+
+CONFIG=/lustre/orion/phy157/proj-shared/phy157_dwf/paboyle/configs/ckpoint_lat.1000   # ~/ckpoint_lat.1000 links here
+BIN=$BUILD/examples/Example_pvdagm_inverse_iteration
+COMPACT=${COMPACT:-/ccs/home/poare/lqcd/multigrid/python_scripts/qhmc_compact.py}
+LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
+
+for f in $CONFIG $BIN; do
+  [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
+done
+
+mkdir -p $LOGDIR
+LOG=$LOGDIR/MG_InvIter_${SLURM_JOB_ID}.log
+PARAMS=$LOGDIR/MG_InvIter_${SLURM_JOB_ID}.params.xml
+( cd $GRIDROOT && echo "Grid $(git rev-parse HEAD) $(git status --short | wc -l) modified" )
+
+# Never strip this wrapper: distinct-GCD binding, NUMA locality, SDMA peer copies.
+cat << EOF > select_gpu
+#!/bin/bash
+export GPU_MAP=(0 1 2 3 7 6 5 4)
+export NUMA_MAP=(3 3 1 1 2 2 0 0)
+export GPU=\${GPU_MAP[\$SLURM_LOCALID]}
+export NUMA=\${NUMA_MAP[\$SLURM_LOCALID]}
+export HIP_VISIBLE_DEVICES=\$GPU
+unset ROCR_VISIBLE_DEVICES
+if [ \$SLURM_PROCID = "0" ]; then echo \$*; fi
+exec numactl -m \$NUMA -N \$NUMA \$*
+EOF
+chmod +x ./select_gpu
+
+export OMP_NUM_THREADS=7
+ulimit -c 0                             # no 22 GB GPU core dumps
+export FI_MR_CACHE_MONITOR=kdreg2
+export FI_HMEM_ROCR_USE_DMABUF=0        # avoidance of the CXI NO_TRANSLATION fault at Nrhs >= 12
+export MPICH_GPU_SUPPORT_ENABLED=1
+export MPICH_SMP_SINGLE_COPY_MODE=CMA
+export MPICH_OFI_NIC_POLICY=GPU
+export GRID_ALLOC_NCACHE_LARGE=64
+
+module load libfabric
+
+OPTS="--accelerator-threads 8 --shm 4096 --shm-mpi 0 --device-mem 32000 --comms-overlap"
+vol=48.48.48.96
+MPI_GEOM=3.6.4.4
+
+# Every field of InverseIterationParams and of PVdagMMultiGridParams.h must
+# appear: a missing numeric tag reads as '' and aborts the run.  P0 values.
+cat << EOF > $PARAMS
+<?xml version="1.0"?>
+<grid>
+  <InverseIteration>
+    <Ls>24</Ls>
+    <Mass>0.00078</Mass>
+    <M5>1.8</M5>
+    <MobiusB>1.5</MobiusB>
+    <MobiusC>0.5</MobiusC>
+    <Config>$CONFIG</Config>
+    <KMax>$KMAX</KMax>
+    <RoundTol>5e-4</RoundTol>
+    <RoundMaxOuter>30</RoundMaxOuter>
+    <CensusK><elem>0</elem><elem>1</elem><elem>2</elem><elem>3</elem><elem>4</elem><elem>5</elem><elem>7</elem><elem>10</elem><elem>14</elem><elem>20</elem></CensusK>
+    <CensusNstop>60</CensusNstop>
+    <CensusNk>96</CensusNk>
+    <CensusNm>192</CensusNm>
+    <CensusTol>1e-5</CensusTol>
+    <CensusMaxIt>10</CensusMaxIt>
+    <ChebyLo>4.0</ChebyLo>
+    <ChebyHi>0</ChebyHi>
+    <ChebyOrder>401</ChebyOrder>
+    <Nbasis2>48</Nbasis2>
+    <MultiGrid>
+      <Setup>
+        <Block1><elem>2</elem><elem>2</elem><elem>3</elem><elem>3</elem></Block1>
+        <Block2><elem>4</elem><elem>4</elem><elem>2</elem><elem>4</elem></Block2>
+        <CoarsenBatch>9</CoarsenBatch>
+        <SubspaceFile></SubspaceFile>
+        <FineSloppyComms>1</FineSloppyComms>
+        <FinePrecision>fp64</FinePrecision>
+        <RetainSubspace>1</RetainSubspace>
+      </Setup>
+      <FineSmoother>
+        <Shift>0.1</Shift><Nstep>6</Nstep><Mmax>4</Mmax>
+      </FineSmoother>
+      <CoarseSmoother>
+        <Shift>2.0</Shift><Nstep>2</Nstep><Mmax>2</Mmax>
+      </CoarseSmoother>
+      <CoarseSolver>
+        <Tol>0.05</Tol><Order>200</Order><Mmax>8</Mmax>
+      </CoarseSolver>
+      <Outer>
+        <Tol>1e-8</Tol><MaxIterations>20</MaxIterations><Mmax>4</Mmax><Nstep>12</Nstep>
+      </Outer>
+      <Dense>
+        <LeafSpan>9</LeafSpan>
+      </Dense>
+    </MultiGrid>
+  </InverseIteration>
+</grid>
+EOF
+echo "=== $PARAMS ==="; cat $PARAMS; echo "=================="
+echo "log $LOG"
+: > $LOG
+
+echo "===== STEP inviter : $BIN =====" >> $LOG
+ls -l --time-style=long-iso $BIN >> $LOG
+# Grid prints a failed device allocation and returns NULL instead of aborting,
+# and the job can then hang to the timeout.  Cancel the step on the first one.
+( tail -n0 -F $LOG | grep -q -m1 "hipMalloc failed" \
+    && echo "WATCHDOG: hipMalloc failed, cancelling step ${SLURM_JOB_ID}.0" >> $LOG \
+    && scancel ${SLURM_JOB_ID}.0 ) &
+WATCH=$!
+timeout $TIMEOUT srun -N36 -n288 --kill-on-bad-exit=1 ./select_gpu $BIN --mpi ${MPI_GEOM} --grid $vol $OPTS \
+     --ii-params $PARAMS --log Error,Warning,Message,Performance >> $LOG 2>&1
+rc=$?
+kill $WATCH 2>/dev/null
+echo "===== END STEP inviter exit $rc =====" >> $LOG
+python3 $COMPACT $LOG || echo "  compact log failed: python3 $COMPACT $LOG"
+echo "step inviter exit $rc"
+grep -h "II-SETUP\|II-SOLVE\|II-NUL \|II-ROUND \|II-DONE\|Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG | cut -c1-200
+tail -3 $LOG | cut -c1-160
