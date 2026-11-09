@@ -33,9 +33,12 @@
 # Submit (from this directory, on a Frontier login node):
 #   sbatch run_inverse_iteration_frontier.job
 #   sbatch --export=ALL,KMAX=3 run_inverse_iteration_frontier.job   # short check: k = 0..3, census at 2 and 3
+#   sbatch --export=ALL,CENSUSK=none run_inverse_iteration_frontier.job  # no census: about 3.5 h
 ##############################################################################
 
 KMAX=${KMAX:-20}
+CENSUSK=${CENSUSK:-2 3 5 10 20}      # the k that get the census; none: no census
+[ "$CENSUSK" = none ] && CENSUSK=""
 TIMEOUT=${TIMEOUT:-710m}                 # keep a few minutes under --time
 
 # --- edit these two ---
@@ -52,6 +55,8 @@ LOGDIR=/ccs/home/poare/lqcd/multigrid/logs/ckpoint_lat.1000
 for f in $CONFIG $BIN; do
   [ -r $f ] || { echo "NOT READABLE: $f -- stopping"; exit 1; }
 done
+
+elems () { for x in $1; do printf "<elem>%s</elem>" $x; done; }
 
 mkdir -p $LOGDIR
 LOG=$LOGDIR/MG_InvIter_${SLURM_JOB_ID}.log
@@ -102,7 +107,7 @@ cat << EOF > $PARAMS
     <KMax>$KMAX</KMax>
     <RoundTol>5e-4</RoundTol>
     <RoundMaxOuter>30</RoundMaxOuter>
-    <CensusK><elem>2</elem><elem>3</elem><elem>5</elem><elem>10</elem><elem>20</elem></CensusK>
+    <CensusK>$(elems "$CENSUSK")</CensusK>
     <CensusNstop>96</CensusNstop>
     <CensusNk>128</CensusNk>
     <CensusNm>160</CensusNm>
@@ -160,5 +165,5 @@ kill $WATCH 2>/dev/null
 echo "===== END STEP inviter exit $rc =====" >> $LOG
 python3 $COMPACT $LOG || echo "  compact log failed: python3 $COMPACT $LOG"
 echo "step inviter exit $rc"
-grep -h "II-SETUP\|II-SOLVE\|II-NUL \|II-ROUND \|II-ADJCHECK\|II-CENSUS \|II-CHECKA \|II-CHECKB \|II-DONE\|Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG | cut -c1-200
+grep -h "II-SETUP\|II-SOLVE\|II-NUL \|II-ROUND \|II-SPAN \|II-ADJCHECK\|II-CENSUS \|II-CHECKA \|II-CHECKB \|II-DONE\|Bus error\|Memory access fault\|NO_TRANSLATION\|CANCELLED" $LOG | cut -c1-200
 tail -3 $LOG | cut -c1-160
