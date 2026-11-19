@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#SBATCH --job-name=pvinv_ls_scan_8
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 24:00:00
+
+nodes=8
+nproc=8
+MPIRUN='srun -N8 -n'${nproc}
+
+Nm=40
+Nk=20
+maxIter=10000
+Nstop=15
+rf="EvalNormSmall"
+Ls=${Ls:-16}     # set per job: sbatch --export=ALL,Ls=24 ...
+mass=0.1
+
+root="ckpoint_EODWF_lat.125"
+runname="PVinv_vs_PVdagM_Ls${Ls}_m${mass}_Nm${Nm}_Nk${Nk}_${SLURM_JOB_ID}"
+
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_EODWF_lat.125"
+
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+outDir="${homedir}/lqcd/multigrid/spectra/${root}/${runname}"
+mkdir -p ${logDir}
+mkdir -p ${outDir}
+logs="${logDir}/${runname}.log"
+
+cd ${homedir}/Grid/build/examples
+
+mpigrid=1.2.2.2
+vol=8.8.8.8
+
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+OPT2='  --auto-tune --verbose_add cg_performance '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=0:64:1
+
+module load openmpi
+
+$MPIRUN ./Example_pvinv_vs_pvdagm_spec ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${outDir} ${rf} --mpi ${mpigrid} --grid ${vol} --Ls ${Ls} --mass ${mass} ${OPT} ${OPT2} > ${logs}
