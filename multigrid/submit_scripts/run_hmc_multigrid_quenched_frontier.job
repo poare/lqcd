@@ -120,7 +120,7 @@ REFRESHTOL=${REFRESHTOL:-0.1}
 REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
 REFRESHORTHO=${REFRESHORTHO:-0}
-REFRESHKICK=${REFRESHKICK:-0}
+REFRESHKICK=${REFRESHKICK:-0}            # noise relative to |v|, once per update before the first pass; 0: none
 NOISEBASIS=${NOISEBASIS:-0}              # 1: start from Gaussian noise (k = 0 of the A^{-k} scan)
 OUTERMAXIT=${OUTERMAXIT:-13}             # restarts of the outer GCR, 12 steps each
 TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
