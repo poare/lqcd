@@ -111,9 +111,12 @@ CORRKRYLOVNSTEP=${CORRKRYLOVNSTEP:-10}   # CORRPRECON none: GCR(n,n), CORRMAXRES
 DIAGEVERY=${DIAGEVERY:-0}                # >0: QHMC-DIAG basis diagnostics after setup and every DIAGEVERY MD steps
 DIAGTEST=${DIAGTEST:-10}                 # test vectors from fresh noise (about 25 s each at p0); 0: none
 DIAGTESTREGEN=${DIAGTESTREGEN:-0}        # 1: new test vectors at every diagnostic (moving field)
-DIAGREFERENCE=${DIAGREFERENCE:-1}        # 1: the starting basis, kept in fp32, is the reference
+DIAGREFERENCE=${DIAGREFERENCE:-1}        # 1: the starting basis, kept in fp32, is the reference; 2 (Mode refresh): the basis before each update
 DIAGTESTROUNDS=${DIAGTESTROUNDS:-3}      # depths of the test vectors (rounds of inverse iteration), ascending, e.g. "2 3 4 5"
 DIAGBLOCKGRAM=${DIAGBLOCKGRAM:-0}        # 1: block Gram spectrum of the raw basis at each diagnostic (QHMC-DIAG-GRAM)
+DIAGBLOCKNUL=${DIAGBLOCKNUL:-0}          # 1: nulliness of each basis vector measured block by block at each diagnostic (QHMC-DIAG-BNUL)
+DIAGCR=${DIAGCR:-0}                      # >0: sweeps of compatible relaxation with the fine smoother before each diagnostic solve (QHMC-CR)
+DIAGCRVECTORS=${DIAGCRVECTORS:-2}        # DIAGCR: noise vectors
 TRAJL=${TRAJL:-0.2}                      # trajectory length
 MDSTEPS=${MDSTEPS:-20}                   # MD steps per trajectory; eps = TRAJL/MDSTEPS
 REFRESHTOL=${REFRESHTOL:-0.1}
@@ -121,6 +124,7 @@ REFRESHPASSES=${REFRESHPASSES:-3}
 REFRESHMAXOUTER=${REFRESHMAXOUTER:-1}
 REFRESHORTHO=${REFRESHORTHO:-0}
 REFRESHKICK=${REFRESHKICK:-0}            # noise relative to |v|, once per update before the first pass; 0: none
+REFRESHKICKSHAPE=${REFRESHKICKSHAPE:-global} # global: uniform noise; site: noise shaped to |v(x)| site by site
 NOISEBASIS=${NOISEBASIS:-0}              # 1: start from Gaussian noise (k = 0 of the A^{-k} scan)
 OUTERMAXIT=${OUTERMAXIT:-13}             # restarts of the outer GCR, 12 steps each
 TIMEOUT=${TIMEOUT:-235m}                 # keep a few minutes under --time
@@ -230,6 +234,7 @@ cat << EOF > $PARAMS
     <RefreshPasses>$REFRESHPASSES</RefreshPasses>
     <RefreshOrthonormalise>$REFRESHORTHO</RefreshOrthonormalise>
     <RefreshKick>$REFRESHKICK</RefreshKick>
+    <RefreshKickShape>$REFRESHKICKSHAPE</RefreshKickShape>
     <NoiseBasis>$NOISEBASIS</NoiseBasis>
     <CorrTol>$CORRTOL</CorrTol>
     <CorrMaxRestarts>$CORRMAXRESTARTS</CorrMaxRestarts>
@@ -244,6 +249,9 @@ cat << EOF > $PARAMS
     <DiagReference>$DIAGREFERENCE</DiagReference>
     <DiagTestRounds>$(elems "$DIAGTESTROUNDS")</DiagTestRounds>
     <DiagBlockGram>$DIAGBLOCKGRAM</DiagBlockGram>
+    <DiagBlockNul>$DIAGBLOCKNUL</DiagBlockNul>
+    <DiagCR>$DIAGCR</DiagCR>
+    <DiagCRVectors>$DIAGCRVECTORS</DiagCRVectors>
     <MultiGrid>
       <Setup>
         <Block1>$(elems "$BLOCK1")</Block1>
