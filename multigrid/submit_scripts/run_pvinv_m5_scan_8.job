@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# pv-inv-spec M5 scan on ckpoint_EODWF_lat.125 (8^4), one job per Ls:
+#   sbatch --export=ALL,Ls=16 run_pvinv_m5_scan_8.job
+# Step 1: Example_pvinv_vs_pvdagm_spec, PV^dag M and PV^-1 M spectra (+ evecs) for each M5 in M5_SPEC.
+# Step 2: Example_pvdagpv_spec, PV^dag PV spectrum, Rayleigh quotients and s-profiles for each M5 in M5_PVPV.
+# Each driver writes one subdirectory M5_<M5> per value inside its run directory.
+
+#SBATCH --job-name=pvinv_m5_scan_8
+#SBATCH --nodes=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=riken
+#SBATCH -q riken
+#SBATCH --account=rbrcgeneral
+#SBATCH -t 8:00:00
+
+nodes=8
+nproc=8
+MPIRUN='srun -N8 -n'${nproc}
+
+Ls=${Ls:-16}                      # set per job: sbatch --export=ALL,Ls=24 ...
+mass=0.1
+M5_SPEC=${M5_SPEC:-1.0,1.4}       # M5 = 1.8 already done in 441634-441637
+M5_PVPV=${M5_PVPV:-1.0,1.4,1.8}
+
+root="ckpoint_EODWF_lat.125"
+homedir=/sdcc/u/poare
+inFile="${homedir}/PETSc-Grid/ckpoint_EODWF_lat.125"
+logDir="${homedir}/lqcd/multigrid/logs/${root}"
+specDir="${homedir}/lqcd/multigrid/spectra/${root}"
+mkdir -p ${logDir}
+
+cd ${homedir}/Grid/build/examples
+
+mpigrid=1.2.2.2
+vol=8.8.8.8
+
+OPT='  --shm-mpi 0 --shm 16384  --comms-overlap --comms-concurrent --dslash-asm '
+OPT2='  --auto-tune --verbose_add cg_performance '
+
+export OMP_NUM_THREADS=64
+export OMP_PLACES=0:64:1
+
+module load openmpi
+
+# Step 1: PV^dag M and PV^-1 M
+Nm=40; Nk=20; maxIter=10000; Nstop=15; rf="EvalNormSmall"
+runname="PVinv_vs_PVdagM_Ls${Ls}_m${mass}_Nm${Nm}_Nk${Nk}_M5scan_${SLURM_JOB_ID}"
+mkdir -p ${specDir}/${runname}
+$MPIRUN ./Example_pvinv_vs_pvdagm_spec ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${specDir}/${runname} ${rf} --mpi ${mpigrid} --grid ${vol} --Ls ${Ls} --mass ${mass} --M5 ${M5_SPEC} ${OPT} ${OPT2} > ${logDir}/${runname}.log
+
+# Step 2: PV^dag PV
+Nm=80; Nk=40; maxIter=10000; Nstop=30
+runname="PVdagPV_Ls${Ls}_m${mass}_Nm${Nm}_Nk${Nk}_M5scan_${SLURM_JOB_ID}"
+mkdir -p ${specDir}/${runname}
+$MPIRUN ./Example_pvdagpv_spec ${Nm} ${Nk} ${maxIter} ${Nstop} ${inFile} ${specDir}/${runname} --mpi ${mpigrid} --grid ${vol} --Ls ${Ls} --mass ${mass} --M5 ${M5_PVPV} ${OPT} ${OPT2} > ${logDir}/${runname}.log
