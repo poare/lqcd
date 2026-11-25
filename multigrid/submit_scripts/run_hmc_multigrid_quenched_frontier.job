@@ -117,6 +117,10 @@ DIAGBLOCKGRAM=${DIAGBLOCKGRAM:-0}        # 1: block Gram spectrum of the raw bas
 DIAGBLOCKNUL=${DIAGBLOCKNUL:-0}          # 1: nulliness of each basis vector measured block by block at each diagnostic (QHMC-DIAG-BNUL)
 DIAGCR=${DIAGCR:-0}                      # >0: sweeps of compatible relaxation with the fine smoother before each diagnostic solve (QHMC-CR)
 DIAGCRVECTORS=${DIAGCRVECTORS:-2}        # DIAGCR: noise vectors
+TWINUPDATE=${TWINUPDATE:-0}              # 1 (MODE refresh, DIAGREFERENCE 2): also refresh each vector without the kick, F(v) (QHMC-TWIN)
+TWINBASELINE=${TWINBASELINE:-0}          # TWINUPDATE: evenly spaced vectors whose noise is also refreshed alone, F(eta); 0: none
+TWINBASELINEEVERY=${TWINBASELINEEVERY:-1} # TWINBASELINE: at steps with step%TWINBASELINEEVERY==0
+SOLVEMGEVERY=${SOLVEMGEVERY:-1}          # the MG solve only at steps with step%SOLVEMGEVERY==0; updates and diagnostics still every SOLVEEVERY
 TRAJL=${TRAJL:-0.2}                      # trajectory length
 MDSTEPS=${MDSTEPS:-20}                   # MD steps per trajectory; eps = TRAJL/MDSTEPS
 REFRESHTOL=${REFRESHTOL:-0.1}
@@ -252,6 +256,10 @@ cat << EOF > $PARAMS
     <DiagBlockNul>$DIAGBLOCKNUL</DiagBlockNul>
     <DiagCR>$DIAGCR</DiagCR>
     <DiagCRVectors>$DIAGCRVECTORS</DiagCRVectors>
+    <TwinUpdate>$TWINUPDATE</TwinUpdate>
+    <TwinBaseline>$TWINBASELINE</TwinBaseline>
+    <TwinBaselineEvery>$TWINBASELINEEVERY</TwinBaselineEvery>
+    <SolveMGEvery>$SOLVEMGEVERY</SolveMGEvery>
     <MultiGrid>
       <Setup>
         <Block1>$(elems "$BLOCK1")</Block1>
