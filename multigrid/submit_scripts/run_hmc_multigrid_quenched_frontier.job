@@ -198,7 +198,7 @@ export FI_HMEM_ROCR_USE_DMABUF=0        # avoidance of the CXI NO_TRANSLATION fa
 export MPICH_GPU_SUPPORT_ENABLED=1
 export MPICH_SMP_SINGLE_COPY_MODE=CMA
 export MPICH_OFI_NIC_POLICY=GPU
-export GRID_ALLOC_NCACHE_LARGE=64
+export GRID_ALLOC_NCACHE_LARGE=${NCACHELARGE:-64}   # Grid's cache of freed device blocks; not released when hipMalloc fails
 
 module load libfabric
 
